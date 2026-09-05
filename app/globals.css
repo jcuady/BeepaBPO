@@ -1,0 +1,212 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-navy: #1f2058;
+  --color-green: #119446;
+  /* Interactive/text green darkened for WCAG AA 4.5:1 on white; brand #119446 kept for accents */
+  --color-green-strong: #0b6e34;
+  --color-lime: #93c63d;
+  --color-ink: #17182b;
+  --color-slate: #667085;
+  --color-line: #eaecf0;
+  --color-mist: #f5f7f6;
+  --color-soft-green: #eef7e8;
+  --color-white: #ffffff;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-manrope);
+  --font-heading: var(--font-manrope);
+  --font-body: var(--font-inter);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+:root {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #17182b;
+  --card: #ffffff;
+  --card-foreground: #17182b;
+  --popover: #ffffff;
+  --popover-foreground: #17182b;
+  --primary: #0b6e34;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f7f6;
+  --secondary-foreground: #1f2058;
+  --muted: #f5f7f6;
+  --muted-foreground: #667085;
+  --accent: #eef7e8;
+  --accent-foreground: #1f2058;
+  --destructive: #b42318;
+  --border: #eaecf0;
+  --input: #eaecf0;
+  --ring: #0b6e34;
+  --radius: 8px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth font-sans;
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-size: 16px;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-green-strong ring-offset-2 ring-offset-white;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display text-navy;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Header scrolled state via scroll timeline; fallback is solid white */
+.site-header {
+  background-color: rgb(255 255 255 / 0.92);
+  border-bottom: 1px solid transparent;
+  backdrop-filter: blur(8px);
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .site-header {
+      animation: header-solid linear both;
+      animation-timeline: scroll();
+      animation-range: 0 48px;
+    }
+  }
+}
+
+@keyframes header-solid {
+  from {
+    background-color: rgb(255 255 255 / 0.72);
+    border-bottom-color: transparent;
+    box-shadow: none;
+  }
+  to {
+    background-color: #ffffff;
+    border-bottom-color: #eaecf0;
+    box-shadow: 0 1px 0 rgb(23 24 43 / 0.04);
+  }
+}
+
+/* Hero entrance */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: auto) {
+    .hero-enter {
+      animation: hero-in 500ms var(--ease-out) both;
+    }
+
+    .hero-enter-delay {
+      animation: hero-in 500ms var(--ease-out) 80ms both;
+    }
+  }
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@starting-style {
+  .hero-enter,
+  .hero-enter-delay {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* Process timeline stroke draw */
+.process-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .process-line {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      animation: draw-line linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 60%;
+    }
+  }
+}
+
+@keyframes draw-line {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-enter,
+  .hero-enter-delay,
+  .process-line,
+  .site-header {
+    animation: none !important;
+  }
+
+  .process-line {
+    stroke-dashoffset: 0;
+  }
+}
