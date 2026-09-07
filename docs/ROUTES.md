@@ -87,6 +87,7 @@ Public CMS read: `/about` (settings + industries + testimonials), `/services`, `
 | `/app/crm/proposals` | perm `crm.read` | `crm_proposals` | create + status if `crm.manage` |
 | `/app/clients` | canAny clients.* | client `organizations` + memberships | invite client_admin/viewer if `clients.manage` |
 | `/app/tickets` | perm `tickets.read` | `tickets` + SLA + assignee | status (confirm); filters |
+| `/app/tickets/sla` | perm `tickets.manage` | Beepa `ticket_sla_policies` | create missing / update targets |
 | `/app/tickets/[id]` | perm `tickets.read` | ticket, messages, SLA, assignee | assign + status if `tickets.manage`; reply |
 | `/app/reports` | canAny reports.* | workforce/ticket/CRM counts | CSV export if `reports.export` |
 | `/app/reports/export` | perm `reports.export` | CSV download (`?dataset=`) | snapshot\|employees\|attendance\|tickets\|leads |

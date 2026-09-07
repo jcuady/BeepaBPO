@@ -50,6 +50,30 @@ export const ticketAssignSchema = z.object({
     .transform((v) => (v === "" || v == null ? null : v)),
 });
 
+export const ticketSlaPolicyUpdateSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(2, "Name is required.").max(120),
+  first_response_minutes: z
+    .number()
+    .int()
+    .min(1, "Must be at least 1 minute.")
+    .max(10080, "Max 7 days."),
+  resolution_minutes: z
+    .number()
+    .int()
+    .min(1, "Must be at least 1 minute.")
+    .max(43200, "Max 30 days."),
+  active: z.boolean(),
+});
+
+export const ticketSlaPolicyCreateSchema = z.object({
+  priority: z.enum(["low", "normal", "high", "urgent"]),
+  name: z.string().min(2, "Name is required.").max(120),
+  first_response_minutes: z.number().int().min(1).max(10080),
+  resolution_minutes: z.number().int().min(1).max(43200),
+  active: z.boolean(),
+});
+
 export const profileUpdateSchema = z.object({
   display_name: z.string().min(1, "Display name is required.").max(160),
   phone: z.string().max(40).optional(),

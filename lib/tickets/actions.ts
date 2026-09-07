@@ -12,6 +12,8 @@ import {
   ticketAssignSchema,
   ticketMessageSchema,
   ticketSchema,
+  ticketSlaPolicyCreateSchema,
+  ticketSlaPolicyUpdateSchema,
   ticketStatusSchema,
 } from "@/lib/validation/app";
 import type { Database } from "@/types/database";
@@ -310,4 +312,153 @@ export async function assignTicket(input: unknown): Promise<ActionResult> {
     ok: true,
     message: assigneeId ? "Ticket assigned." : "Assignee cleared.",
   };
+}
+
+export async function updateTicketSlaPolicy(
+  input: unknown,
+): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!can(workspace.permissions, "tickets.manage")) {
+    return {
+      ok: false,
+      error: "You do not have permission to manage SLA policies.",
+    };
+  }
+
+  const parsed = ticketSlaPolicyUpdateSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<
+        string,
+        string[]
+      >,
+      error: "Please check the form and try again.",
+    };
+  }
+
+  if (
+    parsed.data.resolution_minutes < parsed.data.first_response_minutes
+  ) {
+    return {
+      ok: false,
+      error: "Resolution target must be at least the first-response target.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data: before } = await supabase
+    .from("ticket_sla_policies")
+    .select("id, name, first_response_minutes, resolution_minutes, active, priority")
+    .eq("id", parsed.data.id)
+    .eq("organization_id", BEEPA_ORG_ID)
+    .maybeSingle();
+
+  if (!before) {
+    return { ok: false, error: "SLA policy not found." };
+  }
+
+  const { error } = await supabase
+    .from("ticket_sla_policies")
+    .update({
+      name: parsed.data.name,
+      first_response_minutes: parsed.data.first_response_minutes,
+      resolution_minutes: parsed.data.resolution_minutes,
+      active: parsed.data.active,
+    })
+    .eq("id", parsed.data.id)
+    .eq("organization_id", BEEPA_ORG_ID);
+
+  if (error) {
+    return { ok: false, error: error.message ?? "Unable to update SLA policy." };
+  }
+
+  const { logAudit } = await import("@/lib/audit/log");
+  await logAudit(supabase, {
+    actorUserId: workspace.user.id,
+    organizationId: BEEPA_ORG_ID,
+    action: "ticket.sla_policy_update",
+    entityType: "ticket_sla_policy",
+    entityId: parsed.data.id,
+    before,
+    after: {
+      name: parsed.data.name,
+      first_response_minutes: parsed.data.first_response_minutes,
+      resolution_minutes: parsed.data.resolution_minutes,
+      active: parsed.data.active,
+    },
+  });
+
+  revalidatePath("/app/tickets/sla");
+  revalidatePath("/app/tickets");
+  return { ok: true, message: "SLA policy saved." };
+}
+
+export async function createTicketSlaPolicy(
+  input: unknown,
+): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!can(workspace.permissions, "tickets.manage")) {
+    return {
+      ok: false,
+      error: "You do not have permission to manage SLA policies.",
+    };
+  }
+
+  const parsed = ticketSlaPolicyCreateSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<
+        string,
+        string[]
+      >,
+      error: "Please check the form and try again.",
+    };
+  }
+
+  if (
+    parsed.data.resolution_minutes < parsed.data.first_response_minutes
+  ) {
+    return {
+      ok: false,
+      error: "Resolution target must be at least the first-response target.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ticket_sla_policies")
+    .insert({
+      organization_id: BEEPA_ORG_ID,
+      priority: parsed.data.priority,
+      name: parsed.data.name,
+      first_response_minutes: parsed.data.first_response_minutes,
+      resolution_minutes: parsed.data.resolution_minutes,
+      active: parsed.data.active,
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    return {
+      ok: false,
+      error: error?.message ?? "Unable to create SLA policy.",
+    };
+  }
+
+  const { logAudit } = await import("@/lib/audit/log");
+  await logAudit(supabase, {
+    actorUserId: workspace.user.id,
+    organizationId: BEEPA_ORG_ID,
+    action: "ticket.sla_policy_create",
+    entityType: "ticket_sla_policy",
+    entityId: data.id,
+    after: parsed.data,
+  });
+
+  revalidatePath("/app/tickets/sla");
+  return { ok: true, message: "SLA policy created." };
 }

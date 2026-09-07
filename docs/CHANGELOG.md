@@ -72,6 +72,7 @@ Indexes and covering membership lookups (`20260906001300`), applicant `membershi
 - Auth trust: removed decoy Google/Microsoft CTAs (email/password only until OAuth is configured)
 - Auth lock: email/password confirmed as intentional path; OAuth deferred in status/docs; cash-advance audit `entityType` aligned to `cash_advance`
 - Ticket assignment: `assignTicket` + `TicketAssignForm` on `/app/tickets/[id]`; assignee column on queue; Beepa internal assignee list; notify assignee
+- SLA policy admin: `/app/tickets/sla` create/update Beepa `ticket_sla_policies` (`tickets.manage`); nav link under Tickets
 - NTE close-out (`resolveNteCase` + `NteResolveForm` on `/app/hr/nte`; outcome on `/app/my/nte`)
 - Admin invite (`inviteInternalUser` + `/app/admin/users`; shared `inviteOrResolveAuthUser`)
 - Cron/push ops smoke (`lib/jobs/cron-jobs.ts` dry-run, `/app/admin` Ops smoke, `pnpm smoke:cron`); applied `20260907140000` on Beepa remote
