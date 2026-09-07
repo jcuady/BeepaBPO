@@ -1588,6 +1588,7 @@ export type Database = {
       }
       crm_deals: {
         Row: {
+          client_organization_id: string | null
           company_id: string | null
           created_at: string
           currency: string
@@ -1602,6 +1603,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          client_organization_id?: string | null
           company_id?: string | null
           created_at?: string
           currency?: string
@@ -1616,6 +1618,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          client_organization_id?: string | null
           company_id?: string | null
           created_at?: string
           currency?: string
@@ -1630,6 +1633,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "crm_deals_client_organization_id_fkey"
+            columns: ["client_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "crm_deals_company_id_fkey"
             columns: ["company_id"]

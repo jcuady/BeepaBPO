@@ -3,9 +3,16 @@
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { can, canAll } from "@/lib/permissions/can";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { crmLeadSchema, crmLeadStatusSchema, crmDealSchema, crmDealStageSchema } from "@/lib/validation/app";
+import {
+  crmLeadSchema,
+  crmLeadStatusSchema,
+  crmDealSchema,
+  crmDealStageSchema,
+  convertDealToClientSchema,
+} from "@/lib/validation/app";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import type { Database } from "@/types/database";
 
@@ -397,4 +404,205 @@ export async function updateCrmDealStage(
     revalidatePath(`/app/crm/leads/${existing.lead_id}`);
   }
   return { ok: true, message: "Deal stage updated." };
+}
+
+function slugifyOrgName(name: string) {
+  const base = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+  return base || "client";
+}
+
+export async function convertWonDealToClient(
+  input: unknown,
+): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!canAll(workspace.permissions, ["crm.manage", "clients.manage"])) {
+    return {
+      ok: false,
+      error: "You need CRM and clients manage permissions to convert a deal.",
+    };
+  }
+
+  const parsed = convertDealToClientSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<
+        string,
+        string[]
+      >,
+      error: "Please check the form and try again.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data: deal } = await supabase
+    .from("crm_deals")
+    .select(
+      "id, title, stage, client_organization_id, lead_id, currency, estimated_value, crm_leads(company_name, contact_email, country)",
+    )
+    .eq("id", parsed.data.deal_id)
+    .maybeSingle();
+
+  if (!deal) return { ok: false, error: "Deal not found." };
+  if (deal.stage !== "won") {
+    return {
+      ok: false,
+      error: "Mark the deal as won before creating a client organization.",
+    };
+  }
+  if (deal.client_organization_id) {
+    return {
+      ok: false,
+      error: "This deal is already linked to a client organization.",
+    };
+  }
+
+  const lead = Array.isArray(deal.crm_leads)
+    ? deal.crm_leads[0]
+    : deal.crm_leads;
+  const orgName =
+    parsed.data.organization_name?.trim() ||
+    lead?.company_name?.trim() ||
+    deal.title.trim();
+
+  if (orgName.length < 2) {
+    return {
+      ok: false,
+      fieldErrors: {
+        organization_name: ["Organization name is required."],
+      },
+      error: "Organization name is required.",
+    };
+  }
+
+  let slug = slugifyOrgName(orgName);
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const candidate =
+      attempt === 0 ? slug : `${slug}-${Math.floor(100 + Math.random() * 900)}`;
+    const { data: clash } = await supabase
+      .from("organizations")
+      .select("id")
+      .eq("slug", candidate)
+      .maybeSingle();
+    if (!clash) {
+      slug = candidate;
+      break;
+    }
+    if (attempt === 4) {
+      return {
+        ok: false,
+        error: "Unable to allocate a unique organization slug.",
+      };
+    }
+  }
+
+  const { data: org, error: orgError } = await supabase
+    .from("organizations")
+    .insert({
+      type: "client",
+      name: orgName,
+      slug,
+      legal_name: orgName,
+      country: lead?.country ?? null,
+      status: "active",
+    })
+    .select("id, name")
+    .single();
+
+  if (orgError || !org) {
+    return {
+      ok: false,
+      error: orgError?.message ?? "Unable to create client organization.",
+    };
+  }
+
+  const { error: settingsError } = await supabase
+    .from("client_settings")
+    .insert({
+      client_organization_id: org.id,
+      allow_attendance_view: true,
+      allow_billing_view: true,
+      allow_documents_view: true,
+      allow_performance_view: true,
+      allow_ticketing: true,
+      allow_timesheet_approval: true,
+    });
+
+  if (settingsError) {
+    await supabase.from("organizations").delete().eq("id", org.id);
+    return {
+      ok: false,
+      error: settingsError.message ?? "Unable to create client settings.",
+    };
+  }
+
+  // ponytail: billing account is optional; billing.manage may be absent for sales roles.
+  if (can(workspace.permissions, "billing.manage")) {
+    await supabase.from("billing_accounts").insert({
+      client_organization_id: org.id,
+      currency: (deal.currency || "USD").toUpperCase(),
+      billing_email: lead?.contact_email ?? null,
+      status: "active",
+    });
+  }
+
+  const { error: linkError } = await supabase
+    .from("crm_deals")
+    .update({ client_organization_id: org.id })
+    .eq("id", deal.id);
+
+  if (linkError) {
+    await supabase.from("billing_accounts").delete().eq("client_organization_id", org.id);
+    await supabase.from("client_settings").delete().eq("client_organization_id", org.id);
+    await supabase.from("organizations").delete().eq("id", org.id);
+    return {
+      ok: false,
+      error: linkError.message ?? "Unable to link deal to client organization.",
+    };
+  }
+
+  await supabase.from("crm_activities").insert({
+    deal_id: deal.id,
+    lead_id: deal.lead_id,
+    activity_type: "note",
+    subject: "Client organization created",
+    body: `Created client org “${org.name}” from won deal.`,
+    completed_at: new Date().toISOString(),
+    owner_user_id: workspace.user.id,
+  });
+
+  try {
+    const { logAudit } = await import("@/lib/audit/log");
+    await logAudit(supabase, {
+      actorUserId: workspace.user.id,
+      organizationId: BEEPA_ORG_ID,
+      action: "crm_deal.convert_client",
+      entityType: "crm_deal",
+      entityId: deal.id,
+      after: {
+        client_organization_id: org.id,
+        organization_name: org.name,
+        slug,
+      },
+    });
+  } catch {
+    // Non-blocking
+  }
+
+  revalidatePath("/app/crm");
+  revalidatePath("/app/crm/deals");
+  revalidatePath(`/app/crm/deals/${deal.id}`);
+  revalidatePath("/app/clients");
+  revalidatePath("/app/billing");
+  if (deal.lead_id) revalidatePath(`/app/crm/leads/${deal.lead_id}`);
+
+  return {
+    ok: true,
+    message: `Client organization “${org.name}” created. Invite users from Clients.`,
+  };
 }

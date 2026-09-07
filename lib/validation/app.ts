@@ -106,6 +106,15 @@ export const crmDealStageSchema = z.object({
   notes: z.string().max(2000).optional(),
 });
 
+export const convertDealToClientSchema = z.object({
+  deal_id: z.string().uuid(),
+  organization_name: z
+    .string()
+    .min(2, "Organization name is required.")
+    .max(120)
+    .optional(),
+});
+
 export const jobPostSchema = z.object({
   title: z.string().min(3, "Title is required.").max(200),
   slug: z

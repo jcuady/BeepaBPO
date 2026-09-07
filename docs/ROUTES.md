@@ -83,7 +83,7 @@ Public CMS read: `/about` (settings + industries + testimonials), `/services`, `
 | `/app/crm/leads` | perm `crm.read` | `crm_leads` | create; filters; status update if `crm.manage` |
 | `/app/crm/leads/[id]` | perm `crm.read` | lead + activities | status update; open deal if `crm.manage` |
 | `/app/crm/deals` | perm `crm.read` | `crm_deals` | create; stage filter; stage update if `crm.manage` |
-| `/app/crm/deals/[id]` | perm `crm.read` | deal + activities | stage update if `crm.manage` |
+| `/app/crm/deals/[id]` | perm `crm.read` | deal + activities | stage update if `crm.manage`; convert to client if won + `clients.manage` |
 | `/app/clients` | canAny clients.* | client `organizations` + memberships | invite client_admin/viewer if `clients.manage` |
 | `/app/tickets` | perm `tickets.read` | `tickets` | status (confirm); filters |
 | `/app/tickets/[id]` | perm `tickets.read` | ticket, messages, internal notes | reply, status |

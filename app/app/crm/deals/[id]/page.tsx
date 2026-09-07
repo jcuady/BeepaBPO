@@ -5,10 +5,11 @@ import { notFound, redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { DealStageForm } from "@/components/app/crm/deal-stage-form";
+import { ConvertDealToClientForm } from "@/components/app/crm/convert-deal-to-client-form";
 import { StatusBadge } from "@/components/app/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
-import { can } from "@/lib/permissions/can";
+import { can, canAll } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "CRM Deal" };
@@ -41,7 +42,7 @@ export default async function CrmDealDetailPage({
     supabase
       .from("crm_deals")
       .select(
-        "id, title, stage, estimated_value, currency, expected_close_date, lost_reason, lead_id, owner_user_id, created_at, updated_at, crm_leads(id, company_name, contact_name, status)",
+        "id, title, stage, estimated_value, currency, expected_close_date, lost_reason, lead_id, owner_user_id, client_organization_id, created_at, updated_at, crm_leads(id, company_name, contact_name, status), organizations:client_organization_id(id, name, slug)",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -56,7 +57,14 @@ export default async function CrmDealDetailPage({
   if (!deal) notFound();
 
   const canManage = can(workspace.permissions, "crm.manage");
+  const canConvert = canAll(workspace.permissions, [
+    "crm.manage",
+    "clients.manage",
+  ]);
   const lead = Array.isArray(deal.crm_leads) ? deal.crm_leads[0] : deal.crm_leads;
+  const clientOrg = Array.isArray(deal.organizations)
+    ? deal.organizations[0]
+    : deal.organizations;
 
   return (
     <PageContainer size="narrow">
@@ -115,12 +123,35 @@ export default async function CrmDealDetailPage({
               <span className="font-medium text-navy">{deal.lost_reason}</span>
             </p>
           ) : null}
+          {clientOrg ? (
+            <p className="text-slate">
+              Client org:{" "}
+              <Link
+                href="/app/clients"
+                className="font-medium text-green-strong hover:underline"
+              >
+                {clientOrg.name}
+              </Link>
+            </p>
+          ) : null}
           <p className="text-xs text-slate">
             Updated {format(new Date(deal.updated_at), "MMM d, yyyy HH:mm")}
           </p>
           {canManage ? (
             <div className="pt-2">
               <DealStageForm dealId={deal.id} currentStage={deal.stage} />
+            </div>
+          ) : null}
+          {canConvert && deal.stage === "won" && !deal.client_organization_id ? (
+            <div className="border-t border-line pt-4">
+              <p className="mb-3 text-sm text-slate">
+                Convert this won deal into an active client organization for
+                portal invites and billing.
+              </p>
+              <ConvertDealToClientForm
+                dealId={deal.id}
+                defaultName={lead?.company_name || deal.title}
+              />
             </div>
           ) : null}
         </CardContent>

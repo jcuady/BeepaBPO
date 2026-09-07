@@ -16,7 +16,7 @@
 
 **Intended:** Won CRM deal or Ops creates client org → `client_profiles` / settings → invite Client Admin → tenant RLS applies.
 
-**Today:** Orgs/settings readable; **client portal invite** on `/app/clients` (`inviteClientUser`, `clients.manage`) sends Supabase invite + client membership + `client_admin`/`client_viewer`. Creating new client orgs from CRM won-deal still thin.
+**Today:** Orgs/settings readable; **client portal invite** on `/app/clients` (`inviteClientUser`, `clients.manage`) sends Supabase invite + client membership + `client_admin`/`client_viewer`. **Won deal → client org** via `convertWonDealToClient` on `/app/crm/deals/[id]` (`crm.manage` + `clients.manage`) creates org + `client_settings` (+ `billing_accounts` when caller also has `billing.manage`).
 
 ## Applicant → Employee
 
@@ -54,7 +54,7 @@ Recruiter (`recruitment.manage`) on `/app/recruitment/applicants/[id]` calls `up
 
 ## CRM deals pipeline
 
-**Today:** Sales (`crm.manage`) creates deals on `/app/crm/deals` or from lead detail (`createCrmDeal` → `crm_deals` + activity). Stage moves via `updateCrmDealStage` (confirm; lost requires reason). Hub `/app/crm` shows deal count. Proposals UI and deal→client org onboarding still deferred.
+**Today:** Sales (`crm.manage`) creates deals on `/app/crm/deals` or from lead detail (`createCrmDeal` → `crm_deals` + activity). Stage moves via `updateCrmDealStage` (confirm; lost requires reason). Won deals convert to client orgs via `convertWonDealToClient`. Hub `/app/crm` shows deal count. Proposals UI still deferred.
 
 ## Job post lifecycle
 
