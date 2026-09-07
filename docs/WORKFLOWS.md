@@ -77,7 +77,7 @@ Requester creates → insert trigger attaches Beepa `ticket_sla_policies` by pri
 
 ## Auth sign-in
 
-**Today:** Email/password on `/login`, `/signup`, `/employee/login`. Social OAuth provider buttons are not rendered (no decoys). `/auth/callback` still supports code exchange when OAuth is configured later.
+**Today:** Email/password on `/login`, `/signup`, `/employee/login` (plus forgot/reset). **Social OAuth is deferred** — provider buttons are not rendered (no decoys). `/auth/callback` still supports code exchange if OAuth is enabled later.
 
 ## Cron + push
 

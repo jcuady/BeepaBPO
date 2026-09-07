@@ -13,7 +13,7 @@ Use after `pnpm seed:demo` with `DEMO_PASSWORD`.
 | HR | Employees search, leave approve, cash advances, **NTE create/resolve** | — |
 | Recruiter | Jobs create/**edit/publish/close**, applicants/stage, **hire convert** (needs `employees.manage` too) | — |
 | Sales | CRM leads **status update** + detail, **deals create/stage** | Approvals (hidden), Clients depth |
-| Marketing | Workspace self-service, **full CMS** (About/industries/testimonials/FAQs/services/blog/case studies), reports snapshot | Edit-in-place; CSV needs `reports.export` |
+| Marketing | Workspace self-service, **full CMS** (About/industries/testimonials/FAQs/services/blog/case studies) + edit-in-place, reports snapshot | CSV needs `reports.export` |
 | Operations | Tickets filters/status, **reports CSV**, **client invite** | Leave Review without perm |
 | Team Lead | Leave approve, attendance | Cash/tickets Review |
 | Finance | Payroll periods, cash-advance review, **billing + payments**, **reports CSV** | — |
@@ -22,4 +22,4 @@ Use after `pnpm seed:demo` with `DEMO_PASSWORD`.
 | Client Viewer | Read team/attendance | Mutations |
 | Applicant | Seeded application + profile | Empty careers-only story |
 
-Backlog stays unchecked: CMS edit-in-place, social OAuth, proposals→client onboarding. Client timesheet Approve/Send back is live when `allow_timesheet_approval` is on. E2E last green: 34/34 (pre-timesheet slice); re-run after deploy.
+Backlog next: ticket assignment UI, SLA policy admin, payroll workflow approval UI. Social OAuth deferred — email/password only. Client timesheet Approve/Send back is live when `allow_timesheet_approval` is on.

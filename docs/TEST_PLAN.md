@@ -109,9 +109,12 @@ Automation: Manual from `/app/approvals` with seeded pending rows.
 - [x] Dynamic approval workflow engine (resolve by code + multi-step advance; admin `/app/admin/workflows`)
 - [x] Client SLA compliance metric
 - [x] Client-org invite UI (`inviteClientUser`, `/app/clients`)
-- [ ] CMS edit-in-place for existing rows
-- [ ] Social OAuth CTAs (providers configured)
-- [ ] Deal → client onboarding / proposals UI
+- [x] CMS edit-in-place for existing rows (`CmsEditButton` + update* actions)
+- [x] Deal → client convert + CRM proposals UI
+- [ ] Ticket assignment UI (`assigned_user_id`)
+- [ ] SLA policy admin editor
+- [ ] Payroll approval via workflow engine UI
+- [ ] Social OAuth CTAs — **deferred**; email/password is the supported auth path
 
 ## CI / local gate
 

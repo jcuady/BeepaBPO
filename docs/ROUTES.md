@@ -100,15 +100,17 @@ Public CMS read: `/about` (settings + industries + testimonials), `/services`, `
 
 ## Auth and access
 
+Email/password only (OAuth deferred). No social provider CTAs.
+
 | Route | Audience |
 |-------|----------|
-| `/login` | Client & applicant |
-| `/employee/login` | Internal only |
+| `/login` | Client & applicant (email/password) |
+| `/employee/login` | Internal only (email/password) |
 | `/signup` | Public applicant signup |
 | `/forgot-password` | All |
 | `/reset-password` | All (session from email link) |
 | `/verify-email` | Post-signup |
-| `/auth/callback` | Code exchange; `safeNext` on `next` |
+| `/auth/callback` | Code exchange; `safeNext` on `next` (magic-link / future OAuth) |
 | `/app/access-denied` | Authenticated, no usable membership |
 | `forbidden.tsx` | Permission denial UI |
 

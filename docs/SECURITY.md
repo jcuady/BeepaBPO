@@ -5,7 +5,7 @@
 - Supabase Auth is the only credential store
 - Public signup cannot self-assign privileged roles
 - Employee login requires active internal membership
-- Login/signup UI is email/password only — Google/Microsoft CTAs removed until providers are configured
+- Login/signup UI is **email/password only** (intentional). Social OAuth deferred — no Google/Microsoft CTAs until product enables providers
 - Admin invite (`system.manage`) uses service-role `inviteUserByEmail`; owner/super_admin roles are not selectable from the invite form
 - Sessions refreshed in `proxy.ts`
 - Segment layouts gate `/app/my` (internal), `/app/client` (client), `/app/applicant` (applicant-only)

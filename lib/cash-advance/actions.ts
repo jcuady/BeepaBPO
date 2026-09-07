@@ -150,7 +150,7 @@ export async function reviewCashAdvance(
     actorUserId: workspace.user.id,
     organizationId: workspace.primaryMembership?.organization_id,
     action: `cash_advance.${action}`,
-    entityType: "cash_advance_request",
+    entityType: "cash_advance",
     entityId: requestId,
     before: { status: existing.status },
     after: {

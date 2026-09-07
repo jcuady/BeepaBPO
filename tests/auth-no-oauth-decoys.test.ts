@@ -3,8 +3,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * Trust: do not show social OAuth CTAs until providers are configured.
- * Disabled decoys imply a broken product; email/password is the supported path.
+ * Trust: email/password is the supported auth path.
+ * Do not show social OAuth CTAs while OAuth is deferred (no decoy buttons).
  */
 describe("auth forms have no decoy OAuth CTAs", () => {
   const login = readFileSync(
