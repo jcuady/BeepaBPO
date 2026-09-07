@@ -1,11 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { getAuthProvider } from "@/lib/auth/provider";
-import {
-  clearSessionCookie,
-  setSessionCookie,
-} from "@/lib/auth/session";
+import { z } from "zod";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
+import { getEnv } from "@/lib/env";
+import { safeNext } from "@/lib/auth/safe-next";
 import {
   employeeLoginSchema,
   forgotPasswordSchema,
@@ -30,6 +31,20 @@ function formDataToObject(formData: FormData) {
   return obj;
 }
 
+function authCallbackUrl(next?: string) {
+  const base = getEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const path = next ? `/auth/callback?next=${encodeURIComponent(next)}` : "/auth/callback";
+  return `${base}${path}`;
+}
+
+function splitFullName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/);
+  return {
+    firstName: parts[0] ?? "",
+    lastName: parts.slice(1).join(" "),
+  };
+}
+
 export async function loginAction(
   _prev: ActionState,
   formData: FormData,
@@ -44,21 +59,16 @@ export async function loginAction(
     };
   }
 
-  const result = await getAuthProvider().signIn(parsed.data);
-  if (!result.ok) {
-    return { ok: false, error: result.error };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: parsed.data.email,
+    password: parsed.data.password,
+  });
+  if (error) {
+    return { ok: false, error: "Invalid email or password." };
   }
 
-  await setSessionCookie({
-    sub: result.user.id,
-    email: result.user.email,
-    name: `${result.user.firstName} ${result.user.lastName}`,
-    verified: result.user.verified,
-    exp: Date.now() + 1000 * 60 * 60 * 24 * 7,
-  });
-
-  const next = (formData.get("next") as string) || "/app";
-  redirect(next.startsWith("/") ? next : "/app");
+  redirect(safeNext((formData.get("next") as string) || "/app"));
 }
 
 export async function employeeLoginAction(
@@ -78,21 +88,79 @@ export async function employeeLoginAction(
     };
   }
 
-  const result = await getAuthProvider().signIn(parsed.data);
-  if (!result.ok) {
-    return { ok: false, error: result.error };
+  const email = parsed.data.email;
+  if (!z.string().email().safeParse(email).success) {
+    return {
+      ok: false,
+      error: "Sign in with your work email. Employee ID lookup is not enabled yet.",
+    };
   }
 
-  await setSessionCookie({
-    sub: result.user.id,
-    email: result.user.email,
-    name: `${result.user.firstName} ${result.user.lastName}`,
-    verified: result.user.verified,
-    exp: Date.now() + 1000 * 60 * 60 * 24 * 7,
+  const supabase = await createClient();
+  const { data: signInData, error } = await supabase.auth.signInWithPassword({
+    email,
+    password: parsed.data.password,
   });
+  if (error) {
+    return { ok: false, error: "Invalid email or password." };
+  }
 
-  const next = (formData.get("next") as string) || "/app";
-  redirect(next.startsWith("/") ? next : "/app");
+  const userId = signInData.user?.id;
+  if (!userId) {
+    await supabase.auth.signOut();
+    return { ok: false, error: "Invalid email or password." };
+  }
+
+  const { data: isInternal } = await supabase.rpc("is_internal_user");
+  if (!isInternal) {
+    await supabase.auth.signOut();
+    return {
+      ok: false,
+      error: "Use the client or applicant sign-in at /login",
+    };
+  }
+
+  redirect(safeNext((formData.get("next") as string) || "/app"));
+}
+
+async function assignApplicantMembership(userId: string) {
+  try {
+    const admin = createAdminClient();
+    const { data: role } = await admin
+      .from("roles")
+      .select("id")
+      .eq("code", "applicant")
+      .single();
+    if (!role) return;
+
+    const { data: existing } = await admin
+      .from("organization_memberships")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("organization_id", BEEPA_ORG_ID)
+      .maybeSingle();
+    if (existing) return;
+
+    const { data: membership, error: membershipError } = await admin
+      .from("organization_memberships")
+      .insert({
+        user_id: userId,
+        organization_id: BEEPA_ORG_ID,
+        membership_type: "applicant",
+        status: "active",
+        is_primary: true,
+      })
+      .select("id")
+      .single();
+    if (membershipError || !membership) return;
+
+    await admin.from("membership_roles").insert({
+      membership_id: membership.id,
+      role_id: role.id,
+    });
+  } catch {
+    // ponytail: applicant membership may be assigned by seed/admin later
+  }
 }
 
 export async function signupAction(
@@ -110,16 +178,38 @@ export async function signupAction(
     };
   }
 
-  const result = await getAuthProvider().signUp(parsed.data);
-  if (!result.ok) {
-    return { ok: false, error: result.error };
+  const { firstName, lastName } = splitFullName(parsed.data.fullName);
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email: parsed.data.email,
+    password: parsed.data.password,
+    options: {
+      emailRedirectTo: authCallbackUrl("/app"),
+      data: {
+        full_name: parsed.data.fullName,
+        first_name: firstName,
+        last_name: lastName,
+        display_name: parsed.data.fullName,
+        company: parsed.data.company ?? null,
+      },
+    },
+  });
+
+  if (error) {
+    return {
+      ok: false,
+      error: "Unable to create account with that email.",
+    };
+  }
+
+  if (data.user?.id) {
+    await assignApplicantMembership(data.user.id);
   }
 
   return {
     ok: true,
     message:
-      "Account created. Check your email to verify before signing in. (Dev: use the verification link shown below.)",
-    verifyToken: result.verifyToken,
+      "Account created. Check your email to verify before signing in.",
   };
 }
 
@@ -137,13 +227,15 @@ export async function forgotPasswordAction(
     };
   }
 
-  const result = await getAuthProvider().requestPasswordReset(parsed.data.email);
+  const supabase = await createClient();
+  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: authCallbackUrl("/reset-password"),
+  });
+
   return {
     ok: true,
     message:
       "If an account exists for that email, we sent reset instructions.",
-    // Dev-only token surface for mock provider
-    verifyToken: result.token,
   };
 }
 
@@ -161,12 +253,26 @@ export async function resetPasswordAction(
     };
   }
 
-  const result = await getAuthProvider().resetPassword(
-    parsed.data.token,
-    parsed.data.password,
-  );
-  if (!result.ok) {
-    return { ok: false, error: result.error };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      ok: false,
+      error: "This reset link is invalid or has expired.",
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.data.password,
+  });
+  if (error) {
+    return {
+      ok: false,
+      error: "This reset link is invalid or has expired.",
+    };
   }
 
   return {
@@ -176,9 +282,13 @@ export async function resetPasswordAction(
 }
 
 export async function verifyEmailAction(token: string): Promise<ActionState> {
-  const result = await getAuthProvider().verifyEmail(token);
-  if (!result.ok) {
-    return { ok: false, error: result.error };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({
+    token_hash: token,
+    type: "email",
+  });
+  if (error) {
+    return { ok: false, error: "This verification link is invalid or has expired." };
   }
   return {
     ok: true,
@@ -187,6 +297,13 @@ export async function verifyEmailAction(token: string): Promise<ActionState> {
 }
 
 export async function logoutAction() {
-  await clearSessionCookie();
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/");
+}
+
+export async function logoutAllAction() {
+  const supabase = await createClient();
+  await supabase.auth.signOut({ scope: "global" });
   redirect("/");
 }

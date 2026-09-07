@@ -16,6 +16,8 @@ const FOOTER_COLS = [
       { href: "/about", label: "About" },
       { href: "/#why-beepa", label: "Why Beepa" },
       { href: "/careers", label: "Careers" },
+      { href: "/resources", label: "Resources" },
+      { href: "/case-studies", label: "Case studies" },
       { href: "/contact", label: "Contact" },
     ],
   },

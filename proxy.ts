@@ -1,23 +1,19 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { decodeSession, SESSION_COOKIE } from "@/lib/auth/session";
+import { NextResponse, type NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase/proxy";
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  const { user, supabaseResponse } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/app")) {
-    const token = request.cookies.get(SESSION_COOKIE)?.value;
-    const session = token ? decodeSession(token) : null;
-    if (!session) {
-      const login = new URL("/login", request.url);
-      login.searchParams.set("next", pathname);
-      return NextResponse.redirect(login);
-    }
+  if (pathname.startsWith("/app") && !user) {
+    const login = new URL("/login", request.url);
+    login.searchParams.set("next", pathname);
+    return NextResponse.redirect(login);
   }
 
-  return NextResponse.next();
+  return supabaseResponse;
 }
 
 export const config = {
-  matcher: ["/app/:path*"],
+  matcher: ["/app/:path*", "/auth/callback"],
 };

@@ -38,14 +38,18 @@ export const FAQ_ITEMS = [
   },
 ] as const;
 
-export function FAQSection() {
+export function FAQSection({
+  items = FAQ_ITEMS,
+}: {
+  items?: readonly { q: string; a: string }[];
+}) {
   return (
     <section className="bg-white py-20 md:py-28">
       <Container>
         <div className="mx-auto max-w-3xl">
           <SectionHeading>Questions teams ask before they start</SectionHeading>
           <Accordion className="mt-10">
-            {FAQ_ITEMS.map((item) => (
+            {items.map((item) => (
               <AccordionItem key={item.q} value={item.q}>
                 <AccordionTrigger>{item.q}</AccordionTrigger>
                 <AccordionContent>{item.a}</AccordionContent>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
+import { IconMail, IconUser, IconBuilding } from "@tabler/icons-react";
 import { signupAction, type ActionState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,13 +16,13 @@ export function SignupForm() {
 
   if (state.ok) {
     return (
-      <div className="rounded-[16px] border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8">
-        <h2 className="font-display text-2xl font-bold text-navy">
+      <div className="rounded-[24px] border border-line bg-white p-6 shadow-sm sm:p-10">
+        <h2 className="font-display text-2xl font-bold text-navy sm:text-3xl text-center">
           Check your email
         </h2>
-        <p className="mt-3 text-base text-slate">{state.message}</p>
+        <p className="mt-3 text-base text-slate text-center">{state.message}</p>
         {state.verifyToken && (
-          <p className="mt-4 rounded-[8px] bg-mist p-3 text-sm text-navy">
+          <p className="mt-4 rounded-[8px] bg-mist p-3 text-sm text-navy text-center">
             Dev verification link:{" "}
             <Link
               className="font-semibold text-green-strong underline"
@@ -31,60 +32,95 @@ export function SignupForm() {
             </Link>
           </p>
         )}
-        <Link
-          href="/login"
-          className="mt-6 inline-flex min-h-11 items-center font-display text-sm font-semibold text-green-strong hover:underline"
-        >
-          Back to sign in
-        </Link>
+        <div className="mt-6 flex justify-center">
+          <Link
+            href="/login"
+            className="inline-flex min-h-11 items-center font-display text-sm font-semibold text-green-strong hover:underline"
+          >
+            Back to sign in
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="rounded-[16px] border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8">
-      <h2 className="font-display text-2xl font-bold text-navy">
-        Create your account
-      </h2>
-      <p className="mt-2 text-sm text-slate">
-        Public accounts start with basic access. Privileged roles are assigned
-        by invitation only.
-      </p>
+    <div className="rounded-[24px] border border-line bg-white p-6 shadow-sm sm:p-10">
+      <div className="text-center">
+        <h2 className="font-display text-2xl font-bold text-navy sm:text-3xl">
+          Create your account
+        </h2>
+        <p className="mt-3 text-sm text-slate">
+          Join Beepa and start building what&apos;s next, together.
+        </p>
+      </div>
 
-      <form action={action} className="mt-6 space-y-4" noValidate>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="firstName">First name</Label>
-            <Input id="firstName" name="firstName" autoComplete="given-name" required />
-            {state.fieldErrors?.firstName && (
-              <p className="text-sm text-destructive">{state.fieldErrors.firstName[0]}</p>
-            )}
+      <form action={action} className="mt-8 space-y-5" noValidate>
+        <div className="space-y-2">
+          <Label htmlFor="fullName">Full name</Label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate">
+              <IconUser stroke={1.5} className="size-5" />
+            </div>
+            <Input 
+              id="fullName" 
+              name="fullName" 
+              placeholder="Juan Dela Cruz"
+              autoComplete="name" 
+              required 
+              className="pl-10"
+            />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="lastName">Last name</Label>
-            <Input id="lastName" name="lastName" autoComplete="family-name" required />
-            {state.fieldErrors?.lastName && (
-              <p className="text-sm text-destructive">{state.fieldErrors.lastName[0]}</p>
-            )}
-          </div>
+          {state.fieldErrors?.fullName && (
+            <p className="text-sm text-destructive">{state.fieldErrors.fullName[0]}</p>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="email">Work email</Label>
-          <Input id="email" name="email" type="email" autoComplete="email" required />
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate">
+              <IconMail stroke={1.5} className="size-5" />
+            </div>
+            <Input 
+              id="email" 
+              name="email" 
+              type="email" 
+              placeholder="you@company.com"
+              autoComplete="email" 
+              required 
+              className="pl-10"
+            />
+          </div>
           {state.fieldErrors?.email && (
             <p className="text-sm text-destructive">{state.fieldErrors.email[0]}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="company">Company (optional)</Label>
-          <Input id="company" name="company" autoComplete="organization" />
+          <Label htmlFor="company">Company name</Label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate">
+              <IconBuilding stroke={1.5} className="size-5" />
+            </div>
+            <Input 
+              id="company" 
+              name="company" 
+              placeholder="Your company name"
+              autoComplete="organization" 
+              className="pl-10"
+            />
+          </div>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <PasswordField id="password" name="password" autoComplete="new-password" />
+          <PasswordField 
+            id="password" 
+            name="password" 
+            placeholder="Create a password"
+            autoComplete="new-password" 
+          />
           {state.fieldErrors?.password && (
             <p className="text-sm text-destructive">{state.fieldErrors.password[0]}</p>
           )}
@@ -95,6 +131,7 @@ export function SignupForm() {
           <PasswordField
             id="confirmPassword"
             name="confirmPassword"
+            placeholder="Confirm your password"
             autoComplete="new-password"
           />
           {state.fieldErrors?.confirmPassword && (
@@ -104,26 +141,26 @@ export function SignupForm() {
           )}
         </div>
 
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 pt-2">
           <input
             id="acceptTerms"
             name="acceptTerms"
             type="checkbox"
             required
-            className="mt-0 size-11 shrink-0 cursor-pointer rounded-[8px] border-line accent-green-strong focus-visible:ring-2 focus-visible:ring-green"
+            className="mt-0.5 size-5 shrink-0 cursor-pointer rounded-[6px] border-line accent-green-strong focus-visible:ring-2 focus-visible:ring-green-strong"
           />
-          <Label htmlFor="acceptTerms" className="pt-2.5 text-sm font-normal leading-snug text-slate">
+          <Label htmlFor="acceptTerms" className="text-sm font-normal leading-snug text-slate">
             I agree to the{" "}
             <Link
               href="/terms"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center font-semibold text-green-strong hover:underline"
+              className="inline-flex min-h-11 items-center justify-center font-semibold text-green-strong hover:underline"
             >
-              Terms
+              Terms of Service
             </Link>{" "}
             and{" "}
             <Link
               href="/privacy"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 font-semibold text-green-strong hover:underline"
+              className="inline-flex min-h-11 items-center justify-center font-semibold text-green-strong hover:underline"
             >
               Privacy Policy
             </Link>
@@ -140,18 +177,18 @@ export function SignupForm() {
           </p>
         )}
 
-        <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? "Creating account..." : "Create account"}
+        <Button type="submit" className="w-full text-base" size="lg" disabled={pending}>
+          {pending ? "Creating account..." : "Create account \u2192"}
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate">
+      <p className="mt-8 text-center text-sm text-slate">
         Already have an account?{" "}
         <Link
           href="/login"
           className="inline-flex min-h-11 items-center font-semibold text-green-strong hover:underline"
         >
-          Sign in
+          Sign in &rarr;
         </Link>
       </p>
     </div>

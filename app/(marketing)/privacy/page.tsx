@@ -5,7 +5,10 @@ import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
+  description:
+    "How Beepa BPO collects, uses, and protects personal information on our websites and services.",
   alternates: { canonical: "/privacy" },
+  robots: { index: true, follow: true },
 };
 
 export default function PrivacyPage() {

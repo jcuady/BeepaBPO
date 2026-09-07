@@ -5,7 +5,10 @@ import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
+  description:
+    "Terms governing use of Beepa BPO websites and related services.",
   alternates: { canonical: "/terms" },
+  robots: { index: true, follow: true },
 };
 
 export default function TermsPage() {

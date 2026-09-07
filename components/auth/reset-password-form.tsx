@@ -9,7 +9,13 @@ import { Label } from "@/components/ui/label";
 
 const initial: ActionState = { ok: false };
 
-export function ResetPasswordForm({ token }: { token: string }) {
+export function ResetPasswordForm({
+  token,
+  hasRecoverySession = false,
+}: {
+  token: string;
+  hasRecoverySession?: boolean;
+}) {
   const [state, action, pending] = useActionState(resetPasswordAction, initial);
 
   if (state.ok) {
@@ -27,7 +33,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
     );
   }
 
-  if (!token) {
+  if (!token && !hasRecoverySession) {
     return (
       <div className="rounded-[16px] border border-line bg-white p-6 sm:p-8">
         <h2 className="font-display text-2xl font-bold text-navy">Invalid link</h2>

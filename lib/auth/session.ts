@@ -1,9 +1,9 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-import { cookies } from "next/headers";
-import { getEnv } from "@/lib/env";
+import { createClient } from "@/lib/supabase/server";
 
-export const SESSION_COOKIE = "beepa_session";
+/** @deprecated Supabase session cookies replace beepa_session. */
+export const SESSION_COOKIE = "sb-auth-token";
 
+/** @deprecated Use Supabase Auth session via createClient().auth.getUser() */
 export type SessionPayload = {
   sub: string;
   email: string;
@@ -12,56 +12,44 @@ export type SessionPayload = {
   exp: number;
 };
 
-function sign(value: string): string {
-  return createHmac("sha256", getEnv().AUTH_SECRET).update(value).digest("base64url");
-}
-
+/** @deprecated */
 export function encodeSession(payload: SessionPayload): string {
-  const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
-  return `${body}.${sign(body)}`;
+  void payload;
+  throw new Error("Custom session cookies removed. Use Supabase Auth.");
 }
 
+/** @deprecated */
 export function decodeSession(token: string): SessionPayload | null {
-  const [body, signature] = token.split(".");
-  if (!body || !signature) return null;
-  const expected = sign(body);
-  try {
-    const a = Buffer.from(signature);
-    const b = Buffer.from(expected);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
-  } catch {
-    return null;
-  }
-  try {
-    const payload = JSON.parse(
-      Buffer.from(body, "base64url").toString("utf8"),
-    ) as SessionPayload;
-    if (payload.exp < Date.now()) return null;
-    return payload;
-  } catch {
-    return null;
-  }
+  void token;
+  return null;
 }
 
+/** @deprecated */
 export async function setSessionCookie(payload: SessionPayload) {
-  const jar = await cookies();
-  jar.set(SESSION_COOKIE, encodeSession(payload), {
-    httpOnly: true,
-    secure: getEnv().NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    expires: new Date(payload.exp),
-  });
+  void payload;
+  throw new Error("Custom session cookies removed. Use Supabase Auth.");
 }
 
+/** @deprecated */
 export async function clearSessionCookie() {
-  const jar = await cookies();
-  jar.delete(SESSION_COOKIE);
+  const supabase = await createClient();
+  await supabase.auth.signOut();
 }
 
 export async function getSessionFromCookies(): Promise<SessionPayload | null> {
-  const jar = await cookies();
-  const token = jar.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
-  return decodeSession(token);
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  return {
+    sub: user.id,
+    email: user.email ?? "",
+    name:
+      (user.user_metadata?.display_name as string | undefined) ??
+      user.email ??
+      "",
+    verified: Boolean(user.email_confirmed_at),
+    exp: 0,
+  };
 }

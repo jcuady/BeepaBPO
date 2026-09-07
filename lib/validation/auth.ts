@@ -20,8 +20,7 @@ export const employeeLoginSchema = z.object({
 
 export const signupSchema = z
   .object({
-    firstName: z.string().min(1, "First name is required.").max(80),
-    lastName: z.string().min(1, "Last name is required.").max(80),
+    fullName: z.string().min(1, "Full name is required.").max(160),
     email: z.string().email("Enter a valid work email."),
     company: z.string().max(120).optional(),
     password: z.string().min(8, "Password must be at least 8 characters."),
@@ -43,7 +42,7 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z
   .object({
-    token: z.string().min(1),
+    token: z.string().optional(),
     password: z.string().min(8, "Password must be at least 8 characters."),
     confirmPassword: z.string().min(8, "Confirm your password."),
   })
