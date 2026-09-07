@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
 import { StatusBadge } from "@/components/app/status-badge";
 import { TicketStatusForm } from "@/components/app/tickets/ticket-status-form";
+import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
 import { PageContainer } from "@/components/app/page-container";
 import {
   Table,
@@ -54,7 +55,7 @@ export default async function InternalTicketsPage({
   let query = supabase
     .from("tickets")
     .select(
-      "id, ticket_number, subject, status, priority, category, created_at, client_organization_id, organizations(name)",
+      "id, ticket_number, subject, status, priority, category, created_at, sla_due_at, resolved_at, client_organization_id, organizations(name)",
     )
     .order("created_at", { ascending: false })
     .limit(100);
@@ -115,6 +116,7 @@ export default async function InternalTicketsPage({
                 <TableHead>Ticket</TableHead>
                 <TableHead>Priority</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>SLA</TableHead>
                 <TableHead>Created</TableHead>
                 {canManage ? <TableHead>Actions</TableHead> : null}
               </TableRow>
@@ -141,6 +143,15 @@ export default async function InternalTicketsPage({
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={ticket.status} />
+                    </TableCell>
+                    <TableCell>
+                      <TicketSlaBadge
+                        slaDueAt={ticket.sla_due_at}
+                        resolvedAt={ticket.resolved_at}
+                        status={ticket.status}
+                        createdAt={ticket.created_at}
+                        showDue={false}
+                      />
                     </TableCell>
                     <TableCell className="text-slate">
                       {format(new Date(ticket.created_at), "MMM d, yyyy")}

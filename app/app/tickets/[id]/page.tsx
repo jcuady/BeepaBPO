@@ -6,6 +6,7 @@ import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { TicketMessageForm } from "@/components/app/tickets/ticket-message-form";
 import { TicketStatusForm } from "@/components/app/tickets/ticket-status-form";
+import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
@@ -64,6 +65,25 @@ export default async function StaffTicketDetailPage({
             Opened {format(new Date(ticket.created_at), "MMM d, yyyy h:mm a")} ·{" "}
             {ticket.category} · {ticket.priority}
           </p>
+          <div className="text-sm text-navy">
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate">
+              SLA
+            </p>
+            <TicketSlaBadge
+              slaDueAt={ticket.sla_due_at}
+              resolvedAt={ticket.resolved_at}
+              status={ticket.status}
+              createdAt={ticket.created_at}
+            />
+            {ticket.first_response_at ? (
+              <p className="mt-1 text-xs text-slate">
+                First response{" "}
+                {format(new Date(ticket.first_response_at), "MMM d, h:mm a")}
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-slate">Awaiting first response</p>
+            )}
+          </div>
           {canManage ? (
             <TicketStatusForm
               ticketId={id}

@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/app/page-header";
 import { TicketMessageForm } from "@/components/app/tickets/ticket-message-form";
+import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
 import { getClientOrganizationId } from "@/lib/organizations/client";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
@@ -70,6 +71,17 @@ export default async function ClientTicketDetailPage({
           <p className="text-xs text-slate">
             Opened {format(new Date(ticket.created_at), "MMM d, yyyy h:mm a")}
           </p>
+          <div className="text-sm text-navy">
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate">
+              SLA
+            </p>
+            <TicketSlaBadge
+              slaDueAt={ticket.sla_due_at}
+              resolvedAt={ticket.resolved_at}
+              status={ticket.status}
+              createdAt={ticket.created_at}
+            />
+          </div>
         </CardContent>
       </Card>
 

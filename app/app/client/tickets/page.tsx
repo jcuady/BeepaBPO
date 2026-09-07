@@ -5,6 +5,7 @@ import { IconTicket } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { CreateTicketForm } from "@/components/app/tickets/create-ticket-form";
+import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
 import { getClientOrganizationId } from "@/lib/organizations/client";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
@@ -24,7 +25,9 @@ export default async function ClientTicketsPage() {
 
   let query = supabase
     .from("tickets")
-    .select("id, ticket_number, subject, status, created_at, priority")
+    .select(
+      "id, ticket_number, subject, status, created_at, priority, sla_due_at, resolved_at",
+    )
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -68,9 +71,18 @@ export default async function ClientTicketsPage() {
                       {format(new Date(ticket.created_at), "MMM d, yyyy")}
                     </p>
                   </div>
-                  <Badge variant="outline" className="capitalize">
-                    {ticket.status.replace(/_/g, " ")}
-                  </Badge>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <TicketSlaBadge
+                      slaDueAt={ticket.sla_due_at}
+                      resolvedAt={ticket.resolved_at}
+                      status={ticket.status}
+                      createdAt={ticket.created_at}
+                      showDue={false}
+                    />
+                    <Badge variant="outline" className="capitalize">
+                      {ticket.status.replace(/_/g, " ")}
+                    </Badge>
+                  </div>
                 </CardContent>
               </Card>
             </Link>

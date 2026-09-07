@@ -117,7 +117,7 @@ export async function postTicketMessage(
   const supabase = await createClient();
   const { data: ticket } = await supabase
     .from("tickets")
-    .select("id, requester_user_id")
+    .select("id, requester_user_id, first_response_at")
     .eq("id", parsed.data.ticket_id)
     .maybeSingle();
 
@@ -140,6 +140,15 @@ export async function postTicketMessage(
 
   if (error) {
     return { ok: false, error: error.message ?? "Unable to post message." };
+  }
+
+  // First public staff reply starts the first-response clock.
+  if (isStaff && !ticket.first_response_at) {
+    await supabase
+      .from("tickets")
+      .update({ first_response_at: new Date().toISOString() })
+      .eq("id", parsed.data.ticket_id)
+      .is("first_response_at", null);
   }
 
   revalidatePath(`/app/client/tickets/${parsed.data.ticket_id}`);

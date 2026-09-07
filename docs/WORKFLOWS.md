@@ -64,8 +64,7 @@ Recruiter (`recruitment.manage`) on `/app/recruitment/applicants/[id]` calls `up
 
 ## Tickets
 
-Requester creates → assignment → messages (client-visible) vs internal notes (internal only) → status changes with confirm → resolve/close. **SLA tracking UI not built.**
-
+Requester creates → insert trigger attaches Beepa `ticket_sla_policies` by priority (`sla_policy_id`, `sla_due_at`) → assignment → messages (client-visible) vs internal notes → first staff public reply sets `first_response_at` → status changes with confirm → resolve/close. SLA state (on track / at risk / breached / met) on staff + client ticket UIs; client dashboard compliance % from tickets with `sla_due_at`.
 ## Invoice
 
 **Intended:** Finance issues invoice for client org → payments recorded → overdue job marks `sent` past due as `overdue`.

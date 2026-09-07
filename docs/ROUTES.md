@@ -30,14 +30,14 @@ Auth and access routes are listed at the bottom.
 
 | Route | Guard | Data | Key actions |
 |-------|-------|------|-------------|
-| `/app/client` | segment client | team, approvals, tickets, attendance summary, invoices | — (no SLA tile) |
+| `/app/client` | segment client | team, approvals, tickets, attendance summary, invoices, **SLA compliance** | — |
 | `/app/client/team` | segment | `client_visible_employees` | — |
 | `/app/client/attendance` | segment | `client_attendance_summary` | filters: `from`/`to`/`status` |
 | `/app/client/timesheets` | segment | `client_attendance_summary` | Approve / Send back when `allow_timesheet_approval` |
 | `/app/client/performance` | segment | KPIs for visible employees | — |
 | `/app/client/requests` | segment | client tickets | create ticket |
-| `/app/client/tickets` | segment | `tickets` | — |
-| `/app/client/tickets/[id]` | segment | ticket + messages | reply (client-visible) |
+| `/app/client/tickets` | segment | `tickets` + SLA badges | create ticket |
+| `/app/client/tickets/[id]` | segment | ticket + messages + SLA | reply (client-visible) |
 | `/app/client/approvals` | segment | `client_review` timesheets | Approve / Send back (`reviewClientTimesheet`) |
 | `/app/client/reports` | segment | team + attendance summary | — |
 | `/app/client/documents` | segment | client documents + Storage | upload + signed download (needs migration `20260907140000` on Beepa) |
@@ -86,8 +86,8 @@ Public CMS read: `/about` (settings + industries + testimonials), `/services`, `
 | `/app/crm/deals/[id]` | perm `crm.read` | deal + activities + proposals | stage update if `crm.manage`; convert to client if won + `clients.manage` |
 | `/app/crm/proposals` | perm `crm.read` | `crm_proposals` | create + status if `crm.manage` |
 | `/app/clients` | canAny clients.* | client `organizations` + memberships | invite client_admin/viewer if `clients.manage` |
-| `/app/tickets` | perm `tickets.read` | `tickets` | status (confirm); filters |
-| `/app/tickets/[id]` | perm `tickets.read` | ticket, messages, internal notes | reply, status |
+| `/app/tickets` | perm `tickets.read` | `tickets` + SLA | status (confirm); filters |
+| `/app/tickets/[id]` | perm `tickets.read` | ticket, messages, SLA, internal notes | reply, status |
 | `/app/reports` | canAny reports.* | workforce/ticket/CRM counts | CSV export if `reports.export` |
 | `/app/reports/export` | perm `reports.export` | CSV download (`?dataset=`) | snapshot\|employees\|attendance\|tickets\|leads |
 | `/app/cms` | perm `cms.manage` | services, blog, faqs, industries, testimonials, case_studies, site_settings | create drafts; publish/archive; About upsert |

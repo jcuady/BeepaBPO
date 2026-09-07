@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { PageContainer } from "@/components/app/page-container";
+import { slaCompliancePercent } from "@/lib/tickets/sla";
 
 export default async function ClientDashboardPage() {
   const workspace = await resolveWorkspace();
@@ -35,7 +36,7 @@ export default async function ClientDashboardPage() {
   const today = format(new Date(), "yyyy-MM-dd");
   const from = format(subDays(new Date(), 13), "yyyy-MM-dd");
 
-  const [teamResult, pendingResult, ticketResult, attendanceResult, todayResult, invoiceResult, managerResult] =
+  const [teamResult, pendingResult, ticketResult, attendanceResult, todayResult, invoiceResult, managerResult, slaResult] =
     clientOrgId
       ? await Promise.all([
           supabase
@@ -80,6 +81,13 @@ export default async function ClientDashboardPage() {
             .select("primary_contact_name")
             .eq("organization_id", clientOrgId)
             .maybeSingle(),
+          supabase
+            .from("tickets")
+            .select("status, sla_due_at, resolved_at, created_at")
+            .eq("client_organization_id", clientOrgId)
+            .not("sla_due_at", "is", null)
+            .order("created_at", { ascending: false })
+            .limit(100),
         ])
       : [
           { data: [] as never[], count: 0 },
@@ -89,6 +97,7 @@ export default async function ClientDashboardPage() {
           { data: [] as never[] },
           { data: null },
           { data: null },
+          { data: [] as never[] },
         ];
 
   const members = teamResult.data ?? [];
@@ -161,6 +170,16 @@ export default async function ClientDashboardPage() {
     primary_contact_name: string | null;
   } | null;
 
+  const slaRows = slaResult.data ?? [];
+  const slaPct = slaCompliancePercent(
+    slaRows.map((t) => ({
+      status: t.status,
+      slaDueAt: t.sla_due_at,
+      resolvedAt: t.resolved_at,
+      createdAt: t.created_at,
+    })),
+  );
+
   return (
     <PageContainer size="wide">
       <PageHeader
@@ -169,7 +188,7 @@ export default async function ClientDashboardPage() {
         quote="Great partnerships create greater possibilities."
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         <MetricCard
           title="Active Team Members"
           value={teamCount ?? 0}
@@ -191,6 +210,16 @@ export default async function ClientDashboardPage() {
           title="Open Tickets"
           value={openTicketCount}
           icon={IconTicket}
+        />
+        <MetricCard
+          title="SLA compliance"
+          value={slaPct == null ? "—" : `${slaPct}%`}
+          subtitle={
+            slaPct == null
+              ? "No tickets with SLA yet"
+              : "On track / met vs breached"
+          }
+          icon={IconChartBar}
         />
         <MetricCard
           title="In review"

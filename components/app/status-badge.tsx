@@ -193,6 +193,23 @@ const entityStyles: Record<string, { label: string; className: string }> = {
     label: "Urgent",
     className: "bg-red-50 text-red-700 border-transparent",
   },
+  // ticket SLA
+  on_track: {
+    label: "On track",
+    className: "bg-soft-green text-green-strong border-transparent",
+  },
+  at_risk: {
+    label: "At risk",
+    className: "bg-amber-50 text-amber-800 border-transparent",
+  },
+  breached: {
+    label: "Breached",
+    className: "bg-red-50 text-red-700 border-transparent",
+  },
+  met: {
+    label: "Met",
+    className: "bg-soft-green text-green-strong border-transparent",
+  },
   // employment / org
   active: {
     label: "Active",
