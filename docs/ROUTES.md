@@ -43,7 +43,7 @@ Auth and access routes are listed at the bottom.
 | `/app/client/documents` | segment | client documents + Storage | upload + signed download (needs migration `20260907140000` on Beepa) |
 | `/app/client/billing` | segment | `invoices` | list → detail |
 | `/app/client/billing/[id]` | segment | invoice + items + payments | read-only detail |
-| `/app/billing` | perm `billing.read` | invoices | finance list |
+| `/app/billing` | perm `billing.read` | invoices | issue if `billing.manage`; list |
 | `/app/billing/[id]` | perm `billing.read` | invoice detail | record payment if `billing.manage` |
 | `/app/client/settings` | segment | `client_profiles`, `client_settings` | — |
 

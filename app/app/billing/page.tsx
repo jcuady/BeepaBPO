@@ -4,11 +4,12 @@ import { format } from "date-fns";
 import { IconCoin } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageContainer } from "@/components/app/page-container";
+import { IssueInvoiceForm } from "@/components/app/billing/issue-invoice-form";
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
-import { canAny } from "@/lib/permissions/can";
+import { can, canAny } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -23,26 +24,56 @@ export default async function BillingPage() {
     requirePermission(workspace, "billing.read");
   }
 
+  const canIssue = can(workspace.permissions, "billing.manage");
   const supabase = await createClient();
-  const { data: invoices } = await supabase
-    .from("invoices")
-    .select(
-      "id, invoice_number, period_start, period_end, due_date, total, currency, status, organizations(name)",
-    )
-    .order("due_date", { ascending: false })
-    .limit(50);
+
+  const [{ data: invoices }, clientsResult] = await Promise.all([
+    supabase
+      .from("invoices")
+      .select(
+        "id, invoice_number, period_start, period_end, due_date, total, currency, status, organizations(name)",
+      )
+      .order("due_date", { ascending: false })
+      .limit(50),
+    canIssue
+      ? supabase
+          .from("organizations")
+          .select("id, name")
+          .eq("type", "client")
+          .eq("status", "active")
+          .order("name")
+      : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+  ]);
+
+  const clients = clientsResult.data ?? [];
 
   return (
     <PageContainer>
       <PageHeader
         name={workspace.profile.first_name}
-        subtitle="Client invoices — open a row to view items and record payments."
+        subtitle="Issue invoices and open a row to record payments."
       />
+
+      {canIssue ? (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-base">Issue invoice</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <IssueInvoiceForm clients={clients} />
+          </CardContent>
+        </Card>
+      ) : null}
+
       {!invoices?.length ? (
         <EmptyState
           icon={IconCoin}
           title="No invoices"
-          description="Issued invoices appear here. Open a row to record payments; issue/create is outside this screen."
+          description={
+            canIssue
+              ? "Use Issue invoice above to create the first one. Open a row later to record payments."
+              : "Issued invoices appear here when finance publishes them."
+          }
         />
       ) : (
         <div className="space-y-2">

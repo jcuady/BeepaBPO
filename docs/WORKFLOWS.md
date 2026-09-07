@@ -68,7 +68,7 @@ Requester creates → assignment → messages (client-visible) vs internal notes
 
 **Intended:** Finance issues invoice for client org → payments recorded → overdue job marks `sent` past due as `overdue`.
 
-**Today:** Client + finance invoice detail (`/app/client/billing/[id]`, `/app/billing/[id]`); `recordInvoicePayment` (`billing.manage`) updates status to `partially_paid` / `paid`. Overdue cron still marks past-due sent invoices.
+**Today:** Finance issues invoices on `/app/billing` via `issueInvoice` (`billing.manage`); client + finance detail (`/app/client/billing/[id]`, `/app/billing/[id]`); `recordInvoicePayment` updates status to `partially_paid` / `paid`. Overdue cron still marks past-due sent invoices.
 
 ## Reports export
 

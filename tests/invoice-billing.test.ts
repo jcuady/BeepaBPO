@@ -2,9 +2,21 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-describe("invoice detail + payment seam", () => {
+describe("invoice issue + payment seam", () => {
   const actions = readFileSync(
     join(process.cwd(), "lib/billing/actions.ts"),
+    "utf8",
+  );
+  const validation = readFileSync(
+    join(process.cwd(), "lib/validation/app.ts"),
+    "utf8",
+  );
+  const listPage = readFileSync(
+    join(process.cwd(), "app/app/billing/page.tsx"),
+    "utf8",
+  );
+  const issueForm = readFileSync(
+    join(process.cwd(), "components/app/billing/issue-invoice-form.tsx"),
     "utf8",
   );
   const clientList = readFileSync(
@@ -19,6 +31,15 @@ describe("invoice detail + payment seam", () => {
     join(process.cwd(), "lib/app/navigation.ts"),
     "utf8",
   );
+
+  it("exports issueInvoice gated by billing.manage", () => {
+    expect(actions).toContain("export async function issueInvoice");
+    expect(actions).toContain('status: "issued"');
+    expect(actions).toContain('from("invoice_items")');
+    expect(validation).toContain("export const issueInvoiceSchema");
+    expect(listPage).toContain("IssueInvoiceForm");
+    expect(issueForm).toContain("issueInvoice");
+  });
 
   it("exports recordInvoicePayment gated by billing.manage", () => {
     expect(actions).toContain("export async function recordInvoicePayment");

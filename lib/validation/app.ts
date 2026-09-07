@@ -259,6 +259,27 @@ export const invoicePaymentSchema = z.object({
   method: z.string().max(80).optional(),
 });
 
+export const issueInvoiceSchema = z
+  .object({
+    client_organization_id: z.string().uuid("Select a client."),
+    period_start: z.string().min(1, "Period start is required."),
+    period_end: z.string().min(1, "Period end is required."),
+    issue_date: z.string().min(1, "Issue date is required."),
+    due_date: z.string().min(1, "Due date is required."),
+    currency: z.string().min(3).max(3).default("USD"),
+    description: z.string().min(3, "Line description is required.").max(500),
+    quantity: z.coerce.number().positive("Quantity must be greater than zero."),
+    unit_rate: z.coerce.number().min(0, "Unit rate cannot be negative."),
+  })
+  .refine((data) => data.period_end >= data.period_start, {
+    message: "Period end must be on or after start.",
+    path: ["period_end"],
+  })
+  .refine((data) => data.due_date >= data.issue_date, {
+    message: "Due date must be on or after issue date.",
+    path: ["due_date"],
+  });
+
 const cmsSlug = z
   .string()
   .min(2, "Slug is required.")

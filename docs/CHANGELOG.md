@@ -82,3 +82,4 @@ Indexes and covering membership lookups (`20260906001300`), applicant `membershi
 - Client timesheet approval: `reviewClientTimesheet` / `submitTimesheetForClientReview`, migration `20260907180000` (`attendance_record_id` on summary + enable `allow_timesheet_approval`), UI on `/app/client/approvals` + timesheets + internal Send to client
 - Demo login picker: all 13 roles on `/login` + `/employee/login` autofill (`DEMO_PASSWORD`); seed syncs Supabase Auth passwords via `updateUserById`; e2e `demo-login.spec.ts`
 - CMS edit-in-place: `updateBlogPost` / `updateService` / `updateFaq` / `updateIndustry` / `updateTestimonial` / `updateCaseStudy` + `CmsEditButton` dialogs on `/app/cms`
+- Invoice issue UI: `issueInvoice` + `IssueInvoiceForm` on `/app/billing` (`billing.manage`); creates `issued` invoice + line item
