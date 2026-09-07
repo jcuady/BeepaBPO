@@ -81,3 +81,4 @@ Indexes and covering membership lookups (`20260906001300`), applicant `membershi
 - E2E suite green (`pnpm test:e2e` — 34 passed) + honesty pass: removed dead Remember-me / email-pref switch; client approvals/settings/timesheets/payroll/billing empty-copy clarified; home FAQ prefers published CMS rows
 - Client timesheet approval: `reviewClientTimesheet` / `submitTimesheetForClientReview`, migration `20260907180000` (`attendance_record_id` on summary + enable `allow_timesheet_approval`), UI on `/app/client/approvals` + timesheets + internal Send to client
 - Demo login picker: all 13 roles on `/login` + `/employee/login` autofill (`DEMO_PASSWORD`); seed syncs Supabase Auth passwords via `updateUserById`; e2e `demo-login.spec.ts`
+- CMS edit-in-place: `updateBlogPost` / `updateService` / `updateFaq` / `updateIndustry` / `updateTestimonial` / `updateCaseStudy` + `CmsEditButton` dialogs on `/app/cms`

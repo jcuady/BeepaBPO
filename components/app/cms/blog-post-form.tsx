@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { cmsBlogPostSchema } from "@/lib/validation/app";
-import { createBlogPost } from "@/lib/cms/actions";
+import { createBlogPost, updateBlogPost } from "@/lib/cms/actions";
 import { slugifyTitle } from "@/lib/cms/slug";
 import { applyFieldErrors } from "@/lib/forms/field-errors";
 import { Button } from "@/components/ui/button";
@@ -23,25 +23,41 @@ const defaults: BlogInput = {
   body: "",
 };
 
-export function BlogPostForm() {
+export function BlogPostForm({
+  id,
+  initial,
+  onSaved,
+  idPrefix = "blog",
+}: {
+  id?: string;
+  initial?: Partial<BlogInput>;
+  onSaved?: () => void;
+  idPrefix?: string;
+}) {
   const [pending, setPending] = useState(false);
-  const [slugTouched, setSlugTouched] = useState(false);
+  const [slugTouched, setSlugTouched] = useState(Boolean(id));
   const form = useForm<BlogInput>({
     resolver: zodResolver(cmsBlogPostSchema),
-    defaultValues: defaults,
+    defaultValues: { ...defaults, ...initial },
   });
 
   async function onSubmit(values: BlogInput) {
     setPending(true);
-    const result = await createBlogPost(values);
+    const result = id
+      ? await updateBlogPost({ ...values, id })
+      : await createBlogPost(values);
     setPending(false);
     if (result.ok) {
       toast.success(result.message);
-      setSlugTouched(false);
-      form.reset(defaults);
+      if (id) {
+        onSaved?.();
+      } else {
+        setSlugTouched(false);
+        form.reset(defaults);
+      }
     } else {
       applyFieldErrors(form, result.fieldErrors);
-      toast.error(result.error ?? "Unable to create post.");
+      toast.error(result.error ?? "Unable to save post.");
     }
   }
 
@@ -50,9 +66,9 @@ export function BlogPostForm() {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="blog-title">Title</Label>
+        <Label htmlFor={`${idPrefix}-title`}>Title</Label>
         <Input
-          id="blog-title"
+          id={`${idPrefix}-title`}
           {...form.register("title", {
             onChange: (e) => {
               if (!slugTouched) {
@@ -68,9 +84,9 @@ export function BlogPostForm() {
         ) : null}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="blog-slug">Slug</Label>
+        <Label htmlFor={`${idPrefix}-slug`}>Slug</Label>
         <Input
-          id="blog-slug"
+          id={`${idPrefix}-slug`}
           placeholder="how-we-staff-teams"
           {...form.register("slug", {
             onChange: () => setSlugTouched(true),
@@ -81,18 +97,22 @@ export function BlogPostForm() {
         ) : null}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="blog-excerpt">Excerpt</Label>
-        <Textarea id="blog-excerpt" rows={2} {...form.register("excerpt")} />
+        <Label htmlFor={`${idPrefix}-excerpt`}>Excerpt</Label>
+        <Textarea
+          id={`${idPrefix}-excerpt`}
+          rows={2}
+          {...form.register("excerpt")}
+        />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="blog-body">Body</Label>
-        <Textarea id="blog-body" rows={8} {...form.register("body")} />
+        <Label htmlFor={`${idPrefix}-body`}>Body</Label>
+        <Textarea id={`${idPrefix}-body`} rows={8} {...form.register("body")} />
         {errors.body ? (
           <p className="text-sm text-destructive">{errors.body.message}</p>
         ) : null}
       </div>
       <Button type="submit" className="min-h-11" disabled={pending}>
-        {pending ? "Saving…" : "Save draft"}
+        {pending ? "Saving…" : id ? "Save changes" : "Save draft"}
       </Button>
     </form>
   );

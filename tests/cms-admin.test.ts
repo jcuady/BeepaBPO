@@ -94,4 +94,21 @@ describe("cms admin wiring", () => {
     expect(about).toContain('from("industries")');
     expect(about).toContain('from("testimonials")');
   });
+
+  it("supports edit-in-place updates", () => {
+    expect(actions).toContain("export async function updateBlogPost");
+    expect(actions).toContain("export async function updateService");
+    expect(actions).toContain("export async function updateFaq");
+    expect(actions).toContain("export async function updateIndustry");
+    expect(actions).toContain("export async function updateTestimonial");
+    expect(actions).toContain("export async function updateCaseStudy");
+    expect(page).toContain("CmsEditButton");
+    const editDialog = readFileSync(
+      join(process.cwd(), "components/app/cms/cms-edit-dialog.tsx"),
+      "utf8",
+    );
+    expect(editDialog).toContain("Edit blog post");
+    expect(editDialog).toContain("BlogPostForm");
+    expect(editDialog).toContain("onSaved={closeAndRefresh}");
+  });
 });

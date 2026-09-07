@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { cmsCaseStudySchema } from "@/lib/validation/app";
-import { createCaseStudy } from "@/lib/cms/actions";
+import { createCaseStudy, updateCaseStudy } from "@/lib/cms/actions";
 import { slugifyTitle } from "@/lib/cms/slug";
 import { applyFieldErrors } from "@/lib/forms/field-errors";
 import { Button } from "@/components/ui/button";
@@ -25,25 +25,40 @@ const defaults: Input = {
   industry: "",
 };
 
-export function CaseStudyForm() {
+export function CaseStudyForm({
+  id,
+  initial,
+  onSaved,
+  idPrefix = "case",
+}: {
+  id?: string;
+  initial?: Partial<Input>;
+  onSaved?: () => void;
+  idPrefix?: string;
+}) {
   const [pending, setPending] = useState(false);
-  const [slugTouched, setSlugTouched] = useState(false);
+  const [slugTouched, setSlugTouched] = useState(Boolean(id));
   const form = useForm<Input>({
     resolver: zodResolver(cmsCaseStudySchema),
-    defaultValues: defaults,
+    defaultValues: { ...defaults, ...initial },
   });
 
   async function onSubmit(values: Input) {
     setPending(true);
-    const result = await createCaseStudy(values);
+    const result = id
+      ? await updateCaseStudy({ ...values, id })
+      : await createCaseStudy(values);
     setPending(false);
     if (result.ok) {
       toast.success(result.message);
-      setSlugTouched(false);
-      form.reset(defaults);
+      if (id) onSaved?.();
+      else {
+        setSlugTouched(false);
+        form.reset(defaults);
+      }
     } else {
       applyFieldErrors(form, result.fieldErrors);
-      toast.error(result.error ?? "Unable to create case study.");
+      toast.error(result.error ?? "Unable to save case study.");
     }
   }
 
@@ -52,9 +67,9 @@ export function CaseStudyForm() {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="case-title">Title</Label>
+        <Label htmlFor={`${idPrefix}-title`}>Title</Label>
         <Input
-          id="case-title"
+          id={`${idPrefix}-title`}
           {...form.register("title", {
             onChange: (e) => {
               if (!slugTouched) {
@@ -70,9 +85,9 @@ export function CaseStudyForm() {
         ) : null}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="case-slug">Slug</Label>
+        <Label htmlFor={`${idPrefix}-slug`}>Slug</Label>
         <Input
-          id="case-slug"
+          id={`${idPrefix}-slug`}
           {...form.register("slug", { onChange: () => setSlugTouched(true) })}
         />
         {errors.slug ? (
@@ -81,27 +96,31 @@ export function CaseStudyForm() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="case-client">Client</Label>
-          <Input id="case-client" {...form.register("client_name")} />
+          <Label htmlFor={`${idPrefix}-client`}>Client</Label>
+          <Input id={`${idPrefix}-client`} {...form.register("client_name")} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="case-industry">Industry</Label>
-          <Input id="case-industry" {...form.register("industry")} />
+          <Label htmlFor={`${idPrefix}-industry`}>Industry</Label>
+          <Input id={`${idPrefix}-industry`} {...form.register("industry")} />
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="case-summary">Summary</Label>
-        <Textarea id="case-summary" rows={2} {...form.register("summary")} />
+        <Label htmlFor={`${idPrefix}-summary`}>Summary</Label>
+        <Textarea
+          id={`${idPrefix}-summary`}
+          rows={2}
+          {...form.register("summary")}
+        />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="case-body">Body</Label>
-        <Textarea id="case-body" rows={6} {...form.register("body")} />
+        <Label htmlFor={`${idPrefix}-body`}>Body</Label>
+        <Textarea id={`${idPrefix}-body`} rows={6} {...form.register("body")} />
         {errors.body ? (
           <p className="text-sm text-destructive">{errors.body.message}</p>
         ) : null}
       </div>
       <Button type="submit" className="min-h-11" disabled={pending}>
-        {pending ? "Saving…" : "Save draft"}
+        {pending ? "Saving…" : id ? "Save changes" : "Save draft"}
       </Button>
     </form>
   );

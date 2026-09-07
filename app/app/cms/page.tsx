@@ -14,6 +14,7 @@ import { IndustryForm } from "@/components/app/cms/industry-form";
 import { ServiceForm } from "@/components/app/cms/service-form";
 import { TestimonialForm } from "@/components/app/cms/testimonial-form";
 import { CmsStatusActions } from "@/components/app/cms/cms-status-actions";
+import { CmsEditButton } from "@/components/app/cms/cms-edit-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -46,32 +47,36 @@ export default async function CmsAdminPage() {
   ] = await Promise.all([
     supabase
       .from("blog_posts")
-      .select("id, title, slug, status, published_at, updated_at")
+      .select("id, title, slug, excerpt, body, status, published_at, updated_at")
       .order("updated_at", { ascending: false })
       .limit(50),
     supabase
       .from("services")
-      .select("id, title, slug, status, sort_order, updated_at")
+      .select("id, title, slug, summary, description, status, sort_order, updated_at")
       .order("sort_order", { ascending: true })
       .limit(50),
     supabase
       .from("faqs")
-      .select("id, question, category, status, updated_at")
+      .select("id, question, answer, category, status, updated_at")
       .order("sort_order", { ascending: true })
       .limit(50),
     supabase
       .from("industries")
-      .select("id, name, slug, status, updated_at")
+      .select("id, name, slug, description, status, updated_at")
       .order("sort_order", { ascending: true })
       .limit(50),
     supabase
       .from("testimonials")
-      .select("id, client_name, company_name, status, updated_at")
+      .select(
+        "id, client_name, client_title, company_name, quote, rating, status, updated_at",
+      )
       .order("sort_order", { ascending: true })
       .limit(50),
     supabase
       .from("case_studies")
-      .select("id, title, slug, status, published_at, updated_at")
+      .select(
+        "id, title, slug, summary, body, client_name, industry, status, published_at, updated_at",
+      )
       .order("updated_at", { ascending: false })
       .limit(50),
     supabase
@@ -87,7 +92,7 @@ export default async function CmsAdminPage() {
     <PageContainer>
       <PageHeader
         name={workspace.profile.first_name}
-        subtitle="Publish About, industries, testimonials, case studies, services, resources, and FAQs."
+        subtitle="Create, edit, and publish About, industries, testimonials, case studies, services, resources, and FAQs."
       />
 
       <Card>
@@ -173,11 +178,24 @@ export default async function CmsAdminPage() {
                         <StatusBadge status={row.status} />
                       </TableCell>
                       <TableCell className="text-right">
-                        <CmsStatusActions
-                          id={row.id}
-                          entity="faq"
-                          status={row.status}
-                        />
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <CmsEditButton
+                            target={{
+                              entity: "faq",
+                              id: row.id,
+                              initial: {
+                                question: row.question,
+                                answer: row.answer,
+                                category: row.category,
+                              },
+                            }}
+                          />
+                          <CmsStatusActions
+                            id={row.id}
+                            entity="faq"
+                            status={row.status}
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -234,11 +252,24 @@ export default async function CmsAdminPage() {
                         <StatusBadge status={row.status} />
                       </TableCell>
                       <TableCell className="text-right">
-                        <CmsStatusActions
-                          id={row.id}
-                          entity="industry"
-                          status={row.status}
-                        />
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <CmsEditButton
+                            target={{
+                              entity: "industry",
+                              id: row.id,
+                              initial: {
+                                name: row.name,
+                                slug: row.slug,
+                                description: row.description ?? "",
+                              },
+                            }}
+                          />
+                          <CmsStatusActions
+                            id={row.id}
+                            entity="industry"
+                            status={row.status}
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -297,11 +328,27 @@ export default async function CmsAdminPage() {
                         <StatusBadge status={row.status} />
                       </TableCell>
                       <TableCell className="text-right">
-                        <CmsStatusActions
-                          id={row.id}
-                          entity="testimonial"
-                          status={row.status}
-                        />
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <CmsEditButton
+                            target={{
+                              entity: "testimonial",
+                              id: row.id,
+                              initial: {
+                                client_name: row.client_name,
+                                quote: row.quote,
+                                client_title: row.client_title ?? "",
+                                company_name: row.company_name ?? "",
+                                rating:
+                                  row.rating != null ? String(row.rating) : "",
+                              },
+                            }}
+                          />
+                          <CmsStatusActions
+                            id={row.id}
+                            entity="testimonial"
+                            status={row.status}
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -358,11 +405,27 @@ export default async function CmsAdminPage() {
                         <StatusBadge status={row.status} />
                       </TableCell>
                       <TableCell className="text-right">
-                        <CmsStatusActions
-                          id={row.id}
-                          entity="case_study"
-                          status={row.status}
-                        />
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <CmsEditButton
+                            target={{
+                              entity: "case_study",
+                              id: row.id,
+                              initial: {
+                                title: row.title,
+                                slug: row.slug,
+                                summary: row.summary ?? "",
+                                body: row.body,
+                                client_name: row.client_name ?? "",
+                                industry: row.industry ?? "",
+                              },
+                            }}
+                          />
+                          <CmsStatusActions
+                            id={row.id}
+                            entity="case_study"
+                            status={row.status}
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -407,11 +470,25 @@ export default async function CmsAdminPage() {
                       <StatusBadge status={row.status} />
                     </TableCell>
                     <TableCell className="text-right">
-                      <CmsStatusActions
-                        id={row.id}
-                        entity="service"
-                        status={row.status}
-                      />
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <CmsEditButton
+                          target={{
+                            entity: "service",
+                            id: row.id,
+                            initial: {
+                              title: row.title,
+                              slug: row.slug,
+                              summary: row.summary ?? "",
+                              description: row.description ?? "",
+                            },
+                          }}
+                        />
+                        <CmsStatusActions
+                          id={row.id}
+                          entity="service"
+                          status={row.status}
+                        />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -461,11 +538,25 @@ export default async function CmsAdminPage() {
                         : "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <CmsStatusActions
-                        id={row.id}
-                        entity="blog_post"
-                        status={row.status}
-                      />
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <CmsEditButton
+                          target={{
+                            entity: "blog_post",
+                            id: row.id,
+                            initial: {
+                              title: row.title,
+                              slug: row.slug,
+                              excerpt: row.excerpt ?? "",
+                              body: row.body,
+                            },
+                          }}
+                        />
+                        <CmsStatusActions
+                          id={row.id}
+                          entity="blog_post"
+                          status={row.status}
+                        />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

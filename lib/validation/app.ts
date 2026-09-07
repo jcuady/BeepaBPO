@@ -325,3 +325,13 @@ export const cmsCaseStudySchema = z.object({
   client_name: z.string().max(160).optional(),
   industry: z.string().max(120).optional(),
 });
+
+const withCmsId = <T extends z.ZodRawShape>(schema: z.ZodObject<T>) =>
+  schema.extend({ id: z.string().uuid() });
+
+export const cmsBlogPostUpdateSchema = withCmsId(cmsBlogPostSchema);
+export const cmsServiceUpdateSchema = withCmsId(cmsServiceSchema);
+export const cmsFaqUpdateSchema = withCmsId(cmsFaqSchema);
+export const cmsIndustryUpdateSchema = withCmsId(cmsIndustrySchema);
+export const cmsTestimonialUpdateSchema = withCmsId(cmsTestimonialSchema);
+export const cmsCaseStudyUpdateSchema = withCmsId(cmsCaseStudySchema);

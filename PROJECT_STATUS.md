@@ -1,41 +1,30 @@
 # PROJECT_STATUS — Beepa / BeepoBeepa
 
 **Updated:** 2026-09-07  
-**Branch:** `main` (large uncommitted app surface vs initial landing commit)  
-**Overall:** **DEMO-HARDENED / PARTIAL product** — demo login autofill for all 13 roles; client timesheet approve shipped.
+**Branch:** `main`  
+**Overall:** **DEMO-HARDENED / PARTIAL product** — CMS edit-in-place shipped.
 
 ## Health
 
 | Area | Status |
 |------|--------|
 | Overall | PARTIAL — demo-ready for scripted paths |
-| Frontend | GOOD* — demo picker + CMS + client timesheet review |
+| Frontend | GOOD — CMS create/edit/publish + demo login picker |
 | Backend | PARTIAL — solid where built |
-| Database | GOOD — timesheet migration applied; demo users re-seeded |
-| Testing | PASS — typecheck, lint, vitest **94** |
-| E2E | PASS — demo-login + roles **20/20** this slice |
-| SEO / favicon | GOOD |
-| Documentation | GOOD — kept in sync |
+| Database | GOOD |
+| Testing | PASS — typecheck, lint, vitest, build |
+| E2E | PASS prior slices |
+| Documentation | GOOD |
 | Deployment | LIVE at beepabpo.com |
-
-## Gates (2026-09-07 demo login picker)
-
-```text
-[x] typecheck
-[x] lint
-[x] vitest (94)
-[x] pnpm seed:demo (password sync)
-[x] e2e demo-login + roles (20)
-```
 
 ## Highest-value next action
 
-**CMS edit-in-place** — or OAuth / deal→client / invoice issue UI.
+**OAuth** (when providers configured) — or deal→client / invoice issue UI / email digests.
 
 ## Top PO backlog
 
-Still open: CMS edit-in-place, OAuth, proposals→client, dynamic approval workflows, SLA UI, payroll period create, invoice issue UI, email notification delivery.
+Still open: OAuth, proposals→client, dynamic approval workflows, SLA UI, payroll period create, invoice issue UI, email notification delivery.
 
 ## Demo-safe promise
 
-Click any demo role on `/login` or `/employee/login` (when `DEMO_PASSWORD` is set in non-prod, or `ALLOW_DEMO_LOGIN=true`) to autofill and sign into Supabase. Re-run `pnpm seed:demo` after password changes.
+CMS rows can be edited via Edit dialogs on `/app/cms`, then published. Demo autofill works with `DEMO_PASSWORD` + `pnpm seed:demo`.

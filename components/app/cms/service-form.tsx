@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { cmsServiceSchema } from "@/lib/validation/app";
-import { createService } from "@/lib/cms/actions";
+import { createService, updateService } from "@/lib/cms/actions";
 import { slugifyTitle } from "@/lib/cms/slug";
 import { applyFieldErrors } from "@/lib/forms/field-errors";
 import { Button } from "@/components/ui/button";
@@ -23,25 +23,40 @@ const defaults: ServiceInput = {
   description: "",
 };
 
-export function ServiceForm() {
+export function ServiceForm({
+  id,
+  initial,
+  onSaved,
+  idPrefix = "service",
+}: {
+  id?: string;
+  initial?: Partial<ServiceInput>;
+  onSaved?: () => void;
+  idPrefix?: string;
+}) {
   const [pending, setPending] = useState(false);
-  const [slugTouched, setSlugTouched] = useState(false);
+  const [slugTouched, setSlugTouched] = useState(Boolean(id));
   const form = useForm<ServiceInput>({
     resolver: zodResolver(cmsServiceSchema),
-    defaultValues: defaults,
+    defaultValues: { ...defaults, ...initial },
   });
 
   async function onSubmit(values: ServiceInput) {
     setPending(true);
-    const result = await createService(values);
+    const result = id
+      ? await updateService({ ...values, id })
+      : await createService(values);
     setPending(false);
     if (result.ok) {
       toast.success(result.message);
-      setSlugTouched(false);
-      form.reset(defaults);
+      if (id) onSaved?.();
+      else {
+        setSlugTouched(false);
+        form.reset(defaults);
+      }
     } else {
       applyFieldErrors(form, result.fieldErrors);
-      toast.error(result.error ?? "Unable to create service.");
+      toast.error(result.error ?? "Unable to save service.");
     }
   }
 
@@ -50,9 +65,9 @@ export function ServiceForm() {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="service-title">Title</Label>
+        <Label htmlFor={`${idPrefix}-title`}>Title</Label>
         <Input
-          id="service-title"
+          id={`${idPrefix}-title`}
           {...form.register("title", {
             onChange: (e) => {
               if (!slugTouched) {
@@ -68,9 +83,9 @@ export function ServiceForm() {
         ) : null}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="service-slug">Slug</Label>
+        <Label htmlFor={`${idPrefix}-slug`}>Slug</Label>
         <Input
-          id="service-slug"
+          id={`${idPrefix}-slug`}
           placeholder="customer-support"
           {...form.register("slug", {
             onChange: () => setSlugTouched(true),
@@ -81,19 +96,23 @@ export function ServiceForm() {
         ) : null}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="service-summary">Summary</Label>
-        <Textarea id="service-summary" rows={2} {...form.register("summary")} />
+        <Label htmlFor={`${idPrefix}-summary`}>Summary</Label>
+        <Textarea
+          id={`${idPrefix}-summary`}
+          rows={2}
+          {...form.register("summary")}
+        />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="service-description">Description</Label>
+        <Label htmlFor={`${idPrefix}-description`}>Description</Label>
         <Textarea
-          id="service-description"
+          id={`${idPrefix}-description`}
           rows={5}
           {...form.register("description")}
         />
       </div>
       <Button type="submit" className="min-h-11" disabled={pending}>
-        {pending ? "Saving…" : "Save draft"}
+        {pending ? "Saving…" : id ? "Save changes" : "Save draft"}
       </Button>
     </form>
   );

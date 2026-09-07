@@ -7,12 +7,18 @@ import { createClient } from "@/lib/supabase/server";
 import {
   cmsAboutSchema,
   cmsBlogPostSchema,
+  cmsBlogPostUpdateSchema,
   cmsCaseStudySchema,
+  cmsCaseStudyUpdateSchema,
   cmsContentStatusSchema,
   cmsFaqSchema,
+  cmsFaqUpdateSchema,
   cmsIndustrySchema,
+  cmsIndustryUpdateSchema,
   cmsServiceSchema,
+  cmsServiceUpdateSchema,
   cmsTestimonialSchema,
+  cmsTestimonialUpdateSchema,
 } from "@/lib/validation/app";
 import type { Database, Json } from "@/types/database";
 import { ABOUT_SETTING_KEY } from "@/lib/cms/about";
@@ -77,6 +83,37 @@ export async function createBlogPost(input: unknown): Promise<ActionResult> {
   return { ok: true, message: "Draft post created." };
 }
 
+export async function updateBlogPost(input: unknown): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  requirePermission(workspace, "cms.manage");
+
+  const parsed = cmsBlogPostUpdateSchema.safeParse(input);
+  if (!parsed.success) return fieldErrors(parsed.error);
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("blog_posts")
+    .update({
+      title: parsed.data.title,
+      slug: parsed.data.slug,
+      excerpt: parsed.data.excerpt ?? "",
+      body: parsed.data.body,
+    })
+    .eq("id", parsed.data.id);
+
+  if (error) {
+    if (error.code === "23505") {
+      return { ok: false, error: "That slug is already in use." };
+    }
+    return { ok: false, error: error.message ?? "Unable to update post." };
+  }
+
+  revalidateCmsPublic();
+  revalidatePath(`/resources/${parsed.data.slug}`);
+  return { ok: true, message: "Post updated." };
+}
+
 export async function createService(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
@@ -106,6 +143,36 @@ export async function createService(input: unknown): Promise<ActionResult> {
   return { ok: true, message: "Draft service created." };
 }
 
+export async function updateService(input: unknown): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  requirePermission(workspace, "cms.manage");
+
+  const parsed = cmsServiceUpdateSchema.safeParse(input);
+  if (!parsed.success) return fieldErrors(parsed.error);
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("services")
+    .update({
+      title: parsed.data.title,
+      slug: parsed.data.slug,
+      summary: parsed.data.summary ?? "",
+      description: parsed.data.description ?? "",
+    })
+    .eq("id", parsed.data.id);
+
+  if (error) {
+    if (error.code === "23505") {
+      return { ok: false, error: "That slug is already in use." };
+    }
+    return { ok: false, error: error.message ?? "Unable to update service." };
+  }
+
+  revalidateCmsPublic();
+  return { ok: true, message: "Service updated." };
+}
+
 export async function createFaq(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
@@ -129,6 +196,32 @@ export async function createFaq(input: unknown): Promise<ActionResult> {
 
   revalidateCmsPublic();
   return { ok: true, message: "Draft FAQ created." };
+}
+
+export async function updateFaq(input: unknown): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  requirePermission(workspace, "cms.manage");
+
+  const parsed = cmsFaqUpdateSchema.safeParse(input);
+  if (!parsed.success) return fieldErrors(parsed.error);
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("faqs")
+    .update({
+      question: parsed.data.question,
+      answer: parsed.data.answer,
+      category: parsed.data.category?.trim() || "general",
+    })
+    .eq("id", parsed.data.id);
+
+  if (error) {
+    return { ok: false, error: error.message ?? "Unable to update FAQ." };
+  }
+
+  revalidateCmsPublic();
+  return { ok: true, message: "FAQ updated." };
 }
 
 export async function createIndustry(input: unknown): Promise<ActionResult> {
@@ -157,6 +250,35 @@ export async function createIndustry(input: unknown): Promise<ActionResult> {
 
   revalidateCmsPublic();
   return { ok: true, message: "Draft industry created." };
+}
+
+export async function updateIndustry(input: unknown): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  requirePermission(workspace, "cms.manage");
+
+  const parsed = cmsIndustryUpdateSchema.safeParse(input);
+  if (!parsed.success) return fieldErrors(parsed.error);
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("industries")
+    .update({
+      name: parsed.data.name,
+      slug: parsed.data.slug,
+      description: parsed.data.description ?? "",
+    })
+    .eq("id", parsed.data.id);
+
+  if (error) {
+    if (error.code === "23505") {
+      return { ok: false, error: "That slug is already in use." };
+    }
+    return { ok: false, error: error.message ?? "Unable to update industry." };
+  }
+
+  revalidateCmsPublic();
+  return { ok: true, message: "Industry updated." };
 }
 
 export async function createTestimonial(input: unknown): Promise<ActionResult> {
@@ -195,6 +317,43 @@ export async function createTestimonial(input: unknown): Promise<ActionResult> {
   return { ok: true, message: "Draft testimonial created." };
 }
 
+export async function updateTestimonial(input: unknown): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  requirePermission(workspace, "cms.manage");
+
+  const parsed = cmsTestimonialUpdateSchema.safeParse(input);
+  if (!parsed.success) return fieldErrors(parsed.error);
+
+  const rating = parseRating(parsed.data.rating);
+  if (rating && typeof rating === "object" && "error" in rating) {
+    return {
+      ok: false,
+      fieldErrors: { rating: [rating.error] },
+      error: rating.error,
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("testimonials")
+    .update({
+      client_name: parsed.data.client_name,
+      quote: parsed.data.quote,
+      client_title: parsed.data.client_title?.trim() || null,
+      company_name: parsed.data.company_name?.trim() || null,
+      rating: rating as number | null,
+    })
+    .eq("id", parsed.data.id);
+
+  if (error) {
+    return { ok: false, error: error.message ?? "Unable to update testimonial." };
+  }
+
+  revalidateCmsPublic();
+  return { ok: true, message: "Testimonial updated." };
+}
+
 export async function createCaseStudy(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
@@ -223,6 +382,39 @@ export async function createCaseStudy(input: unknown): Promise<ActionResult> {
 
   revalidateCmsPublic();
   return { ok: true, message: "Draft case study created." };
+}
+
+export async function updateCaseStudy(input: unknown): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  requirePermission(workspace, "cms.manage");
+
+  const parsed = cmsCaseStudyUpdateSchema.safeParse(input);
+  if (!parsed.success) return fieldErrors(parsed.error);
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("case_studies")
+    .update({
+      title: parsed.data.title,
+      slug: parsed.data.slug,
+      summary: parsed.data.summary ?? "",
+      body: parsed.data.body,
+      client_name: parsed.data.client_name?.trim() || null,
+      industry: parsed.data.industry?.trim() || null,
+    })
+    .eq("id", parsed.data.id);
+
+  if (error) {
+    if (error.code === "23505") {
+      return { ok: false, error: "That slug is already in use." };
+    }
+    return { ok: false, error: error.message ?? "Unable to update case study." };
+  }
+
+  revalidateCmsPublic();
+  revalidatePath(`/case-studies/${parsed.data.slug}`);
+  return { ok: true, message: "Case study updated." };
 }
 
 export async function upsertAboutPage(input: unknown): Promise<ActionResult> {
