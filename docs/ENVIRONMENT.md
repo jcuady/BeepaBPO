@@ -17,8 +17,8 @@ Copy `.env.example` → `.env.local`. Validation lives in `lib/env.ts` (subset r
 | `DEMO_PASSWORD` | Shared password for `pnpm seed:demo` users, Playwright, and login autofill picker (dev only unless `ALLOW_DEMO_LOGIN`). |
 | `ALLOW_DEMO_LOGIN` | Set `true` to show demo autofill on production builds (staging/preview only). Never enable on public prod without intent. |
 | `PLAYWRIGHT_BASE_URL` | Optional e2e base (default localhost from Playwright config). |
-| `RESEND_API_KEY` | Optional transactional email via Resend. |
-| `EMAIL_FROM` | Optional From header, e.g. `Beepa <no-reply@beepabpo.com>`. |
+| `RESEND_API_KEY` | Optional transactional email via Resend (required for notification digests). |
+| `EMAIL_FROM` | Optional From header, e.g. `Beepa <no-reply@beepabpo.com>`. Defaults to Resend onboarding sender when unset. |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional client Sentry DSN (listed in `.env.example`; wire when enabling Sentry). |
 | `SENTRY_AUTH_TOKEN` | Optional Sentry upload/auth token. |
 

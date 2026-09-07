@@ -29,6 +29,7 @@ describe("cron + push ops smoke slice", () => {
     expect(jobs).toContain("dryRun");
     expect(jobs).toContain("invoice_overdue");
     expect(jobs).toContain("missing_clock_out");
+    expect(jobs).toContain("notification_digest");
   });
 
   it("authorizes Bearer or x-cron-secret", () => {

@@ -32,7 +32,7 @@ Seeded Beepa org id: `11111111-1111-1111-1111-111111111111`
 | ATS | `job_posts`, `applicants`, `job_applications`, interviews |
 | CRM | `crm_*`, `lead_attribution` |
 | CMS | `services`, `industries`, `blog_posts`, … |
-| Platform | `notifications`, `push_subscriptions`, `audit_logs`, `approval_*` |
+| Platform | `notifications`, `notification_preferences` (+ `email_digest_sent_at`), `push_subscriptions`, `audit_logs`, `approval_*` |
 
 ## ER (simplified)
 

@@ -137,6 +137,7 @@ export function NotificationsPageClient({
               [
                 ["in_app_enabled", "In-app notifications"],
                 ["push_enabled", "Push notifications"],
+                ["email_enabled", "Email digests"],
               ] as const
             ).map(([key, label]) => (
               <div key={key} className="flex items-center justify-between gap-4">
@@ -150,9 +151,9 @@ export function NotificationsPageClient({
                 />
               </div>
             ))}
-            {/* ponytail: email_enabled column exists but notifyUser does not send email yet */}
             <p className="text-xs text-slate">
-              Email digests are not available yet.
+              Email digests summarize unread notifications (about once a day)
+              when Resend is configured on the server.
             </p>
           </div>
         </CardContent>

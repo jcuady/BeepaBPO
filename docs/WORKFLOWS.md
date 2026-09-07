@@ -82,7 +82,7 @@ Requester creates → assignment → messages (client-visible) vs internal notes
 
 ## Cron + push
 
-**Today:** `POST /api/jobs/cron` (Bearer / `x-cron-secret`) runs `missing_clock_out` + `invoice_overdue`. `dryRun: true` counts only. Admin Ops smoke on `/app/admin` runs dry-run + self test push (`system.manage`). Push subscribe/unsubscribe via `/api/push/*`; enable UI on `/app/my/notifications`. Local: `pnpm smoke:cron`.
+**Today:** `POST /api/jobs/cron` (Bearer / `x-cron-secret`) runs `missing_clock_out` + `invoice_overdue` + `notification_digest`. `dryRun: true` counts only. Digests email unread notifications via Resend when `RESEND_API_KEY` is set (throttled ~daily per user; respects `email_enabled`). Admin Ops smoke on `/app/admin` runs dry-run + self test push (`system.manage`). Push subscribe/unsubscribe via `/api/push/*`; enable UI on `/app/my/notifications`. Local: `pnpm smoke:cron`.
 
 ## CMS publish
 

@@ -139,7 +139,7 @@ export async function runCronDryRun(): Promise<
 
   return {
     ok: true,
-    message: `Dry-run OK — missing clock-out: ${result.results.missing_clock_out ?? 0}, overdue invoices: ${result.results.invoice_overdue ?? 0}.`,
+    message: `Dry-run OK — missing clock-out: ${result.results.missing_clock_out ?? 0}, overdue invoices: ${result.results.invoice_overdue ?? 0}, digests: ${result.results.notification_digest ?? 0}.`,
     results: result.results,
   };
 }

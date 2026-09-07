@@ -86,3 +86,4 @@ Indexes and covering membership lookups (`20260906001300`), applicant `membershi
 - Deal → client org: `convertWonDealToClient` on won deals (`crm.manage` + `clients.manage`); migration `20260907190000` adds `crm_deals.client_organization_id`
 - Payroll period create: `createPayrollPeriod` + form on `/app/payroll/periods` (`payroll.manage`); optional draft `payroll_records` for active employees
 - CRM proposals: `createCrmProposal` / `updateCrmProposalStatus` on `/app/crm/proposals` + deal detail; early deals bump to `proposal` stage
+- Email digests: Resend HTTP send (`lib/email/send.ts`), cron `notification_digest`, pref toggle on `/app/my/notifications`; migration `20260907200000` (`email_digest_sent_at`)

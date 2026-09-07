@@ -2960,6 +2960,7 @@ export type Database = {
       notification_preferences: {
         Row: {
           category_preferences: Json
+          email_digest_sent_at: string | null
           email_enabled: boolean
           in_app_enabled: boolean
           push_enabled: boolean
@@ -2968,6 +2969,7 @@ export type Database = {
         }
         Insert: {
           category_preferences?: Json
+          email_digest_sent_at?: string | null
           email_enabled?: boolean
           in_app_enabled?: boolean
           push_enabled?: boolean
@@ -2976,6 +2978,7 @@ export type Database = {
         }
         Update: {
           category_preferences?: Json
+          email_digest_sent_at?: string | null
           email_enabled?: boolean
           in_app_enabled?: boolean
           push_enabled?: boolean

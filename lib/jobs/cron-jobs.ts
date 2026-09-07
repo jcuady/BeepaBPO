@@ -1,7 +1,13 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notifyUser } from "@/lib/notifications/notify";
+import { runNotificationEmailDigest } from "@/lib/notifications/email-digest";
+import { isEmailDeliveryConfigured } from "@/lib/email/send";
 
-export type CronJobName = "all" | "missing_clock_out" | "invoice_overdue";
+export type CronJobName =
+  | "all"
+  | "missing_clock_out"
+  | "invoice_overdue"
+  | "notification_digest";
 
 export type CronRunOptions = {
   job?: CronJobName | string;
@@ -70,6 +76,18 @@ export async function runCronJobs(
         .lt("due_date", new Date().toISOString().slice(0, 10))
         .select("id");
       results.invoice_overdue = overdue?.length ?? 0;
+    }
+  }
+
+  if (job === "all" || job === "notification_digest") {
+    if (!isEmailDeliveryConfigured() && !dryRun) {
+      results.notification_digest = 0;
+      results.notification_digest_skipped_no_resend = 1;
+    } else {
+      const digest = await runNotificationEmailDigest({ dryRun });
+      results.notification_digest = digest.sent;
+      results.notification_digest_candidates = digest.candidates;
+      results.notification_digest_failed = digest.failed;
     }
   }
 

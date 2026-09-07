@@ -2,16 +2,16 @@
 
 **Updated:** 2026-09-07  
 **Branch:** `main`  
-**Overall:** **DEMO-HARDENED / PARTIAL product** — CRM proposals UI shipped.
+**Overall:** **DEMO-HARDENED / PARTIAL product** — email digests shipped.
 
 ## Health
 
 | Area | Status |
 |------|--------|
 | Overall | PARTIAL — demo-ready for scripted paths |
-| Frontend | GOOD — proposals + payroll + CRM convert |
-| Backend | PARTIAL — solid where built |
-| Database | GOOD — existing `crm_proposals` + RLS |
+| Frontend | GOOD — email digest pref + proposals + payroll |
+| Backend | PARTIAL — Resend digests via cron when configured |
+| Database | GOOD — `20260907200000` digest throttle column |
 | Testing | PASS — typecheck, lint, vitest, build |
 | E2E | PASS prior slices |
 | Documentation | GOOD |
@@ -19,12 +19,12 @@
 
 ## Highest-value next action
 
-**OAuth** (when providers configured) — or email digests / dynamic approval workflows / SLA UI.
+**OAuth** (when providers configured) — or dynamic approval workflows / SLA UI.
 
 ## Top PO backlog
 
-Still open: OAuth, dynamic approval workflows, SLA UI, email notification delivery.
+Still open: OAuth, dynamic approval workflows, SLA UI.
 
 ## Demo-safe promise
 
-Sales with `crm.manage` can create and advance proposals on `/app/crm/proposals` and deal detail. Payroll create, deal→client, invoice issue, CMS edit, and demo autofill remain available.
+Unread notification digests run via cron `notification_digest` when `RESEND_API_KEY` is set; users toggle Email digests on `/app/my/notifications`. CRM proposals, payroll create, deal→client, invoice issue remain available.

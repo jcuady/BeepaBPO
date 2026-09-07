@@ -23,7 +23,7 @@ Auth and access routes are listed at the bottom.
 | `/app/my/requests` | segment | tickets, cash advances, approvals (own) | — |
 | `/app/my/documents` | segment | `documents` + Storage | upload self; signed download (15m) |
 | `/app/my/profile` | segment | profile / employee | `updateProfile` |
-| `/app/my/notifications` | segment | `notifications`, preferences | mark read, push subscribe |
+| `/app/my/notifications` | segment | `notifications`, preferences | mark read, push subscribe, email digest pref |
 | `/app/my/support` | segment | — | create ticket (self) |
 
 ## Client portal (`/app/client/*`)

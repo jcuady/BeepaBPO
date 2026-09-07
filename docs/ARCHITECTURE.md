@@ -89,6 +89,7 @@ Documented for honesty — do not treat as shipped:
 - **Client SLA metric** — removed from dashboard until data exists.
 - **CRM depth** — leads + deals pipeline + **proposals** (create/status) shipped; deal→client org convert shipped. **Client portal invite** shipped (`/app/clients`).
 - **Google / Microsoft OAuth** — provider buttons **removed** from login/signup until Supabase providers are configured; email/password only. `/auth/callback` still exchanges codes for future OAuth.
+- **Email digests** — cron `notification_digest` emails unread in-app notifications via Resend when `RESEND_API_KEY` is set; users opt out with Email digests on `/app/my/notifications`.
 
 Shipped recently (see PROJECT_STATUS): … client-org invite, **remaining CMS page types**.
 
