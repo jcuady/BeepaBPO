@@ -91,6 +91,7 @@ Public CMS read: `/about` (settings + industries + testimonials), `/services`, `
 | `/app/reports` | canAny reports.* | workforce/ticket/CRM counts | CSV export if `reports.export` |
 | `/app/reports/export` | perm `reports.export` | CSV download (`?dataset=`) | snapshot\|employees\|attendance\|tickets\|leads |
 | `/app/cms` | perm `cms.manage` | services, blog, faqs, industries, testimonials, case_studies, site_settings | create drafts; publish/archive; About upsert |
+| `/app/admin/workflows` | perm `system.manage` | `approval_workflows` + steps | read-only map |
 | `/app/approvals` | perm `approvals.act` | `approval_requests` | deep-link Review (no inline act) |
 | `/app/admin` | perm `system.manage` | profile/org counts | links to users/orgs/audit |
 | `/app/admin/users` | perm `system.manage` | memberships + roles | invite internal + search |

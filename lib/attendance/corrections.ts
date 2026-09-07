@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
-import { ATTENDANCE_CORRECTION_WORKFLOW_ID } from "@/lib/constants/approvals";
+import {
+  advanceApprovalRequest,
+  createApprovalRequest,
+} from "@/lib/approvals/engine";
 import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can, canAny } from "@/lib/permissions/can";
@@ -84,29 +87,24 @@ export async function createAttendanceCorrection(
     };
   }
 
-  const { error: approvalError } = await supabase
-    .from("approval_requests")
-    .insert({
-      workflow_id: ATTENDANCE_CORRECTION_WORKFLOW_ID,
-      organization_id: employee.organization_id,
-      entity_type: "attendance_correction",
-      entity_id: correction.id,
-      requester_user_id: workspace.user.id,
-      status: "pending",
-      payload: {
-        attendance_record_id: parsed.data.attendance_record_id,
-        requested_clock_in_at: parsed.data.requested_clock_in_at || null,
-        requested_clock_out_at: parsed.data.requested_clock_out_at || null,
-        reason: parsed.data.reason,
-      },
-    });
+  const approval = await createApprovalRequest(supabase, {
+    organizationId: employee.organization_id,
+    workflowCode: "attendance_correction",
+    entityType: "attendance_correction",
+    entityId: correction.id,
+    requesterUserId: workspace.user.id,
+    payload: {
+      attendance_record_id: parsed.data.attendance_record_id,
+      requested_clock_in_at: parsed.data.requested_clock_in_at || null,
+      requested_clock_out_at: parsed.data.requested_clock_out_at || null,
+      reason: parsed.data.reason,
+    },
+  });
 
-  if (approvalError) {
+  if (!approval.ok) {
     return {
       ok: false,
-      error:
-        approvalError.message ??
-        "Correction saved but approval queue failed.",
+      error: approval.error,
     };
   }
 
@@ -160,17 +158,20 @@ export async function reviewAttendanceCorrection(
     return { ok: false, error: "Correction is not pending review." };
   }
 
-  const { data: approvalRequest } = await supabase
-    .from("approval_requests")
-    .select("id, current_step, status")
-    .eq("entity_type", "attendance_correction")
-    .eq("entity_id", parsed.data.correction_request_id)
-    .eq("status", "pending")
-    .maybeSingle();
+  const advanced = await advanceApprovalRequest(supabase, workspace, {
+    entityType: "attendance_correction",
+    entityId: parsed.data.correction_request_id,
+    action: parsed.data.action,
+    notes: parsed.data.notes,
+  });
+
+  if (!advanced.ok) {
+    return { ok: false, error: advanced.error };
+  }
 
   const newStatus = parsed.data.action === "approve" ? "approved" : "rejected";
 
-  if (parsed.data.action === "approve") {
+  if (parsed.data.action === "approve" && advanced.completed) {
     const clockIn =
       correction.requested_clock_in_at ?? undefined;
     const clockOut =
@@ -208,6 +209,14 @@ export async function reviewAttendanceCorrection(
     }
   }
 
+  if (!advanced.completed && parsed.data.action === "approve") {
+    // Single-step workflow should always complete; multi-step keeps pending entity.
+    return {
+      ok: true,
+      message: `Advanced past ${advanced.stepName}.`,
+    };
+  }
+
   const { error: correctionError } = await supabase
     .from("attendance_correction_requests")
     .update({
@@ -224,20 +233,6 @@ export async function reviewAttendanceCorrection(
     };
   }
 
-  if (approvalRequest) {
-    await supabase.from("approval_actions").insert({
-      request_id: approvalRequest.id,
-      step_order: approvalRequest.current_step,
-      actor_user_id: workspace.user.id,
-      action: parsed.data.action,
-      notes: parsed.data.notes ?? null,
-    });
-    await supabase
-      .from("approval_requests")
-      .update({ status: newStatus })
-      .eq("id", approvalRequest.id);
-  }
-
   try {
     const { logAudit } = await import("@/lib/audit/log");
     await logAudit(supabase, {
@@ -247,7 +242,7 @@ export async function reviewAttendanceCorrection(
       entityType: "attendance_correction",
       entityId: parsed.data.correction_request_id,
       before: { status: "pending" },
-      after: { status: newStatus },
+      after: { status: newStatus, step: advanced.stepName },
     });
   } catch {
     // Non-blocking

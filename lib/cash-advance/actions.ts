@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
-import { CASH_ADVANCE_WORKFLOW_ID } from "@/lib/constants/approvals";
+import {
+  advanceApprovalRequest,
+  createApprovalRequest,
+} from "@/lib/approvals/engine";
 import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
@@ -48,7 +51,7 @@ export async function createCashAdvanceRequest(
       reason: parsed.data.reason,
       requested_repayment_periods:
         parsed.data.requested_repayment_periods ?? null,
-      status: "pending",
+      status: "hr_review",
     })
     .select("id")
     .single();
@@ -60,22 +63,26 @@ export async function createCashAdvanceRequest(
     };
   }
 
-  await supabase.from("approval_requests").insert({
-    workflow_id: CASH_ADVANCE_WORKFLOW_ID,
-    organization_id: employee.organization_id,
-    entity_type: "cash_advance",
-    entity_id: request.id,
-    requester_user_id: workspace.user.id,
-    status: "pending",
+  const approval = await createApprovalRequest(supabase, {
+    organizationId: employee.organization_id,
+    workflowCode: "cash_advance",
+    entityType: "cash_advance",
+    entityId: request.id,
+    requesterUserId: workspace.user.id,
     payload: {
       requested_amount: parsed.data.requested_amount,
       reason: parsed.data.reason,
     },
   });
 
+  if (!approval.ok) {
+    return { ok: false, error: approval.error };
+  }
+
   revalidatePath("/app/my/cash-advances");
   revalidatePath("/app/my/requests");
   revalidatePath("/app/cash-advances");
+  revalidatePath("/app/approvals");
   return { ok: true, message: "Cash advance request submitted." };
 }
 
@@ -96,24 +103,41 @@ export async function reviewCashAdvance(
 
   const { data: existing } = await supabase
     .from("cash_advance_requests")
-    .select("requested_amount")
+    .select("requested_amount, status")
     .eq("id", requestId)
-    .eq("status", "pending")
+    .in("status", ["pending", "hr_review", "finance_review"])
     .maybeSingle();
 
   if (!existing) {
     return { ok: false, error: "Request not found or already processed." };
   }
 
-  const newStatus = action === "approve" ? "approved" : "rejected";
+  const advanced = await advanceApprovalRequest(supabase, workspace, {
+    entityType: "cash_advance",
+    entityId: requestId,
+    action,
+  });
+
+  if (!advanced.ok) {
+    return { ok: false, error: advanced.error };
+  }
+
+  let newStatus: "hr_review" | "finance_review" | "approved" | "rejected";
+  if (action === "reject") {
+    newStatus = "rejected";
+  } else if (advanced.completed) {
+    newStatus = "approved";
+  } else {
+    newStatus = "finance_review";
+  }
 
   const { error } = await supabase
     .from("cash_advance_requests")
     .update({
       status: newStatus,
       approved_amount:
-        action === "approve" ? existing.requested_amount : null,
-      approved_by: action === "approve" ? workspace.user.id : null,
+        newStatus === "approved" ? existing.requested_amount : null,
+      approved_by: newStatus === "approved" ? workspace.user.id : null,
     })
     .eq("id", requestId);
 
@@ -128,10 +152,23 @@ export async function reviewCashAdvance(
     action: `cash_advance.${action}`,
     entityType: "cash_advance_request",
     entityId: requestId,
-    before: { status: "pending" },
-    after: { status: newStatus },
+    before: { status: existing.status },
+    after: {
+      status: newStatus,
+      step: advanced.stepName,
+      completed: advanced.completed,
+    },
   });
 
   revalidatePath("/app/cash-advances");
-  return { ok: true, message: `Request ${newStatus}.` };
+  revalidatePath("/app/approvals");
+  return {
+    ok: true,
+    message:
+      action === "reject"
+        ? "Request rejected."
+        : advanced.completed
+          ? "Request approved."
+          : `Advanced past ${advanced.stepName}.`,
+  };
 }

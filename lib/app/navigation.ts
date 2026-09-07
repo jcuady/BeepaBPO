@@ -8,6 +8,7 @@ import {
   IconCoin,
   IconDashboard,
   IconFileText,
+  IconGitBranch,
   IconHeadset,
   IconHome,
   IconLayoutDashboard,
@@ -236,6 +237,12 @@ export const adminNavGroups: NavGroup[] = [
         title: "Audit Log",
         href: "/app/admin/audit",
         icon: IconFileText,
+        permission: "system.manage",
+      },
+      {
+        title: "Workflows",
+        href: "/app/admin/workflows",
+        icon: IconGitBranch,
         permission: "system.manage",
       },
       {

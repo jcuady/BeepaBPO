@@ -121,7 +121,8 @@ export default async function LeaveApprovalsPage({
                       <StatusBadge status={req.status} />
                     </TableCell>
                     <TableCell>
-                      {req.status === "pending" ? (
+                      {req.status === "pending" ||
+                      req.status === "manager_approved" ? (
                         <LeaveApprovalActions leaveRequestId={req.id} />
                       ) : (
                         <span className="text-xs text-slate">—</span>

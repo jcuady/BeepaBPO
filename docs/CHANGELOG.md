@@ -87,3 +87,4 @@ Indexes and covering membership lookups (`20260906001300`), applicant `membershi
 - Payroll period create: `createPayrollPeriod` + form on `/app/payroll/periods` (`payroll.manage`); optional draft `payroll_records` for active employees
 - CRM proposals: `createCrmProposal` / `updateCrmProposalStatus` on `/app/crm/proposals` + deal detail; early deals bump to `proposal` stage
 - Email digests: Resend HTTP send (`lib/email/send.ts`), cron `notification_digest`, pref toggle on `/app/my/notifications`; migration `20260907200000` (`email_digest_sent_at`)
+- Dynamic approval workflows: `lib/approvals/engine.ts` resolves by workflow `code` + advances steps; leave/cash/attendance wired; admin read view `/app/admin/workflows`

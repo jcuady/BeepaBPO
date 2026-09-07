@@ -106,7 +106,7 @@ Automation: Manual from `/app/approvals` with seeded pending rows.
 - [x] CMS admin (`cms.manage`) — About, FAQs, blog, services, industries, testimonials, case studies; public pages wired
 - [x] CRM deals pipeline (`crm.manage`) — create + stage moves; `/app/crm/deals`
 - [x] Reports export (`GET /app/reports/export`, `reports.export`)
-- [ ] Dynamic approval workflow engine (seeded rows; hardcoded IDs today)
+- [x] Dynamic approval workflow engine (resolve by code + multi-step advance; admin `/app/admin/workflows`)
 - [ ] Client SLA compliance metric
 - [x] Client-org invite UI (`inviteClientUser`, `/app/clients`)
 - [ ] CMS edit-in-place for existing rows

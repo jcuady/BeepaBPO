@@ -78,14 +78,14 @@ sequenceDiagram
 | Server action (`lib/*/actions.ts`) | Validate, mutate, optional `logAudit`, `revalidatePath` |
 | Page (`app/app/**/page.tsx`) | `resolveWorkspace`, gate, query, render |
 
-Example: leave request → `leave_requests` + `approval_requests` (hardcoded workflow id) → `/app/my/leave` and `/app/leave` revalidated.
+Example: leave request → `leave_requests` + `approval_requests` (workflow resolved by `code` via `lib/approvals/engine.ts`) → `/app/my/leave` and `/app/leave` revalidated.
 
 ## Deepening opportunities / product backlog (not built yet)
 
 Documented for honesty — do not treat as shipped:
 
 - **CMS admin** — `/app/cms` covers About (`public_about`), FAQs, services, blog, **industries**, **testimonials**, **case studies** (create + publish/archive). Public: `/about`, `/contact`, `/services`, `/resources`, `/case-studies`(+`/[slug]`). Edit-in-place for existing rows still thin.
-- **Dynamic approval workflows** — seeded rows; mutations use hardcoded IDs in `lib/constants/approvals.ts`.
+- **Dynamic approval workflows** — `resolveActiveWorkflow` / `advanceApprovalRequest` drive leave, cash advance, and attendance corrections from `approval_workflows` + `approval_steps` (role + permission gated). Admin read-only map at `/app/admin/workflows`.
 - **Client SLA metric** — removed from dashboard until data exists.
 - **CRM depth** — leads + deals pipeline + **proposals** (create/status) shipped; deal→client org convert shipped. **Client portal invite** shipped (`/app/clients`).
 - **Google / Microsoft OAuth** — provider buttons **removed** from login/signup until Supabase providers are configured; email/password only. `/auth/callback` still exchanges codes for future OAuth.

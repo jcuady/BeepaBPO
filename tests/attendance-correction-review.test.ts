@@ -13,8 +13,9 @@ describe("attendance correction review seam", () => {
   );
 
   it("queues approval_requests on create", () => {
-    expect(corrections).toContain("ATTENDANCE_CORRECTION_WORKFLOW_ID");
-    expect(corrections).toContain('entity_type: "attendance_correction"');
+    expect(corrections).toContain('workflowCode: "attendance_correction"');
+    expect(corrections).toContain("createApprovalRequest");
+    expect(corrections).toContain('entityType: "attendance_correction"');
   });
 
   it("exports reviewAttendanceCorrection", () => {

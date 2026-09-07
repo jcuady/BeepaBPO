@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { ActionResult } from "@/lib/actions/types";
-import { LEAVE_WORKFLOW_ID } from "@/lib/constants/approvals";
+import {
+  advanceApprovalRequest,
+  createApprovalRequest,
+} from "@/lib/approvals/engine";
 import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
@@ -86,28 +89,22 @@ export async function createLeaveRequest(
     };
   }
 
-  const { error: approvalError } = await supabase
-    .from("approval_requests")
-    .insert({
-      workflow_id: LEAVE_WORKFLOW_ID,
-      organization_id: employee.organization_id,
-      entity_type: "leave_request",
-      entity_id: leaveRequest.id,
-      requester_user_id: workspace.user.id,
-      status: "pending",
-      payload: {
-        leave_type_id: parsed.data.leave_type_id,
-        start_at,
-        end_at,
-        requested_minutes,
-      },
-    });
+  const approval = await createApprovalRequest(supabase, {
+    organizationId: employee.organization_id,
+    workflowCode: "leave",
+    entityType: "leave_request",
+    entityId: leaveRequest.id,
+    requesterUserId: workspace.user.id,
+    payload: {
+      leave_type_id: parsed.data.leave_type_id,
+      start_at,
+      end_at,
+      requested_minutes,
+    },
+  });
 
-  if (approvalError) {
-    return {
-      ok: false,
-      error: approvalError.message ?? "Leave saved but approval queue failed.",
-    };
+  if (!approval.ok) {
+    return { ok: false, error: approval.error };
   }
 
   try {
@@ -119,14 +116,16 @@ export async function createLeaveRequest(
       .select(
         "membership_id, roles!inner(code), organization_memberships!inner(user_id, organization_id, status)",
       )
-      .eq("roles.code", "hr")
+      .eq("roles.code", "team_lead")
       .eq("organization_memberships.organization_id", employee.organization_id)
       .eq("organization_memberships.status", "active");
     for (const row of rows ?? []) {
       const membership = row.organization_memberships as unknown as {
         user_id: string;
       };
-      if (!membership?.user_id || membership.user_id === workspace.user.id) continue;
+      if (!membership?.user_id || membership.user_id === workspace.user.id) {
+        continue;
+      }
       await notifyUser({
         userId: membership.user_id,
         type: "leave.request",
@@ -144,6 +143,7 @@ export async function createLeaveRequest(
   revalidatePath("/app/my/leave");
   revalidatePath("/app/my/requests");
   revalidatePath("/app/leave");
+  revalidatePath("/app/approvals");
   return { ok: true, message: "Leave request submitted." };
 }
 
@@ -169,8 +169,8 @@ export async function cancelLeaveRequest(
   if (!existing || existing.employee_id !== employee.id) {
     return { ok: false, error: "Leave request not found." };
   }
-  if (existing.status !== "pending") {
-    return { ok: false, error: "Only pending requests can be cancelled." };
+  if (existing.status !== "pending" && existing.status !== "manager_approved") {
+    return { ok: false, error: "Only open requests can be cancelled." };
   }
 
   const { error } = await supabase
@@ -186,10 +186,12 @@ export async function cancelLeaveRequest(
     .from("approval_requests")
     .update({ status: "cancelled" })
     .eq("entity_type", "leave_request")
-    .eq("entity_id", leaveRequestId);
+    .eq("entity_id", leaveRequestId)
+    .eq("status", "pending");
 
   revalidatePath("/app/my/leave");
   revalidatePath("/app/leave");
+  revalidatePath("/app/approvals");
   return { ok: true, message: "Leave request cancelled." };
 }
 
@@ -221,38 +223,33 @@ export async function reviewLeaveRequest(
     .eq("id", parsed.data.leave_request_id)
     .maybeSingle();
 
-  if (!leaveRequest || leaveRequest.status !== "pending") {
-    return { ok: false, error: "Leave request is not pending approval." };
+  if (
+    !leaveRequest ||
+    (leaveRequest.status !== "pending" &&
+      leaveRequest.status !== "manager_approved")
+  ) {
+    return { ok: false, error: "Leave request is not awaiting approval." };
   }
 
-  const { data: approvalRequest } = await supabase
-    .from("approval_requests")
-    .select("id, current_step, status")
-    .eq("entity_type", "leave_request")
-    .eq("entity_id", parsed.data.leave_request_id)
-    .eq("status", "pending")
-    .maybeSingle();
-
-  if (!approvalRequest) {
-    return { ok: false, error: "Approval workflow not found." };
-  }
-
-  const { error: actionError } = await supabase.from("approval_actions").insert({
-    request_id: approvalRequest.id,
-    step_order: approvalRequest.current_step,
-    actor_user_id: workspace.user.id,
+  const advanced = await advanceApprovalRequest(supabase, workspace, {
+    entityType: "leave_request",
+    entityId: parsed.data.leave_request_id,
     action: parsed.data.action,
-    notes: parsed.data.notes ?? null,
+    notes: parsed.data.notes,
   });
 
-  if (actionError) {
-    return { ok: false, error: actionError.message ?? "Unable to record action." };
+  if (!advanced.ok) {
+    return { ok: false, error: advanced.error };
   }
 
-  const newLeaveStatus =
-    parsed.data.action === "approve" ? "approved" : "rejected";
-  const newApprovalStatus =
-    parsed.data.action === "approve" ? "approved" : "rejected";
+  let newLeaveStatus: "manager_approved" | "approved" | "rejected";
+  if (parsed.data.action === "reject") {
+    newLeaveStatus = "rejected";
+  } else if (advanced.completed) {
+    newLeaveStatus = "approved";
+  } else {
+    newLeaveStatus = "manager_approved";
+  }
 
   const { error: leaveError } = await supabase
     .from("leave_requests")
@@ -263,11 +260,6 @@ export async function reviewLeaveRequest(
     return { ok: false, error: leaveError.message ?? "Unable to update leave." };
   }
 
-  await supabase
-    .from("approval_requests")
-    .update({ status: newApprovalStatus })
-    .eq("id", approvalRequest.id);
-
   const { logAudit } = await import("@/lib/audit/log");
   await logAudit(supabase, {
     actorUserId: workspace.user.id,
@@ -275,48 +267,57 @@ export async function reviewLeaveRequest(
     action: `leave.${parsed.data.action}`,
     entityType: "leave_request",
     entityId: parsed.data.leave_request_id,
-    before: { status: "pending" },
-    after: { status: newLeaveStatus },
+    before: { status: leaveRequest.status },
+    after: {
+      status: newLeaveStatus,
+      step: advanced.stepName,
+      completed: advanced.completed,
+    },
   });
 
-  try {
-    const { data: leaveRow } = await supabase
-      .from("leave_requests")
-      .select("employee_id, employees(profile_id)")
-      .eq("id", parsed.data.leave_request_id)
-      .maybeSingle();
-    const profileId = (
-      leaveRow?.employees as unknown as { profile_id: string } | null
-    )?.profile_id;
-    if (profileId) {
-      const { notifyUser } = await import("@/lib/notifications/notify");
-      await notifyUser({
-        userId: profileId,
-        type: "leave.decision",
-        title:
-          parsed.data.action === "approve"
-            ? "Leave approved"
-            : "Leave rejected",
-        body:
-          parsed.data.action === "approve"
-            ? "Your leave request was approved."
-            : "Your leave request was rejected.",
-        actionUrl: "/app/my/leave",
-        entityType: "leave_request",
-        entityId: parsed.data.leave_request_id,
-      });
+  if (advanced.completed) {
+    try {
+      const { data: leaveRow } = await supabase
+        .from("leave_requests")
+        .select("employee_id, employees(profile_id)")
+        .eq("id", parsed.data.leave_request_id)
+        .maybeSingle();
+      const profileId = (
+        leaveRow?.employees as unknown as { profile_id: string } | null
+      )?.profile_id;
+      if (profileId) {
+        const { notifyUser } = await import("@/lib/notifications/notify");
+        await notifyUser({
+          userId: profileId,
+          type: "leave.decision",
+          title:
+            parsed.data.action === "approve"
+              ? "Leave approved"
+              : "Leave rejected",
+          body:
+            parsed.data.action === "approve"
+              ? "Your leave request was approved."
+              : "Your leave request was rejected.",
+          actionUrl: "/app/my/leave",
+          entityType: "leave_request",
+          entityId: parsed.data.leave_request_id,
+        });
+      }
+    } catch {
+      // Non-blocking
     }
-  } catch {
-    // Non-blocking
   }
 
   revalidatePath("/app/leave");
   revalidatePath("/app/my/leave");
+  revalidatePath("/app/approvals");
   return {
     ok: true,
     message:
-      parsed.data.action === "approve"
-        ? "Leave request approved."
-        : "Leave request rejected.",
+      parsed.data.action === "reject"
+        ? "Leave request rejected."
+        : advanced.completed
+          ? "Leave request approved."
+          : `Leave advanced past ${advanced.stepName}.`,
   };
 }

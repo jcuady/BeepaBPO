@@ -2,16 +2,16 @@
 
 **Updated:** 2026-09-07  
 **Branch:** `main`  
-**Overall:** **DEMO-HARDENED / PARTIAL product** — email digests shipped.
+**Overall:** **DEMO-HARDENED / PARTIAL product** — dynamic approval workflows shipped.
 
 ## Health
 
 | Area | Status |
 |------|--------|
 | Overall | PARTIAL — demo-ready for scripted paths |
-| Frontend | GOOD — email digest pref + proposals + payroll |
-| Backend | PARTIAL — Resend digests via cron when configured |
-| Database | GOOD — `20260907200000` digest throttle column |
+| Frontend | GOOD — admin workflows view + multi-step queues |
+| Backend | PARTIAL — DB-driven approval engine |
+| Database | GOOD — seeded `approval_workflows` / steps |
 | Testing | PASS — typecheck, lint, vitest, build |
 | E2E | PASS prior slices |
 | Documentation | GOOD |
@@ -19,12 +19,12 @@
 
 ## Highest-value next action
 
-**OAuth** (when providers configured) — or dynamic approval workflows / SLA UI.
+**OAuth** (when providers configured) — or Client SLA UI.
 
 ## Top PO backlog
 
-Still open: OAuth, dynamic approval workflows, SLA UI.
+Still open: OAuth, Client SLA UI.
 
 ## Demo-safe promise
 
-Unread notification digests run via cron `notification_digest` when `RESEND_API_KEY` is set; users toggle Email digests on `/app/my/notifications`. CRM proposals, payroll create, deal→client, invoice issue remain available.
+Leave / cash advance / attendance corrections resolve workflows by code and advance multi-step approvals from `approval_steps`. Inspect definitions at `/app/admin/workflows`.
