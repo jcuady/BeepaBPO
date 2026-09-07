@@ -18,6 +18,7 @@ import {
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { enumParam } from "@/lib/app/search-params";
+import { mapPendingApprovalActability } from "@/lib/approvals/engine";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Leave Approvals" };
@@ -52,6 +53,16 @@ export default async function LeaveApprovalsPage({
     .eq("status", status)
     .order("created_at", { ascending: true })
     .limit(100);
+
+  const actionableIds = (requests ?? [])
+    .filter((r) => r.status === "pending" || r.status === "manager_approved")
+    .map((r) => r.id);
+  const actability = await mapPendingApprovalActability(
+    supabase,
+    workspace,
+    "leave_request",
+    actionableIds,
+  );
 
   return (
     <PageContainer>
@@ -103,6 +114,11 @@ export default async function LeaveApprovalsPage({
                   employee?.profiles?.display_name ??
                   employee?.employee_number ??
                   "Employee";
+                const act = actability.get(req.id);
+                const showActions =
+                  (req.status === "pending" ||
+                    req.status === "manager_approved") &&
+                  act?.canAct;
 
                 return (
                   <TableRow key={req.id}>
@@ -121,9 +137,14 @@ export default async function LeaveApprovalsPage({
                       <StatusBadge status={req.status} />
                     </TableCell>
                     <TableCell>
-                      {req.status === "pending" ||
-                      req.status === "manager_approved" ? (
+                      {showActions ? (
                         <LeaveApprovalActions leaveRequestId={req.id} />
+                      ) : act?.stepName &&
+                        (req.status === "pending" ||
+                          req.status === "manager_approved") ? (
+                        <span className="text-xs text-slate">
+                          Waiting for {act.stepName}
+                        </span>
                       ) : (
                         <span className="text-xs text-slate">—</span>
                       )}

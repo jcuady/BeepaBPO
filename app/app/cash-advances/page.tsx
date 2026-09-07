@@ -18,6 +18,7 @@ import {
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { enumParam } from "@/lib/app/search-params";
+import { mapPendingApprovalActability } from "@/lib/approvals/engine";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Cash Advances" };
@@ -63,6 +64,18 @@ export default async function CashAdvancesQueuePage({
   const canReview =
     workspace.permissions.has("cash_advance.approve") ||
     workspace.permissions.has("cash_advance.manage");
+
+  const reviewIds = (requests ?? [])
+    .filter((r) => REVIEWABLE.has(r.status))
+    .map((r) => r.id);
+  const actability = canReview
+    ? await mapPendingApprovalActability(
+        supabase,
+        workspace,
+        "cash_advance",
+        reviewIds,
+      )
+    : new Map();
 
   return (
     <PageContainer>
@@ -116,6 +129,9 @@ export default async function CashAdvancesQueuePage({
                   employee?.profiles?.display_name ??
                   employee?.employee_number ??
                   "Employee";
+                const act = actability.get(row.id);
+                const showActions =
+                  canReview && REVIEWABLE.has(row.status) && act?.canAct;
 
                 return (
                   <TableRow key={row.id}>
@@ -135,8 +151,14 @@ export default async function CashAdvancesQueuePage({
                       {format(new Date(row.created_at), "MMM d, yyyy")}
                     </TableCell>
                     <TableCell>
-                      {canReview && REVIEWABLE.has(row.status) ? (
+                      {showActions ? (
                         <CashAdvanceReviewButtons requestId={row.id} />
+                      ) : canReview &&
+                        REVIEWABLE.has(row.status) &&
+                        act?.stepName ? (
+                        <span className="text-xs text-slate">
+                          Waiting for {act.stepName}
+                        </span>
                       ) : (
                         <span className="text-xs text-slate">—</span>
                       )}

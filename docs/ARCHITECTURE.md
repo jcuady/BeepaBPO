@@ -85,7 +85,7 @@ Example: leave request → `leave_requests` + `approval_requests` (workflow reso
 Documented for honesty — do not treat as shipped:
 
 - **CMS admin** — `/app/cms` covers About (`public_about`), FAQs, services, blog, **industries**, **testimonials**, **case studies** (create + publish/archive). Public: `/about`, `/contact`, `/services`, `/resources`, `/case-studies`(+`/[slug]`). Edit-in-place for existing rows still thin.
-- **Dynamic approval workflows** — `resolveActiveWorkflow` / `advanceApprovalRequest` drive leave, cash advance, and attendance corrections from `approval_workflows` + `approval_steps` (role + permission gated). Admin read-only map at `/app/admin/workflows`.
+- **Dynamic approval workflows** — `resolveActiveWorkflow` / `advanceApprovalRequest` drive leave, cash advance, and attendance corrections from `approval_workflows` + `approval_steps` (role + permission gated). Queues + `/app/approvals` hide Approve/Review when the actor cannot act on the **current** step. Admin read-only map at `/app/admin/workflows`.
 - **Client SLA** — Beepa priority policies seeded; insert trigger sets `sla_due_at`; UI on tickets + client dashboard compliance. Admin policy editor not built (seed/SQL only).
 - **CRM depth** — leads + deals pipeline + **proposals** (create/status) shipped; deal→client org convert shipped. **Client portal invite** shipped (`/app/clients`).
 - **Google / Microsoft OAuth** — provider buttons **removed** from login/signup until Supabase providers are configured; email/password only. `/auth/callback` still exchanges codes for future OAuth.

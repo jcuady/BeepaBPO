@@ -88,4 +88,5 @@ Indexes and covering membership lookups (`20260906001300`), applicant `membershi
 - CRM proposals: `createCrmProposal` / `updateCrmProposalStatus` on `/app/crm/proposals` + deal detail; early deals bump to `proposal` stage
 - Email digests: Resend HTTP send (`lib/email/send.ts`), cron `notification_digest`, pref toggle on `/app/my/notifications`; migration `20260907200000` (`email_digest_sent_at`)
 - Dynamic approval workflows: `lib/approvals/engine.ts` resolves by workflow `code` + advances steps; leave/cash/attendance wired; admin read view `/app/admin/workflows`
+- Current-step Approve gating: `mapPendingApprovalActability` + `canActOnApprovalStep` hide Approve on leave/cash/corrections/`/app/approvals` when the actor is not on the current workflow step (shows “Waiting for …”)
 - Client ticket SLA: seed policies + `tickets_apply_sla` trigger (`20260907210000`); `evaluateTicketSla` / compliance tile on `/app/client`; SLA column on `/app/tickets`; detail badges; first staff reply sets `first_response_at`

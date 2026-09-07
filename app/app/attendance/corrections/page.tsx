@@ -19,6 +19,7 @@ import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { enumParam } from "@/lib/app/search-params";
 import { canAny } from "@/lib/permissions/can";
+import { mapPendingApprovalActability } from "@/lib/approvals/engine";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Attendance Corrections" };
@@ -54,6 +55,15 @@ export default async function AttendanceCorrectionsPage({
     .eq("status", status)
     .order("created_at", { ascending: true })
     .limit(100);
+
+  const pendingIds =
+    status === "pending" ? (requests ?? []).map((r) => r.id) : [];
+  const actability = await mapPendingApprovalActability(
+    supabase,
+    workspace,
+    "attendance_correction",
+    pendingIds,
+  );
 
   return (
     <PageContainer>
@@ -111,6 +121,7 @@ export default async function AttendanceCorrectionsPage({
                   employee?.profiles?.display_name ??
                   employee?.employee_number ??
                   "Employee";
+                const act = actability.get(req.id);
                 return (
                   <TableRow key={req.id}>
                     <TableCell className="font-medium text-navy">
@@ -152,7 +163,17 @@ export default async function AttendanceCorrectionsPage({
                     </TableCell>
                     {status === "pending" ? (
                       <TableCell>
-                        <CorrectionReviewActions correctionRequestId={req.id} />
+                        {act?.canAct ? (
+                          <CorrectionReviewActions
+                            correctionRequestId={req.id}
+                          />
+                        ) : act?.stepName ? (
+                          <span className="text-xs text-slate">
+                            Waiting for {act.stepName}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate">—</span>
+                        )}
                       </TableCell>
                     ) : null}
                   </TableRow>

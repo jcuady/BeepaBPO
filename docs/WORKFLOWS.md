@@ -34,11 +34,11 @@
 
 ## Leave
 
-Employee submits → approval workflow steps from DB (`leave`: Team Lead → HR) → intermediate `manager_approved` then `approved` → notify employee → balances adjusted. Approvers use `/app/leave` with confirm dialogs; step actors need matching role + `leave.approve`.
+Employee submits → approval workflow steps from DB (`leave`: Team Lead → HR) → intermediate `manager_approved` then `approved` → notify employee → balances adjusted. Approvers use `/app/leave` with confirm dialogs; **Approve buttons only when `canActOnApprovalStep` for the current step** (else “Waiting for …”).
 
 ## Cash advance
 
-Employee request → HR review (`hr_review`) → Finance (`finance_review`) via cash_advance workflow steps → deductions on payroll. Queue shows review buttons for open review statuses; each step enforces its permission/role.
+Employee request → HR review (`hr_review`) → Finance (`finance_review`) via cash_advance workflow steps → deductions on payroll. Queue shows Approve only for the **current** step actor (else “Waiting for …”); server enforces the same gate.
 
 ## NTE
 

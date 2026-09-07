@@ -69,8 +69,8 @@ Public CMS read: `/about` (settings + industries + testimonials), `/services`, `
 | `/app/employees` | perm `employees.read` | `employees` | search `q` (DB) |
 | `/app/employees/[id]` | perm `employees.read` | employee detail + docs | HR upload if `employees.documents.manage` |
 | `/app/attendance` | perm `attendance.read` | `attendance_records` | Send to client (`submitTimesheetForClientReview`) |
-| `/app/leave` | perm `leave.approve` | `leave_requests` (filter `status`) | approve/reject (confirm) |
-| `/app/cash-advances` | perm `cash_advance.read` | `cash_advance_requests` | review pending/hr_review/finance_review |
+| `/app/leave` | perm `leave.approve` | `leave_requests` (filter `status`) | approve/reject only if current-step actor |
+| `/app/cash-advances` | perm `cash_advance.read` | `cash_advance_requests` | review only if current-step actor (`cash_advance.manage` / `.approve`) |
 | `/app/payroll` | canAny payroll.* | period metrics | link to periods |
 | `/app/payroll/periods` | perm `payroll.read` | `payroll_periods` | create if `payroll.manage` |
 | `/app/payroll/periods/[id]` | perm `payroll.read` | period + `payroll_records` | recalculate |
@@ -92,7 +92,7 @@ Public CMS read: `/about` (settings + industries + testimonials), `/services`, `
 | `/app/reports/export` | perm `reports.export` | CSV download (`?dataset=`) | snapshot\|employees\|attendance\|tickets\|leads |
 | `/app/cms` | perm `cms.manage` | services, blog, faqs, industries, testimonials, case_studies, site_settings | create drafts; publish/archive; About upsert |
 | `/app/admin/workflows` | perm `system.manage` | `approval_workflows` + steps | read-only map |
-| `/app/approvals` | perm `approvals.act` | `approval_requests` | deep-link Review (no inline act) |
+| `/app/approvals` | perm `approvals.act` | `approval_requests` | deep-link Review only when current-step actor |
 | `/app/admin` | perm `system.manage` | profile/org counts | links to users/orgs/audit |
 | `/app/admin/users` | perm `system.manage` | memberships + roles | invite internal + search |
 | `/app/admin/organizations` | perm `system.manage` | `organizations` | read-only list |

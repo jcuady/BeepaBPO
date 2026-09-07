@@ -6,6 +6,10 @@ import { StatusBadge } from "@/components/app/status-badge";
 import { PageContainer } from "@/components/app/page-container";
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
+import {
+  canActOnApprovalStep,
+  type ApprovalStepRow,
+} from "@/lib/approvals/engine";
 
 type ReviewTarget = {
   href: string;
@@ -67,10 +71,37 @@ export default async function ApprovalsPage() {
   const supabase = await createClient();
   const { data: requests } = await supabase
     .from("approval_requests")
-    .select("id, entity_type, entity_id, status, created_at, payload")
+    .select("id, entity_type, entity_id, status, created_at, current_step, workflow_id, payload")
     .eq("status", "pending")
     .order("created_at", { ascending: false })
     .limit(50);
+
+  const workflowIds = [
+    ...new Set((requests ?? []).map((r) => r.workflow_id).filter(Boolean)),
+  ];
+  const { data: steps } =
+    workflowIds.length > 0
+      ? await supabase
+          .from("approval_steps")
+          .select(
+            "id, workflow_id, step_order, role_code, permission_code, name",
+          )
+          .in("workflow_id", workflowIds)
+          .order("step_order", { ascending: true })
+      : { data: [] as never[] };
+
+  const stepsByWf = new Map<string, ApprovalStepRow[]>();
+  for (const s of steps ?? []) {
+    const list = stepsByWf.get(s.workflow_id) ?? [];
+    list.push({
+      id: s.id,
+      step_order: s.step_order,
+      role_code: s.role_code,
+      permission_code: s.permission_code,
+      name: s.name,
+    });
+    stepsByWf.set(s.workflow_id, list);
+  }
 
   const name =
     workspace.profile?.display_name ||
@@ -91,11 +122,17 @@ export default async function ApprovalsPage() {
       ) : (
         <ul className="divide-y divide-line rounded-[16px] border border-line bg-white">
           {requests.map((req) => {
+            const ordered = stepsByWf.get(req.workflow_id) ?? [];
+            const current =
+              ordered.find((s) => s.step_order === req.current_step) ??
+              ordered[req.current_step - 1];
+            const canAct = canActOnApprovalStep(workspace, current);
             const target = reviewTarget(
               req.entity_type,
               req.entity_id,
               workspace.permissions,
             );
+            const showReview = canAct && target.available;
             return (
               <li
                 key={req.id}
@@ -107,11 +144,12 @@ export default async function ApprovalsPage() {
                   </p>
                   <p className="text-xs text-slate">
                     {new Date(req.created_at).toLocaleString()}
+                    {current?.name ? ` · Step: ${current.name}` : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <StatusBadge status={req.status} />
-                  {target.available ? (
+                  {showReview ? (
                     <Link
                       href={target.href}
                       className="inline-flex min-h-11 items-center text-sm font-semibold text-green-strong hover:underline"
@@ -119,7 +157,11 @@ export default async function ApprovalsPage() {
                       {target.label}
                     </Link>
                   ) : (
-                    <span className="text-xs text-slate">{target.label}</span>
+                    <span className="text-xs text-slate">
+                      {current?.name
+                        ? `Waiting for ${current.name}`
+                        : target.label}
+                    </span>
                   )}
                 </div>
               </li>

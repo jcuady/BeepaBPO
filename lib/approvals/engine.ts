@@ -251,3 +251,65 @@ export async function advanceApprovalRequest(
     stepName: current?.name ?? `Step ${request.current_step}`,
   };
 }
+
+export type EntityActability = {
+  canAct: boolean;
+  stepName: string | null;
+  currentStep: number | null;
+};
+
+/** Batch: can the workspace act on each pending entity's current step? */
+export async function mapPendingApprovalActability(
+  supabase: Db,
+  workspace: WorkspaceContext,
+  entityType: string,
+  entityIds: string[],
+): Promise<Map<string, EntityActability>> {
+  const result = new Map<string, EntityActability>();
+  if (entityIds.length === 0) return result;
+
+  const { data: requests } = await supabase
+    .from("approval_requests")
+    .select("entity_id, current_step, workflow_id")
+    .eq("entity_type", entityType)
+    .eq("status", "pending")
+    .in("entity_id", entityIds);
+
+  if (!requests?.length) return result;
+
+  const workflowIds = [...new Set(requests.map((r) => r.workflow_id))];
+  const { data: steps } = await supabase
+    .from("approval_steps")
+    .select(
+      "id, workflow_id, step_order, role_code, permission_code, name",
+    )
+    .in("workflow_id", workflowIds)
+    .order("step_order", { ascending: true });
+
+  const stepsByWf = new Map<string, ApprovalStepRow[]>();
+  for (const s of steps ?? []) {
+    const list = stepsByWf.get(s.workflow_id) ?? [];
+    list.push({
+      id: s.id,
+      step_order: s.step_order,
+      role_code: s.role_code,
+      permission_code: s.permission_code,
+      name: s.name,
+    });
+    stepsByWf.set(s.workflow_id, list);
+  }
+
+  for (const req of requests) {
+    const ordered = stepsByWf.get(req.workflow_id) ?? [];
+    const current =
+      ordered.find((s) => s.step_order === req.current_step) ??
+      ordered[req.current_step - 1];
+    result.set(req.entity_id, {
+      canAct: canActOnApprovalStep(workspace, current),
+      stepName: current?.name ?? null,
+      currentStep: req.current_step,
+    });
+  }
+
+  return result;
+}
