@@ -85,3 +85,4 @@ Indexes and covering membership lookups (`20260906001300`), applicant `membershi
 - Invoice issue UI: `issueInvoice` + `IssueInvoiceForm` on `/app/billing` (`billing.manage`); creates `issued` invoice + line item
 - Deal → client org: `convertWonDealToClient` on won deals (`crm.manage` + `clients.manage`); migration `20260907190000` adds `crm_deals.client_organization_id`
 - Payroll period create: `createPayrollPeriod` + form on `/app/payroll/periods` (`payroll.manage`); optional draft `payroll_records` for active employees
+- CRM proposals: `createCrmProposal` / `updateCrmProposalStatus` on `/app/crm/proposals` + deal detail; early deals bump to `proposal` stage

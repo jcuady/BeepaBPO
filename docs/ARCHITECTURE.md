@@ -87,7 +87,7 @@ Documented for honesty — do not treat as shipped:
 - **CMS admin** — `/app/cms` covers About (`public_about`), FAQs, services, blog, **industries**, **testimonials**, **case studies** (create + publish/archive). Public: `/about`, `/contact`, `/services`, `/resources`, `/case-studies`(+`/[slug]`). Edit-in-place for existing rows still thin.
 - **Dynamic approval workflows** — seeded rows; mutations use hardcoded IDs in `lib/constants/approvals.ts`.
 - **Client SLA metric** — removed from dashboard until data exists.
-- **CRM depth** — leads + **deals pipeline** (create/stage) shipped; proposals UI and deal→client auto-onboarding still thin. **Client portal invite** shipped (`/app/clients`).
+- **CRM depth** — leads + deals pipeline + **proposals** (create/status) shipped; deal→client org convert shipped. **Client portal invite** shipped (`/app/clients`).
 - **Google / Microsoft OAuth** — provider buttons **removed** from login/signup until Supabase providers are configured; email/password only. `/auth/callback` still exchanges codes for future OAuth.
 
 Shipped recently (see PROJECT_STATUS): … client-org invite, **remaining CMS page types**.

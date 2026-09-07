@@ -236,6 +236,14 @@ const entityStyles: Record<string, { label: string; className: string }> = {
     label: "Follow up later",
     className: "bg-muted text-slate border-transparent",
   },
+  sent: {
+    label: "Sent",
+    className: "bg-sky-50 text-sky-700 border-transparent",
+  },
+  accepted: {
+    label: "Accepted",
+    className: "bg-soft-green text-green-strong border-transparent",
+  },
 };
 
 const allStyles = { ...attendanceStyles, ...entityStyles };

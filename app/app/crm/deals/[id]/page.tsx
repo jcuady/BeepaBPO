@@ -6,6 +6,8 @@ import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { DealStageForm } from "@/components/app/crm/deal-stage-form";
 import { ConvertDealToClientForm } from "@/components/app/crm/convert-deal-to-client-form";
+import { CreateProposalForm } from "@/components/app/crm/create-proposal-form";
+import { ProposalStatusForm } from "@/components/app/crm/proposal-status-form";
 import { StatusBadge } from "@/components/app/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
@@ -38,21 +40,28 @@ export default async function CrmDealDetailPage({
   requirePermission(workspace, "crm.read");
 
   const supabase = await createClient();
-  const [{ data: deal }, { data: activities }] = await Promise.all([
-    supabase
-      .from("crm_deals")
-      .select(
-        "id, title, stage, estimated_value, currency, expected_close_date, lost_reason, lead_id, owner_user_id, client_organization_id, created_at, updated_at, crm_leads(id, company_name, contact_name, status), organizations:client_organization_id(id, name, slug)",
-      )
-      .eq("id", id)
-      .maybeSingle(),
-    supabase
-      .from("crm_activities")
-      .select("id, activity_type, subject, body, created_at")
-      .eq("deal_id", id)
-      .order("created_at", { ascending: false })
-      .limit(30),
-  ]);
+  const [{ data: deal }, { data: activities }, { data: proposals }] =
+    await Promise.all([
+      supabase
+        .from("crm_deals")
+        .select(
+          "id, title, stage, estimated_value, currency, expected_close_date, lost_reason, lead_id, owner_user_id, client_organization_id, created_at, updated_at, crm_leads(id, company_name, contact_name, status), organizations:client_organization_id(id, name, slug)",
+        )
+        .eq("id", id)
+        .maybeSingle(),
+      supabase
+        .from("crm_activities")
+        .select("id, activity_type, subject, body, created_at")
+        .eq("deal_id", id)
+        .order("created_at", { ascending: false })
+        .limit(30),
+      supabase
+        .from("crm_proposals")
+        .select("id, title, amount, currency, status, updated_at")
+        .eq("deal_id", id)
+        .order("updated_at", { ascending: false })
+        .limit(20),
+    ]);
 
   if (!deal) notFound();
 
@@ -151,6 +160,50 @@ export default async function CrmDealDetailPage({
               <ConvertDealToClientForm
                 dealId={deal.id}
                 defaultName={lead?.company_name || deal.title}
+              />
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-base text-navy">
+            Proposals
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!proposals?.length ? (
+            <p className="text-sm text-slate">No proposals for this deal yet.</p>
+          ) : (
+            proposals.map((proposal) => (
+              <div
+                key={proposal.id}
+                className="flex flex-wrap items-start justify-between gap-3 border-b border-line pb-3 last:border-0"
+              >
+                <div>
+                  <p className="text-sm font-medium text-navy">{proposal.title}</p>
+                  <p className="mt-1 text-sm text-slate">
+                    {money(proposal.amount, proposal.currency)}
+                  </p>
+                  <div className="mt-2">
+                    <StatusBadge status={proposal.status} />
+                  </div>
+                </div>
+                {canManage ? (
+                  <ProposalStatusForm
+                    proposalId={proposal.id}
+                    currentStatus={proposal.status}
+                  />
+                ) : null}
+              </div>
+            ))
+          )}
+          {canManage && deal.stage !== "lost" ? (
+            <div className="border-t border-line pt-4">
+              <CreateProposalForm
+                deals={[{ id: deal.id, label: deal.title }]}
+                defaultDealId={deal.id}
               />
             </div>
           ) : null}

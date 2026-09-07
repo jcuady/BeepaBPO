@@ -12,6 +12,8 @@ import {
   crmDealSchema,
   crmDealStageSchema,
   convertDealToClientSchema,
+  crmProposalSchema,
+  crmProposalStatusSchema,
 } from "@/lib/validation/app";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import type { Database } from "@/types/database";
@@ -605,4 +607,208 @@ export async function convertWonDealToClient(
     ok: true,
     message: `Client organization “${org.name}” created. Invite users from Clients.`,
   };
+}
+
+const EARLY_DEAL_STAGES: CrmDealStage[] = [
+  "new_lead",
+  "contacted",
+  "qualified",
+  "discovery",
+];
+
+export async function createCrmProposal(
+  input: unknown,
+): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  requirePermission(workspace, "crm.manage");
+
+  const parsed = crmProposalSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<
+        string,
+        string[]
+      >,
+      error: "Please check the form and try again.",
+    };
+  }
+
+  const money = parseMoney(parsed.data.amount);
+  if (money && typeof money === "object" && "error" in money) {
+    return {
+      ok: false,
+      fieldErrors: { amount: [money.error] },
+      error: money.error,
+    };
+  }
+
+  const supabase = await createClient();
+  const { data: deal } = await supabase
+    .from("crm_deals")
+    .select("id, title, stage, lead_id")
+    .eq("id", parsed.data.deal_id)
+    .maybeSingle();
+
+  if (!deal) return { ok: false, error: "Deal not found." };
+
+  const { data: proposal, error } = await supabase
+    .from("crm_proposals")
+    .insert({
+      deal_id: deal.id,
+      title: parsed.data.title.trim(),
+      amount: money as number | null,
+      currency: (parsed.data.currency ?? "USD").toUpperCase(),
+      status: "draft",
+      created_by: workspace.user.id,
+    })
+    .select("id, title")
+    .single();
+
+  if (error || !proposal) {
+    return {
+      ok: false,
+      error: error?.message ?? "Unable to create proposal.",
+    };
+  }
+
+  if (EARLY_DEAL_STAGES.includes(deal.stage)) {
+    await supabase
+      .from("crm_deals")
+      .update({ stage: "proposal" })
+      .eq("id", deal.id);
+  }
+
+  await supabase.from("crm_activities").insert({
+    deal_id: deal.id,
+    lead_id: deal.lead_id,
+    activity_type: "note",
+    subject: "Proposal created",
+    body: `Draft proposal “${proposal.title}” created.`,
+    completed_at: new Date().toISOString(),
+    owner_user_id: workspace.user.id,
+  });
+
+  try {
+    const { logAudit } = await import("@/lib/audit/log");
+    await logAudit(supabase, {
+      actorUserId: workspace.user.id,
+      organizationId: BEEPA_ORG_ID,
+      action: "crm_proposal.create",
+      entityType: "crm_proposal",
+      entityId: proposal.id,
+      after: {
+        deal_id: deal.id,
+        title: proposal.title,
+        status: "draft",
+      },
+    });
+  } catch {
+    // Non-blocking
+  }
+
+  revalidatePath("/app/crm");
+  revalidatePath("/app/crm/proposals");
+  revalidatePath("/app/crm/deals");
+  revalidatePath(`/app/crm/deals/${deal.id}`);
+  return { ok: true, message: "Proposal created." };
+}
+
+export async function updateCrmProposalStatus(
+  input: unknown,
+): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  requirePermission(workspace, "crm.manage");
+
+  const parsed = crmProposalStatusSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<
+        string,
+        string[]
+      >,
+      error: "Invalid proposal status.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("crm_proposals")
+    .select("id, status, title, deal_id, sent_at, crm_deals(lead_id)")
+    .eq("id", parsed.data.proposal_id)
+    .maybeSingle();
+
+  if (!existing) return { ok: false, error: "Proposal not found." };
+
+  const nextStatus = parsed.data.status;
+  if (existing.status === nextStatus) {
+    return { ok: true, message: "Proposal status unchanged." };
+  }
+
+  const allowed: Record<string, string[]> = {
+    draft: ["sent", "withdrawn"],
+    sent: ["accepted", "rejected", "withdrawn"],
+  };
+  const nextAllowed = allowed[existing.status];
+  if (!nextAllowed || !nextAllowed.includes(nextStatus)) {
+    return {
+      ok: false,
+      error: `Cannot move proposal from ${existing.status} to ${nextStatus}.`,
+    };
+  }
+
+  const { error } = await supabase
+    .from("crm_proposals")
+    .update({
+      status: nextStatus,
+      sent_at:
+        nextStatus === "sent"
+          ? new Date().toISOString()
+          : existing.sent_at,
+    })
+    .eq("id", existing.id);
+
+  if (error) {
+    return {
+      ok: false,
+      error: error.message ?? "Unable to update proposal.",
+    };
+  }
+
+  const deal = Array.isArray(existing.crm_deals)
+    ? existing.crm_deals[0]
+    : existing.crm_deals;
+
+  await supabase.from("crm_activities").insert({
+    deal_id: existing.deal_id,
+    lead_id: deal?.lead_id ?? null,
+    activity_type: "note",
+    subject: `Proposal → ${nextStatus}`,
+    body: `Proposal “${existing.title}” marked ${nextStatus}.`,
+    completed_at: new Date().toISOString(),
+    owner_user_id: workspace.user.id,
+  });
+
+  try {
+    const { logAudit } = await import("@/lib/audit/log");
+    await logAudit(supabase, {
+      actorUserId: workspace.user.id,
+      organizationId: BEEPA_ORG_ID,
+      action: "crm_proposal.status_update",
+      entityType: "crm_proposal",
+      entityId: existing.id,
+      before: { status: existing.status },
+      after: { status: nextStatus },
+    });
+  } catch {
+    // Non-blocking
+  }
+
+  revalidatePath("/app/crm");
+  revalidatePath("/app/crm/proposals");
+  revalidatePath(`/app/crm/deals/${existing.deal_id}`);
+  return { ok: true, message: `Proposal marked ${nextStatus}.` };
 }

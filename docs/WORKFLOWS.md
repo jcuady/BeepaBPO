@@ -56,7 +56,7 @@ Recruiter (`recruitment.manage`) on `/app/recruitment/applicants/[id]` calls `up
 
 ## CRM deals pipeline
 
-**Today:** Sales (`crm.manage`) creates deals on `/app/crm/deals` or from lead detail (`createCrmDeal` → `crm_deals` + activity). Stage moves via `updateCrmDealStage` (confirm; lost requires reason). Won deals convert to client orgs via `convertWonDealToClient`. Hub `/app/crm` shows deal count. Proposals UI still deferred.
+**Today:** Sales (`crm.manage`) creates deals on `/app/crm/deals` or from lead detail (`createCrmDeal` → `crm_deals` + activity). Stage moves via `updateCrmDealStage` (confirm; lost requires reason). Proposals on `/app/crm/proposals` and deal detail (`createCrmProposal`, status draft→sent→accepted/rejected/withdrawn). Won deals convert to client orgs via `convertWonDealToClient`. Hub `/app/crm` shows deal + proposal counts.
 
 ## Job post lifecycle
 

@@ -134,6 +134,12 @@ export const adminNavGroups: NavGroup[] = [
         icon: IconBriefcase,
         permission: ["crm.read", "crm.manage"],
       },
+      {
+        title: "Proposals",
+        href: "/app/crm/proposals",
+        icon: IconFileText,
+        permission: ["crm.read", "crm.manage"],
+      },
     ],
   },
   {

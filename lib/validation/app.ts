@@ -115,6 +115,18 @@ export const convertDealToClientSchema = z.object({
     .optional(),
 });
 
+export const crmProposalSchema = z.object({
+  deal_id: z.string().uuid("Select a deal."),
+  title: z.string().min(2, "Title is required.").max(200),
+  amount: z.string().max(40).optional(),
+  currency: z.string().min(3).max(3).optional(),
+});
+
+export const crmProposalStatusSchema = z.object({
+  proposal_id: z.string().uuid(),
+  status: z.enum(["draft", "sent", "accepted", "rejected", "withdrawn"]),
+});
+
 export const jobPostSchema = z.object({
   title: z.string().min(3, "Title is required.").max(200),
   slug: z

@@ -2,16 +2,16 @@
 
 **Updated:** 2026-09-07  
 **Branch:** `main`  
-**Overall:** **DEMO-HARDENED / PARTIAL product** — payroll period create shipped.
+**Overall:** **DEMO-HARDENED / PARTIAL product** — CRM proposals UI shipped.
 
 ## Health
 
 | Area | Status |
 |------|--------|
 | Overall | PARTIAL — demo-ready for scripted paths |
-| Frontend | GOOD — payroll create + CRM convert + billing |
+| Frontend | GOOD — proposals + payroll + CRM convert |
 | Backend | PARTIAL — solid where built |
-| Database | GOOD |
+| Database | GOOD — existing `crm_proposals` + RLS |
 | Testing | PASS — typecheck, lint, vitest, build |
 | E2E | PASS prior slices |
 | Documentation | GOOD |
@@ -19,12 +19,12 @@
 
 ## Highest-value next action
 
-**OAuth** (when providers configured) — or email digests / proposals UI / dynamic approval workflows.
+**OAuth** (when providers configured) — or email digests / dynamic approval workflows / SLA UI.
 
 ## Top PO backlog
 
-Still open: OAuth, proposals→client, dynamic approval workflows, SLA UI, email notification delivery.
+Still open: OAuth, dynamic approval workflows, SLA UI, email notification delivery.
 
 ## Demo-safe promise
 
-Finance with `payroll.manage` can create payroll periods (and seed draft records) on `/app/payroll/periods`. Deal→client, invoice issue, CMS edit, and demo autofill remain available.
+Sales with `crm.manage` can create and advance proposals on `/app/crm/proposals` and deal detail. Payroll create, deal→client, invoice issue, CMS edit, and demo autofill remain available.

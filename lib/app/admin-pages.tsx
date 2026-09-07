@@ -4,6 +4,7 @@ import {
   IconBriefcase,
   IconBuilding,
   IconCoin,
+  IconFileText,
   IconReportAnalytics,
   IconTicket,
   IconUsers,
@@ -202,10 +203,12 @@ export async function CrmPage() {
   }
 
   const supabase = await createClient();
-  const [{ count: leadCount }, { count: dealCount }] = await Promise.all([
-    supabase.from("crm_leads").select("*", { count: "exact", head: true }),
-    supabase.from("crm_deals").select("*", { count: "exact", head: true }),
-  ]);
+  const [{ count: leadCount }, { count: dealCount }, { count: proposalCount }] =
+    await Promise.all([
+      supabase.from("crm_leads").select("*", { count: "exact", head: true }),
+      supabase.from("crm_deals").select("*", { count: "exact", head: true }),
+      supabase.from("crm_proposals").select("*", { count: "exact", head: true }),
+    ]);
 
   return (
     <PageContainer>
@@ -216,6 +219,11 @@ export async function CrmPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard title="Leads" value={leadCount ?? 0} icon={IconBuilding} />
         <MetricCard title="Deals" value={dealCount ?? 0} icon={IconBriefcase} />
+        <MetricCard
+          title="Proposals"
+          value={proposalCount ?? 0}
+          icon={IconFileText}
+        />
       </div>
       <Card className="">
         <CardHeader>
@@ -237,6 +245,14 @@ export async function CrmPage() {
             render={<Link href="/app/crm/deals" />}
           >
             Deals
+          </Button>
+          <Button
+            variant="secondary"
+            className="min-h-11"
+            nativeButton={false}
+            render={<Link href="/app/crm/proposals" />}
+          >
+            Proposals
           </Button>
         </CardContent>
       </Card>
