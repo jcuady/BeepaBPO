@@ -89,7 +89,7 @@ Documented for honesty — do not treat as shipped:
 - **Client SLA** — Beepa priority policies seeded; insert trigger sets `sla_due_at`; UI on tickets + client dashboard compliance. Admin policy editor not built (seed/SQL only).
 - **CRM depth** — leads + deals pipeline + **proposals** (create/status) shipped; deal→client org convert shipped. **Client portal invite** shipped (`/app/clients`).
 - **Google / Microsoft OAuth** — **deferred**. Email/password is the supported auth path. Provider buttons stay off (no decoys). `/auth/callback` still exchanges codes if OAuth is enabled later.
-- **Ticket assignment** — schema has `assigned_user_id` / team; staff UI can change status but cannot assign yet.
+- **Ticket assignment** — staff `tickets.manage` assigns Beepa internal users via `assignTicket` on `/app/tickets/[id]`; queue shows assignee.
 - **SLA policy admin** — policies seeded; no admin editor (SQL/seed only).
 - **Payroll approval UI** — `payroll` workflow seeded; period create exists; multi-step approve via engine not wired in UI.
 - **Email digests** — cron `notification_digest` emails unread in-app notifications via Resend when `RESEND_API_KEY` is set; users opt out with Email digests on `/app/my/notifications`.

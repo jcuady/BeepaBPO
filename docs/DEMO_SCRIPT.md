@@ -22,4 +22,4 @@ Use after `pnpm seed:demo` with `DEMO_PASSWORD`.
 | Client Viewer | Read team/attendance | Mutations |
 | Applicant | Seeded application + profile | Empty careers-only story |
 
-Backlog next: ticket assignment UI, SLA policy admin, payroll workflow approval UI. Social OAuth deferred — email/password only. Client timesheet Approve/Send back is live when `allow_timesheet_approval` is on.
+Backlog next: SLA policy admin, payroll workflow approval UI. Social OAuth deferred — email/password only. Ticket assign live on `/app/tickets/[id]`. Client timesheet Approve/Send back is live when `allow_timesheet_approval` is on.

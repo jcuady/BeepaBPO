@@ -6,12 +6,14 @@ import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { TicketMessageForm } from "@/components/app/tickets/ticket-message-form";
 import { TicketStatusForm } from "@/components/app/tickets/ticket-status-form";
+import { TicketAssignForm } from "@/components/app/tickets/ticket-assign-form";
 import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
+import { listTicketAssignees } from "@/lib/tickets/assignees";
 
 export const metadata: Metadata = { title: "Ticket" };
 
@@ -26,18 +28,25 @@ export default async function StaffTicketDetailPage({
   requirePermission(workspace, "tickets.read");
 
   const supabase = await createClient();
-  const [{ data: ticket }, { data: messages }] = await Promise.all([
-    supabase.from("tickets").select("*").eq("id", id).maybeSingle(),
+  const canManage = can(workspace.permissions, "tickets.manage");
+
+  const [{ data: ticket }, { data: messages }, assignees] = await Promise.all([
+    supabase
+      .from("tickets")
+      .select("*, assignee:profiles!tickets_assigned_user_id_fkey(display_name)")
+      .eq("id", id)
+      .maybeSingle(),
     supabase
       .from("ticket_messages")
       .select("id, body, created_at, author_user_id, is_internal, profiles(display_name)")
       .eq("ticket_id", id)
       .order("created_at", { ascending: true }),
+    canManage ? listTicketAssignees(supabase) : Promise.resolve([]),
   ]);
 
   if (!ticket) notFound();
 
-  const canManage = can(workspace.permissions, "tickets.manage");
+  const assignee = ticket.assignee as { display_name: string | null } | null;
 
   return (
     <PageContainer size="narrow">
@@ -65,6 +74,13 @@ export default async function StaffTicketDetailPage({
             Opened {format(new Date(ticket.created_at), "MMM d, yyyy h:mm a")} ·{" "}
             {ticket.category} · {ticket.priority}
           </p>
+          <p className="text-sm text-navy">
+            <span className="text-xs font-medium uppercase tracking-wide text-slate">
+              Assigned to
+            </span>
+            <br />
+            {assignee?.display_name?.trim() || "Unassigned"}
+          </p>
           <div className="text-sm text-navy">
             <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate">
               SLA
@@ -85,10 +101,17 @@ export default async function StaffTicketDetailPage({
             )}
           </div>
           {canManage ? (
-            <TicketStatusForm
-              ticketId={id}
-              currentStatus={ticket.status}
-            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TicketAssignForm
+                ticketId={id}
+                currentAssigneeId={ticket.assigned_user_id}
+                assignees={assignees}
+              />
+              <TicketStatusForm
+                ticketId={id}
+                currentStatus={ticket.status}
+              />
+            </div>
           ) : null}
         </CardContent>
       </Card>

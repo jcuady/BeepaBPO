@@ -6,8 +6,10 @@ import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { getClientOrganizationId } from "@/lib/organizations/client";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
+import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { createClient } from "@/lib/supabase/server";
 import {
+  ticketAssignSchema,
   ticketMessageSchema,
   ticketSchema,
   ticketStatusSchema,
@@ -16,6 +18,7 @@ import type { Database } from "@/types/database";
 
 type TicketCategory = Database["public"]["Enums"]["ticket_category"];
 type TicketPriority = Database["public"]["Enums"]["ticket_priority"];
+type TicketStatus = Database["public"]["Enums"]["ticket_status"];
 
 export async function createTicket(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
@@ -208,4 +211,103 @@ export async function updateTicketStatus(
   revalidatePath(`/app/tickets/${parsed.data.ticket_id}`);
   revalidatePath(`/app/client/tickets/${parsed.data.ticket_id}`);
   return { ok: true, message: "Ticket status updated." };
+}
+
+export async function assignTicket(input: unknown): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!can(workspace.permissions, "tickets.manage")) {
+    return { ok: false, error: "You do not have permission to assign tickets." };
+  }
+
+  const parsed = ticketAssignSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: "Invalid assignment." };
+  }
+
+  const supabase = await createClient();
+  const { data: before } = await supabase
+    .from("tickets")
+    .select("id, status, assigned_user_id, subject, ticket_number")
+    .eq("id", parsed.data.ticket_id)
+    .maybeSingle();
+
+  if (!before) {
+    return { ok: false, error: "Ticket not found." };
+  }
+
+  const assigneeId = parsed.data.assigned_user_id;
+
+  if (assigneeId) {
+    const { data: membership } = await supabase
+      .from("organization_memberships")
+      .select("id")
+      .eq("user_id", assigneeId)
+      .eq("organization_id", BEEPA_ORG_ID)
+      .eq("membership_type", "internal")
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (!membership) {
+      return {
+        ok: false,
+        error: "Assignee must be an active Beepa teammate.",
+      };
+    }
+  }
+
+  const nextStatus: TicketStatus =
+    assigneeId && before.status === "new"
+      ? "assigned"
+      : (before.status as TicketStatus);
+
+  const { error } = await supabase
+    .from("tickets")
+    .update({
+      assigned_user_id: assigneeId,
+      status: nextStatus,
+    })
+    .eq("id", parsed.data.ticket_id);
+
+  if (error) {
+    return { ok: false, error: error.message ?? "Unable to assign ticket." };
+  }
+
+  const { logAudit } = await import("@/lib/audit/log");
+  await logAudit(supabase, {
+    actorUserId: workspace.user.id,
+    organizationId: workspace.primaryMembership?.organization_id,
+    action: "ticket.assign",
+    entityType: "ticket",
+    entityId: parsed.data.ticket_id,
+    before: {
+      assigned_user_id: before.assigned_user_id,
+      status: before.status,
+    },
+    after: {
+      assigned_user_id: assigneeId,
+      status: nextStatus,
+    },
+  });
+
+  if (assigneeId && assigneeId !== workspace.user.id) {
+    const { notifyUser } = await import("@/lib/notifications/notify");
+    await notifyUser({
+      userId: assigneeId,
+      type: "ticket.assigned",
+      title: "Ticket assigned to you",
+      body: `${before.ticket_number}: ${before.subject}`,
+      actionUrl: `/app/tickets/${parsed.data.ticket_id}`,
+      entityType: "ticket",
+      entityId: parsed.data.ticket_id,
+    });
+  }
+
+  revalidatePath("/app/tickets");
+  revalidatePath(`/app/tickets/${parsed.data.ticket_id}`);
+  revalidatePath(`/app/client/tickets/${parsed.data.ticket_id}`);
+  return {
+    ok: true,
+    message: assigneeId ? "Ticket assigned." : "Assignee cleared.",
+  };
 }

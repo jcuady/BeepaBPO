@@ -43,6 +43,13 @@ export const ticketStatusSchema = z.object({
   ]),
 });
 
+export const ticketAssignSchema = z.object({
+  ticket_id: z.string().uuid(),
+  assigned_user_id: z
+    .union([z.string().uuid(), z.literal(""), z.null()])
+    .transform((v) => (v === "" || v == null ? null : v)),
+});
+
 export const profileUpdateSchema = z.object({
   display_name: z.string().min(1, "Display name is required.").max(160),
   phone: z.string().max(40).optional(),

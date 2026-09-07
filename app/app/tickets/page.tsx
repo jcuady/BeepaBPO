@@ -55,7 +55,7 @@ export default async function InternalTicketsPage({
   let query = supabase
     .from("tickets")
     .select(
-      "id, ticket_number, subject, status, priority, category, created_at, sla_due_at, resolved_at, client_organization_id, organizations(name)",
+      "id, ticket_number, subject, status, priority, category, created_at, sla_due_at, resolved_at, assigned_user_id, client_organization_id, organizations(name), assignee:profiles!tickets_assigned_user_id_fkey(display_name)",
     )
     .order("created_at", { ascending: false })
     .limit(100);
@@ -116,6 +116,7 @@ export default async function InternalTicketsPage({
                 <TableHead>Ticket</TableHead>
                 <TableHead>Priority</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Assignee</TableHead>
                 <TableHead>SLA</TableHead>
                 <TableHead>Created</TableHead>
                 {canManage ? <TableHead>Actions</TableHead> : null}
@@ -124,6 +125,9 @@ export default async function InternalTicketsPage({
             <TableBody>
               {tickets.map((ticket) => {
                 const org = ticket.organizations as { name: string } | null;
+                const assignee = ticket.assignee as {
+                  display_name: string | null;
+                } | null;
                 return (
                   <TableRow key={ticket.id}>
                     <TableCell>
@@ -143,6 +147,9 @@ export default async function InternalTicketsPage({
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={ticket.status} />
+                    </TableCell>
+                    <TableCell className="text-sm text-slate">
+                      {assignee?.display_name?.trim() || "Unassigned"}
                     </TableCell>
                     <TableCell>
                       <TicketSlaBadge

@@ -111,7 +111,7 @@ Automation: Manual from `/app/approvals` with seeded pending rows.
 - [x] Client-org invite UI (`inviteClientUser`, `/app/clients`)
 - [x] CMS edit-in-place for existing rows (`CmsEditButton` + update* actions)
 - [x] Deal → client convert + CRM proposals UI
-- [ ] Ticket assignment UI (`assigned_user_id`)
+- [x] Ticket assignment UI (`assigned_user_id`)
 - [ ] SLA policy admin editor
 - [ ] Payroll approval via workflow engine UI
 - [ ] Social OAuth CTAs — **deferred**; email/password is the supported auth path
