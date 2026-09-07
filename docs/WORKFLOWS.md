@@ -28,6 +28,8 @@
 
 `clock_event` writes immutable `attendance_events` and daily `attendance_records` → corrections via approval (request + **review at `/app/attendance/corrections`**) → finalized attendance feeds `payroll_records.calculation_snapshot`.
 
+**Payroll periods:** Finance with `payroll.manage` creates cycles on `/app/payroll/periods` (`createPayrollPeriod`, status `draft`). Optional seed inserts draft `payroll_records` for active Beepa employees; recalculate uses `calculate_payroll_record` on period detail.
+
 **Payslip PDF:** `GET /app/my/payroll/[recordId]/payslip` streams a generated PDF for self (`payroll.self`) or `payroll.read`/`manage` after status is approved/finalized/paid.
 
 ## Leave

@@ -2,16 +2,16 @@
 
 **Updated:** 2026-09-07  
 **Branch:** `main`  
-**Overall:** **DEMO-HARDENED / PARTIAL product** — deal→client org convert shipped.
+**Overall:** **DEMO-HARDENED / PARTIAL product** — payroll period create shipped.
 
 ## Health
 
 | Area | Status |
 |------|--------|
 | Overall | PARTIAL — demo-ready for scripted paths |
-| Frontend | GOOD — CRM convert + billing issue + CMS |
+| Frontend | GOOD — payroll create + CRM convert + billing |
 | Backend | PARTIAL — solid where built |
-| Database | GOOD — `20260907190000` deal client_org link |
+| Database | GOOD |
 | Testing | PASS — typecheck, lint, vitest, build |
 | E2E | PASS prior slices |
 | Documentation | GOOD |
@@ -19,12 +19,12 @@
 
 ## Highest-value next action
 
-**OAuth** (when providers configured) — or payroll period create / email digests / proposals UI.
+**OAuth** (when providers configured) — or email digests / proposals UI / dynamic approval workflows.
 
 ## Top PO backlog
 
-Still open: OAuth, proposals→client, dynamic approval workflows, SLA UI, payroll period create, email notification delivery.
+Still open: OAuth, proposals→client, dynamic approval workflows, SLA UI, email notification delivery.
 
 ## Demo-safe promise
 
-Won CRM deals with `crm.manage` + `clients.manage` convert to client orgs on `/app/crm/deals/[id]`. Invoice issue + CMS edit + demo autofill remain available.
+Finance with `payroll.manage` can create payroll periods (and seed draft records) on `/app/payroll/periods`. Deal→client, invoice issue, CMS edit, and demo autofill remain available.

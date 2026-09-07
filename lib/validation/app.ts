@@ -253,6 +253,23 @@ export const hireApplicantSchema = z.object({
   notes: z.string().max(2000).optional(),
 });
 
+export const createPayrollPeriodSchema = z
+  .object({
+    name: z.string().min(2, "Period name is required.").max(120),
+    start_date: z.string().min(1, "Start date is required."),
+    end_date: z.string().min(1, "End date is required."),
+    pay_date: z.string().min(1, "Pay date is required."),
+    seed_records: z.coerce.boolean().optional().default(true),
+  })
+  .refine((data) => data.end_date >= data.start_date, {
+    message: "End date must be on or after start date.",
+    path: ["end_date"],
+  })
+  .refine((data) => data.pay_date >= data.end_date, {
+    message: "Pay date must be on or after period end.",
+    path: ["pay_date"],
+  });
+
 export const documentMetaSchema = z.object({
   title: z.string().min(2, "Title is required.").max(200),
   category: z.string().min(2, "Category is required.").max(80),

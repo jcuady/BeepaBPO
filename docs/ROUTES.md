@@ -72,7 +72,7 @@ Public CMS read: `/about` (settings + industries + testimonials), `/services`, `
 | `/app/leave` | perm `leave.approve` | `leave_requests` (filter `status`) | approve/reject (confirm) |
 | `/app/cash-advances` | perm `cash_advance.read` | `cash_advance_requests` | review pending/hr_review/finance_review |
 | `/app/payroll` | canAny payroll.* | period metrics | link to periods |
-| `/app/payroll/periods` | perm `payroll.read` | `payroll_periods` | — |
+| `/app/payroll/periods` | perm `payroll.read` | `payroll_periods` | create if `payroll.manage` |
 | `/app/payroll/periods/[id]` | perm `payroll.read` | period + `payroll_records` | recalculate |
 | `/app/recruitment` | canAny recruitment.* | job/application counts | — |
 | `/app/recruitment/jobs` | perm `recruitment.read` | `job_posts` | create; publish/close; edit at `/jobs/[id]` |
