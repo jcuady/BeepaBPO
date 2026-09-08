@@ -101,3 +101,4 @@ Indexes and covering membership lookups (`20260906001300`), applicant `membershi
 - CI permanent fix: quote `AUTH_SECRET` (YAML `!!` broke every run); e2e gated on `vars.RUN_E2E` not `secrets.*`
 - Account honesty: `/app/my/settings` password; client/applicant notification inboxes; gate client Create/Reply ticket; cash advances in employee nav; payroll perms on Approvals
 - Role audit: employee ticket detail `/app/my/requests/[id]`; remove clock location decoy; client profile edit; filter client Approvals nav; DB revoke anon on SECURITY DEFINER + indexes (`docs/ROLE_CHECKLIST.md`)
+- Principal system audit: leave cancel `ConfirmDialog`; client portal flags (`allow_ticketing` / billing / attendance) on nav + pages + `createTicket`; honest marketing Trusted-by / ProofStrip; admin orgs/workflows view-only copy; `docs/SYSTEM_AUDIT.md` + `tests/principal-audit-p1.test.ts`

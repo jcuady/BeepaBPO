@@ -29,6 +29,22 @@ export async function createTicket(input: unknown): Promise<ActionResult> {
     return { ok: false, error: "You do not have permission to create tickets." };
   }
 
+  const supabase = await createClient();
+  const clientOrgId = getClientOrganizationId(workspace);
+  if (clientOrgId) {
+    const { data: settings } = await supabase
+      .from("client_settings")
+      .select("allow_ticketing")
+      .eq("client_organization_id", clientOrgId)
+      .maybeSingle();
+    if (settings && !settings.allow_ticketing) {
+      return {
+        ok: false,
+        error: "Ticketing is turned off for your organization.",
+      };
+    }
+  }
+
   const parsed = ticketSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -41,7 +57,6 @@ export async function createTicket(input: unknown): Promise<ActionResult> {
     };
   }
 
-  const supabase = await createClient();
   const { data: ticketNumber, error: numberError } = await supabase.rpc(
     "generate_ticket_number",
   );
@@ -50,7 +65,6 @@ export async function createTicket(input: unknown): Promise<ActionResult> {
   }
 
   const employee = await resolveEmployeeForUser(workspace.user.id);
-  const clientOrgId = getClientOrganizationId(workspace);
 
   const { data: ticket, error } = await supabase
     .from("tickets")

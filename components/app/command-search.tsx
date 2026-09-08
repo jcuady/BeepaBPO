@@ -34,6 +34,7 @@ export function CommandSearch({
     workspace.isClient,
     workspace.isInternal,
     workspace.isApplicantOnly,
+    workspace.clientPortalFlags,
   );
 
   useEffect(() => {

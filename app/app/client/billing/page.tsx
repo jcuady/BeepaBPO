@@ -21,6 +21,29 @@ export default async function ClientBillingPage() {
   const clientOrgId = getClientOrganizationId(workspace);
   const supabase = await createClient();
 
+  if (clientOrgId) {
+    const { data: settings } = await supabase
+      .from("client_settings")
+      .select("allow_billing_view")
+      .eq("client_organization_id", clientOrgId)
+      .maybeSingle();
+    if (settings && !settings.allow_billing_view) {
+      return (
+        <PageContainer>
+          <PageHeader
+            name={workspace.profile.first_name}
+            subtitle="Billing"
+          />
+          <EmptyState
+            icon={IconCoin}
+            title="Billing unavailable"
+            description="Billing view is turned off for your organization. Contact Beepa if you need access."
+          />
+        </PageContainer>
+      );
+    }
+  }
+
   let invoices: {
     id: string;
     invoice_number: string;

@@ -28,7 +28,7 @@ export default async function AdminOrganizationsPage() {
     <PageContainer>
       <PageHeader
         name={workspace.profile.first_name}
-        subtitle="Internal and client organizations."
+        subtitle="View-only list of internal and client organizations."
       />
 
       {!orgs?.length ? (

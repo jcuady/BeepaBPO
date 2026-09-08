@@ -51,6 +51,29 @@ export default async function ClientAttendancePage({
   const clientOrgId = getClientOrganizationId(workspace);
   const supabase = await createClient();
 
+  if (clientOrgId) {
+    const { data: settings } = await supabase
+      .from("client_settings")
+      .select("allow_attendance_view")
+      .eq("client_organization_id", clientOrgId)
+      .maybeSingle();
+    if (settings && !settings.allow_attendance_view) {
+      return (
+        <PageContainer>
+          <PageHeader
+            name={workspace.profile.first_name}
+            subtitle="Attendance"
+          />
+          <EmptyState
+            icon={IconClock}
+            title="Attendance unavailable"
+            description="Attendance view is turned off for your organization. Contact Beepa if you need access."
+          />
+        </PageContainer>
+      );
+    }
+  }
+
   let rows: {
     employee_id: string | null;
     display_name: string | null;

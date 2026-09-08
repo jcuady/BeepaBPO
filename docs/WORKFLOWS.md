@@ -94,4 +94,4 @@ Requester creates → insert trigger attaches Beepa `ticket_sla_policies` by pri
 - Services → `/services`
 - Blog posts → `/resources` (+ `/[slug]`)
 - Case studies → `/case-studies` (+ `/[slug]`)
-Create draft → Publish/Archive via `setCmsContentStatus`. RLS: `20260907170000` for `public_%` settings. Edit-in-place for existing rows still deferred.
+Create draft → Publish/Archive via `setCmsContentStatus`. RLS: `20260907170000` for `public_%` settings. Edit-in-place dialogs ship via `CmsEditButton` on `/app/cms`.

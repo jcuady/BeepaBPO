@@ -25,6 +25,16 @@ export default async function ClientTicketsPage() {
   const canCreate = can(workspace.permissions, "tickets.self");
   const supabase = await createClient();
 
+  let ticketingAllowed = true;
+  if (clientOrgId) {
+    const { data: settings } = await supabase
+      .from("client_settings")
+      .select("allow_ticketing")
+      .eq("client_organization_id", clientOrgId)
+      .maybeSingle();
+    if (settings) ticketingAllowed = settings.allow_ticketing;
+  }
+
   let query = supabase
     .from("tickets")
     .select(
@@ -40,6 +50,7 @@ export default async function ClientTicketsPage() {
   }
 
   const { data: tickets } = await query;
+  const showCreate = canCreate && ticketingAllowed;
 
   return (
     <PageContainer>
@@ -48,12 +59,19 @@ export default async function ClientTicketsPage() {
         subtitle="Track support and service tickets."
       />
 
-      {canCreate ? (
+      {showCreate ? (
         <Card className="">
           <CardContent className="p-4 sm:p-6">
             <CreateTicketForm />
           </CardContent>
         </Card>
+      ) : null}
+      {!ticketingAllowed ? (
+        <EmptyState
+          icon={IconTicket}
+          title="Ticketing unavailable"
+          description="Ticketing is turned off for your organization. Contact Beepa if you need to open requests."
+        />
       ) : null}
 
       {!tickets?.length ? (

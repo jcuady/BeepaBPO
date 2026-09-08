@@ -25,12 +25,15 @@ import {
   IconNews,
 } from "@tabler/icons-react";
 import { can, canAny } from "@/lib/permissions/can";
+import type { ClientPortalFlags } from "@/lib/organizations/client-settings";
 
 export type NavItem = {
   title: string;
   href: string;
   icon: TablerIcon;
   permission?: string | string[];
+  /** Client portal feature flag key when item requires org settings. */
+  portalFlag?: keyof ClientPortalFlags;
 };
 
 export type NavGroup = {
@@ -55,20 +58,41 @@ export const employeeNav: NavItem[] = [
 export const clientNav: NavItem[] = [
   { title: "Dashboard", href: "/app/client", icon: IconLayoutDashboard },
   { title: "My Team", href: "/app/client/team", icon: IconUsersGroup },
-  { title: "Attendance", href: "/app/client/attendance", icon: IconClock },
-  { title: "Timesheets", href: "/app/client/timesheets", icon: IconReceipt },
+  {
+    title: "Attendance",
+    href: "/app/client/attendance",
+    icon: IconClock,
+    portalFlag: "allowAttendanceView",
+  },
+  {
+    title: "Timesheets",
+    href: "/app/client/timesheets",
+    icon: IconReceipt,
+    portalFlag: "allowTimesheetApproval",
+  },
   {
     title: "Approvals",
     href: "/app/client/approvals",
     icon: IconReportAnalytics,
     permission: ["attendance.approve", "approvals.act"],
+    portalFlag: "allowTimesheetApproval",
   },
   { title: "Performance", href: "/app/client/performance", icon: IconChartBar },
   { title: "Requests", href: "/app/client/requests", icon: IconFileText },
-  { title: "Tickets", href: "/app/client/tickets", icon: IconTicket },
+  {
+    title: "Tickets",
+    href: "/app/client/tickets",
+    icon: IconTicket,
+    portalFlag: "allowTicketing",
+  },
   { title: "Reports", href: "/app/client/reports", icon: IconReportAnalytics },
   { title: "Documents", href: "/app/client/documents", icon: IconFileText },
-  { title: "Billing", href: "/app/client/billing", icon: IconCoin },
+  {
+    title: "Billing",
+    href: "/app/client/billing",
+    icon: IconCoin,
+    portalFlag: "allowBillingView",
+  },
   { title: "Settings", href: "/app/client/settings", icon: IconSettings },
 ];
 
@@ -277,7 +301,12 @@ export const employeeMobileNav: NavItem[] = [
 export const clientMobileNav: NavItem[] = [
   { title: "Home", href: "/app/client", icon: IconHome },
   { title: "Team", href: "/app/client/team", icon: IconUsersGroup },
-  { title: "Tickets", href: "/app/client/tickets", icon: IconTicket },
+  {
+    title: "Tickets",
+    href: "/app/client/tickets",
+    icon: IconTicket,
+    portalFlag: "allowTicketing",
+  },
   { title: "Reports", href: "/app/client/reports", icon: IconReportAnalytics },
   { title: "More", href: "/app/client/settings", icon: IconSettings },
 ];
@@ -290,8 +319,12 @@ export const applicantMobileNav: NavItem[] = [
 export function filterNavByPermissions(
   items: NavItem[],
   permissions: string[],
+  portalFlags: ClientPortalFlags | null = null,
 ): NavItem[] {
   return items.filter((item) => {
+    if (item.portalFlag && portalFlags && !portalFlags[item.portalFlag]) {
+      return false;
+    }
     if (!item.permission) return true;
     if (Array.isArray(item.permission)) {
       return canAny(permissions, item.permission);
@@ -314,6 +347,7 @@ export function getPrimaryNavGroups(workspace: {
   isInternal: boolean;
   isClient: boolean;
   permissions: string[];
+  clientPortalFlags?: ClientPortalFlags | null;
 }): { label: string; items: NavItem[] }[] {
   if (workspace.isApplicantOnly) {
     return [{ label: "Applications", items: applicantNav }];
@@ -325,7 +359,11 @@ export function getPrimaryNavGroups(workspace: {
   if (workspace.isClient) {
     groups.push({
       label: "Client Portal",
-      items: filterNavByPermissions(clientNav, workspace.permissions),
+      items: filterNavByPermissions(
+        clientNav,
+        workspace.permissions,
+        workspace.clientPortalFlags ?? null,
+      ),
     });
   }
   return groups;
@@ -336,13 +374,22 @@ export function getMobileNav(workspace: {
   isInternal: boolean;
   isClient: boolean;
   permissions: string[];
+  clientPortalFlags?: ClientPortalFlags | null;
 }): NavItem[] {
   if (workspace.isApplicantOnly) return applicantMobileNav;
   if (workspace.isClient && !workspace.isInternal) {
-    return filterNavByPermissions(clientMobileNav, workspace.permissions);
+    return filterNavByPermissions(
+      clientMobileNav,
+      workspace.permissions,
+      workspace.clientPortalFlags ?? null,
+    );
   }
   if (workspace.isInternal) return employeeMobileNav;
-  return filterNavByPermissions(clientMobileNav, workspace.permissions);
+  return filterNavByPermissions(
+    clientMobileNav,
+    workspace.permissions,
+    workspace.clientPortalFlags ?? null,
+  );
 }
 
 export function getCommandLinks(
@@ -350,6 +397,7 @@ export function getCommandLinks(
   isClient: boolean,
   isInternal: boolean,
   isApplicantOnly = false,
+  portalFlags: ClientPortalFlags | null = null,
 ): NavItem[] {
   const links: NavItem[] = [];
   if (isApplicantOnly) links.push(...applicantNav);
@@ -361,6 +409,7 @@ export function getCommandLinks(
       (item, index, arr) => arr.findIndex((x) => x.href === item.href) === index,
     ),
     permissions,
+    portalFlags,
   );
 }
 

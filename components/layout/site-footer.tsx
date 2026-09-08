@@ -25,9 +25,9 @@ const FOOTER_COLS = [
     title: "Services",
     links: [
       { href: "/services", label: "All services" },
-      { href: "/services", label: "Customer Support" },
-      { href: "/services", label: "Back Office" },
-      { href: "/services", label: "Virtual Assistants" },
+      { href: "/services#customer-support", label: "Customer Support" },
+      { href: "/services#back-office", label: "Back Office" },
+      { href: "/services#virtual-assistants", label: "Virtual Assistants" },
     ],
   },
   {

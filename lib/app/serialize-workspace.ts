@@ -1,4 +1,5 @@
 import type { WorkspaceContext } from "@/lib/auth/workspace";
+import type { ClientPortalFlags } from "@/lib/organizations/client-settings";
 
 export type SerializedWorkspace = {
   userId: string;
@@ -13,10 +14,13 @@ export type SerializedWorkspace = {
   isApplicantOnly: boolean;
   roleLabel: string;
   organizationName: string | null;
+  /** Present for client portal members; drives nav feature flags. */
+  clientPortalFlags: ClientPortalFlags | null;
 };
 
 export function serializeWorkspace(
   workspace: WorkspaceContext,
+  clientPortalFlags: ClientPortalFlags | null = null,
 ): SerializedWorkspace {
   const primary = workspace.primaryMembership;
   const roleLabel =
@@ -40,5 +44,6 @@ export function serializeWorkspace(
     isApplicantOnly: workspace.isApplicantOnly,
     roleLabel,
     organizationName: primary?.organization?.name ?? null,
+    clientPortalFlags: workspace.isClient ? clientPortalFlags : null,
   };
 }

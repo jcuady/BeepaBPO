@@ -26,7 +26,7 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 | Jump-in links match permissions | OK |
 | Approvals hub + Payroll periods | OK |
 | Admin Users invite | |
-| Orgs / Workflows are **view-only** (no edit) | RO |
+| Orgs / Workflows are **view-only** (no edit) | RO | Subtitle honesty + no edit UI |
 | CMS hidden for Owner (no `cms.manage`) | OK seed |
 
 ---
@@ -115,11 +115,22 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 
 ---
 
+## Client portal flags
+
+| Flag | Enforcement |
+|------|-------------|
+| `allow_timesheet_approval` | Nav + approvals/timesheets (prior) |
+| `allow_ticketing` | Nav + tickets page + `createTicket` |
+| `allow_billing_view` | Nav + billing page gate |
+| `allow_attendance_view` | Nav + attendance page gate |
+
+---
+
 ## Still deferred / polish
 
 1. Social OAuth  
-2. Enforce client portal flags (`allow_ticketing`, etc.) beyond timesheet approve  
-3. Admin org/workflow/user edit UIs  
-4. Employee record edit form  
+2. Admin org/workflow/user edit UIs (orgs/workflows stay RO unless product asks)  
+3. Employee record edit form  
+4. Hard-lock ticket **reply** when ticketing flag off  
 5. Real full-text search  
 6. Announcements CMS  

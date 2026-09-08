@@ -86,11 +86,10 @@ Documented for honesty — do not treat as shipped:
 
 - **CMS admin** — `/app/cms` covers About (`public_about`), FAQs, services, blog, **industries**, **testimonials**, **case studies** (create + publish/archive). Public: `/about`, `/contact`, `/services`, `/resources`, `/case-studies`(+`/[slug]`). Edit-in-place for existing rows still thin.
 - **Dynamic approval workflows** — `resolveActiveWorkflow` / `advanceApprovalRequest` drive leave, cash advance, and attendance corrections from `approval_workflows` + `approval_steps` (role + permission gated). Queues + `/app/approvals` hide Approve/Review when the actor cannot act on the **current** step. Admin read-only map at `/app/admin/workflows`.
-- **Client SLA** — Beepa priority policies seeded; insert trigger sets `sla_due_at`; UI on tickets + client dashboard compliance. Admin policy editor not built (seed/SQL only).
+- **Client SLA** — Beepa priority policies seeded; insert trigger sets `sla_due_at`; UI on tickets + client dashboard compliance. Admin policy editor at `/app/tickets/sla`.
 - **CRM depth** — leads + deals pipeline + **proposals** (create/status) shipped; deal→client org convert shipped. **Client portal invite** shipped (`/app/clients`).
 - **Google / Microsoft OAuth** — **deferred**. Email/password is the supported auth path. Provider buttons stay off (no decoys). `/auth/callback` still exchanges codes if OAuth is enabled later.
 - **Ticket assignment** — staff `tickets.manage` assigns Beepa internal users via `assignTicket` on `/app/tickets/[id]`; queue shows assignee.
-- **SLA policy admin** — `/app/tickets/sla` create/update Beepa priority policies (`tickets.manage`). Changes affect new tickets only.
 - **Payroll approval UI** — shipped: submit + Finance→Owner review on `/app/payroll/periods/[id]`; approvals hub deep-link.
 - **Email digests** — cron `notification_digest` emails unread in-app notifications via Resend when `RESEND_API_KEY` is set; users opt out with Email digests on `/app/my/notifications`.
 Shipped recently (see PROJECT_STATUS): … client-org invite, **remaining CMS page types**.
