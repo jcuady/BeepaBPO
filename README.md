@@ -6,7 +6,7 @@ Unified BPO operating system: marketing site, employee HRIS, attendance, leave, 
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 22.13+ (required by pnpm 11)
 - pnpm 11+
 - Supabase project (linked): `nwvnawgxkzwiercllgmg`
 
