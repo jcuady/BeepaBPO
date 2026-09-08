@@ -12,11 +12,11 @@
 | Frontend | GOOD — Settings, notifications, gated client ticket CTAs |
 | Backend | PARTIAL — payroll + approvals wired |
 | Database | GOOD |
-| Testing | PASS — typecheck/lint/test/build exit 0 |
+| Testing | PASS — local + GitHub Actions verify green (`d328876`) |
 | E2E | Optional via `vars.RUN_E2E=true` + secrets |
 | Documentation | GOOD |
 | Deployment | LIVE at beepabpo.com |
-| CI | Fixed — prior runs failed at parse (unquoted `AUTH_SECRET!!` + `secrets.*` in `if`) |
+| CI | PASS — workflow parses and verify job completes |
 
 ## Auth (locked for now)
 

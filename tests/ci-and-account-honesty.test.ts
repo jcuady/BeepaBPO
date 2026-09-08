@@ -21,6 +21,7 @@ describe("CI workflow + account honesty seams", () => {
     expect(ci).not.toMatch(/if:.*secrets\./);
     expect(ci).toContain("vars.RUN_E2E");
     expect(ci).not.toMatch(/pnpm\/action-setup@v4\s*\n\s*with:\s*\n\s*version:/);
+    expect(ci).toContain("node-version: 22");
   });
 
   it("routes Settings and notifications to real pages", () => {
