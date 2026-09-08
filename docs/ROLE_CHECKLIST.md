@@ -25,8 +25,8 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 |-------|--------|
 | Jump-in links match permissions | OK |
 | Approvals hub + Payroll periods | OK |
-| Admin Users invite | |
-| Orgs / Workflows are **view-only** (no edit) | RO | Subtitle honesty + no edit UI |
+| Admin Users invite | OK | + role change / revoke (not owner/super_admin) |
+| Orgs / Workflows are **view-only** (no edit) | RO | Subtitle honesty; **decision: keep RO** |
 | CMS hidden for Owner (no `cms.manage`) | OK seed |
 
 ---
@@ -52,7 +52,7 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 | Attendance corrections | |
 | NTE create/resolve (HR) | |
 | Cash advance HR step | |
-| Employee profile edit UI | GAP (display-only) |
+| Employee profile edit UI | OK | `/app/employees/[id]` when `employees.manage` |
 
 ---
 
@@ -129,8 +129,8 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 ## Still deferred / polish
 
 1. Social OAuth  
-2. Admin org/workflow/user edit UIs (orgs/workflows stay RO unless product asks)  
-3. Employee record edit form  
-4. Hard-lock ticket **reply** when ticketing flag off  
-5. Real full-text search  
-6. Announcements CMS  
+2. Real full-text search  
+3. Announcements CMS  
+4. Org/workflow admin CRUD — **rejected; keep RO**  
+5. Ops: Auth leaked-password advisor; Serwist/`browserslist` audit  
+6. Pre-launch QA: e2e + viewport matrix  

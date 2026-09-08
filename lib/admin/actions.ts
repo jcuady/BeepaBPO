@@ -9,7 +9,11 @@ import { runCronJobs } from "@/lib/jobs/cron-jobs";
 import { notifyUser } from "@/lib/notifications/notify";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { adminInviteSchema } from "@/lib/validation/app";
+import {
+  adminInviteSchema,
+  adminMembershipRevokeSchema,
+  adminMembershipRoleSchema,
+} from "@/lib/validation/app";
 
 export async function inviteInternalUser(
   input: unknown,
@@ -176,4 +180,175 @@ export async function sendAdminTestPush(): Promise<ActionResult> {
     ok: true,
     message: "Test notification sent to your account (in-app; push if subscribed).",
   };
+}
+
+const PROTECTED_ROLE_CODES = new Set(["owner", "super_admin"]);
+
+async function loadMembershipForAdmin(membershipId: string) {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("organization_memberships")
+    .select(
+      "id, status, membership_type, organization_id, user_id, membership_roles(roles(code, name))",
+    )
+    .eq("id", membershipId)
+    .maybeSingle();
+  return { admin, membership: data };
+}
+
+function membershipHasProtectedRole(
+  membership: {
+    membership_roles:
+      | { roles: { code: string; name: string } | null }[]
+      | null;
+  } | null,
+) {
+  const codes =
+    membership?.membership_roles
+      ?.map((mr) => mr.roles?.code)
+      .filter(Boolean) ?? [];
+  return codes.some((code) => PROTECTED_ROLE_CODES.has(code as string));
+}
+
+export async function updateInternalMembershipRole(
+  input: unknown,
+): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  requirePermission(workspace, "system.manage");
+
+  const parsed = adminMembershipRoleSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<
+        string,
+        string[]
+      >,
+      error: "Please check the form and try again.",
+    };
+  }
+
+  const { admin, membership } = await loadMembershipForAdmin(
+    parsed.data.membership_id,
+  );
+  if (!membership) {
+    return { ok: false, error: "Membership not found." };
+  }
+  if (membership.membership_type !== "internal") {
+    return {
+      ok: false,
+      error: "Only internal Beepa memberships can change roles here.",
+    };
+  }
+  if (membershipHasProtectedRole(membership)) {
+    return {
+      ok: false,
+      error: "Owner and Super Admin roles cannot be changed here.",
+    };
+  }
+
+  const { data: role } = await admin
+    .from("roles")
+    .select("id, code")
+    .eq("code", parsed.data.role_code)
+    .maybeSingle();
+  if (!role) {
+    return { ok: false, error: "Selected role is not configured." };
+  }
+
+  const beforeCodes =
+    membership.membership_roles
+      ?.map((mr) => mr.roles?.code)
+      .filter(Boolean) ?? [];
+
+  await admin
+    .from("membership_roles")
+    .delete()
+    .eq("membership_id", membership.id);
+
+  const { error: roleError } = await admin.from("membership_roles").insert({
+    membership_id: membership.id,
+    role_id: role.id,
+  });
+  if (roleError) {
+    return {
+      ok: false,
+      error: roleError.message ?? "Unable to update role.",
+    };
+  }
+
+  await logAudit(admin, {
+    actorUserId: workspace.user.id,
+    organizationId: membership.organization_id,
+    action: "users.role_change",
+    entityType: "organization_membership",
+    entityId: membership.id,
+    before: { role_codes: beforeCodes },
+    after: { role_code: role.code },
+  });
+
+  revalidatePath("/app/admin/users");
+  return { ok: true, message: `Role updated to ${role.code}.` };
+}
+
+export async function revokeMembership(
+  input: unknown,
+): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  requirePermission(workspace, "system.manage");
+
+  const parsed = adminMembershipRevokeSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<
+        string,
+        string[]
+      >,
+      error: "Invalid membership.",
+    };
+  }
+
+  const { admin, membership } = await loadMembershipForAdmin(
+    parsed.data.membership_id,
+  );
+  if (!membership) {
+    return { ok: false, error: "Membership not found." };
+  }
+  if (membershipHasProtectedRole(membership)) {
+    return {
+      ok: false,
+      error: "Owner and Super Admin memberships cannot be revoked here.",
+    };
+  }
+  if (membership.user_id === workspace.user.id) {
+    return { ok: false, error: "You cannot revoke your own membership." };
+  }
+
+  const { error } = await admin
+    .from("organization_memberships")
+    .update({ status: "inactive" })
+    .eq("id", membership.id);
+
+  if (error) {
+    return {
+      ok: false,
+      error: error.message ?? "Unable to revoke membership.",
+    };
+  }
+
+  await logAudit(admin, {
+    actorUserId: workspace.user.id,
+    organizationId: membership.organization_id,
+    action: "users.revoke",
+    entityType: "organization_membership",
+    entityId: membership.id,
+    before: { status: membership.status },
+    after: { status: "inactive" },
+  });
+
+  revalidatePath("/app/admin/users");
+  return { ok: true, message: "Membership revoked." };
 }

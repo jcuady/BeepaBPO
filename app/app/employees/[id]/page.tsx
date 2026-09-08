@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { StatusBadge } from "@/components/app/status-badge";
 import { DocumentDownloadButton } from "@/components/app/documents/document-download-button";
 import { DocumentUploadForm } from "@/components/app/documents/document-upload-form";
+import { EmployeeEditForm } from "@/components/app/employees/employee-edit-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
@@ -39,7 +40,7 @@ export default async function EmployeeDetailPage({
     supabase
       .from("employees")
       .select(
-        "id, employee_number, job_title, employment_status, hire_date, work_email, department_id, profiles(display_name, first_name, last_name, phone, timezone)",
+        "id, employee_number, job_title, employment_status, employment_type, hire_date, work_email, personal_email, default_timezone, department_id, profiles(display_name, first_name, last_name, phone, timezone)",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -92,6 +93,7 @@ export default async function EmployeeDetailPage({
     workspace.permissions,
     "employees.documents.manage",
   );
+  const canManageEmployee = can(workspace.permissions, "employees.manage");
 
   return (
     <PageContainer>
@@ -138,6 +140,32 @@ export default async function EmployeeDetailPage({
         </CardContent>
       </Card>
 
+      {canManageEmployee ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-display text-base text-navy">
+              Edit employee record
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EmployeeEditForm
+              defaultValues={{
+                employee_id: employee.id,
+                job_title: employee.job_title ?? "",
+                employment_status: employee.employment_status,
+                employment_type: employee.employment_type,
+                hire_date: employee.hire_date ?? "",
+                work_email: employee.work_email ?? "",
+                personal_email: employee.personal_email ?? "",
+                default_timezone:
+                  employee.default_timezone ||
+                  profile?.timezone ||
+                  "Asia/Manila",
+              }}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
       <section className="space-y-2">
         <h2 className="font-display text-base font-semibold text-navy">
           Assignments

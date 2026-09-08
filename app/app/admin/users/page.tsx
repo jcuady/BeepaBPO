@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { FilterBar } from "@/components/app/filter-bar";
 import { StatusBadge } from "@/components/app/status-badge";
 import { AdminInviteForm } from "@/components/app/admin/admin-invite-form";
+import { AdminMembershipActions } from "@/components/app/admin/admin-membership-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -69,7 +70,7 @@ export default async function AdminUsersPage({
     <PageContainer>
       <PageHeader
         name={workspace.profile.first_name}
-        subtitle="Invite teammates and review active or invited memberships."
+        subtitle="Invite teammates, change internal roles, or revoke access."
       />
 
       <Card>
@@ -103,6 +104,7 @@ export default async function AdminUsersPage({
                 <TableHead>Roles</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="w-[220px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -116,10 +118,16 @@ export default async function AdminUsersPage({
                   name: string;
                   type: string;
                 } | null;
+                const roleRows =
+                  (row.membership_roles as
+                    | { roles: { name: string; code: string } }[]
+                    | null) ?? [];
                 const roles =
-                  (row.membership_roles as { roles: { name: string } }[] | null)
-                    ?.map((mr) => mr.roles.name)
-                    .join(", ") || "—";
+                  roleRows.map((mr) => mr.roles.name).join(", ") || "—";
+                const primaryRoleCode = roleRows[0]?.roles.code ?? null;
+                const protectedRoles = roleRows.some((mr) =>
+                  ["owner", "super_admin"].includes(mr.roles.code),
+                );
                 const name =
                   profile?.display_name ||
                   [profile?.first_name, profile?.last_name]
@@ -142,11 +150,18 @@ export default async function AdminUsersPage({
                     <TableCell>
                       <StatusBadge status={row.status} />
                     </TableCell>
+                    <TableCell>
+                      <AdminMembershipActions
+                        membershipId={row.id}
+                        membershipType={row.membership_type}
+                        currentRoleCode={primaryRoleCode}
+                        protectedRoles={protectedRoles}
+                      />
+                    </TableCell>
                   </TableRow>
                 );
               })}
-            </TableBody>
-          </Table>
+            </TableBody>          </Table>
         </div>
       )}
 

@@ -2,19 +2,19 @@
 
 **Updated:** 2026-09-08  
 **Branch:** `main`  
-**Overall:** **DEMO-HARDENED / PARTIAL** — principal system audit P0/P1 clear.
+**Overall:** **DEMO-HARDENED / PARTIAL** — principal P0–P2 product/polish clear; ops/QA deferred.
 
 ## Health
 
 | Area | Status |
 |------|--------|
-| Overall | PARTIAL — demos + checklist; product CRUD gaps remain |
-| Frontend | GOOD — portal flags, leave confirm, honest marketing |
-| Backend | PARTIAL — mutations solid; admin CRUD deferred |
-| Database | GOOD — linked `nwvnawgxkzwiercllgmg` hardened |
-| Testing | PASS — typecheck/lint/test/build exit 0 (145 tests) |
-| CI | PASS (Node 22 + pnpm from packageManager) |
-| Docs | `docs/SYSTEM_AUDIT.md` + `docs/ROLE_CHECKLIST.md` |
+| Overall | PARTIAL — demos ready; OAuth/FTS/ops deferred |
+| Frontend | GOOD — HR edit, admin revoke/role, confirms, portal locks |
+| Backend | GOOD — mutations + audit for new slices |
+| Database | GOOD — linked `nwvnawgxkzwiercllgmg` |
+| Testing | PASS — typecheck/lint/test/build exit 0 (149 tests) |
+| CI | Node 22 + pnpm from packageManager |
+| Docs | `docs/SYSTEM_AUDIT.md` current |
 
 ## Auth
 
@@ -22,13 +22,12 @@ Email/password only. OAuth deferred.
 
 ## Highest-value next
 
-1. Employee record edit (HR)  
-2. Admin user edit/revoke (or keep invite-only)  
-3. Confirm dialogs: payroll recalculate, send-to-client  
-4. Hard-lock ticket reply when `allow_ticketing=false`  
-5. Manual ROLE_CHECKLIST walkthrough on live  
-6. OAuth — deferred  
+1. Manual ROLE_CHECKLIST on live  
+2. Ops: Auth leaked-password + Serwist/`browserslist` bump when available  
+3. Pre-launch: e2e + viewport matrix  
+4. OAuth / FTS / announcements — deferred until asked  
+5. Org/workflow CRUD — **decided keep RO**
 
 ## Demo-safe promise
 
-No known P0/P1. Leave cancel confirms. Client portal flags gate nav + create ticket + pages. Marketing trust strips are honest. Admin orgs/workflows labeled view-only. See `docs/SYSTEM_AUDIT.md` for the full plan.
+No known P0/P1. P2 employee edit, admin role/revoke, destructive confirms, and ticket reply hard-lock shipped. Orgs/workflows remain view-only by design.

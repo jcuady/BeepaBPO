@@ -136,7 +136,9 @@ export async function postTicketMessage(
   const supabase = await createClient();
   const { data: ticket } = await supabase
     .from("tickets")
-    .select("id, requester_user_id, first_response_at")
+    .select(
+      "id, requester_user_id, first_response_at, client_organization_id",
+    )
     .eq("id", parsed.data.ticket_id)
     .maybeSingle();
 
@@ -148,6 +150,21 @@ export async function postTicketMessage(
   const isRequester = ticket.requester_user_id === workspace.user.id;
   if (!isStaff && !isRequester) {
     return { ok: false, error: "You cannot post on this ticket." };
+  }
+
+  // Client portal hard-lock: staff may still reply; clients cannot when flag off.
+  if (!isStaff && ticket.client_organization_id) {
+    const { data: settings } = await supabase
+      .from("client_settings")
+      .select("allow_ticketing")
+      .eq("client_organization_id", ticket.client_organization_id)
+      .maybeSingle();
+    if (settings && !settings.allow_ticketing) {
+      return {
+        ok: false,
+        error: "Ticketing is turned off for your organization.",
+      };
+    }
   }
 
   const { error } = await supabase.from("ticket_messages").insert({

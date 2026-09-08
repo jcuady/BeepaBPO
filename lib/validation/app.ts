@@ -80,6 +80,56 @@ export const profileUpdateSchema = z.object({
   timezone: z.string().min(1, "Timezone is required.").max(80),
 });
 
+export const employeeUpdateSchema = z.object({
+  employee_id: z.string().uuid(),
+  job_title: z.string().max(160).optional(),
+  employment_status: z.enum([
+    "active",
+    "on_leave",
+    "suspended",
+    "terminated",
+    "resigned",
+  ]),
+  employment_type: z.enum([
+    "regular",
+    "probationary",
+    "contractual",
+    "part_time",
+    "intern",
+  ]),
+  hire_date: z.string().optional(),
+  work_email: z
+    .string()
+    .email("Enter a valid work email.")
+    .optional()
+    .or(z.literal("")),
+  personal_email: z
+    .string()
+    .email("Enter a valid personal email.")
+    .optional()
+    .or(z.literal("")),
+  default_timezone: z.string().min(1, "Timezone is required.").max(80),
+});
+
+export const adminMembershipRoleSchema = z.object({
+  membership_id: z.string().uuid(),
+  role_code: z.enum([
+    "employee",
+    "hr",
+    "recruiter",
+    "sales",
+    "marketing",
+    "operations",
+    "account_manager",
+    "team_lead",
+    "finance",
+  ]),
+});
+
+export const adminMembershipRevokeSchema = z.object({
+  membership_id: z.string().uuid(),
+});
+
 export const cashAdvanceSchema = z.object({
   requested_amount: z.coerce
     .number()

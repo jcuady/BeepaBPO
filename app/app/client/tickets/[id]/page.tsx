@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { TicketMessageForm } from "@/components/app/tickets/ticket-message-form";
 import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
 import { getClientOrganizationId } from "@/lib/organizations/client";
+import { loadClientPortalFlags } from "@/lib/organizations/client-settings";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
@@ -47,9 +48,17 @@ export default async function ClientTicketDetailPage({
     .eq("is_internal", false)
     .order("created_at", { ascending: true });
 
-  const canReply =
+  const canReplyBase =
     can(workspace.permissions, "tickets.manage") ||
     ticket.requester_user_id === workspace.user.id;
+
+  const isStaff = can(workspace.permissions, "tickets.manage");
+  let ticketingAllowed = true;
+  if (!isStaff && clientOrgId) {
+    const flags = await loadClientPortalFlags(supabase, clientOrgId);
+    ticketingAllowed = flags.allowTicketing;
+  }
+  const canReply = canReplyBase && (isStaff || ticketingAllowed);
 
   return (
     <PageContainer size="narrow">
@@ -127,9 +136,10 @@ export default async function ClientTicketDetailPage({
         </Card>
       ) : (
         <p className="text-sm text-slate">
-          Only the ticket requester can send messages on this ticket.
+          {!ticketingAllowed
+            ? "Ticketing is turned off for your organization."
+            : "Only the ticket requester can send messages on this ticket."}
         </p>
-      )}
-    </PageContainer>
+      )}    </PageContainer>
   );
 }
