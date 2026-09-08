@@ -93,3 +93,7 @@ Indexes and covering membership lookups (`20260906001300`), applicant `membershi
 - Dynamic approval workflows: `lib/approvals/engine.ts` resolves by workflow `code` + advances steps; leave/cash/attendance wired; admin read view `/app/admin/workflows`
 - Current-step Approve gating: `mapPendingApprovalActability` + `canActOnApprovalStep` hide Approve on leave/cash/corrections/`/app/approvals` when the actor is not on the current workflow step (shows “Waiting for …”)
 - Client ticket SLA: seed policies + `tickets_apply_sla` trigger (`20260907210000`); `evaluateTicketSla` / compliance tile on `/app/client`; SLA column on `/app/tickets`; detail badges; first staff reply sets `first_response_at`
+- Auth lock: email/password confirmed as intentional path; OAuth deferred in status/docs; cash-advance audit `entityType` aligned to `cash_advance`
+- Ticket assignment: `assignTicket` + `TicketAssignForm` on `/app/tickets/[id]`; assignee column on queue; Beepa internal assignee list; notify assignee
+- SLA policy admin: `/app/tickets/sla` create/update Beepa `ticket_sla_policies` (`tickets.manage`); nav link under Tickets
+- Account menu fix: `DropdownMenuLabel` wraps Base UI `Menu.Group` (fixes MenuGroupContext crash); header menu adds Profile / Settings / Notifications / Sign out

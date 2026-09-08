@@ -1,18 +1,18 @@
 # PROJECT_STATUS — Beepa / BeepoBeepa
 
-**Updated:** 2026-09-07  
+**Updated:** 2026-09-08  
 **Branch:** `main`  
-**Overall:** **DEMO-HARDENED / PARTIAL product** — SLA policy admin shipped.
+**Overall:** **DEMO-HARDENED / PARTIAL product** — account menu crash fixed.
 
 ## Health
 
 | Area | Status |
 |------|--------|
 | Overall | PARTIAL — demo-ready for scripted paths |
-| Frontend | GOOD — `/app/tickets/sla` policy editor |
-| Backend | PARTIAL — create/update SLA policies |
-| Database | GOOD — existing `ticket_sla_policies` + unique priority |
-| Testing | PASS — typecheck, lint, vitest (132), build |
+| Frontend | GOOD — account dropdown Profile/Settings/Sign out |
+| Backend | PARTIAL |
+| Database | GOOD |
+| Testing | PASS — typecheck, lint, vitest (134), build |
 | E2E | PASS prior slices |
 | Documentation | GOOD |
 | Deployment | LIVE at beepabpo.com |
@@ -32,4 +32,4 @@
 
 ## Demo-safe promise
 
-Staff with `tickets.manage` edit Beepa priority SLA targets at `/app/tickets/sla`. Changes apply to **new** tickets only (existing `sla_due_at` unchanged).
+Account menu (header avatar) opens without Base UI MenuGroupContext errors and offers Profile, Settings, and Sign out.

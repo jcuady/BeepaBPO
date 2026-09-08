@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useTransition } from "react";
 import { NotificationBell } from "@/components/app/notification-bell";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -12,7 +14,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { IconChevronDown, IconLogout, IconSearch } from "@tabler/icons-react";
+import {
+  IconBell,
+  IconChevronDown,
+  IconLogout,
+  IconSearch,
+  IconSettings,
+  IconUser,
+} from "@tabler/icons-react";
 import type { SerializedWorkspace } from "@/lib/app/serialize-workspace";
 import { logoutAction } from "@/lib/auth/actions";
 
@@ -31,12 +40,42 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+function accountLinks(workspace: SerializedWorkspace) {
+  if (workspace.isClient) {
+    return {
+      profileHref: "/app/client/settings",
+      settingsHref: "/app/client/settings",
+      notificationsHref: "/app/client/tickets",
+    };
+  }
+  if (workspace.isApplicantOnly) {
+    return {
+      profileHref: "/app/applicant/profile",
+      settingsHref: "/app/applicant/profile",
+      notificationsHref: "/app/applicant",
+    };
+  }
+  return {
+    profileHref: "/app/my/profile",
+    settingsHref: "/app/my/profile",
+    notificationsHref: "/app/my/notifications",
+  };
+}
+
 export function AppHeader({
   workspace,
   unreadCount = 0,
   onSearchOpen,
 }: AppHeaderProps) {
   const { profile, roleLabel, organizationName } = workspace;
+  const [pending, startTransition] = useTransition();
+  const links = accountLinks(workspace);
+
+  function handleSignOut() {
+    startTransition(async () => {
+      await logoutAction();
+    });
+  }
 
   return (
     <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-white/95 px-4 backdrop-blur-sm safe-area-inset-top md:h-16 md:px-6">
@@ -70,11 +109,7 @@ export function AppHeader({
         <NotificationBell
           userId={workspace.userId}
           initialUnreadCount={unreadCount}
-          href={
-            workspace.isClient
-              ? "/app/client/tickets"
-              : "/app/my/notifications"
-          }
+          href={links.notificationsHref}
         />
 
         <DropdownMenu>
@@ -83,6 +118,7 @@ export function AppHeader({
               <button
                 type="button"
                 className="flex min-h-11 items-center gap-2 rounded-lg px-2 hover:bg-mist"
+                aria-label="Account menu"
               />
             }
           >
@@ -90,7 +126,7 @@ export function AppHeader({
               {profile.avatarUrl ? (
                 <AvatarImage src={profile.avatarUrl} alt={profile.displayName} />
               ) : null}
-              <AvatarFallback className="bg-soft-green text-green-strong text-xs">
+              <AvatarFallback className="bg-soft-green text-xs text-green-strong">
                 {initials(profile.displayName)}
               </AvatarFallback>
             </Avatar>
@@ -103,24 +139,55 @@ export function AppHeader({
                 {organizationName ? ` · ${organizationName}` : ""}
               </p>
             </div>
-            <IconChevronDown stroke={1.75} className="hidden size-4 text-slate md:block" />
+            <IconChevronDown
+              stroke={1.75}
+              className="hidden size-4 text-slate md:block"
+            />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
-              <p className="font-medium">{profile.displayName}</p>
-              <p className="text-xs font-normal text-slate">{roleLabel}</p>
+              <p className="font-medium text-foreground">
+                {profile.displayName}
+              </p>
+              <p className="text-xs font-normal text-slate">
+                {roleLabel}
+                {organizationName ? ` · ${organizationName}` : ""}
+              </p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              render={
-                <form action={logoutAction} className="w-full">
-                  <button type="submit" className="flex w-full items-center gap-2">
-                    <IconLogout stroke={1.75} className="size-4" />
-                    Sign out
-                  </button>
-                </form>
-              }
-            />
+              render={<Link href={links.profileHref} />}
+              className="cursor-pointer gap-2"
+            >
+              <IconUser stroke={1.75} className="size-4" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              render={<Link href={links.settingsHref} />}
+              className="cursor-pointer gap-2"
+            >
+              <IconSettings stroke={1.75} className="size-4" />
+              Settings
+            </DropdownMenuItem>
+            {!workspace.isClient && !workspace.isApplicantOnly ? (
+              <DropdownMenuItem
+                render={<Link href={links.notificationsHref} />}
+                className="cursor-pointer gap-2"
+              >
+                <IconBell stroke={1.75} className="size-4" />
+                Notifications
+              </DropdownMenuItem>
+            ) : null}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              disabled={pending}
+              className="cursor-pointer gap-2"
+              onClick={handleSignOut}
+            >
+              <IconLogout stroke={1.75} className="size-4" />
+              {pending ? "Signing out…" : "Sign out"}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
