@@ -91,7 +91,7 @@ Documented for honesty — do not treat as shipped:
 - **Google / Microsoft OAuth** — **deferred**. Email/password is the supported auth path. Provider buttons stay off (no decoys). `/auth/callback` still exchanges codes if OAuth is enabled later.
 - **Ticket assignment** — staff `tickets.manage` assigns Beepa internal users via `assignTicket` on `/app/tickets/[id]`; queue shows assignee.
 - **SLA policy admin** — `/app/tickets/sla` create/update Beepa priority policies (`tickets.manage`). Changes affect new tickets only.
-- **Payroll approval UI** — `payroll` workflow seeded; period create exists; multi-step approve via engine not wired in UI.
+- **Payroll approval UI** — shipped: submit + Finance→Owner review on `/app/payroll/periods/[id]`; approvals hub deep-link.
 - **Email digests** — cron `notification_digest` emails unread in-app notifications via Resend when `RESEND_API_KEY` is set; users opt out with Email digests on `/app/my/notifications`.
 Shipped recently (see PROJECT_STATUS): … client-org invite, **remaining CMS page types**.
 

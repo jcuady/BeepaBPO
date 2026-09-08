@@ -113,7 +113,7 @@ Automation: Manual from `/app/approvals` with seeded pending rows.
 - [x] Deal → client convert + CRM proposals UI
 - [x] Ticket assignment UI (`assigned_user_id`)
 - [x] SLA policy admin editor (`/app/tickets/sla`)
-- [ ] Payroll approval via workflow engine UI
+- [x] Payroll approval via workflow engine UI (`submitPayrollPeriodForApproval` / `reviewPayrollPeriod` + period detail)
 - [ ] Social OAuth CTAs — **deferred**; email/password is the supported auth path
 
 ## CI / local gate

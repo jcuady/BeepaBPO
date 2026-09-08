@@ -54,6 +54,15 @@ function reviewTarget(
           permissions.has("attendance.correct") ||
           permissions.has("attendance.manage"),
       };
+    case "payroll_period":
+      return {
+        href: `/app/payroll/periods/${entityId}`,
+        label: "Open payroll period",
+        available:
+          permissions.has("payroll.read") ||
+          permissions.has("payroll.manage") ||
+          permissions.has("payroll.approve"),
+      };
     default:
       return {
         href: "/app/my/requests",

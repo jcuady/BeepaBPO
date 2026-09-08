@@ -6,14 +6,19 @@ import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { RecalculatePayrollButton } from "@/components/app/payroll/recalculate-button";
+import { SubmitPayrollApprovalButton } from "@/components/app/payroll/submit-approval-button";
+import { PayrollPeriodReviewButtons } from "@/components/app/payroll/period-review-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
+import { mapPendingApprovalActability } from "@/lib/approvals/engine";
 import { IconCoin } from "@tabler/icons-react";
 
 export const metadata: Metadata = { title: "Payroll Period" };
+
+const SUBMITTABLE = new Set(["draft", "preparing", "review"]);
 
 export default async function PayrollPeriodDetailPage({
   params,
@@ -26,7 +31,11 @@ export default async function PayrollPeriodDetailPage({
   requirePermission(workspace, "payroll.read");
 
   const supabase = await createClient();
-  const [{ data: period }, { data: records }] = await Promise.all([
+  const canManage = can(workspace.permissions, "payroll.manage");
+  const canReview =
+    canManage || can(workspace.permissions, "payroll.approve");
+
+  const [{ data: period }, { data: records }, actability] = await Promise.all([
     supabase.from("payroll_periods").select("*").eq("id", id).maybeSingle(),
     supabase
       .from("payroll_records")
@@ -36,11 +45,26 @@ export default async function PayrollPeriodDetailPage({
       .eq("payroll_period_id", id)
       .order("created_at", { ascending: true })
       .limit(200),
+    canReview
+      ? mapPendingApprovalActability(supabase, workspace, "payroll_period", [
+          id,
+        ])
+      : Promise.resolve(new Map()),
   ]);
 
   if (!period) notFound();
 
-  const canManage = can(workspace.permissions, "payroll.manage");
+  const act = actability.get(id);
+  // Hide submit whenever a pending approval row exists for this period.
+  const showSubmit =
+    canManage && SUBMITTABLE.has(period.status) && !act;
+  const showReview = period.status === "approval" && act?.canAct;
+  const waitingLabel =
+    period.status === "approval" && act?.stepName && !act.canAct
+      ? `Waiting for ${act.stepName}`
+      : period.status === "approval" && !act
+        ? "Approval pending"
+        : null;
 
   return (
     <PageContainer>
@@ -60,10 +84,28 @@ export default async function PayrollPeriodDetailPage({
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="text-sm text-slate">
-          {format(new Date(period.start_date), "MMM d")} –{" "}
-          {format(new Date(period.end_date), "MMM d, yyyy")} · Pay{" "}
-          {format(new Date(period.pay_date), "MMM d, yyyy")}
+        <CardContent className="space-y-4 text-sm text-slate">
+          <p>
+            {format(new Date(period.start_date), "MMM d")} –{" "}
+            {format(new Date(period.end_date), "MMM d, yyyy")} · Pay{" "}
+            {format(new Date(period.pay_date), "MMM d, yyyy")}
+          </p>
+          {showSubmit ? (
+            <SubmitPayrollApprovalButton payrollPeriodId={id} />
+          ) : null}
+          {showReview ? (
+            <div className="space-y-2">
+              {act?.stepName ? (
+                <p className="text-xs font-medium uppercase tracking-wide text-slate">
+                  Current step: {act.stepName}
+                </p>
+              ) : null}
+              <PayrollPeriodReviewButtons payrollPeriodId={id} />
+            </div>
+          ) : null}
+          {waitingLabel ? (
+            <p className="text-xs text-slate">{waitingLabel}</p>
+          ) : null}
         </CardContent>
       </Card>
 
@@ -96,7 +138,7 @@ export default async function PayrollPeriodDetailPage({
                     <Badge variant="outline" className="capitalize">
                       {row.status}
                     </Badge>
-                    {canManage ? (
+                    {canManage && SUBMITTABLE.has(period.status) ? (
                       <RecalculatePayrollButton payrollRecordId={row.id} />
                     ) : null}
                   </div>

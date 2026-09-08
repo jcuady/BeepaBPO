@@ -313,6 +313,11 @@ export const createPayrollPeriodSchema = z
     path: ["pay_date"],
   });
 
+export const payrollPeriodReviewSchema = z.object({
+  payroll_period_id: z.string().uuid(),
+  action: z.enum(["approve", "reject"]),
+});
+
 export const documentMetaSchema = z.object({
   title: z.string().min(2, "Title is required.").max(200),
   category: z.string().min(2, "Category is required.").max(80),

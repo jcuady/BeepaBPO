@@ -30,6 +30,8 @@
 
 **Payroll periods:** Finance with `payroll.manage` creates cycles on `/app/payroll/periods` (`createPayrollPeriod`, status `draft`). Optional seed inserts draft `payroll_records` for active Beepa employees; recalculate uses `calculate_payroll_record` on period detail.
 
+**Payroll period approval:** From `/app/payroll/periods/[id]`, Finance submits (`submitPayrollPeriodForApproval` → status `approval`, workflow code `payroll`, entity `payroll_period`). Step 1 Finance (`payroll.manage`) then step 2 Owner (`payroll.approve`) use `reviewPayrollPeriod` / `advanceApprovalRequest`. Reject → `review` (resubmit). Final approve → period + non-void records `finalized`. Approvals hub deep-links `payroll_period`. Current-step gating via `mapPendingApprovalActability`.
+
 **Payslip PDF:** `GET /app/my/payroll/[recordId]/payslip` streams a generated PDF for self (`payroll.self`) or `payroll.read`/`manage` after status is approved/finalized/paid.
 
 ## Leave

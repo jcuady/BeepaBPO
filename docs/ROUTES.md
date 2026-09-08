@@ -73,7 +73,7 @@ Public CMS read: `/about` (settings + industries + testimonials), `/services`, `
 | `/app/cash-advances` | perm `cash_advance.read` | `cash_advance_requests` | review only if current-step actor (`cash_advance.manage` / `.approve`) |
 | `/app/payroll` | canAny payroll.* | period metrics | link to periods |
 | `/app/payroll/periods` | perm `payroll.read` | `payroll_periods` | create if `payroll.manage` |
-| `/app/payroll/periods/[id]` | perm `payroll.read` | period + `payroll_records` | recalculate |
+| `/app/payroll/periods/[id]` | perm `payroll.read` | period + `payroll_records` | recalculate; submit for approval (`payroll.manage`); Approve/Reject when current step (`payroll.manage` / `payroll.approve`) |
 | `/app/recruitment` | canAny recruitment.* | job/application counts | — |
 | `/app/recruitment/jobs` | perm `recruitment.read` | `job_posts` | create; publish/close; edit at `/jobs/[id]` |
 | `/app/recruitment/jobs/[id]` | perm `recruitment.read` | job detail | update form + status actions (`recruitment.manage`) |
