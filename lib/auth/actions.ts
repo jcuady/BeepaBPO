@@ -281,6 +281,46 @@ export async function resetPasswordAction(
   };
 }
 
+/** Logged-in password change from Settings / Profile. */
+export async function changePasswordAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const raw = formDataToObject(formData);
+  const parsed = resetPasswordSchema.safeParse(raw);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<
+        string,
+        string[]
+      >,
+      error: "Please check the form and try again.",
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { ok: false, error: "You must be signed in to change your password." };
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.data.password,
+  });
+  if (error) {
+    return {
+      ok: false,
+      error: error.message || "Unable to update password.",
+    };
+  }
+
+  return { ok: true, message: "Password updated." };
+}
+
 export async function verifyEmailAction(token: string): Promise<ActionState> {
   const supabase = await createClient();
   const { error } = await supabase.auth.verifyOtp({

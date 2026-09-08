@@ -59,19 +59,20 @@ Generate a VAPID key pair; set public + private + subject. Users enable push fro
 
 ## CI (`.github/workflows/ci.yml`)
 
-**verify** (every PR/push to `main`):
+**verify** (every PR/push to `main`, plus `workflow_dispatch`):
 
-1. `pnpm install`
+1. `pnpm install --frozen-lockfile`
 2. `pnpm typecheck`
 3. `pnpm lint`
 4. `pnpm test`
-5. `pnpm build` (placeholder public Supabase env)
+5. `pnpm build` (placeholder public Supabase env; `AUTH_SECRET` must be YAML-quoted)
 
-**e2e** (when `DEMO_PASSWORD` and publishable key secrets are set):
+**e2e** (only when repository variable `RUN_E2E=true`; needs demo secrets):
 
 1. Install Playwright Chromium
 2. `pnpm test:e2e` against linked demo data
 
+> Prior CI runs failed instantly (0s, no jobs) because unquoted `AUTH_SECRET: ...!!` is invalid YAML tag syntax and because job `if:` compared `secrets.*` (GitHub marks the workflow broken). Do not reintroduce either pattern.
 ## Post-deploy smoke
 
 1. Owner employee login → `/app/dashboard`

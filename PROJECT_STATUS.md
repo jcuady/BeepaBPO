@@ -2,34 +2,36 @@
 
 **Updated:** 2026-09-08  
 **Branch:** `main`  
-**Overall:** **DEMO-HARDENED / PARTIAL product** — payroll period approval shipped.
+**Overall:** **DEMO-HARDENED / PARTIAL product** — CI workflow fixed; account Settings/notifications honesty gaps closed.
 
 ## Health
 
 | Area | Status |
 |------|--------|
 | Overall | PARTIAL — demo-ready for scripted paths |
-| Frontend | GOOD — submit/approve on `/app/payroll/periods/[id]` |
-| Backend | PARTIAL — payroll workflow via approval engine |
-| Database | GOOD — seeded `payroll` workflow (Finance → Owner) |
-| Testing | PASS — typecheck/lint/test/build exit 0 (137 tests) |
-| E2E | PASS prior slices |
+| Frontend | GOOD — Settings, notifications, gated client ticket CTAs |
+| Backend | PARTIAL — payroll + approvals wired |
+| Database | GOOD |
+| Testing | PASS — typecheck/lint/test/build exit 0 |
+| E2E | Optional via `vars.RUN_E2E=true` + secrets |
 | Documentation | GOOD |
 | Deployment | LIVE at beepabpo.com |
+| CI | Fixed — prior runs failed at parse (unquoted `AUTH_SECRET!!` + `secrets.*` in `if`) |
 
 ## Auth (locked for now)
 
-**Email/password only** (simple Supabase Auth). Social OAuth deferred — no decoy buttons.
+**Email/password only** (simple Supabase Auth). Social OAuth deferred — no decoy buttons. Change password on `/app/my/settings`, client settings, applicant profile.
 
 ## Highest-value next action
 
-Pick from polish backlog (or new PO asks). No blocking honesty gaps left for scripted demos.
+Optional polish (client portal flags enforcement) or new PO asks. OAuth remains deferred.
 
 ## Top PO backlog
 
-1. Optional: dedicated staff Settings page (menu currently points at profile)  
-2. Social OAuth — deferred  
+1. Social OAuth — deferred  
+2. Optional: enforce client portal flags (`allow_ticketing`, etc.) in nav/pages  
+3. Optional: announcements CMS for employee dashboard  
 
 ## Demo-safe promise
 
-Finance submits a payroll period for approval; Finance then Owner advance the seeded `payroll` workflow; reject returns to `review`; final approve sets period + records to `finalized`. Sign-in remains email/password.
+Finance submits payroll periods; Finance → Owner approve via seeded workflow. Staff Settings changes password. Client Viewer no longer sees Create/Reply ticket affordances they cannot use. Sign-in remains email/password.

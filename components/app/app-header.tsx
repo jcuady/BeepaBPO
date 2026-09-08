@@ -45,19 +45,19 @@ function accountLinks(workspace: SerializedWorkspace) {
     return {
       profileHref: "/app/client/settings",
       settingsHref: "/app/client/settings",
-      notificationsHref: "/app/client/tickets",
+      notificationsHref: "/app/client/notifications",
     };
   }
   if (workspace.isApplicantOnly) {
     return {
       profileHref: "/app/applicant/profile",
       settingsHref: "/app/applicant/profile",
-      notificationsHref: "/app/applicant",
+      notificationsHref: "/app/applicant/notifications",
     };
   }
   return {
     profileHref: "/app/my/profile",
-    settingsHref: "/app/my/profile",
+    settingsHref: "/app/my/settings",
     notificationsHref: "/app/my/notifications",
   };
 }

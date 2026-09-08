@@ -4,6 +4,14 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
@@ -17,7 +25,7 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
@@ -27,11 +35,14 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://nwvnawgxkzwiercllgmg.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder_key_value
           NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpciIsInJvbGUiOiJhbm9uIiwiaWF0IjoxLCJleHAiOjB9.signature
-          AUTH_SECRET: beepa-ci-secret-change-me-32chars!!
+          # Quoted: trailing !! is YAML tag syntax and broke every prior CI run (0s, no jobs).
+          AUTH_SECRET: "beepa-ci-secret-change-me-32chars!!"
 
+  # Optional: enable with repo variable RUN_E2E=true and required secrets.
+  # Do not gate on secrets.* in `if` — GitHub treats that as a broken workflow.
   e2e:
     runs-on: ubuntu-latest
-    if: ${{ secrets.DEMO_PASSWORD != '' && secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY != '' }}
+    if: ${{ vars.RUN_E2E == 'true' }}
     needs: verify
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +53,7 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
         env:

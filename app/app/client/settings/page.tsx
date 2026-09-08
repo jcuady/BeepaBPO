@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { IconSettings } from "@tabler/icons-react";
 import { PageContainer } from "@/components/app/page-container";
+import { ChangePasswordForm } from "@/components/app/settings/change-password-form";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -109,6 +110,16 @@ export default async function ClientSettingsPage() {
           </Card>
         </>
       )}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-base text-navy">
+            Your password
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChangePasswordForm />
+        </CardContent>
+      </Card>
     </PageContainer>
   );
 }

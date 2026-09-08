@@ -305,11 +305,20 @@ export async function reviewPayrollPeriod(
   }
 
   if (nextStatus === "finalized") {
-    await supabase
+    const { error: recordsError } = await supabase
       .from("payroll_records")
       .update({ status: "finalized" })
       .eq("payroll_period_id", parsed.data.payroll_period_id)
       .neq("status", "void");
+
+    if (recordsError) {
+      return {
+        ok: false,
+        error:
+          recordsError.message ??
+          "Period finalized but records could not be updated.",
+      };
+    }
   }
 
   await logAudit(supabase, {

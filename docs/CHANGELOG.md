@@ -98,3 +98,5 @@ Indexes and covering membership lookups (`20260906001300`), applicant `membershi
 - SLA policy admin: `/app/tickets/sla` create/update Beepa `ticket_sla_policies` (`tickets.manage`); nav link under Tickets
 - Account menu fix: `DropdownMenuLabel` wraps Base UI `Menu.Group` (fixes MenuGroupContext crash); header menu adds Profile / Settings / Notifications / Sign out
 - Payroll period approval: `submitPayrollPeriodForApproval` + `reviewPayrollPeriod` on `/app/payroll/periods/[id]`; Finance → Owner via seeded `payroll` workflow; approvals hub deep-link
+- CI permanent fix: quote `AUTH_SECRET` (YAML `!!` broke every run); e2e gated on `vars.RUN_E2E` not `secrets.*`
+- Account honesty: `/app/my/settings` password; client/applicant notification inboxes; gate client Create/Reply ticket; cash advances in employee nav; payroll perms on Approvals

@@ -641,7 +641,16 @@ export async function OwnerDashboardPage() {
                   workspace.permissions.has("leave.approve") ||
                   workspace.permissions.has("cash_advance.approve") ||
                   workspace.permissions.has("cash_advance.manage") ||
-                  workspace.permissions.has("tickets.manage"),
+                  workspace.permissions.has("tickets.manage") ||
+                  workspace.permissions.has("payroll.manage") ||
+                  workspace.permissions.has("payroll.approve"),
+              },
+              {
+                href: "/app/payroll/periods",
+                label: "Payroll periods",
+                show:
+                  workspace.permissions.has("payroll.read") ||
+                  workspace.permissions.has("payroll.manage"),
               },
               {
                 href: "/app/admin/users",

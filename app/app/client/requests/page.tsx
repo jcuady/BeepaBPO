@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getClientOrganizationId } from "@/lib/organizations/client";
 import { resolveWorkspace } from "@/lib/auth/workspace";
+import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
@@ -19,6 +20,7 @@ export default async function ClientRequestsPage() {
   if (!workspace) redirect("/login");
 
   const clientOrgId = getClientOrganizationId(workspace);
+  const canCreate = can(workspace.permissions, "tickets.self");
   const supabase = await createClient();
 
   let tickets: {
@@ -51,8 +53,8 @@ export default async function ClientRequestsPage() {
           icon={IconFileText}
           title="No open requests"
           description="Open a ticket when you need staffing or operational help."
-          actionLabel="Create ticket"
-          actionHref="/app/client/tickets"
+          actionLabel={canCreate ? "Create ticket" : undefined}
+          actionHref={canCreate ? "/app/client/tickets" : undefined}
         />
       ) : (
         <div className="space-y-2">

@@ -23,6 +23,7 @@ Auth and access routes are listed at the bottom.
 | `/app/my/requests` | segment | tickets, cash advances, approvals (own) | — |
 | `/app/my/documents` | segment | `documents` + Storage | upload self; signed download (15m) |
 | `/app/my/profile` | segment | profile / employee | `updateProfile` |
+| `/app/my/settings` | segment | auth user | `changePasswordAction` |
 | `/app/my/notifications` | segment | `notifications`, preferences | mark read, push subscribe, email digest pref |
 | `/app/my/support` | segment | — | create ticket (self) |
 
@@ -45,14 +46,16 @@ Auth and access routes are listed at the bottom.
 | `/app/client/billing/[id]` | segment | invoice + items + payments | read-only detail |
 | `/app/billing` | perm `billing.read` | invoices | issue if `billing.manage`; list |
 | `/app/billing/[id]` | perm `billing.read` | invoice detail | record payment if `billing.manage` |
-| `/app/client/settings` | segment | `client_profiles`, `client_settings` | — |
+| `/app/client/settings` | segment | `client_profiles`, `client_settings` | change password |
+| `/app/client/notifications` | segment | `notifications`, preferences | mark read / prefs |
 
 ## Applicant (`/app/applicant/*`)
 
 | Route | Guard | Data | Key actions |
 |-------|-------|------|-------------|
 | `/app/applicant` | segment applicant-only | `applicants`, `job_applications` | — |
-| `/app/applicant/profile` | segment | applicant / profile | profile update |
+| `/app/applicant/profile` | segment | applicant / profile | profile update + password |
+| `/app/applicant/notifications` | segment | `notifications`, preferences | mark read / prefs |
 
 Public careers apply: marketing `/careers/[slug]` → `applyToJob` (not under `/app`).
 

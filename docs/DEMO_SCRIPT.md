@@ -22,4 +22,4 @@ Use after `pnpm seed:demo` with `DEMO_PASSWORD`.
 | Client Viewer | Read team/attendance | Mutations |
 | Applicant | Seeded application + profile | Empty careers-only story |
 
-Backlog next: optional staff Settings page. Social OAuth deferred — email/password only. Payroll period approval (Finance → Owner) is live. Ticket assign + SLA policy admin live. Client timesheet Approve/Send back is live when `allow_timesheet_approval` is on.
+Backlog next: optional client portal flag enforcement in nav. Social OAuth deferred — email/password only. Staff Settings + password change live. Payroll period approval (Finance → Owner) is live. Ticket assign + SLA policy admin live. Client timesheet Approve/Send back is live when `allow_timesheet_approval` is on.

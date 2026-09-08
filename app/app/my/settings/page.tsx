@@ -1,41 +1,25 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
-import { ProfileEditForm } from "@/components/app/profile/profile-edit-form";
 import { ChangePasswordForm } from "@/components/app/settings/change-password-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Applicant Profile" };
+export const metadata: Metadata = { title: "Settings" };
 
-export default async function ApplicantProfilePage() {
+export default async function MySettingsPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
-  const { profile } = workspace;
 
   return (
     <PageContainer size="narrow">
       <PageHeader
-        name={profile.first_name}
-        subtitle="Keep your applicant profile up to date."
+        name={workspace.profile.first_name}
+        subtitle="Account security and preferences."
       />
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-display text-base text-navy">
-            Edit profile
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProfileEditForm
-            defaultValues={{
-              display_name: profile.display_name,
-              phone: profile.phone ?? "",
-              timezone: profile.timezone,
-            }}
-          />
-        </CardContent>
-      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="font-display text-base text-navy">
@@ -44,6 +28,28 @@ export default async function ApplicantProfilePage() {
         </CardHeader>
         <CardContent>
           <ChangePasswordForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-base text-navy">
+            Related
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2 text-sm">
+          <Link
+            href="/app/my/profile"
+            className="font-medium text-green-strong hover:underline"
+          >
+            Edit profile
+          </Link>
+          <Link
+            href="/app/my/notifications"
+            className="font-medium text-green-strong hover:underline"
+          >
+            Notification preferences
+          </Link>
         </CardContent>
       </Card>
     </PageContainer>

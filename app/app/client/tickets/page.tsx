@@ -8,6 +8,7 @@ import { CreateTicketForm } from "@/components/app/tickets/create-ticket-form";
 import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
 import { getClientOrganizationId } from "@/lib/organizations/client";
 import { resolveWorkspace } from "@/lib/auth/workspace";
+import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,6 +22,7 @@ export default async function ClientTicketsPage() {
   if (!workspace) redirect("/login");
 
   const clientOrgId = getClientOrganizationId(workspace);
+  const canCreate = can(workspace.permissions, "tickets.self");
   const supabase = await createClient();
 
   let query = supabase
@@ -46,11 +48,13 @@ export default async function ClientTicketsPage() {
         subtitle="Track support and service tickets."
       />
 
-      <Card className="">
-        <CardContent className="p-4 sm:p-6">
-          <CreateTicketForm />
-        </CardContent>
-      </Card>
+      {canCreate ? (
+        <Card className="">
+          <CardContent className="p-4 sm:p-6">
+            <CreateTicketForm />
+          </CardContent>
+        </Card>
+      ) : null}
 
       {!tickets?.length ? (
         <EmptyState

@@ -6,6 +6,7 @@ import { TicketMessageForm } from "@/components/app/tickets/ticket-message-form"
 import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
 import { getClientOrganizationId } from "@/lib/organizations/client";
 import { resolveWorkspace } from "@/lib/auth/workspace";
+import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,10 @@ export default async function ClientTicketDetailPage({
     .eq("ticket_id", id)
     .eq("is_internal", false)
     .order("created_at", { ascending: true });
+
+  const canReply =
+    can(workspace.permissions, "tickets.manage") ||
+    ticket.requester_user_id === workspace.user.id;
 
   return (
     <PageContainer size="narrow">
@@ -114,11 +119,17 @@ export default async function ClientTicketDetailPage({
         )}
       </div>
 
-      <Card className="">
-        <CardContent className="p-4">
-          <TicketMessageForm ticketId={id} />
-        </CardContent>
-      </Card>
+      {canReply ? (
+        <Card className="">
+          <CardContent className="p-4">
+            <TicketMessageForm ticketId={id} />
+          </CardContent>
+        </Card>
+      ) : (
+        <p className="text-sm text-slate">
+          Only the ticket requester can send messages on this ticket.
+        </p>
+      )}
     </PageContainer>
   );
 }
