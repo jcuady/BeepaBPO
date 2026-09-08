@@ -313,6 +313,7 @@ export function getPrimaryNavGroups(workspace: {
   isApplicantOnly: boolean;
   isInternal: boolean;
   isClient: boolean;
+  permissions: string[];
 }): { label: string; items: NavItem[] }[] {
   if (workspace.isApplicantOnly) {
     return [{ label: "Applications", items: applicantNav }];
@@ -322,7 +323,10 @@ export function getPrimaryNavGroups(workspace: {
     groups.push({ label: "My Workspace", items: employeeNav });
   }
   if (workspace.isClient) {
-    groups.push({ label: "Client Portal", items: clientNav });
+    groups.push({
+      label: "Client Portal",
+      items: filterNavByPermissions(clientNav, workspace.permissions),
+    });
   }
   return groups;
 }
@@ -331,11 +335,14 @@ export function getMobileNav(workspace: {
   isApplicantOnly: boolean;
   isInternal: boolean;
   isClient: boolean;
+  permissions: string[];
 }): NavItem[] {
   if (workspace.isApplicantOnly) return applicantMobileNav;
-  if (workspace.isClient && !workspace.isInternal) return clientMobileNav;
+  if (workspace.isClient && !workspace.isInternal) {
+    return filterNavByPermissions(clientMobileNav, workspace.permissions);
+  }
   if (workspace.isInternal) return employeeMobileNav;
-  return clientMobileNav;
+  return filterNavByPermissions(clientMobileNav, workspace.permissions);
 }
 
 export function getCommandLinks(

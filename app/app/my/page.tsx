@@ -336,10 +336,18 @@ export default async function EmployeeDashboardPage() {
         </Card>
 
         <Card className="">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
             <CardTitle className="font-display text-base text-navy">
-              Upcoming Schedule
+              Upcoming schedule
             </CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              nativeButton={false}
+              render={<Link href="/app/my/schedule" />}
+            >
+              View all
+            </Button>
           </CardHeader>
           <CardContent>
             {upcomingShifts.length === 0 ? (
@@ -373,15 +381,21 @@ export default async function EmployeeDashboardPage() {
         <Card className="">
           <CardHeader>
             <CardTitle className="font-display text-base text-navy">
-              Announcements
+              Updates
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <EmptyState
-              title="No announcements"
-              description="Company updates will appear here."
-              className="border-0 bg-transparent py-4"
-            />
+          <CardContent className="space-y-3">
+            <p className="text-sm text-slate">
+              Company announcements are delivered as notifications for now.
+            </p>
+            <Button
+              variant="secondary"
+              className="min-h-11 w-full"
+              nativeButton={false}
+              render={<Link href="/app/my/notifications" />}
+            >
+              Open notifications
+            </Button>
           </CardContent>
         </Card>
       </div>

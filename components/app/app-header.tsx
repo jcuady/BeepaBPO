@@ -87,9 +87,7 @@ export function AppHeader({
         className="hidden min-h-11 flex-1 items-center gap-2 rounded-xl border border-line bg-mist/60 px-4 text-sm text-slate transition-colors hover:bg-mist md:flex md:max-w-xl"
       >
         <IconSearch stroke={1.75} className="size-4 shrink-0" />
-        <span className="truncate">
-          Search for requests, documents, or help…
-        </span>
+        <span className="truncate">Go to a page…</span>
         <kbd className="ml-auto hidden rounded-md border border-line bg-white px-1.5 py-0.5 text-xs font-medium text-slate lg:inline">
           ⌘K
         </kbd>
@@ -162,23 +160,22 @@ export function AppHeader({
               <IconUser stroke={1.75} className="size-4" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem
-              render={<Link href={links.settingsHref} />}
-              className="cursor-pointer gap-2"
-            >
-              <IconSettings stroke={1.75} className="size-4" />
-              Settings
-            </DropdownMenuItem>
-            {!workspace.isClient && !workspace.isApplicantOnly ? (
+            {links.settingsHref !== links.profileHref ? (
               <DropdownMenuItem
-                render={<Link href={links.notificationsHref} />}
+                render={<Link href={links.settingsHref} />}
                 className="cursor-pointer gap-2"
               >
-                <IconBell stroke={1.75} className="size-4" />
-                Notifications
+                <IconSettings stroke={1.75} className="size-4" />
+                Settings
               </DropdownMenuItem>
             ) : null}
-            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              render={<Link href={links.notificationsHref} />}
+              className="cursor-pointer gap-2"
+            >
+              <IconBell stroke={1.75} className="size-4" />
+              Notifications
+            </DropdownMenuItem>            <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
               disabled={pending}

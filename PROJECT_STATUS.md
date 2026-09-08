@@ -2,36 +2,31 @@
 
 **Updated:** 2026-09-08  
 **Branch:** `main`  
-**Overall:** **DEMO-HARDENED / PARTIAL product** — CI workflow fixed; account Settings/notifications honesty gaps closed.
+**Overall:** **DEMO-HARDENED / PARTIAL** — role honesty audit + DB harden shipped.
 
 ## Health
 
 | Area | Status |
 |------|--------|
-| Overall | PARTIAL — demo-ready for scripted paths |
-| Frontend | GOOD — Settings, notifications, gated client ticket CTAs |
-| Backend | PARTIAL — payroll + approvals wired |
-| Database | GOOD |
-| Testing | PASS — local + GitHub Actions verify green (`d328876`) |
-| E2E | Optional via `vars.RUN_E2E=true` + secrets |
-| Documentation | GOOD |
-| Deployment | LIVE at beepabpo.com |
-| CI | PASS — workflow parses and verify job completes |
+| Overall | PARTIAL — scripted demos + checklist |
+| Frontend | GOOD — employee ticket detail; client profile; nav filters |
+| Backend | PARTIAL |
+| Database | GOOD — anon definer revoke + indexes on linked project |
+| Testing | PASS — typecheck/lint/test/build exit 0 |
+| CI | PASS on prior Node 22 fix |
+| Docs | `docs/ROLE_CHECKLIST.md` |
 
-## Auth (locked for now)
+## Auth
 
-**Email/password only** (simple Supabase Auth). Social OAuth deferred — no decoy buttons. Change password on `/app/my/settings`, client settings, applicant profile.
+Email/password only. OAuth deferred.
 
-## Highest-value next action
+## Highest-value next
 
-Optional polish (client portal flags enforcement) or new PO asks. OAuth remains deferred.
-
-## Top PO backlog
-
-1. Social OAuth — deferred  
-2. Optional: enforce client portal flags (`allow_ticketing`, etc.) in nav/pages  
-3. Optional: announcements CMS for employee dashboard  
+1. Employee record edit (HR)  
+2. Client portal flag enforcement  
+3. Admin CRUD for workflows/orgs (or keep explicit View-only)  
+4. OAuth — deferred  
 
 ## Demo-safe promise
 
-Finance submits payroll periods; Finance → Owner approve via seeded workflow. Staff Settings changes password. Client Viewer no longer sees Create/Reply ticket affordances they cannot use. Sign-in remains email/password.
+Employees can open and reply on their tickets. Account chrome links are real. Client Viewer no longer sees Approvals without permission. DB helpers not executable by anon.

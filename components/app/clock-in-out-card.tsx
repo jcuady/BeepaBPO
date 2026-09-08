@@ -54,12 +54,7 @@ export function ClockInOutCard({
             </>
           )}
         </Button>
-        <p className="text-sm text-slate">
-          {locationLabel}{" "}
-          <button type="button" className="text-green-strong underline-offset-2 hover:underline">
-            Change location
-          </button>
-        </p>
+        <p className="text-sm text-slate">{locationLabel}</p>
       </CardContent>
     </Card>
   );

@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { IconSettings } from "@tabler/icons-react";
 import { PageContainer } from "@/components/app/page-container";
 import { ChangePasswordForm } from "@/components/app/settings/change-password-form";
+import { ProfileEditForm } from "@/components/app/profile/profile-edit-form";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -110,16 +111,32 @@ export default async function ClientSettingsPage() {
           </Card>
         </>
       )}
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-display text-base text-navy">
-            Your password
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ChangePasswordForm />
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-base text-navy">
+                Your profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProfileEditForm
+                defaultValues={{
+                  display_name: workspace.profile.display_name,
+                  phone: workspace.profile.phone ?? "",
+                  timezone: workspace.profile.timezone,
+                }}
+              />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-base text-navy">
+                Your password
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChangePasswordForm />
+            </CardContent>
+          </Card>
     </PageContainer>
   );
 }

@@ -83,7 +83,14 @@ export default async function MyRequestsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <CashAdvanceForm />
+            {employee ? (
+              <CashAdvanceForm />
+            ) : (
+              <p className="text-sm text-slate">
+                Cash advances require an employee record. Contact HR if you need
+                one.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -102,23 +109,22 @@ export default async function MyRequestsPage() {
                 Tickets
               </h2>
               {tickets!.map((ticket) => (
-                <Card
-                  key={ticket.id}
-                  className=""
-                >
-                  <CardContent className="flex items-center justify-between gap-3 p-4">
-                    <div>
-                      <p className="font-medium text-navy">{ticket.subject}</p>
-                      <p className="text-sm text-slate">
-                        {ticket.ticket_number} ·{" "}
-                        {format(new Date(ticket.created_at), "MMM d, yyyy")}
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="capitalize">
-                      {ticket.status.replace(/_/g, " ")}
-                    </Badge>
-                  </CardContent>
-                </Card>
+                <Link key={ticket.id} href={`/app/my/requests/${ticket.id}`}>
+                  <Card className="transition-colors hover:border-green/40">
+                    <CardContent className="flex items-center justify-between gap-3 p-4">
+                      <div>
+                        <p className="font-medium text-navy">{ticket.subject}</p>
+                        <p className="text-sm text-slate">
+                          {ticket.ticket_number} ·{" "}
+                          {format(new Date(ticket.created_at), "MMM d, yyyy")}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="capitalize">
+                        {ticket.status.replace(/_/g, " ")}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </section>
           )}

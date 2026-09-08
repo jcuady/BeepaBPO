@@ -20,7 +20,8 @@ Auth and access routes are listed at the bottom.
 | `/app/my/payroll` | segment | `payroll_records` (self) | list + PDF via `/app/my/payroll/[recordId]/payslip` |
 | `/app/my/nte` | segment | `nte_cases` (self) | respond + view outcome |
 | `/app/my/cash-advances` | segment | `cash_advance_requests` | submit cash advance |
-| `/app/my/requests` | segment | tickets, cash advances, approvals (own) | — |
+| `/app/my/requests` | segment | tickets, cash advances, approvals (own) | create ticket / cash (if employee) |
+| `/app/my/requests/[id]` | segment | own ticket + messages | reply as requester |
 | `/app/my/documents` | segment | `documents` + Storage | upload self; signed download (15m) |
 | `/app/my/profile` | segment | profile / employee | `updateProfile` |
 | `/app/my/settings` | segment | auth user | `changePasswordAction` |

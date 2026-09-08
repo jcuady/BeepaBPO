@@ -100,3 +100,4 @@ Indexes and covering membership lookups (`20260906001300`), applicant `membershi
 - Payroll period approval: `submitPayrollPeriodForApproval` + `reviewPayrollPeriod` on `/app/payroll/periods/[id]`; Finance → Owner via seeded `payroll` workflow; approvals hub deep-link
 - CI permanent fix: quote `AUTH_SECRET` (YAML `!!` broke every run); e2e gated on `vars.RUN_E2E` not `secrets.*`
 - Account honesty: `/app/my/settings` password; client/applicant notification inboxes; gate client Create/Reply ticket; cash advances in employee nav; payroll perms on Approvals
+- Role audit: employee ticket detail `/app/my/requests/[id]`; remove clock location decoy; client profile edit; filter client Approvals nav; DB revoke anon on SECURITY DEFINER + indexes (`docs/ROLE_CHECKLIST.md`)
