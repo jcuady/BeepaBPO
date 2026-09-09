@@ -21,12 +21,12 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://beepabpo.com";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Beepa BPO | People. Process. Progress.",
-    template: "%s | Beepa BPO",
+    default: "BeepoBPO",
+    template: "%s | BeepoBPO",
   },
   description:
     "Beepa is a people-first outsourcing partner helping businesses build dependable teams and grow with confidence.",
-  applicationName: "Beepa",
+  applicationName: "BeepoBPO",
   authors: [{ name: "Beepa BPO", url: siteUrl }],
   creator: "Beepa BPO",
   publisher: "Beepa BPO",
@@ -35,6 +35,7 @@ export const metadata: Metadata = {
     "BPO",
     "outsourcing",
     "Beepa",
+    "BeepoBPO",
     "virtual assistants",
     "customer support",
     "Philippines BPO",
@@ -44,20 +45,22 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
+      { url: "/brand/icon-32.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico", sizes: "32x32" },
       { url: "/brand/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/brand/icon-512.png", sizes: "512x512", type: "image/png" },
       { url: "/brand/icon-192.svg", type: "image/svg+xml" },
     ],
-    shortcut: ["/favicon.ico"],
+    shortcut: ["/favicon-32.png"],
     apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    siteName: "Beepa BPO",
-    title: "Beepa BPO | People. Process. Progress.",
+    siteName: "BeepoBPO",
+    title: "BeepoBPO | People. Process. Progress.",
     description:
       "Beepa is a people-first outsourcing partner helping businesses build dependable teams and grow with confidence.",
     images: [
@@ -65,13 +68,13 @@ export const metadata: Metadata = {
         url: "/images/og.png",
         width: 1672,
         height: 941,
-        alt: "Beepa BPO — People. Process. Progress.",
+        alt: "BeepoBPO — People. Process. Progress.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Beepa BPO | People. Process. Progress.",
+    title: "BeepoBPO | People. Process. Progress.",
     description:
       "Beepa is a people-first outsourcing partner helping businesses build dependable teams and grow with confidence.",
     images: ["/images/og.png"],
@@ -90,7 +93,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Beepa",
+    title: "BeepoBPO",
   },
   formatDetection: {
     telephone: false,

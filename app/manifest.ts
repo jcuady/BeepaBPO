@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Beepa",
-    short_name: "Beepa",
-    description: "Beepa BPO workforce platform",
+    name: "BeepoBPO",
+    short_name: "BeepoBPO",
+    description: "Beepa people-first outsourcing platform",
     start_url: "/app",
     scope: "/",
     display: "standalone",

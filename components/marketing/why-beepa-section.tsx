@@ -1,79 +1,88 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  IconHeartHandshake,
-  IconLock,
-  IconPlant,
-  IconUsersGroup,
   IconArrowRight,
+  IconChartBar,
+  IconHeart,
+  IconShieldCheck,
+  IconUsersGroup,
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/beepa/container";
-import { SectionEyebrow } from "@/components/beepa/section-eyebrow";
-import { SectionHeading } from "@/components/beepa/section-heading";
 
 const VALUES = [
   {
     title: "People-First",
-    description: "Professionals treated as partners, not seats to fill.",
+    description: "We hire for attitude, train for excellence.",
     icon: IconUsersGroup,
   },
   {
     title: "Reliable & Secure",
-    description: "Clear processes, accountable delivery, careful handling.",
-    icon: IconLock,
+    description: "Your data and trust are always protected.",
+    icon: IconShieldCheck,
   },
   {
     title: "Built for Growth",
-    description: "Teams and workflows that expand as your needs change.",
-    icon: IconPlant,
+    description: "We scale with you, not just for you.",
+    icon: IconChartBar,
   },
   {
     title: "A Culture That Cares",
-    description: "Support that continues after hiring, for clients and teams.",
-    icon: IconHeartHandshake,
+    description: "Happy people deliver great work.",
+    icon: IconHeart,
   },
 ] as const;
 
 export function WhyBeepaSection() {
   return (
-    <section id="why-beepa" className="scroll-mt-24 bg-mist py-20 md:py-28">
+    <section
+      id="why-beepa"
+      className="relative scroll-mt-24 overflow-hidden bg-white py-20 md:py-28"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-24 top-10 size-[280px] rounded-full bg-soft-green/80 blur-3xl md:size-[360px]"
+      />
+
       <Container>
-        <div className="grid gap-10 lg:grid-cols-3 lg:gap-8">
-          <div className="flex flex-col">
-            <SectionEyebrow>Why Beepa</SectionEyebrow>
-            <SectionHeading className="mt-3">
+        <div className="grid items-stretch gap-12 lg:grid-cols-12 lg:gap-10">
+          <div className="flex flex-col justify-center lg:col-span-3">
+            <p className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-green-strong">
+              Why Beepa
+            </p>
+            <h2 className="mt-3 font-display text-[clamp(1.75rem,3vw,2.35rem)] font-bold leading-tight tracking-tight text-navy text-balance">
               A partner invested in your success.
-            </SectionHeading>
+            </h2>
             <p className="mt-4 text-base leading-relaxed text-slate">
-              Beepa stays involved after placement. You get capable people,
-              clear communication, and a relationship built for the long term.
+              We combine great people, operational excellence, and a genuine
+              partnership mindset to help you achieve more.
             </p>
             <Button
-              className="mt-6 w-fit"
+              className="group mt-7 w-fit gap-2 active:scale-[0.98]"
               nativeButton={false}
               render={<Link href="/about" />}
             >
               Discover the Beepa Difference
-              <IconArrowRight stroke={2} className="size-4" />
+              <span className="flex size-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+                <IconArrowRight stroke={2} className="size-3.5" />
+              </span>
             </Button>
           </div>
 
-          <ul className="grid grid-cols-2 gap-4 self-center">
+          <ul className="grid grid-cols-1 gap-8 self-center sm:grid-cols-2 lg:col-span-4 lg:gap-x-8 lg:gap-y-10">
             {VALUES.map((value) => {
               const Icon = value.icon;
               return (
-                <li
-                  key={value.title}
-                  className="rounded-[16px] border border-line bg-white p-5"
-                >
-                  <span className="flex size-10 items-center justify-center rounded-[10px] bg-soft-green text-green-strong">
-                    <Icon stroke={1.75} className="size-5" />
-                  </span>
-                  <h3 className="mt-4 font-display text-base font-semibold text-navy">
+                <li key={value.title} className="min-w-0">
+                  <Icon
+                    stroke={1.5}
+                    className="size-7 text-green-strong"
+                    aria-hidden
+                  />
+                  <h3 className="mt-3 font-display text-base font-bold text-navy">
                     {value.title}
                   </h3>
-                  <p className="mt-1 text-sm leading-relaxed text-slate">
+                  <p className="mt-1.5 text-sm leading-relaxed text-slate">
                     {value.description}
                   </p>
                 </li>
@@ -81,26 +90,15 @@ export function WhyBeepaSection() {
             })}
           </ul>
 
-          <div className="relative min-h-[320px] overflow-hidden rounded-[16px] ring-1 ring-line lg:min-h-[440px]">
+          <div className="relative min-h-[340px] overflow-hidden rounded-[22px] lg:col-span-5 lg:min-h-[460px]">
+            {/* Composite art already includes script, arc, quote (mockup fidelity). */}
             <Image
               src="/images/sections/people-make-progress.png"
-              alt="Beepa customer support agent wearing a headset"
+              alt="Beepa agent with headset — People Make Progress"
               fill
-              sizes="(max-width: 1024px) 100vw, 33vw"
+              sizes="(max-width: 1024px) 100vw, 40vw"
               className="object-cover object-center"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-navy/85 via-navy/20 to-transparent" />
-            <p
-              className="absolute left-5 top-5 font-serif text-2xl italic text-white drop-shadow-[0_2px_8px_rgb(0_0_0/0.4)]"
-              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-            >
-              People Make Progress
-            </p>
-            <div className="absolute bottom-5 left-5 right-5 rounded-[12px] bg-navy/90 p-4 backdrop-blur-sm">
-              <p className="font-display text-base font-semibold leading-snug text-white">
-                &ldquo;Behind every great business is a team that cares.&rdquo;
-              </p>
-            </div>
           </div>
         </div>
       </Container>

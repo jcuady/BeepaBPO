@@ -12,7 +12,9 @@ import { SITE } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "People-first outsourcing partner",
+  title: {
+    absolute: "BeepoBPO",
+  },
   description: SITE.description,
   alternates: { canonical: "/" },
 };

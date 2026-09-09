@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { IconMenu2 } from "@tabler/icons-react";
+import { IconArrowRight, IconMenu2 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -56,8 +56,15 @@ export function SiteHeader() {
           >
             Sign In
           </Link>
-          <Button nativeButton={false} render={<Link href="/contact" />}>
+          <Button
+            className="group gap-2"
+            nativeButton={false}
+            render={<Link href="/contact" />}
+          >
             Let&apos;s Talk
+            <span className="flex size-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+              <IconArrowRight stroke={2} className="size-3" />
+            </span>
           </Button>
         </div>
 
