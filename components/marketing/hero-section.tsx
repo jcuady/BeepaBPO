@@ -95,7 +95,7 @@ export function HeroSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-x-hidden bg-white pb-10 pt-8 sm:pb-12 sm:pt-10 md:pb-14 md:pt-12 lg:pb-16 lg:pt-14"
+      className="relative overflow-x-clip bg-white pb-10 pt-8 sm:pb-12 sm:pt-10 md:pb-14 md:pt-12 lg:pb-16 lg:pt-14"
     >
       <Container>
         <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-10 xl:gap-14">

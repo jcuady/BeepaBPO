@@ -7,14 +7,14 @@ import {
   IconBrandYoutube,
 } from "@tabler/icons-react";
 import { Container } from "@/components/beepa/container";
-import { SITE } from "@/lib/site";
+import { BRAND, SITE } from "@/lib/site";
 
 const FOOTER_COLS = [
   {
     title: "Company",
     links: [
       { href: "/about", label: "About" },
-      { href: "/#why-beepa", label: "Why Beepa" },
+      { href: "/why-beepa", label: "Why Beepa" },
       { href: "/careers", label: "Careers" },
       { href: "/resources", label: "Resources" },
       { href: "/case-studies", label: "Case studies" },
@@ -40,14 +40,26 @@ const FOOTER_COLS = [
 ] as const;
 
 const SOCIALS = [
-  { href: "https://linkedin.com", label: "LinkedIn", icon: IconBrandLinkedin },
-  { href: "https://facebook.com", label: "Facebook", icon: IconBrandFacebook },
   {
-    href: "https://instagram.com",
+    href: BRAND.sameAs[0],
+    label: "LinkedIn",
+    icon: IconBrandLinkedin,
+  },
+  {
+    href: BRAND.sameAs[1],
+    label: "Facebook",
+    icon: IconBrandFacebook,
+  },
+  {
+    href: BRAND.sameAs[2],
     label: "Instagram",
     icon: IconBrandInstagram,
   },
-  { href: "https://youtube.com", label: "YouTube", icon: IconBrandYoutube },
+  {
+    href: BRAND.sameAs[3],
+    label: "YouTube",
+    icon: IconBrandYoutube,
+  },
 ] as const;
 
 export function SiteFooter() {
@@ -60,7 +72,7 @@ export function SiteFooter() {
           <div className="max-w-sm space-y-5">
             <Image
               src="/brand/beepa-logo-alt.png"
-              alt="BEEPA"
+              alt={BRAND.displayName}
               width={120}
               height={120}
               className="h-16 w-auto object-contain object-left"

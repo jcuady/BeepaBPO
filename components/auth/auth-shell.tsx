@@ -12,7 +12,7 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import { SiteHeader } from "@/components/layout/site-header";
-import { SITE } from "@/lib/site";
+import { BRAND, SITE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const SOCIALS = [
@@ -89,11 +89,11 @@ export function AuthShell({
                 <Link
                   href="/"
                   className="inline-flex min-h-11 items-center"
-                  aria-label="BEEPA home"
+                  aria-label={`${BRAND.displayName} home`}
                 >
                   <Image
-                    src="/brand/beepa-logo-horizontal.png"
-                    alt="BEEPA"
+                    src={BRAND.logoUrl}
+                    alt={BRAND.displayName}
                     width={160}
                     height={50}
                     className="h-9 w-auto sm:h-10"

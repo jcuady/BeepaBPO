@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { EmployeeAuthShell } from "@/components/auth/employee-auth-shell";
 import { EmployeeLoginForm } from "@/components/auth/employee-login-form";
+import { redirectIfAuthenticated } from "@/lib/auth/redirect-if-authenticated";
 import { safeNext } from "@/lib/auth/safe-next";
 import { getDemoLoginConfig } from "@/lib/demo/login";
 import { DEMO_USERS } from "@/lib/demo/users";
@@ -18,6 +19,8 @@ export default async function EmployeeLoginPage({
 }) {
   const params = await searchParams;
   const nextPath = safeNext(params.next);
+  await redirectIfAuthenticated(nextPath);
+
   const demo = getDemoLoginConfig("employee");
   const requested = params.demo?.toLowerCase();
   const initialDemoEmail =

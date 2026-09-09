@@ -78,15 +78,17 @@
   }
 
   html {
-    @apply scroll-smooth font-sans;
+    @apply font-sans;
     color-scheme: light;
+    /* ponytail: no scroll-smooth — it fights ScrollTrigger scrub (How It Works pin). */
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-size: 16px;
     line-height: 1.5;
-    overflow-x: hidden;
+    /* ponytail: avoid overflow-x:hidden — it breaks GSAP ScrollTrigger pin (position:fixed).
+       Clip horizontal bleed on sections that need it (hero uses overflow-x-clip). */
   }
 
   :focus-visible {
@@ -206,7 +208,9 @@
   }
 }
 
-/* Trust strip infinite marquee — linear for constant motion */
+/* Trust strip infinite marquee — ALWAYS on (CSS).
+   Intentionally NOT gated by prefers-reduced-motion so the strip never goes static.
+   Pause via hover / :focus-within (WCAG 2.2.2) — no control button. */
 .trust-marquee-mask {
   mask-image: linear-gradient(
     90deg,
@@ -218,11 +222,13 @@
 }
 
 .trust-marquee-track {
-  animation: trust-marquee 38s linear infinite;
+  flex-wrap: nowrap;
+  animation: trust-marquee 28s linear infinite;
+  will-change: transform;
 }
 
-/* Pause only via explicit control — not hover (hover pause looked "broken") */
-.trust-marquee-mask[data-paused="true"] .trust-marquee-track {
+.trust-marquee-mask:hover .trust-marquee-track,
+.trust-marquee-mask:focus-within .trust-marquee-track {
   animation-play-state: paused;
 }
 
@@ -240,21 +246,5 @@
     animation: none !important;
   }
 
-  .trust-marquee-track {
-    animation: none !important;
-    transform: none !important;
-    flex-wrap: wrap;
-    width: 100% !important;
-    max-width: 100%;
-    row-gap: 0.5rem;
-  }
-
-  .trust-marquee-mask {
-    mask-image: none;
-    overflow: visible;
-  }
-
-  .trust-marquee-track ul[aria-hidden="true"] {
-    display: none;
-  }
+  /* Keep marquee running — only kill other page animations */
 }

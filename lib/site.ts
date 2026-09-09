@@ -1,7 +1,7 @@
 export const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
-  { href: "/#why-beepa", label: "Why Beepa" },
+  { href: "/why-beepa", label: "Why Beepa" },
   { href: "/careers", label: "Careers" },
   { href: "/resources", label: "Resources" },
   { href: "/about", label: "About" },

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/beepa/container";
 import { Button } from "@/components/ui/button";
+import { switchAccountAction } from "@/lib/auth/actions";
 
 export default function AccessDeniedPage() {
   return (
@@ -14,8 +15,9 @@ export default function AccessDeniedPage() {
             No active workspace access
           </h1>
           <p className="mt-3 text-base leading-relaxed text-slate">
-            Your account is signed in but does not have an active Beepa membership.
-            Contact your administrator if you believe this is a mistake.
+            Your account is signed in but does not have an active Beepa
+            membership. Contact your administrator if you believe this is a
+            mistake.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Button
@@ -25,9 +27,11 @@ export default function AccessDeniedPage() {
             >
               Back to website
             </Button>
-            <Button nativeButton={false} render={<Link href="/login" />}>
-              Switch account
-            </Button>
+            <form action={switchAccountAction}>
+              <Button type="submit" className="w-full sm:w-auto">
+                Sign out &amp; switch account
+              </Button>
+            </form>
           </div>
         </div>
       </Container>

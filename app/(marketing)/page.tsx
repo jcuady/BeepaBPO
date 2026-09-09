@@ -3,7 +3,7 @@ import { CareersBand } from "@/components/marketing/careers-band";
 import { FAQSection, FAQ_ITEMS } from "@/components/marketing/faq-section";
 import { FinalCTA } from "@/components/marketing/final-cta";
 import { HeroSection } from "@/components/marketing/hero-section";
-import { ProcessTimeline } from "@/components/marketing/process-timeline";
+import { ManpowerModelSection } from "@/components/marketing/manpower-model-section";
 import { ProofStrip } from "@/components/marketing/proof-strip";
 import { ServicesSection } from "@/components/marketing/services-section";
 import { TrustedBySection } from "@/components/marketing/trusted-by-section";
@@ -127,7 +127,7 @@ export default async function HomePage() {
       <WhyBeepaSection />
       <ProofStrip />
       <CareersBand />
-      <ProcessTimeline />
+      <ManpowerModelSection />
       <FAQSection items={faqItems} />
       <FinalCTA />
     </>

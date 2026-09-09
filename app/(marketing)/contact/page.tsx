@@ -3,18 +3,23 @@ import { ContactForm } from "@/components/marketing/contact-form";
 import { Container } from "@/components/beepa/container";
 import { SectionHeading } from "@/components/beepa/section-heading";
 import { createClient } from "@/lib/supabase/server";
+import { BRAND } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Let's Talk — Start Your BPO Team",
-  description:
-    "Tell BeepoBPO what your business needs. Share roles, timing, and goals — we'll follow up to start discovery for your outsourced team.",
+  title: `${BRAND.cta} — Start Your BPO Team`,
+  description: `Tell ${BRAND.displayName} what your business needs. Share roles, timing, and goals — we'll follow up to start discovery for your outsourced team.`,
   alternates: { canonical: "/contact" },
   openGraph: {
-    title: "Let's Talk — Start Your BPO Team | BeepoBPO",
-    description:
-      "Share roles, timing, and goals. BeepoBPO follows up to start discovery for your outsourced team.",
+    title: `${BRAND.cta} — Start Your BPO Team | ${BRAND.name}`,
+    description: `Share roles, timing, and goals. ${BRAND.displayName} follows up to start discovery for your outsourced team.`,
   },
 };
+
+const TRUST = [
+  "People-first hiring",
+  "Secure operations",
+  "Teams that scale with you",
+] as const;
 
 export default async function ContactPage() {
   const supabase = await createClient();
@@ -27,12 +32,20 @@ export default async function ContactPage() {
 
   return (
     <>
-      <section className="bg-white py-16 md:py-24">
-        <Container>
-          <div className="grid gap-12 lg:grid-cols-2">
+      <section className="relative overflow-hidden bg-mist/50 py-16 md:py-24">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -left-24 top-0 size-[320px] rounded-full bg-green/10 blur-[100px]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-16 bottom-0 size-[280px] rounded-full bg-lime/15 blur-[90px]"
+        />
+        <Container className="relative">
+          <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-16">
             <div>
               <p className="font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-green-strong">
-                Better Teams. Stronger Businesses.
+                {BRAND.cta}
               </p>
               <SectionHeading
                 as="h1"
@@ -41,8 +54,31 @@ export default async function ContactPage() {
                 Tell us what your team needs.
               </SectionHeading>
               <p className="mt-4 max-w-[48ch] text-base leading-relaxed text-slate">
-                Share a short note about roles, timing, or the support you need.
-                Our team will follow up to start discovery.
+                A short, guided request — who you are, your company, and what
+                you need. {BRAND.displayName} follows up to start discovery.
+              </p>
+              <ul className="mt-8 space-y-3">
+                {TRUST.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-center gap-3 text-sm font-medium text-navy"
+                  >
+                    <span
+                      className="size-2 shrink-0 rounded-full bg-lime"
+                      aria-hidden
+                    />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-8 text-sm text-slate">
+                Prefer email?{" "}
+                <a
+                  href={`mailto:${BRAND.email}`}
+                  className="font-semibold text-green-strong underline-offset-2 hover:underline"
+                >
+                  {BRAND.email}
+                </a>
               </p>
             </div>
             <ContactForm />
@@ -51,7 +87,7 @@ export default async function ContactPage() {
       </section>
 
       {faqs?.length ? (
-        <section className="border-t border-line bg-mist/40 py-16 md:py-20">
+        <section className="border-t border-line bg-white py-16 md:py-20">
           <Container className="max-w-3xl">
             <SectionHeading as="h2">Common questions</SectionHeading>
             <p className="mt-3 text-base text-slate">

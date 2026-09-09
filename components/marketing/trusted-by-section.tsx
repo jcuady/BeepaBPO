@@ -1,7 +1,3 @@
-"use client";
-
-import { useId, useState } from "react";
-import { IconPlayerPause, IconPlayerPlay } from "@tabler/icons-react";
 import { Container } from "@/components/beepa/container";
 
 /** Honest focus areas — no fabricated client logos. */
@@ -16,16 +12,9 @@ const FOCUS = [
   "Quality assurance",
 ] as const;
 
-function MarqueeTrack({
-  id,
-  decorative = false,
-}: {
-  id?: string;
-  decorative?: boolean;
-}) {
+function MarqueeTrack({ decorative = false }: { decorative?: boolean }) {
   return (
     <ul
-      id={id}
       className="flex shrink-0 items-center gap-10 px-5 sm:gap-14 sm:px-8"
       aria-hidden={decorative ? true : undefined}
     >
@@ -34,12 +23,12 @@ function MarqueeTrack({
           key={`${decorative ? "dup" : "a"}-${name}`}
           className="flex shrink-0 items-center gap-10 sm:gap-14"
         >
-          <span className="font-display text-sm font-semibold tracking-tight text-navy/75 whitespace-nowrap sm:text-[15px]">
+          <span className="font-display text-sm font-semibold tracking-tight text-navy/70 whitespace-nowrap sm:text-[15px]">
             {name}
           </span>
           <span
             aria-hidden
-            className="size-1.5 shrink-0 rounded-full bg-lime/80"
+            className="size-1.5 shrink-0 rounded-full bg-lime"
           />
         </li>
       ))}
@@ -47,49 +36,35 @@ function MarqueeTrack({
   );
 }
 
+/**
+ * Infinite focus-area marquee — CSS-only.
+ * Two identical tracks; translateX(-50%) loops forever.
+ * Pauses on hover / keyboard focus-within (WCAG 2.2.2 without a control button).
+ */
 export function TrustedBySection() {
-  const labelId = useId();
-  const [paused, setPaused] = useState(false);
-
   return (
     <section
       className="border-y border-line/70 bg-[#F4F6F8] py-5 md:py-6"
-      aria-labelledby={labelId}
+      aria-label="Built for growing teams"
     >
       <Container>
-        <div className="flex items-center gap-4 sm:gap-6">
-          <p
-            id={labelId}
-            className="shrink-0 font-display text-[10px] font-semibold uppercase tracking-[0.16em] text-slate md:text-[11px]"
-          >
+        <div className="flex items-center gap-5 sm:gap-8">
+          <p className="shrink-0 font-display text-[10px] font-semibold uppercase tracking-[0.16em] text-slate md:text-[11px]">
             Built for growing teams
           </p>
 
-          <div className="relative min-w-0 flex-1">
+          <div
+            className="trust-marquee-mask relative min-w-0 flex-1 overflow-hidden"
+            data-marquee="trust"
+          >
             <div
-              className="trust-marquee-mask relative overflow-hidden"
-              data-paused={paused ? "true" : "false"}
+              className="trust-marquee-track flex w-max will-change-transform"
+              data-marquee-engine="css-infinite"
             >
-              <div className="trust-marquee-track flex w-max">
-                <MarqueeTrack />
-                <MarqueeTrack decorative />
-              </div>
+              <MarqueeTrack />
+              <MarqueeTrack decorative />
             </div>
           </div>
-
-          <button
-            type="button"
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-navy ring-1 ring-line transition-[transform,background-color,color] duration-160 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-soft-green hover:text-green-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-strong/40 active:scale-[0.97]"
-            aria-pressed={paused}
-            aria-label={paused ? "Play focus areas carousel" : "Pause focus areas carousel"}
-            onClick={() => setPaused((v) => !v)}
-          >
-            {paused ? (
-              <IconPlayerPlay stroke={1.5} className="size-4" aria-hidden />
-            ) : (
-              <IconPlayerPause stroke={1.5} className="size-4" aria-hidden />
-            )}
-          </button>
         </div>
       </Container>
     </section>

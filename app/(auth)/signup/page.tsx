@@ -8,19 +8,23 @@ import {
 } from "@tabler/icons-react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SignupForm } from "@/components/auth/signup-form";
+import { redirectIfAuthenticated } from "@/lib/auth/redirect-if-authenticated";
+import { BRAND } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Sign Up",
-  description: "Create a Beepa account.",
+  description: `Create a ${BRAND.displayName} account.`,
   robots: { index: false, follow: false },
 };
 
-export default function SignupPage() {
+export default async function SignupPage() {
+  await redirectIfAuthenticated("/app");
+
   return (
     <AuthShell
       eyebrow="People · Process · Progress"
-      title="Join a brighter tomorrow."
-      description="Create your Beepa account and be part of a people-first outsourcing partner that helps businesses grow through talent, process and purpose."
+      title="Create your account."
+      description={`Join ${BRAND.displayName} — a people-first outsourcing partner that helps businesses grow through talent, process, and purpose.`}
       features={[
         {
           label: "People-First Partnership",
@@ -61,7 +65,7 @@ export default function SignupPage() {
         },
       ]}
       imageSrc="/images/auth/sign-in.png"
-      imageAlt="Beepa team member with headset"
+      imageAlt={`${BRAND.displayName} team member with headset`}
     >
       <SignupForm />
     </AuthShell>

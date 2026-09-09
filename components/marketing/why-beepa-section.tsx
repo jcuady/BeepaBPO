@@ -74,7 +74,7 @@ export function WhyBeepaSection() {
             <Button
               className="group mt-8 w-fit gap-2 rounded-full bg-lime text-navy transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-white active:scale-[0.97]"
               nativeButton={false}
-              render={<Link href="/about" />}
+              render={<Link href="/why-beepa" />}
             >
               Discover the Beepa Difference
               <span className="flex size-7 items-center justify-center rounded-full bg-navy/10 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5 group-hover:scale-105">
@@ -110,15 +110,17 @@ export function WhyBeepaSection() {
           </ul>
 
           <Reveal delay={140} className="lg:col-span-4">
-            {/* Double-bezel, dark variant */}
-            <div className="h-full rounded-[2rem] bg-white/[0.06] p-1.5 ring-1 ring-white/10 sm:p-2">
-              <div className="relative min-h-[340px] overflow-hidden rounded-[calc(2rem-0.4rem)] shadow-[inset_0_1px_0_rgb(255_255_255/0.08)] lg:min-h-[460px]">
+            {/* Double-bezel — mockup sec1 portrait card */}
+            <div className="h-full rounded-[1.75rem] bg-white p-1.5 shadow-[0_24px_48px_-28px_rgb(0_0_0/0.45)] sm:rounded-[2rem] sm:p-2">
+              <div className="relative aspect-[3/4] min-h-[340px] w-full overflow-hidden rounded-[calc(1.75rem-0.35rem)] bg-navy/20 sm:rounded-[calc(2rem-0.4rem)] lg:min-h-[460px]">
                 <Image
-                  src="/images/sections/people-make-progress.png"
-                  alt="Beepa agent with headset — People Make Progress"
+                  src="/images/sections/why-beepa-agent.webp"
+                  alt="Beepa support professional with headset in the office"
                   fill
                   sizes="(max-width: 1024px) 100vw, 33vw"
-                  className="object-cover object-center"
+                  quality={75}
+                  className="object-cover object-[center_18%]"
+                  data-why-media="sec1"
                 />
               </div>
             </div>

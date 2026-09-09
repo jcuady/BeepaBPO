@@ -342,6 +342,13 @@ export async function logoutAction() {
   redirect("/");
 }
 
+/** Sign out then land on login — used when switching accounts from access-denied. */
+export async function switchAccountAction() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
+}
+
 export async function logoutAllAction() {
   const supabase = await createClient();
   await supabase.auth.signOut({ scope: "global" });

@@ -5,7 +5,7 @@ export async function proxy(request: NextRequest) {
   const { user, supabaseResponse } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/app") && !user) {
+  if ((pathname === "/app" || pathname.startsWith("/app/")) && !user) {
     const login = new URL("/login", request.url);
     login.searchParams.set("next", pathname);
     return NextResponse.redirect(login);
@@ -15,5 +15,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/app/:path*", "/auth/callback"],
+  // Include exact /app — `/app/:path*` alone does not match `/app`.
+  matcher: ["/app", "/app/:path*", "/auth/callback"],
 };

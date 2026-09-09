@@ -6,13 +6,15 @@ import {
 } from "@tabler/icons-react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { LoginForm } from "@/components/auth/login-form";
+import { redirectIfAuthenticated } from "@/lib/auth/redirect-if-authenticated";
 import { safeNext } from "@/lib/auth/safe-next";
 import { getDemoLoginConfig } from "@/lib/demo/login";
 import { DEMO_USERS } from "@/lib/demo/users";
+import { BRAND } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Sign In",
-  description: "Sign in to your Beepa account.",
+  description: `Sign in to your ${BRAND.displayName} account.`,
   robots: { index: false, follow: false },
 };
 
@@ -23,6 +25,8 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   const nextPath = safeNext(params.next);
+  await redirectIfAuthenticated(nextPath);
+
   const demo = getDemoLoginConfig("client");
   const requested = params.demo?.toLowerCase();
   const initialDemoEmail =
@@ -33,8 +37,8 @@ export default async function LoginPage({
   return (
     <AuthShell
       eyebrow="People · Process · Progress"
-      title="Great people build brighter tomorrow."
-      description="Partner with Beepa and empower your business with world-class talent and operational excellence."
+      title="Sign in to continue."
+      description={`Partner with ${BRAND.displayName} and empower your business with world-class talent and operational excellence.`}
       features={[
         {
           label: "People-First Approach",
@@ -53,7 +57,7 @@ export default async function LoginPage({
         },
       ]}
       imageSrc="/images/auth/sign-in.png"
-      imageAlt="Beepa team member with headset"
+      imageAlt={`${BRAND.displayName} team member with headset`}
     >
       <LoginForm
         nextPath={nextPath}

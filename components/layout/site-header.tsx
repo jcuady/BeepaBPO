@@ -13,7 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Container } from "@/components/beepa/container";
-import { NAV_LINKS } from "@/lib/site";
+import { BRAND, NAV_LINKS } from "@/lib/site";
 
 export function SiteHeader() {
   return (
@@ -22,11 +22,11 @@ export function SiteHeader() {
         <Link
           href="/"
           className="relative flex h-11 min-h-11 min-w-0 shrink items-center focus-visible:ring-2 focus-visible:ring-green-strong focus-visible:ring-offset-2"
-          aria-label="BeepoBPO home"
+          aria-label={`${BRAND.displayName} home`}
         >
           <Image
-            src="/brand/beepa-logo-horizontal.png"
-            alt="BeepoBPO — Business Process Outsourcing"
+            src={BRAND.logoUrl}
+            alt={`${BRAND.displayName} — Business Process Outsourcing`}
             width={160}
             height={50}
             className="h-8 w-auto max-w-[132px] object-contain object-left sm:h-9 sm:max-w-none"

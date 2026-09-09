@@ -10,7 +10,7 @@ import {
   IconUserPlus,
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { SITE } from "@/lib/site";
+import { BRAND, SITE } from "@/lib/site";
 
 const MODULES = [
   {
@@ -51,11 +51,11 @@ export function EmployeeAuthShell({
           <Link
             href="/"
             className="inline-flex h-11 min-h-11 shrink-0 items-center"
-            aria-label="BEEPA home"
+            aria-label={`${BRAND.displayName} home`}
           >
             <Image
-              src="/brand/beepa-logo-horizontal.png"
-              alt="BEEPA"
+              src={BRAND.logoUrl}
+              alt={BRAND.displayName}
               width={160}
               height={50}
               className="h-8 w-auto max-w-[132px] object-contain object-left sm:h-9 sm:max-w-none"
@@ -107,11 +107,11 @@ export function EmployeeAuthShell({
                 <Link
                   href="/"
                   className="inline-flex min-h-11 items-center"
-                  aria-label="BEEPA home"
+                  aria-label={`${BRAND.displayName} home`}
                 >
                   <Image
-                    src="/brand/beepa-logo-horizontal.png"
-                    alt="BEEPA"
+                    src={BRAND.logoUrl}
+                    alt={BRAND.displayName}
                     width={160}
                     height={50}
                     className="h-9 w-auto sm:h-10"
