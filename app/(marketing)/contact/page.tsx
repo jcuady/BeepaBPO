@@ -5,10 +5,15 @@ import { SectionHeading } from "@/components/beepa/section-heading";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Let's Talk",
+  title: "Let's Talk — Start Your BPO Team",
   description:
-    "Tell Beepa what your business needs. We help you build a dependable outsourced team.",
+    "Tell BeepoBPO what your business needs. Share roles, timing, and goals — we'll follow up to start discovery for your outsourced team.",
   alternates: { canonical: "/contact" },
+  openGraph: {
+    title: "Let's Talk — Start Your BPO Team | BeepoBPO",
+    description:
+      "Share roles, timing, and goals. BeepoBPO follows up to start discovery for your outsourced team.",
+  },
 };
 
 export default async function ContactPage() {

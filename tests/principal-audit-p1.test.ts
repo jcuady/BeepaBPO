@@ -12,7 +12,7 @@ describe("principal audit P1 seams", () => {
     expect(src).toContain("destructive");
   });
 
-  it("marketing proof strips use mockup trust strip without fake FAANG logos", () => {
+  it("marketing proof strips use honest trust strip without fake logos", () => {
     const trusted = readFileSync(
       join(process.cwd(), "components/marketing/trusted-by-section.tsx"),
       "utf8",
@@ -23,7 +23,9 @@ describe("principal audit P1 seams", () => {
     );
     expect(trusted).not.toContain("cdn.simpleicons.org");
     expect(trusted).not.toContain("google");
-    expect(trusted).toContain("Trusted by growing companies");
+    expect(trusted).not.toContain("Nexora");
+    expect(trusted).toContain("Built for growing teams");
+    expect(trusted).toContain("trust-marquee");
     expect(proof).not.toContain("500+");
     expect(proof).not.toContain("Maria Santos");
     expect(proof).not.toContain("picsum.photos");

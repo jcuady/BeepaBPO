@@ -15,7 +15,7 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://cdn.simpleicons.org https://picsum.photos https://*.supabase.co",
+      "img-src 'self' data: blob: https://cdn.simpleicons.org https://*.supabase.co",
       "font-src 'self' data:",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
       "frame-ancestors 'self'",
@@ -51,7 +51,6 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       { protocol: "https", hostname: "cdn.simpleicons.org" },
-      { protocol: "https", hostname: "picsum.photos" },
       {
         protocol: "https",
         hostname: "nwvnawgxkzwiercllgmg.supabase.co",

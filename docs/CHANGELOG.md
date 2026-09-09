@@ -6,6 +6,10 @@ Phased delivery of the Beepa BPO platform (not semver releases).
 
 Supabase Auth, employee vs client login, workspace resolution, app shell/sidebar, permission helpers (`can` / `requirePermission`), marketing + auth layouts.
 
+**2026-09-09 — Auth UI redesign:** `/login`, `/employee/login`, and `/signup` rebuilt to match `Mockup/sign in.png` and `Mockup/sign up.png` (split brand panel + form card, values bar, mobile form-first + photo strip). Demo login pickers kept. OAuth deferred (honest copy, no decoy Google CTA). Remember-me persists email locally on client login.
+
+**2026-09-09 — SEO / Search Console:** Favicons regenerated as real multi-size ICO + 48px PNG (Google favicon guideline). Root title/OG set to `BeepoBPO | People-First BPO Outsourcing Partner`. Organization + WebSite JSON-LD, optional `GOOGLE_SITE_VERIFICATION`, contact UTM attribution, honest “Built for growing teams” strip (no fake client logos).
+
 ## Employee pages
 
 `/app/my` home, attendance (clock), schedule, leave, payroll self-view, requests, documents, profile, notifications, support.

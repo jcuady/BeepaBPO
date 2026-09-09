@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { IconUsers, IconChartBar, IconShieldCheck } from "@tabler/icons-react";
+import {
+  IconChartBar,
+  IconHeartHandshake,
+  IconPlant,
+  IconShieldCheck,
+  IconUsers,
+} from "@tabler/icons-react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { SignupForm } from "@/components/auth/signup-form";
 
@@ -12,13 +18,47 @@ export const metadata: Metadata = {
 export default function SignupPage() {
   return (
     <AuthShell
-      eyebrow="PEOPLE PROCESS PROGRESS"
+      eyebrow="People · Process · Progress"
       title="Join a brighter tomorrow."
       description="Create your Beepa account and be part of a people-first outsourcing partner that helps businesses grow through talent, process and purpose."
       features={[
-        { label: "People-First Partnership", icon: IconUsers },
-        { label: "Scalable Growth", icon: IconChartBar },
-        { label: "Secure and Trusted", icon: IconShieldCheck },
+        {
+          label: "People-First Partnership",
+          description: "Real people. Real impact.",
+          icon: IconUsers,
+        },
+        {
+          label: "Scalable Growth",
+          description: "Flexible solutions that grow with you.",
+          icon: IconChartBar,
+        },
+        {
+          label: "Secure and Trusted",
+          description: "Your data and business are in good hands.",
+          icon: IconShieldCheck,
+        },
+      ]}
+      values={[
+        {
+          title: "Exceptional People",
+          description: "Exceptional talent delivers real results.",
+          icon: IconUsers,
+        },
+        {
+          title: "Proven Processes",
+          description: "Smarter operations for greater efficiency.",
+          icon: IconChartBar,
+        },
+        {
+          title: "Scalable Growth",
+          description: "Flexible solutions that grow with you.",
+          icon: IconPlant,
+        },
+        {
+          title: "Trusted Partnership",
+          description: "A team that's invested in your success.",
+          icon: IconHeartHandshake,
+        },
       ]}
       imageSrc="/images/auth/sign-in.png"
       imageAlt="Beepa team member with headset"

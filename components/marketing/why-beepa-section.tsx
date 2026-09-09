@@ -9,6 +9,7 @@ import {
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/beepa/container";
+import { Reveal } from "@/components/marketing/reveal";
 
 const VALUES = [
   {
@@ -33,73 +34,95 @@ const VALUES = [
   },
 ] as const;
 
+const NOISE =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E\")";
+
 export function WhyBeepaSection() {
   return (
     <section
       id="why-beepa"
-      className="relative scroll-mt-24 overflow-hidden bg-white py-20 md:py-28"
+      className="relative scroll-mt-24 overflow-hidden bg-navy py-24 md:py-32"
     >
+      {/* Ambient glows + grain (static, paint-once) */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-24 top-10 size-[280px] rounded-full bg-soft-green/80 blur-3xl md:size-[360px]"
+        className="pointer-events-none absolute -left-40 top-0 size-[480px] rounded-full bg-green/25 blur-[120px]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-32 bottom-0 size-[420px] rounded-full bg-lime/15 blur-[120px]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        style={{ backgroundImage: NOISE }}
       />
 
-      <Container>
+      <Container className="relative">
         <div className="grid items-stretch gap-12 lg:grid-cols-12 lg:gap-10">
-          <div className="flex flex-col justify-center lg:col-span-3">
-            <p className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-green-strong">
+          <Reveal className="flex flex-col justify-center lg:col-span-4">
+            <p className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-lime">
               Why Beepa
             </p>
-            <h2 className="mt-3 font-display text-[clamp(1.75rem,3vw,2.35rem)] font-bold leading-tight tracking-tight text-navy text-balance">
+            <h2 className="mt-3 font-display text-[clamp(1.75rem,3vw,2.35rem)] font-bold leading-tight tracking-tight text-white text-balance">
               A partner invested in your success.
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-slate">
+            <p className="mt-4 text-base leading-relaxed text-white/70">
               We combine great people, operational excellence, and a genuine
               partnership mindset to help you achieve more.
             </p>
             <Button
-              className="group mt-7 w-fit gap-2 active:scale-[0.98]"
+              className="group mt-8 w-fit gap-2 rounded-full bg-lime text-navy transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-white active:scale-[0.97]"
               nativeButton={false}
               render={<Link href="/about" />}
             >
               Discover the Beepa Difference
-              <span className="flex size-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
-                <IconArrowRight stroke={2} className="size-3.5" />
+              <span className="flex size-7 items-center justify-center rounded-full bg-navy/10 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5 group-hover:scale-105">
+                <IconArrowRight stroke={2} className="size-3.5" aria-hidden />
               </span>
             </Button>
-          </div>
+          </Reveal>
 
-          <ul className="grid grid-cols-1 gap-8 self-center sm:grid-cols-2 lg:col-span-4 lg:gap-x-8 lg:gap-y-10">
-            {VALUES.map((value) => {
+          <ul className="grid grid-cols-1 self-center sm:grid-cols-2 lg:col-span-4">
+            {VALUES.map((value, index) => {
               const Icon = value.icon;
               return (
-                <li key={value.title} className="min-w-0">
-                  <Icon
-                    stroke={1.5}
-                    className="size-7 text-green-strong"
-                    aria-hidden
-                  />
-                  <h3 className="mt-3 font-display text-base font-bold text-navy">
-                    {value.title}
-                  </h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-slate">
-                    {value.description}
-                  </p>
+                <li
+                  key={value.title}
+                  className="group border-white/10 py-6 sm:px-6 sm:py-7 sm:odd:border-l-0 sm:odd:pl-0 sm:even:border-l sm:even:pr-0 sm:[&:nth-child(n+3)]:border-t max-sm:[&:not(:first-child)]:border-t"
+                >
+                  <Reveal delay={index * 80}>
+                    <Icon
+                      stroke={1.5}
+                      className="size-7 text-lime transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:-translate-y-0.5"
+                      aria-hidden
+                    />
+                    <h3 className="mt-3 font-display text-base font-bold text-white">
+                      {value.title}
+                    </h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-white/65">
+                      {value.description}
+                    </p>
+                  </Reveal>
                 </li>
               );
             })}
           </ul>
 
-          <div className="relative min-h-[340px] overflow-hidden rounded-[22px] lg:col-span-5 lg:min-h-[460px]">
-            {/* Composite art already includes script, arc, quote (mockup fidelity). */}
-            <Image
-              src="/images/sections/people-make-progress.png"
-              alt="Beepa agent with headset — People Make Progress"
-              fill
-              sizes="(max-width: 1024px) 100vw, 40vw"
-              className="object-cover object-center"
-            />
-          </div>
+          <Reveal delay={140} className="lg:col-span-4">
+            {/* Double-bezel, dark variant */}
+            <div className="h-full rounded-[2rem] bg-white/[0.06] p-1.5 ring-1 ring-white/10 sm:p-2">
+              <div className="relative min-h-[340px] overflow-hidden rounded-[calc(2rem-0.4rem)] shadow-[inset_0_1px_0_rgb(255_255_255/0.08)] lg:min-h-[460px]">
+                <Image
+                  src="/images/sections/people-make-progress.png"
+                  alt="Beepa agent with headset — People Make Progress"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 33vw"
+                  className="object-cover object-center"
+                />
+              </div>
+            </div>
+          </Reveal>
         </div>
       </Container>
     </section>

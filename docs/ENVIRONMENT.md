@@ -5,6 +5,7 @@ Copy `.env.example` → `.env.local`. Validation lives in `lib/env.ts` (subset r
 | Variable | Purpose |
 |----------|---------|
 | `NEXT_PUBLIC_SITE_URL` | Canonical site URL (emails, redirects, metadata). Default `https://beepabpo.com`. |
+| `GOOGLE_SITE_VERIFICATION` | Optional Google Search Console HTML-tag token (content value only). Emitted as `verification.google` in root metadata when set. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser/server anon-style publishable key (preferred). |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Alternate anon JWT key; used if publishable key unset (`getPublicSupabaseKey`). |

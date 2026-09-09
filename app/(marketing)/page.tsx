@@ -8,15 +8,28 @@ import { ProofStrip } from "@/components/marketing/proof-strip";
 import { ServicesSection } from "@/components/marketing/services-section";
 import { TrustedBySection } from "@/components/marketing/trusted-by-section";
 import { WhyBeepaSection } from "@/components/marketing/why-beepa-section";
-import { SITE } from "@/lib/site";
+import { BRAND } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "BeepoBPO",
+    absolute: BRAND.title,
   },
-  description: SITE.description,
+  description: BRAND.description,
   alternates: { canonical: "/" },
+  openGraph: {
+    title: BRAND.title,
+    description: BRAND.description,
+    url: BRAND.url,
+    images: [
+      {
+        url: BRAND.ogImageUrl,
+        width: 1672,
+        height: 941,
+        alt: `${BRAND.name} — ${BRAND.tagline}`,
+      },
+    ],
+  },
 };
 
 export default async function HomePage() {
@@ -36,19 +49,49 @@ export default async function HomePage() {
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
-    name: SITE.legalName,
-    url: SITE.url,
-    logo: `${SITE.url}/brand/beepa-logo-horizontal.png`,
-    image: `${SITE.url}/images/og.png`,
-    description: SITE.description,
-    slogan: SITE.tagline,
+    "@id": `${BRAND.url}/#organization`,
+    name: BRAND.name,
+    legalName: BRAND.legalName,
+    alternateName: [BRAND.displayName, BRAND.legalName, "BeePA"],
+    url: BRAND.url,
+    logo: {
+      "@type": "ImageObject",
+      url: `${BRAND.url}${BRAND.iconUrl}`,
+      width: 512,
+      height: 512,
+    },
+    image: `${BRAND.url}${BRAND.ogImageUrl}`,
+    description: BRAND.description,
+    slogan: BRAND.tagline,
     foundingDate: "2019",
     areaServed: "Worldwide",
+    email: BRAND.email,
+    sameAs: [...BRAND.sameAs],
+    knowsAbout: [
+      "Business process outsourcing",
+      "Customer support",
+      "Back-office operations",
+      "Recruitment process outsourcing",
+      "Virtual assistants",
+    ],
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "sales",
-      url: `${SITE.url}/contact`,
+      email: BRAND.email,
+      url: `${BRAND.url}/contact`,
+      availableLanguage: ["English"],
     },
+  };
+
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${BRAND.url}/#website`,
+    name: BRAND.name,
+    url: BRAND.url,
+    description: BRAND.description,
+    publisher: { "@id": `${BRAND.url}/#organization` },
+    inLanguage: "en-US",
   };
 
   const faqJsonLd = {
@@ -69,6 +112,10 @@ export default async function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
       />
       <script
         type="application/ld+json"

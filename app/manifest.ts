@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { BRAND } from "@/lib/site";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "BeepoBPO",
-    short_name: "BeepoBPO",
-    description: "Beepa people-first outsourcing platform",
-    start_url: "/app",
+    name: BRAND.name,
+    short_name: BRAND.name,
+    description: BRAND.description,
+    start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "portrait-primary",
@@ -29,12 +30,6 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
-      },
-      {
-        src: "/brand/icon-192.svg",
-        sizes: "192x192",
-        type: "image/svg+xml",
-        purpose: "any",
       },
     ],
   };

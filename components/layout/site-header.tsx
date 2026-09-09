@@ -22,11 +22,11 @@ export function SiteHeader() {
         <Link
           href="/"
           className="relative flex h-11 min-h-11 min-w-0 shrink items-center focus-visible:ring-2 focus-visible:ring-green-strong focus-visible:ring-offset-2"
-          aria-label="BEEPA home"
+          aria-label="BeepoBPO home"
         >
           <Image
             src="/brand/beepa-logo-horizontal.png"
-            alt="BEEPA Business Process Outsourcing"
+            alt="BeepoBPO — Business Process Outsourcing"
             width={160}
             height={50}
             className="h-8 w-auto max-w-[132px] object-contain object-left sm:h-9 sm:max-w-none"

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
-import { IconMail } from "@tabler/icons-react";
+import { useActionState, useState, useSyncExternalStore } from "react";
+import { IconArrowRight, IconMail } from "@tabler/icons-react";
 import { loginAction, type ActionState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordField } from "@/components/auth/password-field";
@@ -12,6 +13,28 @@ import { DemoLoginPicker } from "@/components/auth/demo-login-picker";
 import type { DemoUser } from "@/lib/demo/users";
 
 const initial: ActionState = { ok: false };
+const REMEMBER_KEY = "beepa.login.rememberEmail";
+
+function subscribeRemember() {
+  return () => {};
+}
+
+function getRememberedEmail() {
+  try {
+    return localStorage.getItem(REMEMBER_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function persistRemember(email: string, on: boolean) {
+  try {
+    if (on && email) localStorage.setItem(REMEMBER_KEY, email);
+    else localStorage.removeItem(REMEMBER_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 type LoginFormProps = {
   nextPath?: string;
@@ -27,20 +50,32 @@ export function LoginForm({
   initialDemoEmail,
 }: LoginFormProps) {
   const [state, action, pending] = useActionState(loginAction, initial);
-  const [email, setEmail] = useState(initialDemoEmail ?? "");
+  const savedEmail = useSyncExternalStore(
+    subscribeRemember,
+    getRememberedEmail,
+    () => "",
+  );
+  const [emailOverride, setEmailOverride] = useState<string | null>(
+    initialDemoEmail ?? null,
+  );
+  const email = emailOverride ?? savedEmail;
   const [password, setPassword] = useState(
     initialDemoEmail && demoPassword ? demoPassword : "",
   );
+  const [rememberOverride, setRememberOverride] = useState<boolean | null>(
+    null,
+  );
+  const remember = rememberOverride ?? Boolean(savedEmail);
 
   const showDemo = Boolean(demoUsers?.length && demoPassword);
 
   return (
-    <div className="rounded-[24px] border border-line bg-white p-6 shadow-sm sm:p-10">
+    <div className="rounded-[24px] border border-white/80 bg-white p-6 shadow-[0_20px_50px_-28px_rgb(31_32_88/0.35)] ring-1 ring-line/70 sm:p-9">
       <div className="text-center">
-        <h2 className="font-display text-2xl font-bold text-navy sm:text-3xl">
+        <h2 className="font-display text-2xl font-bold tracking-tight text-navy sm:text-3xl">
           Welcome back
         </h2>
-        <p className="mt-3 text-sm text-slate">
+        <p className="mt-3 text-sm leading-relaxed text-slate">
           Sign in to your Beepa account to continue building what&apos;s next,
           together.
         </p>
@@ -62,9 +97,9 @@ export function LoginForm({
               placeholder="you@company.com"
               autoComplete="email"
               required
-              className="pl-10"
+              className="min-h-11 pl-10"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmailOverride(e.target.value)}
               aria-invalid={Boolean(state.fieldErrors?.email)}
               aria-describedby={
                 state.fieldErrors?.email ? "email-error" : undefined
@@ -98,7 +133,19 @@ export function LoginForm({
           )}
         </div>
 
-        <div className="flex justify-end pt-1">
+        <div className="flex items-center justify-between gap-3">
+          <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-navy">
+            <Checkbox
+              checked={remember}
+              onCheckedChange={(checked) => {
+                const on = checked === true;
+                setRememberOverride(on);
+                persistRemember(email, on);
+              }}
+              aria-label="Remember me"
+            />
+            Remember me
+          </label>
           <Link
             href="/forgot-password"
             className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
@@ -118,13 +165,24 @@ export function LoginForm({
 
         <Button
           type="submit"
-          className="w-full text-base"
+          className="group w-full gap-2 text-base active:scale-[0.98]"
           size="lg"
           disabled={pending}
+          onClick={() => persistRemember(email, remember)}
         >
-          {pending ? "Signing in..." : "Sign In \u2192"}
+          {pending ? "Signing in..." : "Sign In"}
+          {!pending ? (
+            <span className="flex size-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+              <IconArrowRight stroke={2} className="size-3.5" />
+            </span>
+          ) : null}
         </Button>
       </form>
+
+      {/* OAuth deferred — email/password only (no decoy Google CTA). */}
+      <p className="mt-5 text-center text-xs text-slate">
+        Email and password sign-in. Social login is not enabled yet.
+      </p>
 
       {showDemo ? (
         <DemoLoginPicker
@@ -132,7 +190,7 @@ export function LoginForm({
           portal="client"
           password={demoPassword!}
           onFill={(nextEmail, nextPassword) => {
-            setEmail(nextEmail);
+            setEmailOverride(nextEmail);
             setPassword(nextPassword);
           }}
         />
@@ -144,7 +202,7 @@ export function LoginForm({
           href="/signup"
           className="inline-flex min-h-11 items-center font-semibold text-green-strong hover:underline"
         >
-          Create account &rarr;
+          Create account →
         </Link>
       </p>
     </div>

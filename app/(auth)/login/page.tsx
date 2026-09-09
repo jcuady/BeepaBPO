@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { IconUsers, IconChartBar, IconShieldCheck } from "@tabler/icons-react";
+import {
+  IconChartBar,
+  IconShieldCheck,
+  IconUsers,
+} from "@tabler/icons-react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { LoginForm } from "@/components/auth/login-form";
 import { safeNext } from "@/lib/auth/safe-next";
@@ -28,13 +32,25 @@ export default async function LoginPage({
 
   return (
     <AuthShell
-      eyebrow="PEOPLE PROCESS PROGRESS"
+      eyebrow="People · Process · Progress"
       title="Great people build brighter tomorrow."
       description="Partner with Beepa and empower your business with world-class talent and operational excellence."
       features={[
-        { label: "People-First Approach", icon: IconUsers },
-        { label: "Proven Processes", icon: IconChartBar },
-        { label: "Real Business Impact", icon: IconShieldCheck },
+        {
+          label: "People-First Approach",
+          description: "Real people. Real impact.",
+          icon: IconUsers,
+        },
+        {
+          label: "Proven Processes",
+          description: "Smarter operations, clearer delivery.",
+          icon: IconChartBar,
+        },
+        {
+          label: "Real Business Impact",
+          description: "Outcomes you can measure and trust.",
+          icon: IconShieldCheck,
+        },
       ]}
       imageSrc="/images/auth/sign-in.png"
       imageAlt="Beepa team member with headset"

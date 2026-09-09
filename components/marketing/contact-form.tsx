@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useSyncExternalStore } from "react";
 import { contactAction } from "@/lib/contact/actions";
 import type { ActionState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,50 @@ import { Textarea } from "@/components/ui/textarea";
 
 const initial: ActionState = { ok: false };
 
+type Attribution = {
+  utm_source: string;
+  utm_medium: string;
+  utm_campaign: string;
+  utm_content: string;
+  utm_term: string;
+  landing_page: string;
+  referrer_url: string;
+};
+
+const EMPTY_ATTR: Attribution = {
+  utm_source: "",
+  utm_medium: "",
+  utm_campaign: "",
+  utm_content: "",
+  utm_term: "",
+  landing_page: "",
+  referrer_url: "",
+};
+
+function readAttribution(): Attribution {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return {
+      utm_source: params.get("utm_source") ?? "",
+      utm_medium: params.get("utm_medium") ?? "",
+      utm_campaign: params.get("utm_campaign") ?? "",
+      utm_content: params.get("utm_content") ?? "",
+      utm_term: params.get("utm_term") ?? "",
+      landing_page: window.location.pathname + window.location.search,
+      referrer_url: document.referrer || "",
+    };
+  } catch {
+    return EMPTY_ATTR;
+  }
+}
+
+function subscribe() {
+  return () => {};
+}
+
 export function ContactForm() {
   const [state, action, pending] = useActionState(contactAction, initial);
+  const attr = useSyncExternalStore(subscribe, readAttribution, () => EMPTY_ATTR);
 
   if (state.ok) {
     return (
@@ -19,7 +61,9 @@ export function ContactForm() {
         className="rounded-[16px] border border-line bg-soft-green p-6 sm:p-8"
         role="status"
       >
-        <h2 className="font-display text-xl font-bold text-navy">Request received</h2>
+        <h2 className="font-display text-xl font-bold text-navy">
+          Request received
+        </h2>
         <p className="mt-2 text-base text-slate">{state.message}</p>
       </div>
     );
@@ -38,6 +82,15 @@ export function ContactForm() {
         <Input id="website" name="website" tabIndex={-1} autoComplete="off" />
       </div>
 
+      {/* Lead attribution for CRM / Search Console campaign tracking */}
+      <input type="hidden" name="utm_source" value={attr.utm_source} />
+      <input type="hidden" name="utm_medium" value={attr.utm_medium} />
+      <input type="hidden" name="utm_campaign" value={attr.utm_campaign} />
+      <input type="hidden" name="utm_content" value={attr.utm_content} />
+      <input type="hidden" name="utm_term" value={attr.utm_term} />
+      <input type="hidden" name="landing_page" value={attr.landing_page} />
+      <input type="hidden" name="referrer_url" value={attr.referrer_url} />
+
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
         <Input id="name" name="name" autoComplete="name" required />
@@ -48,7 +101,13 @@ export function ContactForm() {
 
       <div className="space-y-2">
         <Label htmlFor="email">Work email</Label>
-        <Input id="email" name="email" type="email" autoComplete="email" required />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+        />
         {state.fieldErrors?.email && (
           <p className="text-sm text-destructive">{state.fieldErrors.email[0]}</p>
         )}
@@ -56,9 +115,16 @@ export function ContactForm() {
 
       <div className="space-y-2">
         <Label htmlFor="company">Company</Label>
-        <Input id="company" name="company" autoComplete="organization" required />
+        <Input
+          id="company"
+          name="company"
+          autoComplete="organization"
+          required
+        />
         {state.fieldErrors?.company && (
-          <p className="text-sm text-destructive">{state.fieldErrors.company[0]}</p>
+          <p className="text-sm text-destructive">
+            {state.fieldErrors.company[0]}
+          </p>
         )}
       </div>
 
@@ -71,24 +137,32 @@ export function ContactForm() {
           placeholder="Roles, team size, or what you need support with"
         />
         {state.fieldErrors?.message && (
-          <p className="text-sm text-destructive">{state.fieldErrors.message[0]}</p>
+          <p className="text-sm text-destructive">
+            {state.fieldErrors.message[0]}
+          </p>
         )}
       </div>
 
       {state.error && (
-        <p className="rounded-[8px] bg-red-50 px-3 py-2 text-sm text-destructive" role="alert">
+        <p
+          className="rounded-[8px] bg-red-50 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
           {state.error}
         </p>
       )}
 
       <Button
         type="submit"
-        className="w-full"
+        className="w-full min-h-11"
         disabled={pending}
         data-analytics="contact_form_submitted"
       >
         {pending ? "Sending..." : "Build Your Team"}
       </Button>
+      <p className="text-center text-xs text-slate">
+        We respond to qualified inquiries. No spam — just a clear next step.
+      </p>
     </form>
   );
 }
