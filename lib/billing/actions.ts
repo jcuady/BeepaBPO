@@ -39,6 +39,7 @@ function fieldErrors(
 export async function issueInvoice(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "billing.manage");
 
   const parsed = issueInvoiceSchema.safeParse(input);
@@ -152,6 +153,7 @@ export async function recordInvoicePayment(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "billing.manage");
 
   const parsed = invoicePaymentSchema.safeParse(input);

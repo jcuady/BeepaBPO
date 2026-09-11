@@ -57,6 +57,7 @@ function parseRating(raw: string | undefined): number | null | { error: string }
 export async function createBlogPost(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsBlogPostSchema.safeParse(input);
@@ -86,6 +87,7 @@ export async function createBlogPost(input: unknown): Promise<ActionResult> {
 export async function updateBlogPost(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsBlogPostUpdateSchema.safeParse(input);
@@ -117,6 +119,7 @@ export async function updateBlogPost(input: unknown): Promise<ActionResult> {
 export async function createService(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsServiceSchema.safeParse(input);
@@ -146,6 +149,7 @@ export async function createService(input: unknown): Promise<ActionResult> {
 export async function updateService(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsServiceUpdateSchema.safeParse(input);
@@ -176,6 +180,7 @@ export async function updateService(input: unknown): Promise<ActionResult> {
 export async function createFaq(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsFaqSchema.safeParse(input);
@@ -201,6 +206,7 @@ export async function createFaq(input: unknown): Promise<ActionResult> {
 export async function updateFaq(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsFaqUpdateSchema.safeParse(input);
@@ -227,6 +233,7 @@ export async function updateFaq(input: unknown): Promise<ActionResult> {
 export async function createIndustry(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsIndustrySchema.safeParse(input);
@@ -255,6 +262,7 @@ export async function createIndustry(input: unknown): Promise<ActionResult> {
 export async function updateIndustry(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsIndustryUpdateSchema.safeParse(input);
@@ -284,6 +292,7 @@ export async function updateIndustry(input: unknown): Promise<ActionResult> {
 export async function createTestimonial(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsTestimonialSchema.safeParse(input);
@@ -320,6 +329,7 @@ export async function createTestimonial(input: unknown): Promise<ActionResult> {
 export async function updateTestimonial(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsTestimonialUpdateSchema.safeParse(input);
@@ -357,6 +367,7 @@ export async function updateTestimonial(input: unknown): Promise<ActionResult> {
 export async function createCaseStudy(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsCaseStudySchema.safeParse(input);
@@ -387,6 +398,7 @@ export async function createCaseStudy(input: unknown): Promise<ActionResult> {
 export async function updateCaseStudy(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsCaseStudyUpdateSchema.safeParse(input);
@@ -420,6 +432,7 @@ export async function updateCaseStudy(input: unknown): Promise<ActionResult> {
 export async function upsertAboutPage(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsAboutSchema.safeParse(input);
@@ -454,6 +467,7 @@ export async function setCmsContentStatus(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "cms.manage");
 
   const parsed = cmsContentStatusSchema.safeParse(input);

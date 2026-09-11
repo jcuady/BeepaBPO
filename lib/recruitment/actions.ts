@@ -35,6 +35,7 @@ function publishedAtForStatus(
 export async function createJobPost(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "recruitment.manage");
 
   const parsed = jobPostSchema.safeParse(input);
@@ -94,6 +95,7 @@ export async function createJobPost(input: unknown): Promise<ActionResult> {
 export async function updateJobPost(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "recruitment.manage");
 
   const parsed = jobPostUpdateSchema.safeParse(input);
@@ -170,6 +172,7 @@ export async function updateJobPost(input: unknown): Promise<ActionResult> {
 export async function closeJobPost(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "recruitment.manage");
 
   const parsed = jobPostIdSchema.safeParse(input);
@@ -224,6 +227,7 @@ export async function closeJobPost(input: unknown): Promise<ActionResult> {
 export async function publishJobPost(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "recruitment.manage");
 
   const parsed = jobPostIdSchema.safeParse(input);
@@ -375,6 +379,7 @@ export async function updateApplicationStage(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "recruitment.manage");
 
   const { applicationStageSchema } = await import("@/lib/validation/app");
@@ -432,6 +437,7 @@ export async function convertApplicantToEmployee(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   if (
     !canAll(workspace.permissions, [
       "recruitment.manage",

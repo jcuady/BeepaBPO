@@ -70,4 +70,17 @@ describe("RBAC staff surface hardening", () => {
     expect(sql).toContain("attendance_correction_requests_select");
     expect(sql).toContain("is_internal_user()");
   });
+
+  it("tickets staff RLS migration requires is_internal_user for org-wide read", () => {
+    const sql = readFileSync(
+      resolve(
+        process.cwd(),
+        "supabase/migrations/20260911160000_tickets_staff_rls.sql",
+      ),
+      "utf8",
+    );
+    expect(sql).toContain("tickets_select");
+    expect(sql).toContain("is_internal_user()");
+    expect(sql).toContain("tickets.self");
+  });
 });

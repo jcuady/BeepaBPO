@@ -14,7 +14,7 @@ Legend: **full** | **scoped** (team/client) | **own** | **read** | **approve** |
 | CRM | full | none | none | none | full | full | none | none | none | none | none | none | none |
 | Recruitment | full | none | none | full | none | none | none | none | none | none | none | none | own apps |
 | Clients | full | none | none | none | read | none | full | none | billing | none | own tenant | own tenant | none |
-| Tickets | full | own | own | own | full | full | full | own | own | own | tenant | read | none |
+| Tickets | full | own | own | own | full | full | full | own | own | own | tenant (self) | tenant (self) | none |
 | Billing | full | none | none | none | none | none | none | none | full | none | read | none | none |
 | Performance | full | own | full | own | own | own | read | scoped | own | own | client_visible | client_visible | none |
 | CMS | full | none | none | none | none | full | none | none | none | none | none | none | none |
@@ -22,3 +22,5 @@ Legend: **full** | **scoped** (team/client) | **own** | **read** | **approve** |
 | Approvals | full | act | act | none | none | none | act | act | act | act | act | none | none |
 
 \*HR does not receive payroll compensation access unless also granted `payroll.*`.
+
+Client portal tickets use `tickets.self` + tenant RLS — not staff `tickets.read` / `tickets.manage`. Staff ticket SELECT/UPDATE requires `is_internal_user()`. Applicants do not get `recruitment.read` (ATS is staff-only).
