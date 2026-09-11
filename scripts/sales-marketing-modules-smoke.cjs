@@ -34,6 +34,7 @@ const REQUIRED = {
     "crm.read",
     "crm.manage",
     "crm.reports",
+    "clients.read",
     "tickets.read",
     "tickets.manage",
   ],

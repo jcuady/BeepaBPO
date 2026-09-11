@@ -7,7 +7,7 @@ import { JobPostForm } from "@/components/app/recruitment/job-post-form";
 import { JobPostStatusActions } from "@/components/app/recruitment/job-post-status-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,6 +21,7 @@ export default async function RecruitmentJobDetailPage({
   const { id } = await params;
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   requirePermission(workspace, "recruitment.read");
 
   const supabase = await createClient();

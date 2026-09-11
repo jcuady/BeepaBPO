@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { IconGitBranch } from "@tabler/icons-react";
@@ -15,6 +15,7 @@ export const metadata: Metadata = { title: "Approval Workflows" };
 export default async function AdminWorkflowsPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   requirePermission(workspace, "system.manage");
 
   const supabase = await createClient();

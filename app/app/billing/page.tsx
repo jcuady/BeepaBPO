@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageContainer } from "@/components/app/page-container";
 import { IssueInvoiceForm } from "@/components/app/billing/issue-invoice-form";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { can, canAny } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -18,6 +18,7 @@ export const metadata: Metadata = { title: "Billing" };
 export default async function BillingPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   if (
     !canAny(workspace.permissions, ["billing.read", "billing.manage"])
   ) {

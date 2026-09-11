@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { stringParam } from "@/lib/app/search-params";
 
@@ -31,6 +31,7 @@ export default async function AdminUsersPage({
 }) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   requirePermission(workspace, "system.manage");
 
   const params = await searchParams;

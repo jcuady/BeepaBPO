@@ -34,6 +34,7 @@ function parseMoney(raw: string | undefined): number | null | { error: string } 
 export async function createCrmLead(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "crm.manage");
 
   const parsed = crmLeadSchema.safeParse(input);
@@ -74,6 +75,7 @@ export async function updateCrmLeadStatus(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "crm.manage");
 
   const parsed = crmLeadStatusSchema.safeParse(input);
@@ -225,6 +227,7 @@ export async function createLeadFromContact(input: {
 export async function createCrmDeal(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "crm.manage");
 
   const parsed = crmDealSchema.safeParse(input);
@@ -313,6 +316,7 @@ export async function updateCrmDealStage(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "crm.manage");
 
   const parsed = crmDealStageSchema.safeParse(input);
@@ -422,6 +426,7 @@ export async function convertWonDealToClient(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   if (!canAll(workspace.permissions, ["crm.manage", "clients.manage"])) {
     return {
       ok: false,
@@ -621,6 +626,7 @@ export async function createCrmProposal(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "crm.manage");
 
   const parsed = crmProposalSchema.safeParse(input);
@@ -720,6 +726,7 @@ export async function updateCrmProposalStatus(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "crm.manage");
 
   const parsed = crmProposalStatusSchema.safeParse(input);

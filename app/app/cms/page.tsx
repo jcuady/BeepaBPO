@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ABOUT_SETTING_KEY, parseAboutSetting } from "@/lib/cms/about";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "CMS" };
@@ -33,6 +33,7 @@ export const metadata: Metadata = { title: "CMS" };
 export default async function CmsAdminPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   requirePermission(workspace, "cms.manage");
 
   const supabase = await createClient();

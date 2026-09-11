@@ -12,8 +12,8 @@ Nav source of truth: `lib/app/navigation.ts`. Admin links are filtered by permis
 | Super Admin | `superadmin@demo.beepabpo.com` | `/employee/login` | `/app/dashboard` |
 | HR | `hr@demo.beepabpo.com` | `/employee/login` | `/app/my` |
 | Recruiter | `recruiter@demo.beepabpo.com` | `/employee/login` | `/app/my` |
-| Sales | `sales@demo.beepabpo.com` | `/employee/login` | `/app/my` |
-| Marketing | `marketing@demo.beepabpo.com` | `/employee/login` | `/app/my` |
+| Sales | `sales@demo.beepabpo.com` | `/employee/login` | `/app/crm` |
+| Marketing | `marketing@demo.beepabpo.com` | `/employee/login` | `/app/cms` |
 | Operations | `operations@demo.beepabpo.com` | `/employee/login` | `/app/my` |
 | Team Lead | `teamlead@demo.beepabpo.com` | `/employee/login` | `/app/my` |
 | Finance | `finance@demo.beepabpo.com` | `/employee/login` | `/app/my` |
@@ -55,7 +55,7 @@ Also reachable (not always in sidebar): `/app/my/cash-advances`, `/app/my/notifi
 - `/app/client/billing`
 - `/app/client/settings`
 
-Also exists: `/app/client/approvals` (not in primary `clientNav`; linked from dashboard/workflows as needed).
+Also exists: `/app/client/approvals` (in `clientNav` when `attendance.approve` + `approvals.act` + portal timesheet approval).
 
 ### Applicant (`applicantNav`)
 
@@ -64,19 +64,23 @@ Also exists: `/app/client/approvals` (not in primary `clientNav`; linked from da
 
 ## Admin nav groups (internal only)
 
-Filtered by `getAdminNavGroups(permissions)`:
+Filtered by `getAdminNavGroups(permissions)`. Staff pages also call `requireInternal` (defense in depth). Cmd+K admin links require `isInternal`.
 
 | Group | Item | Permission gate |
 |-------|------|-----------------|
 | HR | `/app/hr` | `employees.read` \| `employees.manage` \| `leave.read` |
 | HR | `/app/hr/nte` | `nte.read` \| `nte.manage` |
+| HR | `/app/attendance/corrections` | `attendance.approve` \| `correct` \| `manage` + internal |
 | Payroll | `/app/payroll` | `payroll.read` \| `payroll.manage` |
 | Recruitment | `/app/recruitment` | `recruitment.read` \| `recruitment.manage` |
-| CRM | `/app/crm`, `/app/crm/leads`, `/app/crm/deals` | `crm.read` \| `crm.manage` |
-| Clients | `/app/clients` | `clients.read` \| `clients.manage` (invite if manage) |
-| Tickets | `/app/tickets` | `tickets.read` \| `tickets.manage` |
-| Reports | `/app/reports` | `reports.read` \| `reports.export` |
-| Admin | `/app/approvals` | `approvals.act` |
+| Marketing | `/app/cms` | `cms.manage` |
+| CRM | `/app/crm`, leads, deals, proposals | `crm.read` \| `crm.manage` |
+| Clients | `/app/clients` | `clients.read` \| `clients.manage` |
+| Tickets | `/app/tickets` | `tickets.read` \| `tickets.manage` + internal |
+| Tickets | `/app/tickets/sla` | `tickets.manage` **AND** `clients.manage` + internal |
+| Billing | `/app/billing` | `billing.read` \| `billing.manage` + internal |
+| Reports | `/app/reports` | `reports.read` \| `reports.export` + internal |
+| Admin | `/app/approvals` | specific leave/attendance/… approve/manage codes (not bare `approvals.act`) |
 | Admin | `/app/admin`, `/users`, `/organizations`, `/audit`, `/dashboard` | `system.manage` |
 
 Hub children (employees, leave, periods, jobs, leads, …) inherit page-level `requirePermission` / `canAny`.
@@ -89,8 +93,8 @@ Hub children (employees, leave, periods, jobs, leads, …) inherit page-level `r
 | Super Admin | Employee nav + Dashboard | Admin (system) + Reports; self-* only otherwise |
 | HR | Employee nav | HR, Approvals, Reports (+ cash advances via HR hub) |
 | Recruiter | Employee nav | Recruitment (+ reports.read) |
-| Sales | Employee nav | CRM (leads/deals/proposals) + staff Tickets + Clients (read) |
-| Marketing | Employee nav | CMS + CRM + staff Tickets |
+| Sales | Employee nav | CRM (leads/deals/proposals) + Tickets + Clients (read) + Reports |
+| Marketing | Employee nav | CMS + CRM + Tickets + Reports |
 | Operations | Employee nav | Clients (**invite**), Tickets, Reports, Approvals |
 | Team Lead | Employee nav | Approvals; leave/attendance approve via hub links |
 | Finance | Employee nav | Payroll, Approvals, Reports |

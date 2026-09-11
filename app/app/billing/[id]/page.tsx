@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { InvoiceDetailView } from "@/components/app/billing/invoice-detail-view";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { can, canAny } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,6 +17,7 @@ export default async function BillingInvoiceDetailPage({
   const { id } = await params;
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   if (
     !canAny(workspace.permissions, ["billing.read", "billing.manage"])
   ) {

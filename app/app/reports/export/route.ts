@@ -29,6 +29,9 @@ export async function GET(request: Request) {
   if (!workspace) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  if (!workspace.isInternal) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   if (!can(workspace.permissions, "reports.export")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

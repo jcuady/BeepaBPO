@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { StatusBadge } from "@/components/app/status-badge";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { IconClock } from "@tabler/icons-react";
@@ -25,6 +25,7 @@ export const metadata: Metadata = { title: "Attendance" };
 export default async function AttendanceAdminPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   requirePermission(workspace, "attendance.read");
 
   const today = format(new Date(), "yyyy-MM-dd");

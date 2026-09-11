@@ -43,14 +43,14 @@ export const DEMO_USERS: readonly DemoUser[] = [
     label: "Sales",
     role: "sales",
     portal: "employee",
-    landing: "/app/my",
+    landing: "/app/crm",
   },
   {
     email: "marketing@demo.beepabpo.com",
     label: "Marketing",
     role: "marketing",
     portal: "employee",
-    landing: "/app/my",
+    landing: "/app/cms",
   },
   {
     email: "operations@demo.beepabpo.com",

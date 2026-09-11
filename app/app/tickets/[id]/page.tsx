@@ -10,7 +10,7 @@ import { TicketAssignForm } from "@/components/app/tickets/ticket-assign-form";
 import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 import { listTicketAssignees } from "@/lib/tickets/assignees";
@@ -25,6 +25,7 @@ export default async function StaffTicketDetailPage({
   const { id } = await params;
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   requirePermission(workspace, "tickets.read");
 
   const supabase = await createClient();

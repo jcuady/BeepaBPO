@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { enumParam } from "@/lib/app/search-params";
 import { mapPendingApprovalActability } from "@/lib/approvals/engine";
@@ -39,6 +39,7 @@ export default async function LeaveApprovalsPage({
 }) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   requirePermission(workspace, "leave.approve");
 
   const params = await searchParams;

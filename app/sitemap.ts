@@ -7,6 +7,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "",
     "/about",
     "/services",
+    "/why-beepa",
     "/careers",
     "/resources",
     "/case-studies",

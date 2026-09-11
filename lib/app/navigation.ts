@@ -24,7 +24,7 @@ import {
   IconUsersGroup,
   IconNews,
 } from "@tabler/icons-react";
-import { can, canAny } from "@/lib/permissions/can";
+import { can, canAny, canAll } from "@/lib/permissions/can";
 import type { ClientPortalFlags } from "@/lib/organizations/client-settings";
 
 export type NavItem = {
@@ -32,6 +32,8 @@ export type NavItem = {
   href: string;
   icon: TablerIcon;
   permission?: string | string[];
+  /** When true with a permission array, every code is required (AND). */
+  requireAll?: boolean;
   /** Client portal feature flag key when item requires org settings. */
   portalFlag?: keyof ClientPortalFlags;
 };
@@ -200,7 +202,9 @@ export const adminNavGroups: NavGroup[] = [
         title: "SLA policies",
         href: "/app/tickets/sla",
         icon: IconHourglass,
-        permission: "tickets.manage",
+        // Ops/AM with client manage — not sales/marketing ticket agents.
+        permission: ["tickets.manage", "clients.manage"],
+        requireAll: true,
       },
     ],
   },
@@ -238,7 +242,6 @@ export const adminNavGroups: NavGroup[] = [
           "leave.approve",
           "cash_advance.approve",
           "cash_advance.manage",
-          "tickets.manage",
           "attendance.approve",
           "attendance.correct",
           "attendance.manage",
@@ -333,7 +336,9 @@ export function filterNavByPermissions(
     }
     if (!item.permission) return true;
     if (Array.isArray(item.permission)) {
-      return canAny(permissions, item.permission);
+      return item.requireAll
+        ? canAll(permissions, item.permission)
+        : canAny(permissions, item.permission);
     }
     return can(permissions, item.permission);
   });
@@ -408,8 +413,11 @@ export function getCommandLinks(
   const links: NavItem[] = [];
   if (isApplicantOnly) links.push(...applicantNav);
   if (isClient) links.push(...clientNav);
-  if (isInternal) links.push(...employeeNav);
-  links.push(...adminNavGroups.flatMap((g) => g.items));
+  if (isInternal) {
+    links.push(...employeeNav);
+    // Admin routes are internal-only — never surface them to client/applicant Cmd+K.
+    links.push(...adminNavGroups.flatMap((g) => g.items));
+  }
   return filterNavByPermissions(
     links.filter(
       (item, index, arr) => arr.findIndex((x) => x.href === item.href) === index,

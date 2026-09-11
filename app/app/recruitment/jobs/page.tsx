@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { JobPostForm } from "@/components/app/recruitment/job-post-form";
 import { JobPostStatusActions } from "@/components/app/recruitment/job-post-status-actions";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { IconBriefcase } from "@tabler/icons-react";
@@ -18,6 +18,7 @@ export const metadata: Metadata = { title: "Job Posts" };
 export default async function RecruitmentJobsPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   requirePermission(workspace, "recruitment.read");
 
   const supabase = await createClient();

@@ -12,7 +12,7 @@ import { format, startOfWeek, addDays } from "date-fns";
 import { PageHeader } from "@/components/app/page-header";
 import { MetricCard } from "@/components/app/metric-card";
 import { ClockInOutCard } from "@/components/app/clock-in-out-card";
-import { WeeklyAttendanceChart } from "@/components/app/weekly-attendance-chart";
+import { WeeklyAttendanceChartLazy as WeeklyAttendanceChart } from "@/components/app/charts-lazy";
 import { EmptyState } from "@/components/app/empty-state";
 import { StatusBadge } from "@/components/app/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

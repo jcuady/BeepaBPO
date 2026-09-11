@@ -26,6 +26,7 @@ import { AdminOpsSmokeActions } from "@/components/app/admin/admin-ops-smoke-act
 export async function HrPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  if (!workspace.isInternal) forbidden();
   if (!canAny(workspace.permissions, ["employees.read", "employees.manage", "leave.read"])) {
     forbidden();
   }
@@ -96,6 +97,7 @@ export async function HrPage() {
 export async function PayrollAdminPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  if (!workspace.isInternal) forbidden();
   if (!canAny(workspace.permissions, ["payroll.read", "payroll.manage"])) {
     forbidden();
   }
@@ -143,6 +145,7 @@ export async function PayrollAdminPage() {
 export async function RecruitmentPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  if (!workspace.isInternal) forbidden();
   if (!canAny(workspace.permissions, ["recruitment.read", "recruitment.manage"])) {
     forbidden();
   }
@@ -151,9 +154,11 @@ export async function RecruitmentPage() {
   const [{ count: jobs }, { count: applications }] = await Promise.all([
     supabase
       .from("job_posts")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("status", "published"),
-    supabase.from("job_applications").select("*", { count: "exact", head: true }),
+    supabase
+      .from("job_applications")
+      .select("id", { count: "exact", head: true }),
   ]);
 
   return (
@@ -198,64 +203,229 @@ export async function RecruitmentPage() {
 export async function CrmPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  if (!workspace.isInternal) forbidden();
   if (!canAny(workspace.permissions, ["crm.read", "crm.manage"])) {
     forbidden();
   }
 
   const supabase = await createClient();
-  const [{ count: leadCount }, { count: dealCount }, { count: proposalCount }] =
-    await Promise.all([
-      supabase.from("crm_leads").select("*", { count: "exact", head: true }),
-      supabase.from("crm_deals").select("*", { count: "exact", head: true }),
-      supabase.from("crm_proposals").select("*", { count: "exact", head: true }),
-    ]);
+  const fourteenDaysAgo = new Date();
+  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+  const staleIso = fourteenDaysAgo.toISOString();
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [
+    { count: newLeads },
+    { count: openDeals },
+    { count: openProposals },
+    { count: staleLeads },
+    { data: pipelineRows },
+    { data: attentionLeads },
+    { data: overdueDeals },
+  ] = await Promise.all([
+    supabase
+      .from("crm_leads")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "new"),
+    supabase
+      .from("crm_deals")
+      .select("id", { count: "exact", head: true })
+      .not("stage", "in", "(won,lost)"),
+    supabase
+      .from("crm_proposals")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["draft", "sent"]),
+    supabase
+      .from("crm_leads")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["new", "contacted", "qualified"])
+      .lt("updated_at", staleIso),
+    supabase
+      .from("crm_deals")
+      .select("stage, estimated_value")
+      .not("stage", "in", "(won,lost)")
+      .limit(200),
+    supabase
+      .from("crm_leads")
+      .select("id, company_name, contact_name, status, updated_at")
+      .in("status", ["new", "contacted", "qualified"])
+      .order("updated_at", { ascending: true })
+      .limit(6),
+    supabase
+      .from("crm_deals")
+      .select("id, title, stage, expected_close_date, estimated_value")
+      .not("stage", "in", "(won,lost)")
+      .not("expected_close_date", "is", null)
+      .lt("expected_close_date", today)
+      .order("expected_close_date", { ascending: true })
+      .limit(6),
+  ]);
+
+  const pipelineValue = (pipelineRows ?? []).reduce(
+    (sum, row) => sum + Number(row.estimated_value ?? 0),
+    0,
+  );
+  const stageCounts = (pipelineRows ?? []).reduce<Record<string, number>>(
+    (acc, row) => {
+      acc[row.stage] = (acc[row.stage] ?? 0) + 1;
+      return acc;
+    },
+    {},
+  );
+  const topStages = Object.entries(stageCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4);
+
+  const money = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
 
   return (
     <PageContainer>
       <PageHeader
         name={workspace.profile.first_name}
-        subtitle="Track leads, opportunities, and client relationships."
+        subtitle="Work the pipeline — new leads, open value, and aging risks."
       />
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard title="Leads" value={leadCount ?? 0} icon={IconBuilding} />
-        <MetricCard title="Deals" value={dealCount ?? 0} icon={IconBriefcase} />
         <MetricCard
-          title="Proposals"
-          value={proposalCount ?? 0}
+          title="New leads"
+          value={newLeads ?? 0}
+          icon={IconBuilding}
+        />
+        <MetricCard
+          title="Open deals"
+          value={openDeals ?? 0}
+          icon={IconBriefcase}
+        />
+        <MetricCard
+          title="Open pipeline"
+          value={money.format(pipelineValue)}
+          icon={IconCoin}
+        />
+        <MetricCard
+          title="Stale leads (14d+)"
+          value={staleLeads ?? 0}
           icon={IconFileText}
         />
       </div>
-      <Card className="">
-        <CardHeader>
-          <CardTitle className="font-display text-base text-navy">CRM tools</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          <Button
-            variant="secondary"
-            className="min-h-11"
-            nativeButton={false}
-            render={<Link href="/app/crm/leads" />}
-          >
-            Leads
-          </Button>
-          <Button
-            variant="secondary"
-            className="min-h-11"
-            nativeButton={false}
-            render={<Link href="/app/crm/deals" />}
-          >
-            Deals
-          </Button>
-          <Button
-            variant="secondary"
-            className="min-h-11"
-            nativeButton={false}
-            render={<Link href="/app/crm/proposals" />}
-          >
-            Proposals
-          </Button>
-        </CardContent>
-      </Card>
+
+      <div className="grid gap-4 lg:grid-cols-12">
+        <Card className="lg:col-span-4">
+          <CardHeader>
+            <CardTitle className="font-display text-base text-navy">
+              Pipeline by stage
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {topStages.length ? (
+              topStages.map(([stage, count]) => (
+                <div
+                  key={stage}
+                  className="flex items-center justify-between gap-3 border-b border-line pb-2 last:border-0 last:pb-0"
+                >
+                  <span className="text-sm capitalize text-slate">
+                    {stage.replace(/_/g, " ")}
+                  </span>
+                  <span className="font-display text-sm font-semibold text-navy">
+                    {count}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-slate">No open deals yet.</p>
+            )}
+            <Button
+              variant="secondary"
+              className="mt-2 min-h-11 w-full"
+              nativeButton={false}
+              render={<Link href="/app/crm/deals" />}
+            >
+              Open deals board
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-4">
+          <CardHeader>
+            <CardTitle className="font-display text-base text-navy">
+              Needs attention — leads
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {(attentionLeads ?? []).length ? (
+              (attentionLeads ?? []).map((lead) => (
+                <Link
+                  key={lead.id}
+                  href={`/app/crm/leads/${lead.id}`}
+                  className="block border-b border-line pb-2 last:border-0 last:pb-0"
+                >
+                  <p className="font-display text-sm font-semibold text-navy">
+                    {lead.company_name}
+                  </p>
+                  <p className="text-xs text-slate">
+                    {lead.contact_name ?? "No contact"} ·{" "}
+                    <span className="capitalize">
+                      {lead.status.replace(/_/g, " ")}
+                    </span>
+                  </p>
+                </Link>
+              ))
+            ) : (
+              <p className="text-sm text-slate">No aging leads.</p>
+            )}
+            <Button
+              variant="secondary"
+              className="mt-2 min-h-11 w-full"
+              nativeButton={false}
+              render={<Link href="/app/crm/leads?status=new" />}
+            >
+              Triage new leads
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-4">
+          <CardHeader>
+            <CardTitle className="font-display text-base text-navy">
+              Overdue expected close
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {(overdueDeals ?? []).length ? (
+              (overdueDeals ?? []).map((deal) => (
+                <Link
+                  key={deal.id}
+                  href={`/app/crm/deals/${deal.id}`}
+                  className="block border-b border-line pb-2 last:border-0 last:pb-0"
+                >
+                  <p className="font-display text-sm font-semibold text-navy">
+                    {deal.title}
+                  </p>
+                  <p className="text-xs text-slate">
+                    Due {deal.expected_close_date} ·{" "}
+                    {money.format(Number(deal.estimated_value ?? 0))}
+                  </p>
+                </Link>
+              ))
+            ) : (
+              <p className="text-sm text-slate">No overdue closes.</p>
+            )}
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                className="min-h-11"
+                nativeButton={false}
+                render={<Link href="/app/crm/proposals" />}
+              >
+                Proposals ({openProposals ?? 0})
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </PageContainer>
   );
 }
@@ -263,6 +433,7 @@ export async function CrmPage() {
 export async function ClientsAdminPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  if (!workspace.isInternal) forbidden();
   if (!canAny(workspace.permissions, ["clients.read", "clients.manage"])) {
     forbidden();
   }
@@ -273,7 +444,8 @@ export async function ClientsAdminPage() {
     .from("organizations")
     .select("id, name, slug, status")
     .eq("type", "client")
-    .order("name");
+    .order("name")
+    .limit(100);
 
   const orgIds = (orgs ?? []).map((o) => o.id);
   const { data: memberships } =
@@ -394,6 +566,7 @@ export async function ClientsAdminPage() {
 export async function ReportsAdminPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  if (!workspace.isInternal) forbidden();
   if (!canAny(workspace.permissions, ["reports.read", "reports.export"])) {
     forbidden();
   }
@@ -409,18 +582,18 @@ export async function ReportsAdminPage() {
   ] = await Promise.all([
     supabase
       .from("employees")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("employment_status", "active"),
     supabase
       .from("attendance_records")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("work_date", today)
       .in("status", ["present", "late"]),
     supabase
       .from("tickets")
-      .select("*", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .not("status", "in", "(resolved,closed)"),
-    supabase.from("crm_leads").select("*", { count: "exact", head: true }),
+    supabase.from("crm_leads").select("id", { count: "exact", head: true }),
   ]);
 
   const exportLinks = [
@@ -489,6 +662,7 @@ export async function ReportsAdminPage() {
 export async function AdminPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  if (!workspace.isInternal) forbidden();
   requirePermission(workspace, "system.manage");
 
   const supabase = await createClient();
@@ -574,6 +748,7 @@ export async function AdminPage() {
 export async function OwnerDashboardPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  if (!workspace.isInternal) forbidden();
   requirePermission(workspace, "system.manage");
 
   const supabase = await createClient();

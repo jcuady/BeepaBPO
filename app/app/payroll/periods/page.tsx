@@ -3,7 +3,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -18,6 +18,7 @@ export const metadata: Metadata = { title: "Payroll Periods" };
 export default async function PayrollPeriodsPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   requirePermission(workspace, "payroll.read");
 
   const canManage = can(workspace.permissions, "payroll.manage");

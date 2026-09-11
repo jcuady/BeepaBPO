@@ -50,6 +50,30 @@ describe("landingPathFor", () => {
     ).toBe("/app/my");
   });
 
+  it("lands CRM-capable internals on /app/crm", () => {
+    expect(
+      landingPathFor({
+        membershipCount: 1,
+        isApplicantOnly: false,
+        isInternal: true,
+        isClient: false,
+        permissions: ["crm.read"],
+      }),
+    ).toBe("/app/crm");
+  });
+
+  it("lands CMS-capable internals on /app/cms before CRM", () => {
+    expect(
+      landingPathFor({
+        membershipCount: 1,
+        isApplicantOnly: false,
+        isInternal: true,
+        isClient: false,
+        permissions: ["cms.manage", "crm.manage"],
+      }),
+    ).toBe("/app/cms");
+  });
+
   it("sends client-only users to /app/client", () => {
     expect(
       landingPathFor({

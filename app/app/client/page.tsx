@@ -11,8 +11,10 @@ import { format, subDays } from "date-fns";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/app/page-header";
 import { MetricCard } from "@/components/app/metric-card";
-import { WeeklyAttendanceChart } from "@/components/app/weekly-attendance-chart";
-import { TeamStatusDonut } from "@/components/app/team-status-donut";
+import {
+  WeeklyAttendanceChartLazy as WeeklyAttendanceChart,
+  TeamStatusDonutLazy as TeamStatusDonut,
+} from "@/components/app/charts-lazy";
 import { EmptyState } from "@/components/app/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

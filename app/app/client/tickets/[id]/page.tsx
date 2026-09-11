@@ -41,6 +41,14 @@ export default async function ClientTicketDetailPage({
 
   if (!canView) notFound();
 
+  const isStaff = can(workspace.permissions, "tickets.manage");
+  let ticketingAllowed = true;
+  if (!isStaff && clientOrgId) {
+    const flags = await loadClientPortalFlags(supabase, clientOrgId);
+    ticketingAllowed = flags.allowTicketing;
+  }
+  if (!isStaff && !ticketingAllowed) notFound();
+
   const { data: messages } = await supabase
     .from("ticket_messages")
     .select("id, body, created_at, author_user_id, profiles(display_name)")
@@ -52,12 +60,6 @@ export default async function ClientTicketDetailPage({
     can(workspace.permissions, "tickets.manage") ||
     ticket.requester_user_id === workspace.user.id;
 
-  const isStaff = can(workspace.permissions, "tickets.manage");
-  let ticketingAllowed = true;
-  if (!isStaff && clientOrgId) {
-    const flags = await loadClientPortalFlags(supabase, clientOrgId);
-    ticketingAllowed = flags.allowTicketing;
-  }
   const canReply = canReplyBase && (isStaff || ticketingAllowed);
 
   return (

@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import gsap from "gsap";
 import {
   IconArrowRight,
   IconChartBar,
@@ -39,56 +38,64 @@ export function HeroSection() {
     if (!root) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const nodes = root.querySelectorAll("[data-hero]");
-    const safety = window.setTimeout(() => {
-      gsap.set(nodes, { opacity: 1, y: 0, scale: 1 });
-    }, 2800);
+    let cancelled = false;
+    let safety = 0;
+    let ctx: { revert: () => void } | undefined;
 
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        defaults: { ease: "expo.out" },
-        onComplete: () => window.clearTimeout(safety),
-      });
-      tl.fromTo(
-        "[data-hero='badge']",
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.7 },
-      )
-        .fromTo(
-          "[data-hero='title']",
-          { y: 36, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.95 },
-          "-=0.45",
-        )
-        .fromTo(
-          "[data-hero='lede']",
-          { y: 26, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.8 },
-          "-=0.65",
-        )
-        .fromTo(
-          "[data-hero='ctas']",
-          { y: 22, opacity: 0 },
+    void import("gsap").then(({ default: gsap }) => {
+      if (cancelled || !sectionRef.current) return;
+      const nodes = sectionRef.current.querySelectorAll("[data-hero]");
+      safety = window.setTimeout(() => {
+        gsap.set(nodes, { opacity: 1, y: 0, scale: 1 });
+      }, 2800);
+
+      ctx = gsap.context(() => {
+        const tl = gsap.timeline({
+          defaults: { ease: "expo.out" },
+          onComplete: () => window.clearTimeout(safety),
+        });
+        tl.fromTo(
+          "[data-hero='badge']",
+          { y: 20, opacity: 0 },
           { y: 0, opacity: 1, duration: 0.7 },
-          "-=0.55",
         )
-        .fromTo(
-          "[data-hero='media']",
-          { y: 44, opacity: 0, scale: 0.96 },
-          { y: 0, opacity: 1, scale: 1, duration: 1.15 },
-          "-=0.9",
-        )
-        .fromTo(
-          "[data-hero='feature']",
-          { y: 26, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.65, stagger: 0.1 },
-          "-=0.75",
-        );
-    }, sectionRef);
+          .fromTo(
+            "[data-hero='title']",
+            { y: 36, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.95 },
+            "-=0.45",
+          )
+          .fromTo(
+            "[data-hero='lede']",
+            { y: 26, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.8 },
+            "-=0.65",
+          )
+          .fromTo(
+            "[data-hero='ctas']",
+            { y: 22, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.7 },
+            "-=0.55",
+          )
+          .fromTo(
+            "[data-hero='media']",
+            { y: 44, opacity: 0, scale: 0.96 },
+            { y: 0, opacity: 1, scale: 1, duration: 1.15 },
+            "-=0.9",
+          )
+          .fromTo(
+            "[data-hero='feature']",
+            { y: 26, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.65, stagger: 0.1 },
+            "-=0.75",
+          );
+      }, sectionRef);
+    });
 
     return () => {
+      cancelled = true;
       window.clearTimeout(safety);
-      ctx.revert();
+      ctx?.revert();
     };
   }, []);
 

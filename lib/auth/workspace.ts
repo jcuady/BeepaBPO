@@ -2,7 +2,7 @@ import type { User } from "@supabase/supabase-js";
 import { cache } from "react";
 import { forbidden } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { can } from "@/lib/permissions/can";
+import { can, canAny, canAll } from "@/lib/permissions/can";
 import type { PermissionCode } from "@/lib/permissions/codes";
 import type { Tables } from "@/types/database";
 import { computeWorkspaceFlags } from "@/lib/auth/workspace-flags";
@@ -103,4 +103,23 @@ export function requirePermission(
   code: PermissionCode | string,
 ): void {
   if (!can(workspace.permissions, code)) forbidden();
+}
+
+/** Staff-only surfaces (CRM ops, tickets queue, reports, billing hub). */
+export function requireInternal(workspace: WorkspaceContext): void {
+  if (!workspace.isInternal) forbidden();
+}
+
+export function requireAnyPermission(
+  workspace: WorkspaceContext,
+  codes: readonly string[],
+): void {
+  if (!canAny(workspace.permissions, codes)) forbidden();
+}
+
+export function requireAllPermissions(
+  workspace: WorkspaceContext,
+  codes: readonly string[],
+): void {
+  if (!canAll(workspace.permissions, codes)) forbidden();
 }

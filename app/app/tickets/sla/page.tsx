@@ -9,7 +9,7 @@ import { TicketSlaPolicyForm } from "@/components/app/tickets/ticket-sla-policy-
 import { TicketSlaPolicyCreateForm } from "@/components/app/tickets/ticket-sla-policy-create-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requireAllPermissions, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { StatusBadge } from "@/components/app/status-badge";
@@ -21,7 +21,8 @@ const PRIORITIES = ["urgent", "high", "normal", "low"] as const;
 export default async function TicketSlaPoliciesPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
-  requirePermission(workspace, "tickets.manage");
+  requireInternal(workspace);
+  requireAllPermissions(workspace, ["tickets.manage", "clients.manage"]);
 
   const supabase = await createClient();
   const { data: policies } = await supabase

@@ -187,17 +187,15 @@ select public._seed_role_perms('employee', array[
 
 select public._seed_role_perms('client_admin', array[
   'clients.employee_visibility','attendance.read','attendance.approve',
-  'tickets.self','tickets.read','tickets.manage',
-  'performance.read','billing.read','reports.read','reports.export','approvals.act'
+  'tickets.self',
+  'performance.read','billing.read','reports.read','approvals.act'
 ]);
 
 select public._seed_role_perms('client_viewer', array[
-  'clients.employee_visibility','attendance.read','tickets.read','performance.read','reports.read'
+  'clients.employee_visibility','attendance.read','tickets.self','performance.read','reports.read'
 ]);
 
-select public._seed_role_perms('applicant', array[
-  'recruitment.read'
-]);
+select public._seed_role_perms('applicant', array[]::text[]);
 
 -- Default approval workflows for Beepa
 insert into public.approval_workflows (id, organization_id, code, name, entity_type)

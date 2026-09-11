@@ -10,7 +10,7 @@ import { CreateProposalForm } from "@/components/app/crm/create-proposal-form";
 import { ProposalStatusForm } from "@/components/app/crm/proposal-status-form";
 import { StatusBadge } from "@/components/app/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { can, canAll } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 
@@ -37,6 +37,7 @@ export default async function CrmDealDetailPage({
   const { id } = await params;
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   requirePermission(workspace, "crm.read");
 
   const supabase = await createClient();

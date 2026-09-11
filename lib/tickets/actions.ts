@@ -5,7 +5,7 @@ import type { ActionResult } from "@/lib/actions/types";
 import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { getClientOrganizationId } from "@/lib/organizations/client";
 import { resolveWorkspace } from "@/lib/auth/workspace";
-import { can } from "@/lib/permissions/can";
+import { can, canAll } from "@/lib/permissions/can";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -198,6 +198,9 @@ export async function updateTicketStatus(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) {
+    return { ok: false, error: "Staff access required." };
+  }
   if (!can(workspace.permissions, "tickets.manage")) {
     return { ok: false, error: "You do not have permission to update tickets." };
   }
@@ -249,6 +252,9 @@ export async function updateTicketStatus(
 export async function assignTicket(input: unknown): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) {
+    return { ok: false, error: "Staff access required." };
+  }
   if (!can(workspace.permissions, "tickets.manage")) {
     return { ok: false, error: "You do not have permission to assign tickets." };
   }
@@ -350,7 +356,10 @@ export async function updateTicketSlaPolicy(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
-  if (!can(workspace.permissions, "tickets.manage")) {
+  if (!workspace.isInternal) {
+    return { ok: false, error: "Staff access required." };
+  }
+  if (!canAll(workspace.permissions, ["tickets.manage", "clients.manage"])) {
     return {
       ok: false,
       error: "You do not have permission to manage SLA policies.",
@@ -431,7 +440,10 @@ export async function createTicketSlaPolicy(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
-  if (!can(workspace.permissions, "tickets.manage")) {
+  if (!workspace.isInternal) {
+    return { ok: false, error: "Staff access required." };
+  }
+  if (!canAll(workspace.permissions, ["tickets.manage", "clients.manage"])) {
     return {
       ok: false,
       error: "You do not have permission to manage SLA policies.",

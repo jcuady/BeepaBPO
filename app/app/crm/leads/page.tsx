@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { stringParam, enumParam, ilikePattern } from "@/lib/app/search-params";
 import { redirect } from "next/navigation";
@@ -41,6 +41,7 @@ export default async function CrmLeadsPage({
 }) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   requirePermission(workspace, "crm.read");
 
   const params = await searchParams;

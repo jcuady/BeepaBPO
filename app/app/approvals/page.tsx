@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { StatusBadge } from "@/components/app/status-badge";
 import { PageContainer } from "@/components/app/page-container";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requireAnyPermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import {
   canActOnApprovalStep,
@@ -75,7 +75,18 @@ function reviewTarget(
 export default async function ApprovalsPage() {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
-  requirePermission(workspace, "approvals.act");
+  requireInternal(workspace);
+  // Match admin nav — not every employee with approvals.act.
+  requireAnyPermission(workspace, [
+    "leave.approve",
+    "cash_advance.approve",
+    "cash_advance.manage",
+    "attendance.approve",
+    "attendance.correct",
+    "attendance.manage",
+    "payroll.manage",
+    "payroll.approve",
+  ]);
 
   const supabase = await createClient();
   const { data: requests } = await supabase

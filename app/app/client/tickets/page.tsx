@@ -35,6 +35,22 @@ export default async function ClientTicketsPage() {
     if (settings) ticketingAllowed = settings.allow_ticketing;
   }
 
+  if (!ticketingAllowed) {
+    return (
+      <PageContainer>
+        <PageHeader
+          name={workspace.profile.first_name}
+          subtitle="Track support and service tickets."
+        />
+        <EmptyState
+          icon={IconTicket}
+          title="Ticketing unavailable"
+          description="Ticketing is turned off for your organization. Contact Beepa if you need to open requests."
+        />
+      </PageContainer>
+    );
+  }
+
   let query = supabase
     .from("tickets")
     .select(
@@ -65,13 +81,6 @@ export default async function ClientTicketsPage() {
             <CreateTicketForm />
           </CardContent>
         </Card>
-      ) : null}
-      {!ticketingAllowed ? (
-        <EmptyState
-          icon={IconTicket}
-          title="Ticketing unavailable"
-          description="Ticketing is turned off for your organization. Contact Beepa if you need to open requests."
-        />
       ) : null}
 
       {!tickets?.length ? (

@@ -120,6 +120,9 @@ export async function reviewAttendanceCorrection(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) {
+    return { ok: false, error: "Staff access required." };
+  }
   if (
     !canAny(workspace.permissions, [
       "attendance.approve",

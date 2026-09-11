@@ -10,7 +10,7 @@ import { SubmitPayrollApprovalButton } from "@/components/app/payroll/submit-app
 import { PayrollPeriodReviewButtons } from "@/components/app/payroll/period-review-buttons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
+import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 import { mapPendingApprovalActability } from "@/lib/approvals/engine";
@@ -28,6 +28,7 @@ export default async function PayrollPeriodDetailPage({
   const { id } = await params;
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  requireInternal(workspace);
   requirePermission(workspace, "payroll.read");
 
   const supabase = await createClient();
