@@ -267,11 +267,13 @@ async function main() {
   let ownerEmployeeId: string | null = null;
   let teamLeadEmployeeId: string | null = null;
   let applicantUserId: string | null = null;
+  const userIds: Record<string, string> = {};
   const internalEmployeeIds: string[] = [];
 
   for (const demo of DEMO_USERS) {
     const orgId = demo.org === "beepa" ? BEEPA_ORG_ID : cloudPeakId;
     const userId = await ensureAuthUser(admin, demo.email, password, demo.fullName);
+    userIds[demo.email] = userId;
     if (demo.email === "owner@demo.beepabpo.com") ownerId = userId;
     if (demo.email === "applicant@demo.beepabpo.com") applicantUserId = userId;
 
@@ -578,6 +580,120 @@ async function main() {
     }
   }
 
+  // --- CRM + tickets sample data for sales/marketing QA ---
+  const salesUserId = userIds["sales@demo.beepabpo.com"];
+  const clientAdminId = userIds["clientadmin@demo.beepabpo.com"];
+
+  const { data: existingLead } = await admin
+    .from("crm_leads")
+    .select("id")
+    .eq("contact_email", "ops@northwind-demo.com")
+    .maybeSingle();
+  let leadId = existingLead?.id as string | undefined;
+  if (!leadId) {
+    const { data: lead, error: leadErr } = await admin
+      .from("crm_leads")
+      .insert({
+        company_name: "Northwind Logistics",
+        contact_name: "Mara Ellison",
+        contact_email: "ops@northwind-demo.com",
+        contact_phone: "+1 (312) 847-1928",
+        country: "US",
+        industry: "Logistics",
+        source: "demo_seed",
+        status: "qualified",
+        assigned_sales_user_id: salesUserId ?? null,
+        notes: "Needs 4 support agents + payroll-backed placement.",
+      })
+      .select("id")
+      .single();
+    if (leadErr) throw new Error(`CRM lead seed failed: ${leadErr.message}`);
+    leadId = lead.id;
+  }
+
+  const { data: existingDeal } = await admin
+    .from("crm_deals")
+    .select("id")
+    .eq("title", "Northwind support pod")
+    .maybeSingle();
+  let dealId = existingDeal?.id as string | undefined;
+  if (!dealId && leadId) {
+    const { data: deal, error: dealErr } = await admin
+      .from("crm_deals")
+      .insert({
+        lead_id: leadId,
+        title: "Northwind support pod",
+        stage: "proposal",
+        estimated_value: 18400,
+        currency: "USD",
+        owner_user_id: salesUserId ?? ownerId ?? null,
+      })
+      .select("id")
+      .single();
+    if (dealErr) throw new Error(`CRM deal seed failed: ${dealErr.message}`);
+    dealId = deal.id;
+  }
+
+  if (dealId) {
+    const { data: existingProposal } = await admin
+      .from("crm_proposals")
+      .select("id")
+      .eq("deal_id", dealId)
+      .eq("title", "Northwind 4-seat support proposal")
+      .maybeSingle();
+    if (!existingProposal) {
+      const { error: propErr } = await admin.from("crm_proposals").insert({
+        deal_id: dealId,
+        title: "Northwind 4-seat support proposal",
+        status: "sent",
+        amount: 18400,
+        currency: "USD",
+        sent_at: new Date().toISOString(),
+        created_by: salesUserId ?? ownerId ?? null,
+      });
+      if (propErr) {
+        throw new Error(`CRM proposal seed failed: ${propErr.message}`);
+      }
+    }
+  }
+
+  if (clientAdminId) {
+    const { data: existingTicket } = await admin
+      .from("tickets")
+      .select("id")
+      .eq("ticket_number", "TKT-DEMO-0001")
+      .maybeSingle();
+    if (!existingTicket) {
+      const { data: ticket, error: ticketErr } = await admin
+        .from("tickets")
+        .insert({
+          ticket_number: "TKT-DEMO-0001",
+          client_organization_id: cloudPeakId,
+          requester_user_id: clientAdminId,
+          category: "general",
+          priority: "high",
+          status: "new",
+          subject: "Need two more evening-shift agents",
+          description:
+            "CloudPeak needs two additional agents for 6pm–2am US Eastern coverage starting next Monday.",
+          assigned_user_id: salesUserId ?? null,
+        })
+        .select("id")
+        .single();
+      if (ticketErr) {
+        throw new Error(`Ticket seed failed: ${ticketErr.message}`);
+      }
+      if (ticket) {
+        await admin.from("ticket_messages").insert({
+          ticket_id: ticket.id,
+          author_user_id: clientAdminId,
+          body: "Please confirm candidates by Friday.",
+          is_internal: false,
+        });
+      }
+    }
+  }
+
   const { data: existingClientDoc } = await admin
     .from("documents")
     .select("id")
@@ -599,6 +715,10 @@ async function main() {
   }
 
   console.log("Demo users seeded.");
+  console.log("Sales/Marketing QA:");
+  console.log("  sales@demo.beepabpo.com  → /employee/login → /app/crm + /app/tickets");
+  console.log("  marketing@demo.beepabpo.com → /employee/login → /app/crm + /app/tickets");
+  console.log("  Password: DEMO_PASSWORD from .env.local");
 }
 
 main().catch((err) => {

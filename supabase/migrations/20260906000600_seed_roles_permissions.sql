@@ -141,11 +141,14 @@ select public._seed_role_perms('recruiter', array[
 
 select public._seed_role_perms('sales', array[
   'crm.read','crm.manage','crm.reports','clients.read','reports.read',
+  'tickets.read','tickets.manage',
   'attendance.self','leave.self','nte.self','cash_advance.self','payroll.self','tickets.self','performance.self'
 ]);
 
 select public._seed_role_perms('marketing', array[
   'cms.manage','reports.read',
+  'crm.read','crm.manage',
+  'tickets.read','tickets.manage',
   'attendance.self','leave.self','nte.self','cash_advance.self','payroll.self','tickets.self','performance.self'
 ]);
 

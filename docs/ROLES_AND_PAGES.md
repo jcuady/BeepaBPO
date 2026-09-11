@@ -89,8 +89,8 @@ Hub children (employees, leave, periods, jobs, leads, …) inherit page-level `r
 | Super Admin | Employee nav + Dashboard | Admin (system) + Reports; self-* only otherwise |
 | HR | Employee nav | HR, Approvals, Reports (+ cash advances via HR hub) |
 | Recruiter | Employee nav | Recruitment (+ reports.read) |
-| Sales | Employee nav | CRM leads + **deals**, Clients (read) |
-| Marketing | Employee nav | CMS (`/app/cms`) + reports in nav (`cms.manage`) |
+| Sales | Employee nav | CRM (leads/deals/proposals) + staff Tickets + Clients (read) |
+| Marketing | Employee nav | CMS + CRM + staff Tickets |
 | Operations | Employee nav | Clients (**invite**), Tickets, Reports, Approvals |
 | Team Lead | Employee nav | Approvals; leave/attendance approve via hub links |
 | Finance | Employee nav | Payroll, Approvals, Reports |

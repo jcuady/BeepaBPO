@@ -8,6 +8,7 @@ import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
 import { StatusBadge } from "@/components/app/status-badge";
 import { TicketStatusForm } from "@/components/app/tickets/ticket-status-form";
 import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
+import { CreateTicketForm } from "@/components/app/tickets/create-ticket-form";
 import { PageContainer } from "@/components/app/page-container";
 import {
   Table,
@@ -17,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
@@ -68,6 +70,7 @@ export default async function InternalTicketsPage({
 
   const { data: tickets } = await query;
   const canManage = can(workspace.permissions, "tickets.manage");
+  const canCreate = can(workspace.permissions, "tickets.self");
 
   return (
     <PageContainer>
@@ -75,6 +78,19 @@ export default async function InternalTicketsPage({
         name={workspace.profile.first_name}
         subtitle="Manage support queues and update ticket status."
       />
+
+      {canCreate ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-display text-base text-navy">
+              New ticket
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CreateTicketForm />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <form method="get">
         <FilterBar placeholder="Search subject or number…" defaultValue={q}>
