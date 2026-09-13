@@ -48,10 +48,16 @@ describe("favicon and SEO assets", () => {
       join(process.cwd(), "app/(marketing)/page.tsx"),
       "utf8",
     );
-    expect(page).toContain("ProfessionalService");
-    expect(page).toContain("WebSite");
+    expect(page).toContain("organizationJsonLd");
+    expect(page).toContain("websiteJsonLd");
     expect(page).toContain("FAQPage");
     expect(page).toContain("BRAND.title");
+    const jsonLd = readFileSync(
+      join(process.cwd(), "lib/seo/json-ld.tsx"),
+      "utf8",
+    );
+    expect(jsonLd).toContain("ProfessionalService");
+    expect(jsonLd).toContain("WebSite");
   });
 
   it("contact form captures UTM attribution fields", () => {

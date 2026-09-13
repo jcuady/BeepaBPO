@@ -9,6 +9,11 @@ import { ServicesSection } from "@/components/marketing/services-section";
 import { TrustedBySection } from "@/components/marketing/trusted-by-section";
 import { WhyBeepaSection } from "@/components/marketing/why-beepa-section";
 import { BRAND } from "@/lib/site";
+import {
+  JsonLd,
+  organizationJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo/json-ld";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -46,54 +51,6 @@ export default async function HomePage() {
       ? cmsFaqs.map((f) => ({ q: f.question, a: f.answer }))
       : FAQ_ITEMS;
 
-  const orgJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ProfessionalService",
-    "@id": `${BRAND.url}/#organization`,
-    name: BRAND.name,
-    legalName: BRAND.legalName,
-    alternateName: [BRAND.displayName, BRAND.legalName, "BeePA"],
-    url: BRAND.url,
-    logo: {
-      "@type": "ImageObject",
-      url: `${BRAND.url}${BRAND.iconUrl}`,
-      width: 512,
-      height: 512,
-    },
-    image: `${BRAND.url}${BRAND.ogImageUrl}`,
-    description: BRAND.description,
-    slogan: BRAND.tagline,
-    foundingDate: "2019",
-    areaServed: "Worldwide",
-    email: BRAND.email,
-    sameAs: [...BRAND.sameAs],
-    knowsAbout: [
-      "Business process outsourcing",
-      "Customer support",
-      "Back-office operations",
-      "Recruitment process outsourcing",
-      "Virtual assistants",
-    ],
-    contactPoint: {
-      "@type": "ContactPoint",
-      contactType: "sales",
-      email: BRAND.email,
-      url: `${BRAND.url}/contact`,
-      availableLanguage: ["English"],
-    },
-  };
-
-  const websiteJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "@id": `${BRAND.url}/#website`,
-    name: BRAND.name,
-    url: BRAND.url,
-    description: BRAND.description,
-    publisher: { "@id": `${BRAND.url}/#organization` },
-    inLanguage: "en-US",
-  };
-
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -109,18 +66,9 @@ export default async function HomePage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
+      <JsonLd data={organizationJsonLd()} />
+      <JsonLd data={websiteJsonLd()} />
+      <JsonLd data={faqJsonLd} />
       <HeroSection />
       <TrustedBySection />
       <ServicesSection />

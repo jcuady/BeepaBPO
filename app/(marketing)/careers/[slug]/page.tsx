@@ -7,6 +7,11 @@ import { Container } from "@/components/beepa/container";
 import { JobApplyForm } from "@/components/app/careers/job-apply-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  JsonLd,
+  breadcrumbJsonLd,
+  jobPostingJsonLd,
+} from "@/lib/seo/json-ld";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -22,9 +27,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!job) return { title: "Careers" };
 
+  const description = job.description.slice(0, 160);
   return {
     title: `${job.title} — Careers`,
-    description: job.description.slice(0, 160),
+    description,
+    alternates: { canonical: `/careers/${slug}` },
+    openGraph: {
+      title: `${job.title} — Careers`,
+      description,
+      url: `/careers/${slug}`,
+      type: "article",
+    },
   };
 }
 
@@ -44,6 +57,23 @@ export default async function CareerDetailPage({ params }: Props) {
 
   return (
     <section className="bg-white py-16 md:py-24">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Careers", path: "/careers" },
+          { name: job.title, path: `/careers/${slug}` },
+        ])}
+      />
+      <JsonLd
+        data={jobPostingJsonLd({
+          title: job.title,
+          description: job.description,
+          slug,
+          datePosted: job.published_at,
+          employmentType: job.employment_type,
+          locationType: job.location_type,
+        })}
+      />
       <Container className="max-w-3xl">
         <Link
           href="/careers"

@@ -1,3 +1,5 @@
+import { resolveSiteUrl } from "@/lib/site-url";
+
 export const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
@@ -27,7 +29,7 @@ export const BRAND = {
    */
   description:
     "BeepoBPO is a people-first BPO partner for dependable support, ops, and talent teams. Scale with confidence — tell us what you need.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://beepabpo.com",
+  url: resolveSiteUrl(),
   /** Square mark for Google favicon / Knowledge Panel */
   iconUrl: "/brand/icon-512.png",
   /** Horizontal logo for headers / Organization.logo alternate */
