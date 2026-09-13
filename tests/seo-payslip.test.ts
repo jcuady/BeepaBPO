@@ -41,6 +41,12 @@ describe("favicon and SEO assets", () => {
     expect(BRAND.description.length).toBeGreaterThan(110);
     expect(BRAND.description.length).toBeLessThanOrEqual(165);
     expect(BRAND.iconUrl).toContain("icon-512");
+    expect(BRAND.googleLogoUrl).toContain("google-organization-logo");
+    expect(
+      existsSync(join(process.cwd(), "public/brand/google-organization-logo.png")),
+    ).toBe(true);
+    expect(existsSync(join(process.cwd(), "public/favicon-48.png"))).toBe(true);
+    expect(existsSync(join(process.cwd(), "public/favicon-96.png"))).toBe(true);
   });
 
   it("homepage wires Organization + WebSite JSON-LD", () => {
@@ -58,6 +64,9 @@ describe("favicon and SEO assets", () => {
     );
     expect(jsonLd).toContain("ProfessionalService");
     expect(jsonLd).toContain("WebSite");
+    expect(jsonLd).toContain("googleLogoUrl");
+    expect(jsonLd).toContain("contentUrl");
+    expect(jsonLd).toContain('"Organization"');
   });
 
   it("contact form captures UTM attribution fields", () => {

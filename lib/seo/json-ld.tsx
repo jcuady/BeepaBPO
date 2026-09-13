@@ -3,21 +3,30 @@ import { BRAND } from "@/lib/site";
 type BreadcrumbItem = { name: string; path: string };
 
 export function organizationJsonLd() {
+  const logoUrl = `${BRAND.url}${BRAND.googleLogoUrl}`;
   return {
     "@context": "https://schema.org",
-    "@type": "ProfessionalService",
+    "@type": ["Organization", "ProfessionalService"],
     "@id": `${BRAND.url}/#organization`,
     name: BRAND.name,
     legalName: BRAND.legalName,
-    alternateName: [BRAND.displayName, BRAND.legalName, "BeePA"],
+    alternateName: [BRAND.displayName, BRAND.legalName, "BeePA", "Beepo BPO"],
     url: BRAND.url,
     logo: {
       "@type": "ImageObject",
-      url: `${BRAND.url}${BRAND.iconUrl}`,
+      "@id": `${BRAND.url}/#logo`,
+      url: logoUrl,
+      contentUrl: logoUrl,
       width: 512,
       height: 512,
+      caption: BRAND.name,
+      inLanguage: "en-US",
     },
-    image: `${BRAND.url}${BRAND.ogImageUrl}`,
+    image: [
+      logoUrl,
+      `${BRAND.url}${BRAND.iconUrl}`,
+      `${BRAND.url}${BRAND.ogImageUrl}`,
+    ],
     description: BRAND.description,
     slogan: BRAND.tagline,
     foundingDate: "2019",

@@ -19,7 +19,8 @@
     "db:push": "supabase db push --yes",
     "create-owner": "node --experimental-strip-types scripts/create-owner.mts",
     "seed:demo": "node --experimental-strip-types scripts/seed-demo.mts",
-    "smoke:cron": "node --env-file=.env.local scripts/smoke-cron.mjs"
+    "smoke:cron": "node --env-file=.env.local scripts/smoke-cron.mjs",
+    "brand:icons": "node scripts/generate-google-brand-assets.cjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

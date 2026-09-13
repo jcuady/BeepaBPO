@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   PRODUCTION_SITE_URL,
@@ -57,5 +57,16 @@ describe("robots and sitemap Search Console readiness", () => {
     );
     expect(page).toContain("jobPostingJsonLd");
     expect(page).toContain('canonical: `/careers/${slug}`');
+  });
+
+  it("ships Google Organization logo on white for Knowledge Panel", () => {
+    const logo = join(
+      process.cwd(),
+      "public/brand/google-organization-logo.png",
+    );
+    expect(existsSync(logo)).toBe(true);
+    const layout = readFileSync(join(process.cwd(), "app/layout.tsx"), "utf8");
+    expect(layout).toContain("favicon-48.png");
+    expect(layout).toContain("favicon-96.png");
   });
 });

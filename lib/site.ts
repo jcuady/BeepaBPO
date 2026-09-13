@@ -30,9 +30,14 @@ export const BRAND = {
   description:
     "BeepoBPO is a people-first BPO partner for dependable support, ops, and talent teams. Scale with confidence — tell us what you need.",
   url: resolveSiteUrl(),
-  /** Square mark for Google favicon / Knowledge Panel */
+  /** Square mark for favicon / PWA (navy) */
   iconUrl: "/brand/icon-512.png",
-  /** Horizontal logo for headers / Organization.logo alternate */
+  /**
+   * Organization.logo for Google Search / Knowledge Panel.
+   * White background — required so the mark reads on Google's white surfaces.
+   */
+  googleLogoUrl: "/brand/google-organization-logo.png",
+  /** Horizontal logo for headers */
   logoUrl: "/brand/beepa-logo-horizontal.png",
   ogImageUrl: "/images/og.png",
   email: "hello@beepabpo.com",
