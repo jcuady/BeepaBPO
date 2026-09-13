@@ -7,11 +7,12 @@ Use seeded demo users (`pnpm seed:demo`) and `DEMO_PASSWORD`. Full gate: [TEST_P
 Run: `pnpm test` · `pnpm test:e2e`
 
 - [ ] Unit: attendance, permissions, workspace-flags, safe-next, landing (`pnpm test`)
-- [x] E2E roles: 13 demo landings + segment isolation + open-redirect block (`e2e/roles.spec.ts`) — verified 2026-09-07
-- [x] E2E a11y: login / my / client / dashboard / applicant — no serious/critical (`e2e/a11y.spec.ts`) — verified 2026-09-07
-- [x] E2E filters: tickets + applicants + CRM + leave query params (`e2e/filters.spec.ts`) — verified 2026-09-07
-- [x] E2E mutations: employee leave submit + approve confirm cancel + ticket validation (`e2e/mutations.spec.ts`) — verified 2026-09-07
-- [x] E2E demo-ready: auth guards + landmines (`e2e/demo-ready.spec.ts`) — verified 2026-09-07
+- [x] E2E roles: 13 demo landings + segment isolation + open-redirect block (`e2e/roles.spec.ts`) — verified 2026-09-13 local + **live beepabpo.com**
+- [x] E2E a11y: login / my / client / dashboard / applicant — no serious/critical (`e2e/a11y.spec.ts`) — verified 2026-09-13
+- [x] E2E filters: tickets + applicants + CRM + leave query params (`e2e/filters.spec.ts`) — verified 2026-09-13
+- [x] E2E mutations: employee leave submit + approve confirm cancel + ticket validation (`e2e/mutations.spec.ts`) — verified 2026-09-13
+- [x] E2E demo-ready: auth guards + landmines (`e2e/demo-ready.spec.ts`) — verified 2026-09-13
+- [x] E2E viewport: 375/768/1280/1920 marketing+auth + app shells (`e2e/viewport.spec.ts`) — verified 2026-09-13 **24/24**
 - [ ] Typecheck / lint / build (`pnpm typecheck && pnpm lint && pnpm build`)
 
 ## Manual — per-role login & nav

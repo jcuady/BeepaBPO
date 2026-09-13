@@ -113,6 +113,7 @@ export function AuthShell({
                 alt=""
                 fill
                 priority
+                loading="eager"
                 sizes="58vw"
                 className="object-cover object-[68%_center]"
                 aria-hidden
@@ -189,7 +190,8 @@ export function AuthShell({
               src={imageSrc}
               alt={imageAlt}
               fill
-              sizes="100vw"
+              loading="eager"
+              sizes="(max-width: 1024px) 100vw, 42rem"
               className="object-cover object-center"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-navy/70 via-navy/10 to-transparent" />

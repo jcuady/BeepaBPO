@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { notFound, redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
+import { EmptyState } from "@/components/app/empty-state";
 import { TicketMessageForm } from "@/components/app/tickets/ticket-message-form";
 import { TicketStatusForm } from "@/components/app/tickets/ticket-status-form";
 import { TicketAssignForm } from "@/components/app/tickets/ticket-assign-form";
@@ -41,7 +42,8 @@ export default async function StaffTicketDetailPage({
       .from("ticket_messages")
       .select("id, body, created_at, author_user_id, is_internal, profiles(display_name)")
       .eq("ticket_id", id)
-      .order("created_at", { ascending: true }),
+      .order("created_at", { ascending: true })
+      .limit(200),
     canManage ? listTicketAssignees(supabase) : Promise.resolve([]),
   ]);
 
@@ -122,7 +124,11 @@ export default async function StaffTicketDetailPage({
           Messages
         </h2>
         {(messages ?? []).length === 0 ? (
-          <p className="text-sm text-slate">No messages yet.</p>
+          <EmptyState
+            className="py-8"
+            title="No messages yet"
+            description="Add an update or reply below to start the thread."
+          />
         ) : (
           (messages ?? []).map((msg) => {
             const author = msg.profiles as { display_name: string } | null;

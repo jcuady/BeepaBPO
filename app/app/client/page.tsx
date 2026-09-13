@@ -47,7 +47,8 @@ export default async function ClientDashboardPage() {
               "employee_id, display_name, job_title, role_title, assignment_status",
             )
             .eq("client_organization_id", clientOrgId)
-            .order("display_name"),
+            .order("display_name")
+            .limit(200),
           supabase
             .from("client_attendance_summary")
             .select("*", { count: "exact", head: true })
@@ -64,12 +65,15 @@ export default async function ClientDashboardPage() {
             .from("client_attendance_summary")
             .select("work_date, worked_minutes, status, employee_id")
             .eq("client_organization_id", clientOrgId)
-            .gte("work_date", from),
+            .gte("work_date", from)
+            // ponytail: chart sample cap; upgrade to SQL GROUP BY if teams grow large
+            .limit(2000),
           supabase
             .from("client_attendance_summary")
             .select("status, employee_id")
             .eq("client_organization_id", clientOrgId)
-            .eq("work_date", today),
+            .eq("work_date", today)
+            .limit(500),
           supabase
             .from("invoices")
             .select("total, currency, status")
@@ -88,8 +92,7 @@ export default async function ClientDashboardPage() {
             .select("status, sla_due_at, resolved_at, created_at")
             .eq("client_organization_id", clientOrgId)
             .not("sla_due_at", "is", null)
-            .order("created_at", { ascending: false })
-            .limit(100),
+            .limit(200),
         ])
       : [
           { data: [] as never[], count: 0 },

@@ -40,12 +40,14 @@ export default async function BillingInvoiceDetailPage({
       .from("invoice_items")
       .select("id, description, quantity, unit_rate, amount")
       .eq("invoice_id", id)
-      .order("created_at", { ascending: true }),
+      .order("created_at", { ascending: true })
+      .limit(200),
     supabase
       .from("invoice_payments")
       .select("id, amount, paid_at, reference, method")
       .eq("invoice_id", id)
-      .order("paid_at", { ascending: false }),
+      .order("paid_at", { ascending: false })
+      .limit(100),
   ]);
 
   return (

@@ -2,12 +2,12 @@
 
 ## Summary
 
-- **Audit date:** 2026-09-13 (Principal completion QA campaign Prompt 1–5)
+- **Audit date:** 2026-09-13 (Principal completion QA through Prompt 7)
 - **Branch:** `main`
 - **Framework:** Next.js 16 App Router + React 19 + Supabase Auth/RLS
 - **Live:** https://beepabpo.com · DB `nwvnawgxkzwiercllgmg`
-- **Build status:** NEEDS VERIFICATION this session (typecheck/test PASS)
-- **Test status:** Vitest PASS (portal-flag + prior RBAC suites)
+- **Build status:** `pnpm build` PASS this session
+- **Test status:** Vitest 184 · Playwright viewport 24 · live roles landings PASS
 - **OAuth:** Deferred (email/password only)
 - **Decision:** Admin **orgs / workflows stay view-only** (no CRUD)
 - **Ledger:** [COMPLETION_LEDGER.md](./COMPLETION_LEDGER.md)
@@ -32,13 +32,15 @@
 | `/app/client/approvals` | Queue when approval off | Early empty | Unit seam |
 | `submitTimesheetForClientReview` | Dual membership fail | Allow `isInternal` | Unit seam |
 | Payroll/admin/clients actions | No `isInternal` | Staff access gate | Unit seam |
+| Client dashboard compile | Orphan query chain | Fixed Promise.all entry | typecheck |
+| Unbounded portal/staff lists | TTFB lag risk | `.limit` caps + loading.tsx | code review |
 
 ## Missing / deferred
 
 | Area | Priority | Notes |
 |------|----------|-------|
-| Live ROLE_CHECKLIST | QA | Manual |
-| Full Playwright e2e + viewport | QA | Pre-launch |
+| Live ROLE_CHECKLIST | Done | Automated landings on production 2026-09-13 |
+| Viewport matrix 375–1920 | Done | `e2e/viewport.spec.ts` 24/24 + marketing overflow-x-clip |
 | Real FTS search | DEF | Cmd+K nav-only |
 | Announcements CMS | DEF | |
 | Social OAuth | DEF | |
@@ -49,7 +51,7 @@
 
 ## Full next-steps plan
 
-1. Live ROLE_CHECKLIST on demo roles.  
-2. `pnpm test:e2e` + viewport matrix.  
-3. Flip PROJECT_STATUS to READY when those pass.  
-4. Keep OAuth/FTS/org CRUD deferred unless requested.
+1. Commit + deploy completion pass.  
+2. Keep OAuth/FTS/org CRUD deferred unless requested.  
+3. Pagination UI for capped lists when orgs grow.  
+4. Ops hygiene (leaked-password advisor, Serwist) when convenient.

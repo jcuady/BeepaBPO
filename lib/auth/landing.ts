@@ -1,4 +1,4 @@
-import { can, canAny, canAll } from "@/lib/permissions/can";
+import { can, canAny } from "@/lib/permissions/can";
 
 export type LandingFlags = {
   membershipCount: number;

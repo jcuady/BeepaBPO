@@ -43,6 +43,7 @@ export default async function BillingPage() {
           .eq("type", "client")
           .eq("status", "active")
           .order("name")
+          .limit(200)
       : Promise.resolve({ data: [] as { id: string; name: string }[] }),
   ]);
 

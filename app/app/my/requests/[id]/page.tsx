@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { notFound, redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
+import { EmptyState } from "@/components/app/empty-state";
 import { TicketMessageForm } from "@/components/app/tickets/ticket-message-form";
 import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +37,8 @@ export default async function MyTicketDetailPage({
     .select("id, body, created_at, author_user_id, profiles(display_name)")
     .eq("ticket_id", id)
     .eq("is_internal", false)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .limit(200);
 
   return (
     <PageContainer size="narrow">
@@ -82,7 +84,11 @@ export default async function MyTicketDetailPage({
           Messages
         </h2>
         {(messages ?? []).length === 0 ? (
-          <p className="text-sm text-slate">No messages yet.</p>
+          <EmptyState
+            className="py-8"
+            title="No messages yet"
+            description="Reply below to add an update for the support team."
+          />
         ) : (
           (messages ?? []).map((msg) => {
             const author = msg.profiles as { display_name: string } | null;

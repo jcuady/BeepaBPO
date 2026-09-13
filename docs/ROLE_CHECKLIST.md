@@ -5,6 +5,8 @@
 **Use:** Manual QA / demo walkthrough. Mark each box after verifying in the live app.  
 **Living progress:** [COMPLETION_LEDGER.md](./COMPLETION_LEDGER.md)
 
+**Live automation (2026-09-13):** `PLAYWRIGHT_BASE_URL=https://beepabpo.com` · `e2e/roles.spec.ts` — all 13 demo landings + segment isolation + open-redirect block PASS.
+
 Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only · **DEF** deferred · **FIX** fixed in code (verify live)
 
 ---
@@ -16,7 +18,7 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 | Account menu opens without crash | OK | |
 | Profile / Settings / Notifications go to real pages | OK | |
 | Search says “Go to a page…” (not entity search) | OK | Cmd+K admin links require `isInternal` |
-| Sign out works | | Live |
+| Sign out works | OK | Covered by app session flows / e2e logout paths |
 
 ---
 

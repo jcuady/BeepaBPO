@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageContainer } from "@/components/app/page-container";
+import { EmptyState } from "@/components/app/empty-state";
 
 export const metadata: Metadata = { title: "Ticket" };
 
@@ -54,7 +55,8 @@ export default async function ClientTicketDetailPage({
     .select("id, body, created_at, author_user_id, profiles(display_name)")
     .eq("ticket_id", id)
     .eq("is_internal", false)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .limit(200);
 
   const canReplyBase =
     can(workspace.permissions, "tickets.manage") ||
@@ -106,7 +108,11 @@ export default async function ClientTicketDetailPage({
           Messages
         </h2>
         {(messages ?? []).length === 0 ? (
-          <p className="text-sm text-slate">No messages yet.</p>
+          <EmptyState
+            className="py-8"
+            title="No messages yet"
+            description="Send a reply below when you need an update from Beepa."
+          />
         ) : (
           (messages ?? []).map((msg) => {
             const author = msg.profiles as { display_name: string } | null;

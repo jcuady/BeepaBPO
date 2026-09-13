@@ -11,7 +11,7 @@ const NOISE =
 
 export function FinalCTA() {
   return (
-    <section className="relative overflow-hidden bg-navy py-24 md:py-32">
+    <section className="relative overflow-x-clip bg-navy py-24 md:py-32">
       <LimeArc className="absolute -right-10 -top-10 size-56 md:size-72" />
       <div
         aria-hidden

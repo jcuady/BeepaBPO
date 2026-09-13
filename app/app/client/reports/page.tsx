@@ -32,13 +32,16 @@ export default async function ClientReportsPage() {
         .eq("client_organization_id", clientOrgId),
       supabase
         .from("client_attendance_summary")
-        .select("worked_minutes")
+        .select("worked_minutes, work_date")
         .eq("client_organization_id", clientOrgId)
-        .gte("work_date", from),
+        .gte("work_date", from)
+        // ponytail: aggregate sample; replace with RPC COUNT/SUM when needed
+        .limit(2000),
     ]);
     teamCount = count ?? 0;
-    daysRecorded = attendance?.length ?? 0;
-    minutes = (attendance ?? []).reduce((sum, row) => sum + (row.worked_minutes ?? 0), 0);
+    const rows = attendance ?? [];
+    daysRecorded = new Set(rows.map((r) => r.work_date).filter(Boolean)).size;
+    minutes = rows.reduce((sum, row) => sum + (row.worked_minutes ?? 0), 0);
   }
 
   const hours = Math.round((minutes / 60) * 10) / 10;

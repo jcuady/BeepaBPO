@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { notFound, redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
+import { EmptyState } from "@/components/app/empty-state";
 import { LeadStatusForm } from "@/components/app/crm/lead-status-form";
 import { CreateDealForm } from "@/components/app/crm/create-deal-form";
 import { StatusBadge } from "@/components/app/status-badge";
@@ -135,7 +136,11 @@ export default async function CrmLeadDetailPage({
         </CardHeader>
         <CardContent className="space-y-3">
           {!activities?.length ? (
-            <p className="text-sm text-slate">No activity yet.</p>
+            <EmptyState
+              className="border-0 bg-transparent py-6"
+              title="No activity yet"
+              description="Status changes and notes will appear in this timeline."
+            />
           ) : (
             activities.map((activity) => (
               <div

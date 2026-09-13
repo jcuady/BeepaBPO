@@ -18,11 +18,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
+import {
+  resolveWorkspace,
+  requirePermission,
+  requireInternal,
+} from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
-import { stringParam } from "@/lib/app/search-params";
+import { stringParam, ilikePattern } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Users" };
+
+type MembershipRow = {
+  id: string;
+  status: string;
+  membership_type: string;
+  profiles: unknown;
+  organizations: unknown;
+  membership_roles: unknown;
+};
 
 export default async function AdminUsersPage({
   searchParams,
@@ -36,36 +49,55 @@ export default async function AdminUsersPage({
 
   const params = await searchParams;
   const q = stringParam(params.q);
+  const pattern = q ? ilikePattern(q) : undefined;
 
   const supabase = await createClient();
-  const { data: memberships } = await supabase
-    .from("organization_memberships")
-    .select(
-      "id, status, membership_type, profiles:user_id(display_name, first_name, last_name), organizations(name, type), membership_roles(roles(name, code))",
-    )
-    .in("status", ["active", "invited"])
-    .order("created_at", { ascending: false })
-    .limit(100);
 
-  // ponytail: membership search spans nested joins; in-memory after DB fetch (≤100). Upgrade: search RPC.
-  const filtered = (memberships ?? []).filter((row) => {
-    if (!q) return true;
-    const term = q.toLowerCase();
-    const profile = row.profiles as {
-      display_name: string;
-      first_name: string;
-      last_name: string;
-    } | null;
-    const org = row.organizations as { name: string } | null;
-    const roles = (row.membership_roles as { roles: { name: string } }[] | null)
-      ?.map((mr) => mr.roles.name)
-      .join(" ");
-    return [profile?.display_name, profile?.first_name, profile?.last_name, org?.name, roles]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase()
-      .includes(term);
-  });
+  let userIds: string[] = [];
+  let orgIds: string[] = [];
+  if (pattern) {
+    const [{ data: profiles }, { data: orgs }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id")
+        .or(
+          `display_name.ilike.${pattern},first_name.ilike.${pattern},last_name.ilike.${pattern}`,
+        )
+        .limit(100),
+      supabase
+        .from("organizations")
+        .select("id")
+        .ilike("name", pattern)
+        .limit(50),
+    ]);
+    userIds = (profiles ?? []).map((p) => p.id);
+    orgIds = (orgs ?? []).map((o) => o.id);
+  }
+
+  let memberships: MembershipRow[] = [];
+
+  if (pattern && userIds.length === 0 && orgIds.length === 0) {
+    memberships = [];
+  } else {
+    let query = supabase
+      .from("organization_memberships")
+      .select(
+        "id, status, membership_type, profiles:user_id(display_name, first_name, last_name), organizations(name, type), membership_roles(roles(name, code))",
+      )
+      .in("status", ["active", "invited"])
+      .order("created_at", { ascending: false })
+      .limit(pattern ? 100 : 250);
+
+    if (pattern) {
+      const parts: string[] = [];
+      if (userIds.length) parts.push(`user_id.in.(${userIds.join(",")})`);
+      if (orgIds.length) parts.push(`organization_id.in.(${orgIds.join(",")})`);
+      query = query.or(parts.join(","));
+    }
+
+    const { data } = await query;
+    memberships = (data ?? []) as MembershipRow[];
+  }
 
   return (
     <PageContainer>
@@ -86,14 +118,18 @@ export default async function AdminUsersPage({
       </Card>
 
       <form method="get">
-        <FilterBar placeholder="Search users…" defaultValue={q} />
+        <FilterBar placeholder="Search by name or organization…" defaultValue={q} />
       </form>
 
-      {filtered.length === 0 ? (
+      {memberships.length === 0 ? (
         <EmptyState
           icon={IconUsers}
-          title="No users found"
-          description="Active and invited memberships will appear here."
+          title={q ? "No users match that search" : "No users found"}
+          description={
+            q
+              ? "Try another name or organization. Search covers profiles and org names."
+              : "Active and invited memberships will appear here."
+          }
         />
       ) : (
         <div className="overflow-x-auto rounded-[16px] border border-line bg-white">
@@ -109,7 +145,7 @@ export default async function AdminUsersPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((row) => {
+              {memberships.map((row) => {
                 const profile = row.profiles as {
                   display_name: string;
                   first_name: string;
@@ -162,7 +198,8 @@ export default async function AdminUsersPage({
                   </TableRow>
                 );
               })}
-            </TableBody>          </Table>
+            </TableBody>
+          </Table>
         </div>
       )}
 

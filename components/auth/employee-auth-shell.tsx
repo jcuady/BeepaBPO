@@ -130,6 +130,7 @@ export function EmployeeAuthShell({
                 alt=""
                 fill
                 priority
+                loading="eager"
                 sizes="58vw"
                 className="object-cover object-[70%_center]"
                 aria-hidden
@@ -195,7 +196,8 @@ export function EmployeeAuthShell({
               src="/images/auth/internal-sign-in.png"
               alt="Beepa employee"
               fill
-              sizes="100vw"
+              loading="eager"
+              sizes="(max-width: 1024px) 100vw, 42rem"
               className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-navy/70 via-transparent to-transparent" />

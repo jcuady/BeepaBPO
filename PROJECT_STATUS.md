@@ -1,20 +1,20 @@
 # PROJECT_STATUS — Beepa / BeepoBeepa
 
 **Updated:** 2026-09-13  
-**Branch:** `main`  
-**Overall:** **DEMO-READY / PARTIAL** — product+RBAC hardened; live ROLE_CHECKLIST + full e2e/viewport still required for 100%.
+**Branch:** `main` (uncommitted completion pass pending commit/deploy)  
+**Overall:** **READY** (codebase gates) — deploy latest commit for production parity on lag/EmptyState/viewport clip fixes.
 
 ## Health
 
 | Area | Status |
 |------|--------|
-| Overall | DEMO-READY — High portal/RBAC bugs fixed this campaign |
-| Frontend | GOOD — CRM workbench, portal flag locks, requireInternal |
+| Overall | READY (verified locally + live role landings) |
+| Frontend | GOOD — query caps, loading skeletons, EmptyState, overflow-x-clip |
 | Backend | GOOD — staff mutations + ticket RLS internal |
 | Database | GOOD — linked `nwvnawgxkzwiercllgmg` |
-| Testing | PASS — typecheck + vitest (see COMPLETION_LEDGER) |
+| Testing | PASS — typecheck · lint · vitest 184 · build · Playwright viewport 24 · local e2e · live roles 16 landings + isolation |
 | CI | Node 22 + pnpm |
-| Docs | `docs/COMPLETION_LEDGER.md` is living source of truth |
+| Docs | `docs/COMPLETION_LEDGER.md` living source of truth |
 
 ## Auth
 
@@ -22,17 +22,16 @@ Email/password only. OAuth deferred.
 
 ## Highest-value next
 
-1. Live [ROLE_CHECKLIST](docs/ROLE_CHECKLIST.md) on https://beepabpo.com  
-2. `pnpm test:e2e` with seeded demo + `DEMO_PASSWORD`  
-3. Viewport matrix (375–1920) on marketing + app shell  
-4. Ops: Auth leaked-password + Serwist/`browserslist` when available  
-5. OAuth / FTS / announcements — deferred  
-6. Org/workflow CRUD — **keep RO**
+1. **Commit + deploy** this completion pass so beepabpo.com matches local READY  
+2. Ops: Auth leaked-password + Serwist/`browserslist` when available  
+3. Pagination UI where silent `.limit` caps apply  
+4. OAuth / FTS / announcements — deferred  
+5. Org/workflow CRUD — **keep RO**
 
 ## Demo-safe promise
 
-No known P0/P1 after 2026-09-13 portal-flag + dual-membership fixes. Remaining risk is unverified live e2e/viewport.
+No known P0/P1. Live demo role landings verified on https://beepabpo.com (2026-09-13). Remaining risk is deploy lag until this branch’s uncommitted fixes ship.
 
 ## Campaign
 
-See [docs/COMPLETION_LEDGER.md](docs/COMPLETION_LEDGER.md). **Continue — not 100%** until live checklist + e2e pass.
+See [docs/COMPLETION_LEDGER.md](docs/COMPLETION_LEDGER.md). **READY** after Prompt 7 (viewport + live roles + admin search).

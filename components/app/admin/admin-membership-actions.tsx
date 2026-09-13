@@ -38,6 +38,7 @@ export function AdminMembershipActions({
 }) {
   const [pending, startTransition] = useTransition();
   const [revokeOpen, setRevokeOpen] = useState(false);
+  const [roleOpen, setRoleOpen] = useState(false);
   const [roleCode, setRoleCode] = useState<RoleCode>(
     (ROLE_OPTIONS.some((o) => o.value === currentRoleCode)
       ? currentRoleCode
@@ -56,8 +57,10 @@ export function AdminMembershipActions({
         membership_id: membershipId,
         role_code: roleCode,
       });
-      if (result.ok) toast.success(result.message);
-      else toast.error(result.error ?? "Unable to update role.");
+      if (result.ok) {
+        toast.success(result.message);
+        setRoleOpen(false);
+      } else toast.error(result.error ?? "Unable to update role.");
     });
   }
 
@@ -96,7 +99,7 @@ export function AdminMembershipActions({
             variant="outline"
             className="min-h-9"
             disabled={pending || roleCode === currentRoleCode}
-            onClick={onRoleChange}
+            onClick={() => setRoleOpen(true)}
           >
             Update role
           </Button>
@@ -112,6 +115,16 @@ export function AdminMembershipActions({
       >
         Revoke
       </Button>
+      <ConfirmDialog
+        open={roleOpen}
+        onOpenChange={setRoleOpen}
+        title="Change this member’s role?"
+        description={`They will switch to ${ROLE_OPTIONS.find((o) => o.value === roleCode)?.label ?? roleCode}. Access updates immediately.`}
+        confirmLabel="Update role"
+        cancelLabel="Cancel"
+        pending={pending}
+        onConfirm={onRoleChange}
+      />
       <ConfirmDialog
         open={revokeOpen}
         onOpenChange={setRevokeOpen}

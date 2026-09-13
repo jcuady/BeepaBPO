@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
 import { IconHeadset } from "@tabler/icons-react";
+import { redirect } from "next/navigation";
+import Link from "next/link";
 import { PageHeader } from "@/components/app/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { PageContainer } from "@/components/app/page-container";
+import { resolveWorkspace } from "@/lib/auth/workspace";
 
 export const metadata: Metadata = { title: "Support" };
 
-export default function MySupportPage() {
+export default async function MySupportPage() {
+  const workspace = await resolveWorkspace();
+  if (!workspace) redirect("/login");
+
   return (
     <PageContainer size="narrow">
       <PageHeader
-        name="there"
+        name={workspace.profile.first_name}
         subtitle="Get help from the Beepa support team."
       />
-      <Card className="">
+      <Card>
         <CardContent className="space-y-4 p-6">
           <div className="flex size-12 items-center justify-center rounded-xl bg-soft-green text-green">
             <IconHeadset stroke={1.75} className="size-6" />

@@ -36,7 +36,8 @@ export default async function ClientTeamPage() {
         "employee_id, display_name, job_title, role_title, assignment_status, employee_number",
       )
       .eq("client_organization_id", clientOrgId)
-      .order("display_name");
+      .order("display_name")
+      .limit(200);
     members = data ?? [];
   }
 

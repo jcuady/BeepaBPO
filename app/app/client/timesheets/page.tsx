@@ -53,7 +53,9 @@ export default async function ClientTimesheetsPage() {
           "employee_id, display_name, worked_minutes, work_date, approval_status",
         )
         .eq("client_organization_id", clientOrgId)
-        .gte("work_date", from),
+        .gte("work_date", from)
+        // ponytail: rollup sample cap; upgrade to SQL GROUP BY if roster grows
+        .limit(2000),
       supabase
         .from("client_attendance_summary")
         .select(
@@ -123,9 +125,11 @@ export default async function ClientTimesheetsPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {!pendingReview.length ? (
-              <p className="text-sm text-slate">
-                No timesheet days waiting for client approval.
-              </p>
+              <EmptyState
+                className="border-0 bg-transparent py-6"
+                title="Nothing waiting for review"
+                description="When Beepa sends timesheet days for client approval, they show up here."
+              />
             ) : (
               pendingReview.map((row) => (
                 <div

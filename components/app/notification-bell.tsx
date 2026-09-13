@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { markNotificationRead } from "@/lib/notifications/actions";
 import type { Tables } from "@/types/database";
+import { toast } from "sonner";
 
 type NotificationRow = Pick<
   Tables<"notifications">,
@@ -94,15 +95,19 @@ export function NotificationBell({
 
   async function handleNotificationClick(notification: NotificationRow) {
     if (!notification.read_at) {
-      await markNotificationRead(notification.id);
-      setUnreadCount((c) => Math.max(0, c - 1));
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === notification.id
-            ? { ...n, read_at: new Date().toISOString() }
-            : n,
-        ),
-      );
+      const result = await markNotificationRead(notification.id);
+      if (result.ok) {
+        setUnreadCount((c) => Math.max(0, c - 1));
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.id === notification.id
+              ? { ...n, read_at: new Date().toISOString() }
+              : n,
+          ),
+        );
+      } else {
+        toast.error(result.error ?? "Could not mark notification as read.");
+      }
     }
 
     setOpen(false);

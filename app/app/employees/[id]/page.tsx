@@ -4,6 +4,7 @@ import { format, subDays } from "date-fns";
 import { notFound, redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
+import { EmptyState } from "@/components/app/empty-state";
 import { StatusBadge } from "@/components/app/status-badge";
 import { DocumentDownloadButton } from "@/components/app/documents/document-download-button";
 import { DocumentUploadForm } from "@/components/app/documents/document-upload-form";
@@ -172,7 +173,11 @@ export default async function EmployeeDetailPage({
           Assignments
         </h2>
         {(assignments ?? []).length === 0 ? (
-          <p className="text-sm text-slate">No assignments.</p>
+          <EmptyState
+            className="py-8"
+            title="No assignments"
+            description="Client or internal assignments for this employee will show here."
+          />
         ) : (
           (assignments ?? []).map((row) => {
             const org = row.client_org as { name: string } | null;
@@ -203,7 +208,11 @@ export default async function EmployeeDetailPage({
           Leave balances
         </h2>
         {(balances ?? []).length === 0 ? (
-          <p className="text-sm text-slate">No leave balances.</p>
+          <EmptyState
+            className="py-8"
+            title="No leave balances"
+            description="Leave entitlements appear after HR configures leave types for this employee."
+          />
         ) : (
           <div className="grid gap-2 sm:grid-cols-2">
             {(balances ?? []).map((row, i) => {
@@ -236,7 +245,11 @@ export default async function EmployeeDetailPage({
           <DocumentUploadForm mode="employee" employeeId={id} />
         ) : null}
         {(documents ?? []).length === 0 ? (
-          <p className="text-sm text-slate">No documents on file.</p>
+          <EmptyState
+            className="py-8"
+            title="No documents on file"
+            description="Upload employment or compliance files using the form above."
+          />
         ) : (
           (documents ?? []).map((doc) => (
             <Card key={doc.id}>
@@ -265,7 +278,11 @@ export default async function EmployeeDetailPage({
           Last 14 days attendance
         </h2>
         {(attendance ?? []).length === 0 ? (
-          <p className="text-sm text-slate">No attendance records.</p>
+          <EmptyState
+            className="py-8"
+            title="No attendance records"
+            description="Recent clock-ins for this employee will appear once attendance is recorded."
+          />
         ) : (
           (attendance ?? []).map((row) => (
             <Card key={row.id}>

@@ -70,13 +70,14 @@ test.describe("demo role logins", () => {
     await expect(page).not.toHaveURL(/\/app\/my\/leave/);
   });
 
-  test("open redirect via next is blocked", async ({ page }) => {
-    await page.goto('/login?next=//evil.com');
+  test("open redirect via next is blocked", async ({ page, baseURL }) => {
+    await page.goto("/login?next=//evil.com");
     await page.getByLabel(/email/i).fill("clientadmin@demo.beepabpo.com");
     await page.getByLabel(/^password$/i).fill(password!);
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForURL(/\/app/, { timeout: 30_000 });
-    expect(page.url()).toContain("localhost");
+    const host = new URL(baseURL ?? "http://localhost:3000").host;
+    expect(page.url()).toContain(host);
     expect(page.url()).not.toContain("evil.com");
   });
 });

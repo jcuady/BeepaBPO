@@ -66,8 +66,9 @@ export function NotificationsPageClient({
 
   async function handleNotificationClick(notification: NotificationItem) {
     if (!notification.read_at) {
-      await markNotificationRead(notification.id);
-      router.refresh();
+      const result = await markNotificationRead(notification.id);
+      if (result.ok) router.refresh();
+      else toast.error(result.error ?? "Could not mark notification as read.");
     }
     if (notification.action_url) {
       router.push(notification.action_url);

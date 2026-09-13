@@ -42,7 +42,9 @@ export default async function AttendanceAdminPage() {
       "id, work_date, status, approval_status, clock_in_at, clock_out_at, worked_minutes, employees(employee_number, job_title, profiles(display_name))",
     )
     .eq("work_date", today)
-    .order("clock_in_at", { ascending: true, nullsFirst: false });
+    .order("clock_in_at", { ascending: true, nullsFirst: false })
+    // ponytail: hard cap for TTFB; add pagination UI if orgs exceed ~200 clock-ins/day
+    .limit(200);
 
   return (
     <PageContainer>
