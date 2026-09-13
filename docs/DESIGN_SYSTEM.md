@@ -67,3 +67,13 @@ Keep transitions short: **150â€“300ms**, ease-out (`--ease-out`). Sidebar width 
 ## Icons
 
 Tabler icons in app chrome (`stroke={1.75}`); shadcn config also references Lucide for generated UI.
+## Principal QA — UI consistency bar (2026-09-13)
+
+Audited hubs (CRM, tickets, client portal, my workspace, CMS) should:
+
+- Use `PageContainer` + `PageHeader` + `EmptyState` for zero-data / flag-off states (never a blank page).
+- Keep primary actions `min-h-11` (44px).
+- Prefer `ConfirmDialog` for status / irreversible mutations.
+- Portal feature-off states use the same EmptyState pattern as billing/tickets.
+- Staff list pages may use silent `.limit` until pagination UI ships (see COMPLETION_LEDGER).
+

@@ -55,6 +55,21 @@ export default async function ClientApprovalsPage() {
         .limit(40),
     ]);
     allowApproval = Boolean(settings?.allow_timesheet_approval);
+    if (!allowApproval) {
+      return (
+        <PageContainer>
+          <PageHeader
+            name={workspace.profile.first_name}
+            subtitle="Timesheet approvals"
+          />
+          <EmptyState
+            icon={IconChecks}
+            title="Approvals unavailable"
+            description="Timesheet approval is turned off for your organization. Contact Beepa if you need access."
+          />
+        </PageContainer>
+      );
+    }
     pending = (data ?? []).filter(
       (row): row is (typeof pending)[number] =>
         Boolean(row.attendance_record_id),

@@ -66,7 +66,11 @@ Recruiter (`recruitment.manage`) on `/app/recruitment/applicants/[id]` calls `up
 
 ## Tickets
 
-Requester creates → insert trigger attaches Beepa `ticket_sla_policies` by priority (`sla_policy_id`, `sla_due_at`) → staff with `tickets.manage` can **assign** via `assignTicket` (`assigned_user_id`; `new` → `assigned`) → messages (client-visible) vs internal notes → first staff public reply sets `first_response_at` → status changes with confirm → resolve/close. SLA state on staff + client ticket UIs; client dashboard compliance % from tickets with `sla_due_at`. **SLA policy admin** at `/app/tickets/sla` edits targets for **new** tickets only.
+Requester creates → insert trigger attaches Beepa `ticket_sla_policies` by priority (`sla_policy_id`, `sla_due_at`) → staff with `tickets.manage` can **assign** via `assignTicket` (`assigned_user_id`; `new` → `assigned`) → messages (client-visible) vs internal notes → first staff public reply sets `first_response_at` → status changes with confirm → resolve/close. SLA state on staff + client ticket UIs; client dashboard compliance % from tickets with `sla_due_at`. **SLA policy admin** at `/app/tickets/sla` requires `tickets.manage` **AND** `clients.manage` + internal (sales/marketing ticket agents do not get SLA nav).
+
+**Portal flags:** Client `/app/client/tickets`, `/requests`, and ticket detail hard-block when `allow_ticketing=false`. Staff org-wide ticket SELECT requires `is_internal_user()` (RLS).
+
+**Staff Send to client (attendance):** `submitTimesheetForClientReview` requires internal staff; dual internal+client memberships are allowed (client-only memberships are blocked).
 ## Invoice
 
 **Intended:** Finance issues invoice for client org → payments recorded → overdue job marks `sent` past due as `overdue`.

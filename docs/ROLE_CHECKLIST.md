@@ -1,10 +1,11 @@
 # Role × surface checklist (Beepa)
 
-**Updated:** 2026-09-08  
+**Updated:** 2026-09-13  
 **DB:** `nwvnawgxkzwiercllgmg` (linked)  
-**Use:** Manual QA / demo walkthrough. Mark each box after verifying in the live app.
+**Use:** Manual QA / demo walkthrough. Mark each box after verifying in the live app.  
+**Living progress:** [COMPLETION_LEDGER.md](./COMPLETION_LEDGER.md)
 
-Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only · **DEF** deferred
+Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only · **DEF** deferred · **FIX** fixed in code (verify live)
 
 ---
 
@@ -12,10 +13,10 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 
 | Check | Status | Notes |
 |-------|--------|-------|
-| Account menu opens without crash | OK | Base UI `Menu.Group` fix |
-| Profile / Settings / Notifications go to real pages | OK | Client/applicant: Settings hidden when same as Profile |
-| Search says “Go to a page…” (not entity search) | OK | Command palette = nav only |
-| Sign out works | | |
+| Account menu opens without crash | OK | |
+| Profile / Settings / Notifications go to real pages | OK | |
+| Search says “Go to a page…” (not entity search) | OK | Cmd+K admin links require `isInternal` |
+| Sign out works | | Live |
 
 ---
 
@@ -25,9 +26,10 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 |-------|--------|
 | Jump-in links match permissions | OK |
 | Approvals hub + Payroll periods | OK |
-| Admin Users invite | OK | + role change / revoke (not owner/super_admin) |
-| Orgs / Workflows are **view-only** (no edit) | RO | Subtitle honesty; **decision: keep RO** |
+| Admin Users invite / role / revoke | OK |
+| Orgs / Workflows are **view-only** | RO |
 | CMS hidden for Owner (no `cms.manage`) | OK seed |
+| Staff pages require internal | OK |
 
 ---
 
@@ -35,12 +37,10 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 
 | Check | Status |
 |-------|--------|
-| Create payroll period | |
-| Submit period for approval | OK |
-| Approve Finance step | OK |
-| Cash advance Finance step | |
-| Billing Issue / Record payment | |
-| Reports CSV | |
+| Create payroll period | OK code |
+| Submit / approve period | OK |
+| Billing issue / record payment | OK code |
+| Reports CSV | OK |
 
 ---
 
@@ -48,48 +48,41 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 
 | Check | Status |
 |-------|--------|
-| Leave approve (current step only) | |
-| Attendance corrections | |
-| NTE create/resolve (HR) | |
-| Cash advance HR step | |
-| Employee profile edit UI | OK | `/app/employees/[id]` when `employees.manage` |
+| Leave approve (current step only) | OK code |
+| Attendance corrections (internal only) | FIX |
+| NTE create/resolve | OK code |
+| Employee profile edit | OK |
+| Send to client timesheet (dual membership) | FIX |
 
 ---
 
 ## Employee (`/app/my`)
 
-| Check | Status | Notes |
-|-------|--------|-------|
-| Clock in/out | OK | Location text only (no fake Change location) |
-| Leave submit | | |
-| Cash advance (needs employee row) | OK gated |
-| **Ticket create → open detail → reply** | OK | `/app/my/requests/[id]` |
-| Payslip PDF | | |
+| Check | Status |
+|-------|--------|
+| Clock in/out | OK |
+| Leave / cash advance / tickets / payslip | OK / Live |
 | Settings password | OK |
-| Updates → Notifications | OK | Replaces empty Announcements |
 
 ---
 
-## Client Admin
+## Sales / Marketing
 
 | Check | Status |
 |-------|--------|
-| Create ticket / reply | |
-| Timesheet approve (flag on) | |
-| Profile edit + password on Settings | OK |
-| Notifications inbox | OK |
-| Approvals nav only if permitted | OK filtered |
+| Sales → `/app/crm` workbench | OK |
+| Marketing → `/app/cms` | OK |
+| Staff tickets; SLA hidden without clients.manage | OK |
 
 ---
 
-## Client Viewer
+## Client Admin / Viewer
 
 | Check | Status |
 |-------|--------|
-| No Create ticket form | OK |
-| No Reply on others’ tickets | OK |
-| Approvals link hidden without perm | OK |
-| Password change | OK |
+| Ticketing / billing / timesheet flags hard-block | FIX |
+| Cannot open staff `/app/tickets` | OK |
+| Viewer: no Approvals without approve perms | OK |
 
 ---
 
@@ -97,40 +90,11 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 
 | Check | Status |
 |-------|--------|
-| Applications list | RO |
-| Profile + password | OK |
-| Notifications | OK |
+| Applications + profile only | OK |
+| No ATS `/app/recruitment` | FIX |
 
 ---
 
-## Database health (`nwvnawgxkzwiercllgmg`)
+## Sign-off
 
-| Check | Status | Notes |
-|-------|--------|-------|
-| Public tables | 84 | RLS enabled on public tables |
-| Tables w/ zero secondary indexes | Improved | `approval_actions`, `role_permissions` indexed |
-| Anon EXECUTE on SECURITY DEFINER | Hardened | Migration `20260908120000` |
-| Function `search_path` on generators | Hardened | `generate_*_number` |
-| Remaining advisor WARNs | Review | authenticated EXECUTE on helpers expected for RLS |
-
----
-
-## Client portal flags
-
-| Flag | Enforcement |
-|------|-------------|
-| `allow_timesheet_approval` | Nav + approvals/timesheets (prior) |
-| `allow_ticketing` | Nav + tickets page + `createTicket` |
-| `allow_billing_view` | Nav + billing page gate |
-| `allow_attendance_view` | Nav + attendance page gate |
-
----
-
-## Still deferred / polish
-
-1. Social OAuth  
-2. Real full-text search  
-3. Announcements CMS  
-4. Org/workflow admin CRUD — **rejected; keep RO**  
-5. Ops: Auth leaked-password advisor; Serwist/`browserslist` audit  
-6. Pre-launch QA: e2e + viewport matrix  
+After live walkthrough, update [COMPLETION_LEDGER.md](./COMPLETION_LEDGER.md) and [PROJECT_STATUS.md](../PROJECT_STATUS.md).

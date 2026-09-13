@@ -23,6 +23,32 @@ export default async function ClientRequestsPage() {
   const canCreate = can(workspace.permissions, "tickets.self");
   const supabase = await createClient();
 
+  let ticketingAllowed = true;
+  if (clientOrgId) {
+    const { data: settings } = await supabase
+      .from("client_settings")
+      .select("allow_ticketing")
+      .eq("client_organization_id", clientOrgId)
+      .maybeSingle();
+    if (settings) ticketingAllowed = settings.allow_ticketing;
+  }
+
+  if (!ticketingAllowed) {
+    return (
+      <PageContainer>
+        <PageHeader
+          name={workspace.profile.first_name}
+          subtitle="Staffing and operational requests tracked as tickets."
+        />
+        <EmptyState
+          icon={IconFileText}
+          title="Requests unavailable"
+          description="Ticketing is turned off for your organization. Contact Beepa if you need to open requests."
+        />
+      </PageContainer>
+    );
+  }
+
   let tickets: {
     id: string;
     ticket_number: string;

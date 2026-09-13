@@ -22,6 +22,13 @@ export default async function ClientInvoiceDetailPage({
   if (!clientOrgId) redirect("/app/client/billing");
 
   const supabase = await createClient();
+  const { data: settings } = await supabase
+    .from("client_settings")
+    .select("allow_billing_view")
+    .eq("client_organization_id", clientOrgId)
+    .maybeSingle();
+  if (settings && !settings.allow_billing_view) notFound();
+
   const { data: invoice } = await supabase
     .from("invoices")
     .select(

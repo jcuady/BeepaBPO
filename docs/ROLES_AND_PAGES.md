@@ -95,12 +95,13 @@ Hub children (employees, leave, periods, jobs, leads, …) inherit page-level `r
 | Recruiter | Employee nav | Recruitment (+ reports.read) |
 | Sales | Employee nav | CRM (leads/deals/proposals) + Tickets + Clients (read) + Reports |
 | Marketing | Employee nav | CMS + CRM + Tickets + Reports |
-| Operations | Employee nav | Clients (**invite**), Tickets, Reports, Approvals |
+| Operations | Employee nav | Clients (**invite**), Tickets, Reports (Approvals nav hidden without specific approve codes) |
+| Account Manager | Employee nav | Clients read, Tickets, Reports — **no demo user** |
 | Team Lead | Employee nav | Approvals; leave/attendance approve via hub links |
-| Finance | Employee nav | Payroll, Approvals, Reports |
-| Employee | Employee nav | Approvals only (if acting on own queue items) |
-| Client Admin | Client nav | None |
-| Client Viewer | Client nav (read-leaning; billing may be empty under RLS) | None |
+| Finance | Employee nav | Payroll, Billing, Approvals, Reports |
+| Employee | Employee nav | No Approvals nav (approve codes not seeded for queue) |
+| Client Admin | Client nav (+ portal flags) | None |
+| Client Viewer | Client nav (read-leaning; flags) | None |
 | Applicant | Applicant nav | None |
 
 Exact matrix: [PERMISSIONS.md](./PERMISSIONS.md).

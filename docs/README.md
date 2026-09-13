@@ -20,6 +20,9 @@ Index for the Beepa BPO platform (`beepabpo.com`): Next.js App Router + Supabase
 | [TEST_PLAN.md](./TEST_PLAN.md) | Full release gate (automated + manual + backlog) |
 | [DEMO_SCRIPT.md](./DEMO_SCRIPT.md) | Live demo order and landmines to avoid |
 | [QA_CHECKLIST.md](./QA_CHECKLIST.md) | Automated vs manual QA |
+| [ROLE_CHECKLIST.md](./ROLE_CHECKLIST.md) | Per-role manual walkthrough |
+| [COMPLETION_LEDGER.md](./COMPLETION_LEDGER.md) | Living principal QA progress + role matrix |
+| [SYSTEM_AUDIT.md](./SYSTEM_AUDIT.md) | Principal audit P0–P2 + deferred |
 | [CHANGELOG.md](./CHANGELOG.md) | Build phases |
 
 ## Quick links

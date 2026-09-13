@@ -37,16 +37,16 @@ Auth and access routes are listed at the bottom.
 | `/app/client/attendance` | segment | `client_attendance_summary` | filters: `from`/`to`/`status` |
 | `/app/client/timesheets` | segment | `client_attendance_summary` | Approve / Send back when `allow_timesheet_approval` |
 | `/app/client/performance` | segment | KPIs for visible employees | — |
-| `/app/client/requests` | segment | client tickets | create ticket |
-| `/app/client/tickets` | segment | `tickets` + SLA badges | create ticket |
-| `/app/client/tickets/[id]` | segment | ticket + messages + SLA | reply (client-visible) |
-| `/app/client/approvals` | segment | `client_review` timesheets | Approve / Send back (`reviewClientTimesheet`) |
+| `/app/client/requests` | segment + `allow_ticketing` | client tickets | create via tickets when flag on |
+| `/app/client/tickets` | segment + `allow_ticketing` | `tickets` + SLA badges | create ticket |
+| `/app/client/tickets/[id]` | segment + `allow_ticketing` | ticket + messages + SLA | reply (client-visible) |
+| `/app/client/approvals` | segment + `allow_timesheet_approval` | `client_review` timesheets | Approve / Send back |
 | `/app/client/reports` | segment | team + attendance summary | — |
-| `/app/client/documents` | segment | client documents + Storage | upload + signed download (needs migration `20260907140000` on Beepa) |
-| `/app/client/billing` | segment | `invoices` | list → detail |
-| `/app/client/billing/[id]` | segment | invoice + items + payments | read-only detail |
-| `/app/billing` | perm `billing.read` | invoices | issue if `billing.manage`; list |
-| `/app/billing/[id]` | perm `billing.read` | invoice detail | record payment if `billing.manage` |
+| `/app/client/documents` | segment | client documents + Storage | upload + signed download |
+| `/app/client/billing` | segment + `allow_billing_view` | `invoices` | list → detail |
+| `/app/client/billing/[id]` | segment + `allow_billing_view` | invoice + items + payments | read-only detail |
+| `/app/billing` | `requireInternal` + `billing.read` | invoices | issue if `billing.manage`; list |
+| `/app/billing/[id]` | `requireInternal` + `billing.read` | invoice detail | record payment if `billing.manage` |
 | `/app/client/settings` | segment | `client_profiles`, `client_settings` | change password |
 | `/app/client/notifications` | segment | `notifications`, preferences | mark read / prefs |
 
@@ -67,41 +67,41 @@ Public CMS read: `/about` (settings + industries + testimonials), `/services`, `
 | Route | Guard | Data | Key actions |
 |-------|-------|------|-------------|
 | `/app` | proxy + layout | — | redirects via `landingPathFor` |
-| `/app/dashboard` | perm `system.manage` | memberships, approvals, clients, tickets | — |
-| `/app/hr` | canAny employees/leave | employee/leave/attendance counts | links to tools |
-| `/app/hr/nte` | perm `nte.read` | `nte_cases`, responses | create; resolve if `nte.manage` |
-| `/app/employees` | perm `employees.read` | `employees` | search `q` (DB) |
-| `/app/employees/[id]` | perm `employees.read` | employee detail + docs | HR upload if `employees.documents.manage` |
-| `/app/attendance` | perm `attendance.read` | `attendance_records` | Send to client (`submitTimesheetForClientReview`) |
-| `/app/leave` | perm `leave.approve` | `leave_requests` (filter `status`) | approve/reject only if current-step actor |
-| `/app/cash-advances` | perm `cash_advance.read` | `cash_advance_requests` | review only if current-step actor (`cash_advance.manage` / `.approve`) |
-| `/app/payroll` | canAny payroll.* | period metrics | link to periods |
-| `/app/payroll/periods` | perm `payroll.read` | `payroll_periods` | create if `payroll.manage` |
-| `/app/payroll/periods/[id]` | perm `payroll.read` | period + `payroll_records` | recalculate; submit for approval (`payroll.manage`); Approve/Reject when current step (`payroll.manage` / `payroll.approve`) |
-| `/app/recruitment` | canAny recruitment.* | job/application counts | — |
-| `/app/recruitment/jobs` | perm `recruitment.read` | `job_posts` | create; publish/close; edit at `/jobs/[id]` |
-| `/app/recruitment/jobs/[id]` | perm `recruitment.read` | job detail | update form + status actions (`recruitment.manage`) |
-| `/app/recruitment/applicants` | perm `recruitment.read` | `job_applications` | filters `q`/`stage` |
-| `/app/recruitment/applicants/[id]` | perm `recruitment.read` | application detail | `updateApplicationStage` (confirm) |
-| `/app/crm` | canAny crm.* | lead + deal counts | links to leads/deals |
-| `/app/crm/leads` | perm `crm.read` | `crm_leads` | create; filters; status update if `crm.manage` |
-| `/app/crm/leads/[id]` | perm `crm.read` | lead + activities | status update; open deal if `crm.manage` |
-| `/app/crm/deals` | perm `crm.read` | `crm_deals` | create; stage filter; stage update if `crm.manage` |
-| `/app/crm/deals/[id]` | perm `crm.read` | deal + activities + proposals | stage update if `crm.manage`; convert to client if won + `clients.manage` |
-| `/app/crm/proposals` | perm `crm.read` | `crm_proposals` | create + status if `crm.manage` |
-| `/app/clients` | canAny clients.* | client `organizations` + memberships | invite client_admin/viewer if `clients.manage` |
-| `/app/tickets` | perm `tickets.read` | `tickets` + SLA + assignee | status (confirm); filters |
-| `/app/tickets/sla` | perm `tickets.manage` | Beepa `ticket_sla_policies` | create missing / update targets |
-| `/app/tickets/[id]` | perm `tickets.read` | ticket, messages, SLA, assignee | assign + status if `tickets.manage`; reply |
-| `/app/reports` | canAny reports.* | workforce/ticket/CRM counts | CSV export if `reports.export` |
-| `/app/reports/export` | perm `reports.export` | CSV download (`?dataset=`) | snapshot\|employees\|attendance\|tickets\|leads |
-| `/app/cms` | perm `cms.manage` | services, blog, faqs, industries, testimonials, case_studies, site_settings | create drafts; publish/archive; About upsert |
-| `/app/admin/workflows` | perm `system.manage` | `approval_workflows` + steps | read-only map |
-| `/app/approvals` | perm `approvals.act` | `approval_requests` | deep-link Review only when current-step actor |
-| `/app/admin` | perm `system.manage` | profile/org counts | links to users/orgs/audit |
-| `/app/admin/users` | perm `system.manage` | memberships + roles | invite internal + search |
-| `/app/admin/organizations` | perm `system.manage` | `organizations` | read-only list |
-| `/app/admin/audit` | perm `system.manage` | `audit_logs` | filter `q` |
+| `/app/attendance` | `requireInternal` + `attendance.read` | `attendance_records` | Send to client (`submitTimesheetForClientReview`; dual membership OK if internal) |
+| `/app/leave` | `requireInternal` + `leave.approve` | `leave_requests` (filter `status`) | approve/reject only if current-step actor |
+| `/app/cash-advances` | `requireInternal` + `cash_advance.read` | `cash_advance_requests` | review only if current-step actor |
+| `/app/payroll` | `requireInternal` + payroll.* | period metrics | link to periods |
+| `/app/payroll/periods` | `requireInternal` + `payroll.read` | `payroll_periods` | create if `payroll.manage` |
+| `/app/payroll/periods/[id]` | `requireInternal` + `payroll.read` | period + `payroll_records` | recalculate; submit; Approve/Reject |
+| `/app/recruitment` | `requireInternal` + recruitment.* | job/application counts | — |
+| `/app/recruitment/jobs` | `requireInternal` + `recruitment.read` | `job_posts` | create; publish/close; edit |
+| `/app/recruitment/jobs/[id]` | `requireInternal` + `recruitment.read` | job detail | update + status (`recruitment.manage`) |
+| `/app/recruitment/applicants` | `requireInternal` + `recruitment.read` | `job_applications` | filters `q`/`stage` |
+| `/app/recruitment/applicants/[id]` | `requireInternal` + `recruitment.read` | application detail | stage update |
+| `/app/crm` | `requireInternal` + crm.* | pipeline workbench | links to leads/deals/proposals |
+| `/app/crm/leads` | `requireInternal` + `crm.read` | `crm_leads` | create; filters; status |
+| `/app/crm/leads/[id]` | `requireInternal` + `crm.read` | lead + activities | status; open deal |
+| `/app/crm/deals` | `requireInternal` + `crm.read` | `crm_deals` | create; stage |
+| `/app/crm/deals/[id]` | `requireInternal` + `crm.read` | deal + proposals | stage; convert won |
+| `/app/crm/proposals` | `requireInternal` + `crm.read` | `crm_proposals` | create + status |
+| `/app/clients` | `requireInternal` + clients.* | client orgs | invite if `clients.manage` |
+| `/app/tickets` | `requireInternal` + `tickets.read` | `tickets` + SLA | status; filters |
+| `/app/tickets/sla` | `requireInternal` + tickets.manage AND clients.manage | SLA policies | create/update |
+| `/app/tickets/[id]` | `requireInternal` + `tickets.read` | ticket detail | assign/status/reply |
+| `/app/reports` | `requireInternal` + reports.* | snapshot counts | CSV if export |
+| `/app/reports/export` | `requireInternal` + `reports.export` | CSV | datasets capped 2k |
+| `/app/cms` | `requireInternal` + `cms.manage` | CMS entities | draft/publish |
+| `/app/hr` | `requireInternal` + employees/leave | counts | hub links |
+| `/app/hr/nte` | `requireInternal` + `nte.read` | `nte_cases` | create/resolve |
+| `/app/employees` | `requireInternal` + `employees.read` | `employees` | search |
+| `/app/employees/[id]` | `requireInternal` + `employees.read` | employee detail | edit if manage |
+| `/app/dashboard` | `requireInternal` + `system.manage` | org metrics | — |
+| `/app/admin` | `requireInternal` + `system.manage` | counts | links |
+| `/app/admin/users` | `requireInternal` + `system.manage` | memberships | invite/role/revoke |
+| `/app/admin/organizations` | `requireInternal` + `system.manage` | orgs | **RO** |
+| `/app/admin/audit` | `requireInternal` + `system.manage` | audit_logs | filter |
+| `/app/admin/workflows` | `requireInternal` + `system.manage` | workflows | **RO** |
+| `/app/approvals` | `requireInternal` + specific approve codes | approval_requests | current-step only |
 
 ## Auth and access
 

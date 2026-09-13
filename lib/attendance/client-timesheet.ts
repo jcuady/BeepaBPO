@@ -140,11 +140,14 @@ export async function submitTimesheetForClientReview(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
-  if (workspace.isClient) {
+  if (workspace.isClient && !workspace.isInternal) {
     return {
       ok: false,
       error: "Client users cannot submit timesheets into the review queue.",
     };
+  }
+  if (!workspace.isInternal) {
+    return { ok: false, error: "Staff access required." };
   }
   if (
     !canAny(workspace.permissions, [

@@ -21,6 +21,7 @@ export async function createPayrollPeriod(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   if (!can(workspace.permissions, "payroll.manage")) {
     return {
       ok: false,
@@ -125,6 +126,7 @@ export async function recalculatePayrollRecord(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   if (!can(workspace.permissions, "payroll.manage")) {
     return { ok: false, error: "You do not have permission to recalculate payroll." };
   }
@@ -158,6 +160,7 @@ export async function submitPayrollPeriodForApproval(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   if (!can(workspace.permissions, "payroll.manage")) {
     return {
       ok: false,
@@ -243,6 +246,7 @@ export async function reviewPayrollPeriod(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   if (
     !can(workspace.permissions, "payroll.manage") &&
     !can(workspace.permissions, "payroll.approve")

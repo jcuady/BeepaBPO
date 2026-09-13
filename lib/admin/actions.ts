@@ -20,6 +20,7 @@ export async function inviteInternalUser(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "system.manage");
 
   const parsed = adminInviteSchema.safeParse(input);
@@ -129,6 +130,7 @@ export async function runCronDryRun(): Promise<
 > {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "system.manage");
 
   const result = await runCronJobs({ job: "all", dryRun: true });
@@ -151,6 +153,7 @@ export async function runCronDryRun(): Promise<
 export async function sendAdminTestPush(): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "system.manage");
 
   try {
@@ -215,6 +218,7 @@ export async function updateInternalMembershipRole(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "system.manage");
 
   const parsed = adminMembershipRoleSchema.safeParse(input);
@@ -297,6 +301,7 @@ export async function revokeMembership(
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
   requirePermission(workspace, "system.manage");
 
   const parsed = adminMembershipRevokeSchema.safeParse(input);

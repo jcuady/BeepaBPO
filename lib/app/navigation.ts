@@ -80,7 +80,12 @@ export const clientNav: NavItem[] = [
     portalFlag: "allowTimesheetApproval",
   },
   { title: "Performance", href: "/app/client/performance", icon: IconChartBar },
-  { title: "Requests", href: "/app/client/requests", icon: IconFileText },
+  {
+    title: "Requests",
+    href: "/app/client/requests",
+    icon: IconFileText,
+    portalFlag: "allowTicketing",
+  },
   {
     title: "Tickets",
     href: "/app/client/tickets",
