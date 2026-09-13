@@ -9,16 +9,13 @@ import {
 describe("site URL resolution for SEO", () => {
   it("maps localhost production env to beepabpo.com", () => {
     const prevVercel = process.env.VERCEL_ENV;
-    const prevNode = process.env.NODE_ENV;
     process.env.VERCEL_ENV = "production";
-    process.env.NODE_ENV = "production";
     expect(resolveSiteUrl("http://localhost:3005")).toBe(PRODUCTION_SITE_URL);
     expect(resolveSiteUrl("https://beepabpo.vercel.app")).toBe(
       PRODUCTION_SITE_URL,
     );
     expect(resolveSiteUrl("https://beepabpo.com")).toBe(PRODUCTION_SITE_URL);
     process.env.VERCEL_ENV = prevVercel;
-    process.env.NODE_ENV = prevNode;
   });
 
   it("keeps explicit non-local URLs in non-production", () => {
