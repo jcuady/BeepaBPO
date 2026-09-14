@@ -32,26 +32,29 @@ export const resolveWorkspace = cache(
     } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-    if (profileError || !profile) return null;
-
-    const { data: membershipsRaw } = await supabase
-      .from("organization_memberships")
-      .select(
-        `
+    const [profileResult, membershipsResult, permissionResult] =
+      await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user.id).single(),
+        supabase
+          .from("organization_memberships")
+          .select(
+            `
       *,
-      organization:organizations (*),
+      organization:organizations (id, name, type, status, slug, timezone),
       membership_roles (
-        roles (*)
+        roles (id, code, name, scope)
       )
     `,
-      )
-      .eq("user_id", user.id)
-      .eq("status", "active");
+          )
+          .eq("user_id", user.id)
+          .eq("status", "active"),
+        supabase.rpc("user_permission_codes"),
+      ]);
+
+    const { data: profile, error: profileError } = profileResult;
+    if (profileError || !profile) return null;
+
+    const membershipsRaw = membershipsResult.data;
 
     const memberships: MembershipWithOrg[] = (membershipsRaw ?? []).map(
       (row) => {
@@ -67,10 +70,7 @@ export const resolveWorkspace = cache(
       },
     );
 
-    const { data: permissionCodes } = await supabase.rpc(
-      "user_permission_codes",
-    );
-    const permissions = new Set<string>(permissionCodes ?? []);
+    const permissions = new Set<string>(permissionResult.data ?? []);
 
     const primaryMembership =
       memberships.find((m) => m.is_primary) ??

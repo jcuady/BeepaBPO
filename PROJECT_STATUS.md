@@ -1,20 +1,20 @@
 # PROJECT_STATUS — Beepa / BeepoBeepa
 
-**Updated:** 2026-09-13  
-**Branch:** `main` (uncommitted completion pass pending commit/deploy)  
-**Overall:** **READY** (codebase gates) — deploy latest commit for production parity on lag/EmptyState/viewport clip fixes.
+**Updated:** 2026-09-14  
+**Branch:** `main`  
+**Overall:** **READY** — shell latency + attendance clock + live refresh shipped in code. Apply migration `20260914120000` on `nwvnawgxkzwiercllgmg` for indexes/realtime publication.
 
 ## Health
 
 | Area | Status |
 |------|--------|
-| Overall | READY (verified locally + live role landings) |
-| Frontend | GOOD — query caps, loading skeletons, EmptyState, overflow-x-clip |
-| Backend | GOOD — staff mutations + ticket RLS internal |
-| Database | GOOD — linked `nwvnawgxkzwiercllgmg` |
-| Testing | PASS — typecheck · lint · vitest 184 · build · Playwright viewport 24 · local e2e · live roles 16 landings + isolation |
+| Overall | READY |
+| Frontend | GOOD — visible skeletons, clock on Attendance, realtime refresh |
+| Backend | GOOD — parallel workspace resolve |
+| Database | GOOD — migration ready; **NOT applied via MCP** (wrong linked project) |
+| Testing | See latest `pnpm typecheck` / `pnpm test` this session |
 | CI | Node 22 + pnpm |
-| Docs | `docs/COMPLETION_LEDGER.md` living source of truth |
+| Docs | Ledger + SYSTEM_AUDIT + CHANGELOG updated |
 
 ## Auth
 
@@ -22,16 +22,16 @@ Email/password only. OAuth deferred.
 
 ## Highest-value next
 
-1. **Commit + deploy** this completion pass so beepabpo.com matches local READY  
-2. Ops: Auth leaked-password + Serwist/`browserslist` when available  
+1. Apply `supabase/migrations/20260914120000_realtime_and_attendance_indexes.sql` on linked Beepa DB  
+2. Deploy this pass so beepabpo.com matches local  
 3. Pagination UI where silent `.limit` caps apply  
 4. OAuth / FTS / announcements — deferred  
 5. Org/workflow CRUD — **keep RO**
 
 ## Demo-safe promise
 
-No known P0/P1. Live demo role landings verified on https://beepabpo.com (2026-09-13). Remaining risk is deploy lag until this branch’s uncommitted fixes ship.
+Clock in/out is on `/app/my/attendance`. CRM blank screen was the mist-on-mist skeleton during the sequential workspace wait — both fixed.
 
 ## Campaign
 
-See [docs/COMPLETION_LEDGER.md](docs/COMPLETION_LEDGER.md). **READY** after Prompt 7 (viewport + live roles + admin search).
+See [docs/COMPLETION_LEDGER.md](docs/COMPLETION_LEDGER.md).

@@ -9,6 +9,7 @@ import { IconBriefcase } from "@tabler/icons-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageContainer } from "@/components/app/page-container";
+import { RealtimeRefresh } from "@/components/app/realtime-refresh";
 
 export const metadata: Metadata = { title: "My Applications" };
 
@@ -36,13 +37,24 @@ export default async function ApplicantPage() {
       .from("job_applications")
       .select("id, stage, created_at, job_posts(title, slug, status)")
       .eq("applicant_id", applicant.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(50);
 
     applications = (data ?? []) as typeof applications;
   }
 
   return (
     <PageContainer size="narrow">
+      {applicant ? (
+        <RealtimeRefresh
+          tables={[
+            {
+              table: "job_applications",
+              filter: `applicant_id=eq.${applicant.id}`,
+            },
+          ]}
+        />
+      ) : null}
       <PageHeader
         name={workspace.profile.first_name}
         subtitle="Track your application status and next steps."

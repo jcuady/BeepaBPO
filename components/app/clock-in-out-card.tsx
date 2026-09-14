@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { IconClock, IconClockOff } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ export function ClockInOutCard({
   isClockedIn,
   locationLabel = "Default location",
 }: ClockInOutCardProps) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   function handleClock() {
@@ -23,6 +25,7 @@ export function ClockInOutCard({
       const result = isClockedIn ? await clockOut() : await clockIn();
       if (result.ok) {
         toast.success(isClockedIn ? "Clocked out" : "Clocked in");
+        router.refresh();
       } else {
         toast.error(result.error ?? "Unable to record attendance.");
       }
@@ -42,7 +45,11 @@ export function ClockInOutCard({
           disabled={pending}
           onClick={handleClock}
         >
-          {isClockedIn ? (
+          {pending
+            ? isClockedIn
+              ? "Clocking out…"
+              : "Clocking in…"
+            : isClockedIn ? (
             <>
               <IconClockOff stroke={1.75} className="size-5" />
               Clock Out

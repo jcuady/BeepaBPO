@@ -3,6 +3,8 @@ import { format } from "date-fns";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { AttendanceCorrectionForm } from "@/components/app/attendance/correction-request-form";
+import { ClockInOutCard } from "@/components/app/clock-in-out-card";
+import { RealtimeRefresh } from "@/components/app/realtime-refresh";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { createClient } from "@/lib/supabase/server";
@@ -20,6 +22,7 @@ export default async function MyAttendancePage() {
 
   const employee = await resolveEmployeeForUser(workspace.user.id);
   const supabase = await createClient();
+  const today = format(new Date(), "yyyy-MM-dd");
 
   let records: {
     id: string;
@@ -42,29 +45,70 @@ export default async function MyAttendancePage() {
     records = data ?? [];
   }
 
+  const todayRecord = records.find((row) => row.work_date === today);
+  const isClockedIn = Boolean(
+    todayRecord?.clock_in_at && !todayRecord?.clock_out_at,
+  );
+
   return (
     <PageContainer>
+      {employee ? (
+        <RealtimeRefresh
+          tables={[
+            {
+              table: "attendance_records",
+              filter: `employee_id=eq.${employee.id}`,
+            },
+          ]}
+        />
+      ) : null}
       <PageHeader
         name={workspace.profile.first_name}
-        subtitle="Review your attendance history and corrections."
+        subtitle="Clock in or out, then review your history and corrections."
       />
 
-      <Card className="">
-        <CardHeader>
-          <CardTitle className="font-display text-base text-navy">
-            Request correction
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {employee ? (
-            <AttendanceCorrectionForm records={records} />
-          ) : (
-            <p className="text-sm text-slate">
-              Link your employee profile to request attendance corrections.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {employee ? (
+          <ClockInOutCard
+            isClockedIn={isClockedIn}
+            locationLabel={
+              isClockedIn
+                ? "You are clocked in. Clock out when your shift ends."
+                : "Use Clock In when your shift starts."
+            }
+          />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-base text-navy">
+                Clock In / Out
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate">
+                Link your employee profile to clock in and out.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-display text-base text-navy">
+              Request correction
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {employee ? (
+              <AttendanceCorrectionForm records={records} />
+            ) : (
+              <p className="text-sm text-slate">
+                Link your employee profile to request attendance corrections.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {records.length === 0 ? (
         <EmptyState
@@ -75,10 +119,7 @@ export default async function MyAttendancePage() {
       ) : (
         <div className="space-y-2">
           {records.map((row) => (
-            <Card
-              key={row.id}
-              className=""
-            >
+            <Card key={row.id}>
               <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div>
                   <p className="font-medium text-navy">

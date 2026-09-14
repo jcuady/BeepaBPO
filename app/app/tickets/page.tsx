@@ -10,6 +10,7 @@ import { TicketStatusForm } from "@/components/app/tickets/ticket-status-form";
 import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
 import { CreateTicketForm } from "@/components/app/tickets/create-ticket-form";
 import { PageContainer } from "@/components/app/page-container";
+import { RealtimeRefresh } from "@/components/app/realtime-refresh";
 import {
   Table,
   TableBody,
@@ -75,6 +76,7 @@ export default async function InternalTicketsPage({
 
   return (
     <PageContainer>
+      <RealtimeRefresh tables={[{ table: "tickets" }]} />
       <PageHeader
         name={workspace.profile.first_name}
         subtitle="Manage support queues and update ticket status."

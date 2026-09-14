@@ -12,6 +12,7 @@ import { format, startOfWeek, addDays } from "date-fns";
 import { PageHeader } from "@/components/app/page-header";
 import { MetricCard } from "@/components/app/metric-card";
 import { ClockInOutCard } from "@/components/app/clock-in-out-card";
+import { RealtimeRefresh } from "@/components/app/realtime-refresh";
 import { WeeklyAttendanceChartLazy as WeeklyAttendanceChart } from "@/components/app/charts-lazy";
 import { EmptyState } from "@/components/app/empty-state";
 import { StatusBadge } from "@/components/app/status-badge";
@@ -172,6 +173,16 @@ export default async function EmployeeDashboardPage() {
 
   return (
     <PageContainer size="wide">
+      {employee ? (
+        <RealtimeRefresh
+          tables={[
+            {
+              table: "attendance_records",
+              filter: `employee_id=eq.${employee.id}`,
+            },
+          ]}
+        />
+      ) : null}
       <PageHeader
         name={name}
         subtitle="Here's your time, tasks, and updates for today."

@@ -1,8 +1,8 @@
 # Completion ledger — Principal QA campaign
 
 **Started:** 2026-09-13  
-**Last updated:** 2026-09-13 (Prompt 7 — viewport + live roles + alignment)  
-**Campaign status:** **READY** (codebase) — commit/deploy for production parity on uncommitted fixes
+**Last updated:** 2026-09-14 (Prompt 8 — shell latency + attendance clock + realtime)  
+**Campaign status:** **READY** — apply migration `20260914120000` on Beepa DB, then deploy
 
 ## Done criteria (100%)
 
@@ -15,7 +15,7 @@
 | 5 | Automated gates green | **PASS** — typecheck · lint · vitest 184 · **build** · Playwright viewport **24/24** · roles/e2e |
 | 6 | PROJECT_STATUS honest | **PASS** → READY |
 
-**Overall:** READY (deploy pending for latest local fixes on production CDN)
+**Overall:** READY — clock on Attendance; workspace queries parallel; live refresh on CRM/tickets/attendance. Apply `20260914120000` on `nwvnawgxkzwiercllgmg`.
 
 ---
 
@@ -51,6 +51,10 @@ Query caps, loading skeletons, notification ActionResult, admin role ConfirmDial
 | Open-redirect e2e | Assert against `baseURL` host, not hardcoded localhost |
 | Ticket message caps | Staff/client/my threads `.limit(200)` |
 
+### Prompt 8 — Shell latency + clock + realtime (2026-09-14)
+
+Parallel workspace resolve, visible skeletons, Clock In/Out on `/app/my/attendance`, debounced realtime on attendance/CRM/tickets.
+
 ---
 
 ## Role × page matrix (seeded demo roles)
@@ -71,7 +75,8 @@ Query caps, loading skeletons, notification ActionResult, admin role ConfirmDial
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| Deploy uncommitted READY pass | Ops | Production still on prior deploy for UI lag fixes |
+| Apply `20260914120000` on Beepa DB | Ops | Indexes + realtime publication |
+| Deploy shell-latency pass | Ops | Clock on Attendance + parallel workspace |
 | List pagination UI | P2 | Silent `.limit` remains |
 | Admin search by role name | Low | Name/org only now |
 | OAuth / FTS / announcements | DEF | |

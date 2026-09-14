@@ -14,6 +14,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageContainer } from "@/components/app/page-container";
+import { RealtimeRefresh } from "@/components/app/realtime-refresh";
 
 export const metadata: Metadata = { title: "Tickets" };
 
@@ -70,6 +71,19 @@ export default async function ClientTicketsPage() {
 
   return (
     <PageContainer>
+      <RealtimeRefresh
+        tables={[
+          clientOrgId
+            ? {
+                table: "tickets",
+                filter: `client_organization_id=eq.${clientOrgId}`,
+              }
+            : {
+                table: "tickets",
+                filter: `requester_user_id=eq.${workspace.user.id}`,
+              },
+        ]}
+      />
       <PageHeader
         name={workspace.profile.first_name}
         subtitle="Track support and service tickets."

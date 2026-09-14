@@ -62,7 +62,7 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 
 | Check | Status |
 |-------|--------|
-| Clock in/out | OK |
+| Clock in/out on My Workspace **and** Attendance | OK | Same `ClockInOutCard` + live refresh |
 | Leave / cash advance / tickets / payslip | OK / Live |
 | Settings password | OK |
 

@@ -2,7 +2,7 @@
 
 ## Summary
 
-- **Audit date:** 2026-09-13 (Principal completion QA through Prompt 7)
+- **Audit date:** 2026-09-14 (shell latency + attendance clock + realtime)
 - **Branch:** `main`
 - **Framework:** Next.js 16 App Router + React 19 + Supabase Auth/RLS
 - **Live:** https://beepabpo.com · DB `nwvnawgxkzwiercllgmg`
@@ -34,6 +34,8 @@
 | Payroll/admin/clients actions | No `isInternal` | Staff access gate | Unit seam |
 | Client dashboard compile | Orphan query chain | Fixed Promise.all entry | typecheck |
 | Unbounded portal/staff lists | TTFB lag risk | `.limit` caps + loading.tsx | code review |
+| App shell 2–5s blank | Sequential workspace + invisible skeletons | Parallel RPC + skip unread wait + visible skeletons | typecheck + seam tests |
+| Attendance page no clock | Clock card only on `/app/my` | Clock In/Out on `/app/my/attendance` | source scan |
 
 ## Missing / deferred
 
@@ -44,6 +46,7 @@
 | Real FTS search | DEF | Cmd+K nav-only |
 | Announcements CMS | DEF | |
 | Social OAuth | DEF | |
+| Apply `20260914120000` on prod DB | Ops | Indexes + realtime publication; MCP was the wrong project |
 | List pagination UI | P2 | Silent `.limit` |
 | Owner KPI targets | P2 | Dashboard Spec Grill |
 | Serwist browserslist | Ops | |

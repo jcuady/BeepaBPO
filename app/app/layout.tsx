@@ -25,26 +25,19 @@ export default async function AppLayout({
     return children;
   }
 
-  const supabase = await createClient();
-  const unreadPromise = supabase
-    .from("notifications")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", workspace.user.id)
-    .is("read_at", null);
-
   let clientPortalFlags = null;
   if (workspace.isClient) {
+    const supabase = await createClient();
     const orgId = getClientOrganizationId(workspace);
     if (orgId) {
       clientPortalFlags = await loadClientPortalFlags(supabase, orgId);
     }
   }
 
-  const { count: unreadCount } = await unreadPromise;
   const serialized = serializeWorkspace(workspace, clientPortalFlags);
 
   return (
-    <AppShell workspace={serialized} unreadCount={unreadCount ?? 0}>
+    <AppShell workspace={serialized}>
       {children}
     </AppShell>
   );

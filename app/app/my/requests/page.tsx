@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/app/page-container";
+import { RealtimeRefresh } from "@/components/app/realtime-refresh";
 
 export const metadata: Metadata = { title: "Requests" };
 
@@ -59,6 +60,14 @@ export default async function MyRequestsPage() {
 
   return (
     <PageContainer>
+      <RealtimeRefresh
+        tables={[
+          {
+            table: "tickets",
+            filter: `requester_user_id=eq.${workspace.user.id}`,
+          },
+        ]}
+      />
       <PageHeader
         name={workspace.profile.first_name}
         subtitle="Track tickets, cash advances, and approval requests."

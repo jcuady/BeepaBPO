@@ -18,18 +18,32 @@ export type SerializedWorkspace = {
   clientPortalFlags: ClientPortalFlags | null;
 };
 
+/** Prefer a named staff role over a generic Employee label when both exist. */
+export function pickRoleLabel(
+  roles: { code?: string | null; name: string }[] | undefined,
+  fallback: string,
+): string {
+  if (!roles?.length) return fallback;
+  return (
+    roles.find((role) => role.code && role.code !== "employee")?.name ??
+    roles[0].name
+  );
+}
+
 export function serializeWorkspace(
   workspace: WorkspaceContext,
   clientPortalFlags: ClientPortalFlags | null = null,
 ): SerializedWorkspace {
   const primary = workspace.primaryMembership;
-  const roleLabel =
-    primary?.roles[0]?.name ??
-    (workspace.isClient
-      ? "Client"
-      : workspace.isInternal
-        ? "Employee"
-        : "Applicant");
+  const fallback = workspace.isClient
+    ? "Client"
+    : workspace.isInternal
+      ? "Employee"
+      : "Applicant";
+  const roleLabel = pickRoleLabel(
+    workspace.memberships.flatMap((m) => m.roles),
+    fallback,
+  );
 
   return {
     userId: workspace.user.id,

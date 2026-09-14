@@ -22,6 +22,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { canAny } from "@/lib/permissions/can";
 import { AdminOpsSmokeActions } from "@/components/app/admin/admin-ops-smoke-actions";
+import { RealtimeRefresh } from "@/components/app/realtime-refresh";
 
 export async function HrPage() {
   const workspace = await resolveWorkspace();
@@ -284,6 +285,9 @@ export async function CrmPage() {
 
   return (
     <PageContainer>
+      <RealtimeRefresh
+        tables={[{ table: "crm_leads" }, { table: "crm_deals" }]}
+      />
       <PageHeader
         name={workspace.profile.first_name}
         subtitle="Work the pipeline — new leads, open value, and aging risks."

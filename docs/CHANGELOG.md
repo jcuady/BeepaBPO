@@ -2,6 +2,16 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## Shell latency + live data (2026-09-14)
+
+- Workspace resolve now loads profile, memberships, and `user_permission_codes` in one `Promise.all` (was 3 sequential round-trips).
+- App layout no longer waits on unread notification count; the bell already fetches live.
+- Loading skeletons use white cards so CRM/hubs no longer look blank on `bg-mist`.
+- Employee `/app/my/attendance` has Clock In / Out (same `clock_event` action as My Workspace).
+- Debounced realtime refresh on attendance, CRM hub, and staff tickets. Migration `20260914120000` adds indexes + `supabase_realtime` publication — apply on linked DB `nwvnawgxkzwiercllgmg`.
+- Header role label prefers Sales/HR over generic Employee across all memberships (not only the primary row).
+- Live refresh also on client tickets, employee requests, and applicant applications (scoped filters).
+
 ## Auth + shell
 
 Supabase Auth, employee vs client login, workspace resolution, app shell/sidebar, permission helpers (`can` / `requirePermission`), marketing + auth layouts.
