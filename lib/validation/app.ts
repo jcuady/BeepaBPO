@@ -19,6 +19,40 @@ export const attendanceCorrectionSchema = z.object({
   requested_clock_out_at: z.string().optional(),
 });
 
+const attendanceStatuses = [
+  "present",
+  "late",
+  "absent",
+  "leave",
+  "rest_day",
+  "holiday",
+  "incomplete",
+] as const;
+
+const hhmm = z
+  .string()
+  .regex(/^$|^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/, "Use 24-hour HH:mm.");
+
+export const attendanceRecordUpsertSchema = z
+  .object({
+    id: z.union([z.string().uuid(), z.literal("")]).optional(),
+    employee_id: z.string().uuid("Select an employee."),
+    work_date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Work date is required."),
+    status: z.enum(attendanceStatuses),
+    clock_in: hhmm.optional(),
+    clock_out: hhmm.optional(),
+  })
+  .refine((data) => !data.clock_out || data.clock_in, {
+    message: "Clock in is required when clock out is set.",
+    path: ["clock_in"],
+  });
+
+export const attendanceRecordDeleteSchema = z.object({
+  id: z.string().uuid("Record is required."),
+});
+
 export const ticketSchema = z.object({
   category: z.string().min(1, "Select a category."),
   subject: z.string().min(3, "Subject is required.").max(200),

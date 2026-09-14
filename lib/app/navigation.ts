@@ -119,6 +119,12 @@ export const adminNavGroups: NavGroup[] = [
         permission: ["employees.read", "employees.manage", "leave.read"],
       },
       {
+        title: "Attendance",
+        href: "/app/attendance",
+        icon: IconClock,
+        permission: ["attendance.read", "attendance.manage"],
+      },
+      {
         title: "NTE Cases",
         href: "/app/hr/nte",
         icon: IconFileText,

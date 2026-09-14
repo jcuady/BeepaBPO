@@ -54,7 +54,7 @@ export async function HrPage() {
   const links = [
     { href: "/app/employees", label: "Employees", permission: "employees.read" },
     { href: "/app/leave", label: "Leave approvals", permission: "leave.approve" },
-    { href: "/app/attendance", label: "Today's attendance", permission: "attendance.read" },
+    { href: "/app/attendance", label: "Team attendance", permission: "attendance.read" },
     { href: "/app/cash-advances", label: "Cash advances", permission: "cash_advance.read" },
   ].filter((link) => workspace.permissions.has(link.permission));
 
