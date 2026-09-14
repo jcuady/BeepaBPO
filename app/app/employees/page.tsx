@@ -4,6 +4,7 @@ import { IconUsers } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { FilterBar } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { StatusBadge } from "@/components/app/status-badge";
 import { PageContainer } from "@/components/app/page-container";
 import {
@@ -16,10 +17,12 @@ import {
 } from "@/components/ui/table";
 import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
-import { stringParam, ilikePattern } from "@/lib/app/search-params";
+import { stringParam, ilikePattern, pageParam } from "@/lib/app/search-params";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Employees" };
+
+const PAGE_SIZE = 50;
 
 export default async function EmployeesPage({
   searchParams,
@@ -33,11 +36,40 @@ export default async function EmployeesPage({
 
   const params = await searchParams;
   const q = stringParam(params.q);
+  const page = pageParam(params.page);
   const pattern = q ? ilikePattern(q) : undefined;
 
   const supabase = await createClient();
 
-  let employees: {
+  let query = supabase
+    .from("employees")
+    .select(
+      "id, employee_number, job_title, employment_status, profiles(display_name, first_name, last_name)",
+    )
+    .eq("employment_status", "active")
+    .order("employee_number")
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+
+  if (pattern) {
+    const { data: profileMatches } = await supabase
+      .from("profiles")
+      .select("id")
+      .or(
+        `display_name.ilike.${pattern},first_name.ilike.${pattern},last_name.ilike.${pattern}`,
+      )
+      .limit(200);
+    const profileIds = (profileMatches ?? []).map((p) => p.id);
+    query = profileIds.length
+      ? query.or(
+          `employee_number.ilike.${pattern},job_title.ilike.${pattern},profile_id.in.(${profileIds.join(",")})`,
+        )
+      : query.or(
+          `employee_number.ilike.${pattern},job_title.ilike.${pattern}`,
+        );
+  }
+
+  const { data } = await query;
+  const employees = (data ?? []) as {
     id: string;
     employee_number: string;
     job_title: string | null;
@@ -47,59 +79,7 @@ export default async function EmployeesPage({
       first_name: string;
       last_name: string;
     } | null;
-  }[] = [];
-
-  if (pattern) {
-    const [{ data: byEmp }, { data: profileMatches }] = await Promise.all([
-      supabase
-        .from("employees")
-        .select(
-          "id, employee_number, job_title, employment_status, profiles(display_name, first_name, last_name)",
-        )
-        .eq("employment_status", "active")
-        .or(`employee_number.ilike.${pattern},job_title.ilike.${pattern}`)
-        .order("employee_number")
-        .limit(100),
-      supabase
-        .from("profiles")
-        .select("id")
-        .or(
-          `display_name.ilike.${pattern},first_name.ilike.${pattern},last_name.ilike.${pattern}`,
-        )
-        .limit(100),
-    ]);
-
-    const profileIds = (profileMatches ?? []).map((p) => p.id);
-    let byProfile: typeof employees = [];
-    if (profileIds.length) {
-      const { data } = await supabase
-        .from("employees")
-        .select(
-          "id, employee_number, job_title, employment_status, profiles(display_name, first_name, last_name)",
-        )
-        .eq("employment_status", "active")
-        .in("profile_id", profileIds)
-        .order("employee_number")
-        .limit(100);
-      byProfile = (data ?? []) as typeof employees;
-    }
-
-    const map = new Map<string, (typeof employees)[number]>();
-    for (const row of [...(byEmp ?? []), ...byProfile] as typeof employees) {
-      map.set(row.id, row);
-    }
-    employees = [...map.values()].slice(0, 100);
-  } else {
-    const { data } = await supabase
-      .from("employees")
-      .select(
-        "id, employee_number, job_title, employment_status, profiles(display_name, first_name, last_name)",
-      )
-      .eq("employment_status", "active")
-      .order("employee_number")
-      .limit(100);
-    employees = (data ?? []) as typeof employees;
-  }
+  }[];
 
   return (
     <PageContainer>
@@ -171,6 +151,13 @@ export default async function EmployeesPage({
           </Table>
         </div>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={employees.length}
+        query={{ q }}
+      />
 
       <Link
         href="/app/hr"

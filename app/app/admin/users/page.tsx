@@ -6,6 +6,7 @@ import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { FilterBar } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { StatusBadge } from "@/components/app/status-badge";
 import { AdminInviteForm } from "@/components/app/admin/admin-invite-form";
 import { AdminMembershipActions } from "@/components/app/admin/admin-membership-actions";
@@ -24,9 +25,11 @@ import {
   requireInternal,
 } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
-import { stringParam, ilikePattern } from "@/lib/app/search-params";
+import { stringParam, ilikePattern, pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Users" };
+
+const PAGE_SIZE = 25;
 
 type MembershipRow = {
   id: string;
@@ -49,6 +52,7 @@ export default async function AdminUsersPage({
 
   const params = await searchParams;
   const q = stringParam(params.q);
+  const page = pageParam(params.page);
   const pattern = q ? ilikePattern(q) : undefined;
 
   const supabase = await createClient();
@@ -86,7 +90,7 @@ export default async function AdminUsersPage({
       )
       .in("status", ["active", "invited"])
       .order("created_at", { ascending: false })
-      .limit(pattern ? 100 : 250);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
     if (pattern) {
       const parts: string[] = [];
@@ -202,6 +206,13 @@ export default async function AdminUsersPage({
           </Table>
         </div>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={memberships.length}
+        query={{ q }}
+      />
 
       <Link
         href="/app/admin"

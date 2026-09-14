@@ -5,6 +5,7 @@ import { IconTicket } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { StatusBadge } from "@/components/app/status-badge";
 import { TicketStatusForm } from "@/components/app/tickets/ticket-status-form";
 import { TicketSlaBadge } from "@/components/app/tickets/ticket-sla-badge";
@@ -23,7 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
-import { stringParam, enumParam, ilikePattern } from "@/lib/app/search-params";
+import { stringParam, enumParam, ilikePattern, pageParam } from "@/lib/app/search-params";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Tickets" };
@@ -38,6 +39,7 @@ const STATUSES = [
 ] as const;
 
 const PRIORITIES = ["low", "normal", "high", "urgent"] as const;
+const PAGE_SIZE = 50;
 
 export default async function InternalTicketsPage({
   searchParams,
@@ -53,6 +55,7 @@ export default async function InternalTicketsPage({
   const q = stringParam(params.q);
   const status = enumParam(params.status, STATUSES);
   const priority = enumParam(params.priority, PRIORITIES);
+  const page = pageParam(params.page);
   const pattern = q ? ilikePattern(q) : undefined;
 
   const supabase = await createClient();
@@ -62,7 +65,7 @@ export default async function InternalTicketsPage({
       "id, ticket_number, subject, status, priority, category, created_at, sla_due_at, resolved_at, assigned_user_id, client_organization_id, organizations(name), assignee:profiles!tickets_assigned_user_id_fkey(display_name)",
     )
     .order("created_at", { ascending: false })
-    .limit(100);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   if (pattern) {
     query = query.or(`subject.ilike.${pattern},ticket_number.ilike.${pattern}`);
@@ -197,6 +200,13 @@ export default async function InternalTicketsPage({
           </Table>
         </div>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={tickets?.length ?? 0}
+        query={{ q, status, priority }}
+      />
     </PageContainer>
   );
 }

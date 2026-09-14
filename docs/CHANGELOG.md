@@ -2,13 +2,18 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## DB apply + list pagination (2026-09-14)
+
+- Applied `20260914120000` on Beepa project `nwvnawgxkzwiercllgmg`: attendance/CRM indexes and `supabase_realtime` publication for attendance, CRM, tickets, and job applications. Replica identity on attendance left default (follow-up only if clock-out live refresh fails).
+- URL `page` + shared `ListPager` on staff tickets/employees/CRM leads/deals/leave/applicants, client tickets, and admin users. Queries use `.range` instead of a silent `.limit`.
+
 ## Shell latency + live data (2026-09-14)
 
 - Workspace resolve now loads profile, memberships, and `user_permission_codes` in one `Promise.all` (was 3 sequential round-trips).
 - App layout no longer waits on unread notification count; the bell already fetches live.
 - Loading skeletons use white cards so CRM/hubs no longer look blank on `bg-mist`.
 - Employee `/app/my/attendance` has Clock In / Out (same `clock_event` action as My Workspace).
-- Debounced realtime refresh on attendance, CRM hub, and staff tickets. Migration `20260914120000` adds indexes + `supabase_realtime` publication — apply on linked DB `nwvnawgxkzwiercllgmg`.
+- Debounced realtime refresh on attendance, CRM hub, and staff tickets. Migration `20260914120000` (indexes + `supabase_realtime`) is applied on `nwvnawgxkzwiercllgmg`.
 - Header role label prefers Sales/HR over generic Employee across all memberships (not only the primary row).
 - Live refresh also on client tickets, employee requests, and applicant applications (scoped filters).
 

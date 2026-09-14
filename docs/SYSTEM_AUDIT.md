@@ -2,12 +2,12 @@
 
 ## Summary
 
-- **Audit date:** 2026-09-14 (shell latency + attendance clock + realtime)
+- **Audit date:** 2026-09-14 (Beepa DB indexes/realtime + list pagination)
 - **Branch:** `main`
 - **Framework:** Next.js 16 App Router + React 19 + Supabase Auth/RLS
 - **Live:** https://beepabpo.com · DB `nwvnawgxkzwiercllgmg`
 - **Build status:** `pnpm build` PASS this session
-- **Test status:** Vitest 184 · Playwright viewport 24 · live roles landings PASS
+- **Test status:** Vitest 192 · Playwright viewport 24 · live roles landings PASS
 - **OAuth:** Deferred (email/password only)
 - **Decision:** Admin **orgs / workflows stay view-only** (no CRUD)
 - **Ledger:** [COMPLETION_LEDGER.md](./COMPLETION_LEDGER.md)
@@ -34,6 +34,7 @@
 | Payroll/admin/clients actions | No `isInternal` | Staff access gate | Unit seam |
 | Client dashboard compile | Orphan query chain | Fixed Promise.all entry | typecheck |
 | Unbounded portal/staff lists | TTFB lag risk | `.limit` caps + loading.tsx | code review |
+| Silent list caps | No way to see page 2 | URL `page` + ListPager on hot queues | seam tests |
 | App shell 2–5s blank | Sequential workspace + invisible skeletons | Parallel RPC + skip unread wait + visible skeletons | typecheck + seam tests |
 | Attendance page no clock | Clock card only on `/app/my` | Clock In/Out on `/app/my/attendance` | source scan |
 
@@ -46,15 +47,16 @@
 | Real FTS search | DEF | Cmd+K nav-only |
 | Announcements CMS | DEF | |
 | Social OAuth | DEF | |
-| Apply `20260914120000` on prod DB | Ops | Indexes + realtime publication; MCP was the wrong project |
-| List pagination UI | P2 | Silent `.limit` |
+| Apply `20260914120000` on prod DB | Done | Applied on `nwvnawgxkzwiercllgmg` (indexes + `supabase_realtime`) |
+| List pagination UI | Done | Tickets, employees, CRM leads/deals, leave, applicants, client tickets, admin users |
+| Remaining silent `.limit` lists | P2 | Dashboards, CMS, billing, etc. still cap without pager |
 | Owner KPI targets | P2 | Dashboard Spec Grill |
 | Serwist browserslist | Ops | |
 | Supabase leaked-password | Ops | |
 
 ## Full next-steps plan
 
-1. Commit + deploy completion pass.  
-2. Keep OAuth/FTS/org CRUD deferred unless requested.  
-3. Pagination UI for capped lists when orgs grow.  
+1. Rotate the chat/CLI Supabase access token (it was in session history).  
+2. Confirm Vercel picked up this commit on beepabpo.com.  
+3. Keep OAuth/FTS/org CRUD deferred unless requested.  
 4. Ops hygiene (leaked-password advisor, Serwist) when convenient.

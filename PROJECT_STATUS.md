@@ -2,7 +2,7 @@
 
 **Updated:** 2026-09-14  
 **Branch:** `main`  
-**Overall:** **READY** — shell latency + attendance clock + live refresh shipped in code. Apply migration `20260914120000` on `nwvnawgxkzwiercllgmg` for indexes/realtime publication.
+**Overall:** **READY** — `20260914120000` applied on `nwvnawgxkzwiercllgmg`; hot list queues paginate via URL `page`.
 
 ## Health
 
@@ -11,7 +11,7 @@
 | Overall | READY |
 | Frontend | GOOD — visible skeletons, clock on Attendance, realtime refresh |
 | Backend | GOOD — parallel workspace resolve |
-| Database | GOOD — migration ready; **NOT applied via MCP** (wrong linked project) |
+| Database | GOOD — `20260914120000` applied on `nwvnawgxkzwiercllgmg` (indexes + realtime publication) |
 | Testing | See latest `pnpm typecheck` / `pnpm test` this session |
 | CI | Node 22 + pnpm |
 | Docs | Ledger + SYSTEM_AUDIT + CHANGELOG updated |
@@ -22,9 +22,9 @@ Email/password only. OAuth deferred.
 
 ## Highest-value next
 
-1. Apply `supabase/migrations/20260914120000_realtime_and_attendance_indexes.sql` on linked Beepa DB  
-2. Deploy this pass so beepabpo.com matches local  
-3. Pagination UI where silent `.limit` caps apply  
+1. Rotate the chat/CLI Supabase access token  
+2. Confirm Vercel picked up this commit on beepabpo.com  
+3. Remaining silent `.limit` lists (dashboards/CMS/billing) still have no pager  
 4. OAuth / FTS / announcements — deferred  
 5. Org/workflow CRUD — **keep RO**
 

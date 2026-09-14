@@ -28,6 +28,12 @@ export function dateParam(
   return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : undefined;
 }
 
+/** URL `page` query. Junk, 0, and negatives clamp to 1. */
+export function pageParam(value: string | string[] | undefined): number {
+  const n = Number.parseInt(stringParam(value), 10);
+  return Number.isInteger(n) && n >= 1 ? n : 1;
+}
+
 /** Strip PostgREST ilike metacharacters before embedding in filters. */
 export function sanitizeIlike(term: string, max = 80): string {
   return term.replace(/[%_,]/g, "").slice(0, max);

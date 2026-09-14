@@ -14,13 +14,22 @@ import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageContainer } from "@/components/app/page-container";
+import { ListPager } from "@/components/app/list-pager";
 import { RealtimeRefresh } from "@/components/app/realtime-refresh";
+import { pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Tickets" };
 
-export default async function ClientTicketsPage() {
+const PAGE_SIZE = 50;
+
+export default async function ClientTicketsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+  const page = pageParam((await searchParams).page);
 
   const clientOrgId = getClientOrganizationId(workspace);
   const canCreate = can(workspace.permissions, "tickets.self");
@@ -58,7 +67,7 @@ export default async function ClientTicketsPage() {
       "id, ticket_number, subject, status, created_at, priority, sla_due_at, resolved_at",
     )
     .order("created_at", { ascending: false })
-    .limit(50);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   if (clientOrgId) {
     query = query.eq("client_organization_id", clientOrgId);
@@ -134,6 +143,12 @@ export default async function ClientTicketsPage() {
           ))}
         </div>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={tickets?.length ?? 0}
+      />
     </PageContainer>
   );
 }

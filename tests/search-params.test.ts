@@ -3,6 +3,7 @@ import {
   dateParam,
   enumParam,
   ilikePattern,
+  pageParam,
   sanitizeIlike,
   stringParam,
 } from "@/lib/app/search-params";
@@ -24,6 +25,16 @@ describe("search-params", () => {
   it("dateParam accepts yyyy-MM-dd only", () => {
     expect(dateParam("2026-09-06")).toBe("2026-09-06");
     expect(dateParam("09/06/2026")).toBeUndefined();
+  });
+
+  it("pageParam clamps junk to 1", () => {
+    expect(pageParam("3")).toBe(3);
+    expect(pageParam(["2"])).toBe(2);
+    expect(pageParam("0")).toBe(1);
+    expect(pageParam("-4")).toBe(1);
+    expect(pageParam("nope")).toBe(1);
+    expect(pageParam(undefined)).toBe(1);
+    expect(pageParam("1.9")).toBe(1);
   });
 
   it("sanitizeIlike strips wildcards", () => {

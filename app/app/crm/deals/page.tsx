@@ -6,6 +6,7 @@ import { IconBriefcase } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { CreateDealForm } from "@/components/app/crm/create-deal-form";
 import { DealStageForm } from "@/components/app/crm/deal-stage-form";
 import { StatusBadge } from "@/components/app/status-badge";
@@ -22,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
-import { stringParam, enumParam, ilikePattern } from "@/lib/app/search-params";
+import { stringParam, enumParam, ilikePattern, pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "CRM Deals" };
 
@@ -38,6 +39,8 @@ const STAGES = [
   "on_hold",
   "follow_up_later",
 ] as const;
+
+const PAGE_SIZE = 50;
 
 function money(value: number | null, currency: string) {
   if (value == null) return "—";
@@ -65,6 +68,7 @@ export default async function CrmDealsPage({
   const params = await searchParams;
   const q = stringParam(params.q);
   const stage = enumParam(params.stage, STAGES);
+  const page = pageParam(params.page);
   const pattern = q ? ilikePattern(q) : undefined;
 
   const supabase = await createClient();
@@ -74,7 +78,7 @@ export default async function CrmDealsPage({
       "id, title, stage, estimated_value, currency, expected_close_date, lead_id, updated_at, crm_leads(company_name)",
     )
     .order("updated_at", { ascending: false })
-    .limit(50);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   if (stage) query = query.eq("stage", stage);
   if (pattern) query = query.ilike("title", pattern);
@@ -201,6 +205,13 @@ export default async function CrmDealsPage({
           </CardContent>
         </Card>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={deals?.length ?? 0}
+        query={{ q, stage }}
+      />
     </PageContainer>
   );
 }

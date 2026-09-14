@@ -5,6 +5,7 @@ import { IconUsers } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { StatusBadge } from "@/components/app/status-badge";
 import { PageContainer } from "@/components/app/page-container";
 import {
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
-import { stringParam, enumParam, ilikePattern } from "@/lib/app/search-params";
+import { stringParam, enumParam, ilikePattern, pageParam } from "@/lib/app/search-params";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Applicants" };
@@ -37,6 +38,8 @@ const STAGES = [
   "on_hold",
 ] as const;
 
+const PAGE_SIZE = 50;
+
 export default async function RecruitmentApplicantsPage({
   searchParams,
 }: {
@@ -50,6 +53,7 @@ export default async function RecruitmentApplicantsPage({
   const params = await searchParams;
   const q = stringParam(params.q);
   const stage = enumParam(params.stage, STAGES);
+  const page = pageParam(params.page);
   const pattern = q ? ilikePattern(q) : undefined;
 
   const supabase = await createClient();
@@ -59,7 +63,7 @@ export default async function RecruitmentApplicantsPage({
       "id, stage, created_at, applicants(first_name, last_name, email), job_posts(title, slug)",
     )
     .order("created_at", { ascending: false })
-    .limit(100);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   if (stage) query = query.eq("stage", stage);
 
@@ -184,6 +188,13 @@ export default async function RecruitmentApplicantsPage({
           </Table>
         </div>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={rows.length}
+        query={{ q, stage }}
+      />
 
       <Link
         href="/app/recruitment/jobs"

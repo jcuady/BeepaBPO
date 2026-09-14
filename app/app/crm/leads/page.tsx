@@ -5,6 +5,7 @@ import { IconBuilding } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { CreateLeadForm } from "@/components/app/crm/create-lead-form";
 import { LeadStatusForm } from "@/components/app/crm/lead-status-form";
 import { StatusBadge } from "@/components/app/status-badge";
@@ -20,7 +21,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
-import { stringParam, enumParam, ilikePattern } from "@/lib/app/search-params";
+import { stringParam, enumParam, ilikePattern, pageParam } from "@/lib/app/search-params";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "CRM Leads" };
@@ -33,6 +34,8 @@ const STATUSES = [
   "converted",
   "lost",
 ] as const;
+
+const PAGE_SIZE = 50;
 
 export default async function CrmLeadsPage({
   searchParams,
@@ -47,6 +50,7 @@ export default async function CrmLeadsPage({
   const params = await searchParams;
   const q = stringParam(params.q);
   const status = enumParam(params.status, STATUSES);
+  const page = pageParam(params.page);
   const pattern = q ? ilikePattern(q) : undefined;
 
   const supabase = await createClient();
@@ -56,7 +60,7 @@ export default async function CrmLeadsPage({
       "id, company_name, contact_name, contact_email, status, source, created_at",
     )
     .order("created_at", { ascending: false })
-    .limit(50);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   if (status) query = query.eq("status", status);
   if (pattern) {
@@ -161,6 +165,13 @@ export default async function CrmLeadsPage({
           </Table>
         </div>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={leads?.length ?? 0}
+        query={{ q, status }}
+      />
     </PageContainer>
   );
 }

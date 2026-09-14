@@ -1,8 +1,8 @@
 # Completion ledger — Principal QA campaign
 
 **Started:** 2026-09-13  
-**Last updated:** 2026-09-14 (Prompt 8 — shell latency + attendance clock + realtime)  
-**Campaign status:** **READY** — apply migration `20260914120000` on Beepa DB, then deploy
+**Last updated:** 2026-09-14 (Prompt 9 — Beepa DB apply + list pagination)  
+**Campaign status:** **READY** — `20260914120000` applied on `nwvnawgxkzwiercllgmg`; hot lists paginate
 
 ## Done criteria (100%)
 
@@ -12,10 +12,10 @@
 | 2 | Critical workflows documented with pass/fail | **PASS** |
 | 3 | No open P0/P1 | **PASS** |
 | 4 | UI consistency on audited hubs | **PASS** — EmptyState + loading + overflow clip |
-| 5 | Automated gates green | **PASS** — typecheck · lint · vitest 184 · **build** · Playwright viewport **24/24** · roles/e2e |
+| 5 | Automated gates green | **PASS** — typecheck · lint · vitest 192 · **build** · Playwright viewport **24/24** · roles/e2e |
 | 6 | PROJECT_STATUS honest | **PASS** → READY |
 
-**Overall:** READY — clock on Attendance; workspace queries parallel; live refresh on CRM/tickets/attendance. Apply `20260914120000` on `nwvnawgxkzwiercllgmg`.
+**Overall:** READY — `20260914120000` live on Beepa DB; URL pagination on hot list queues.
 
 ---
 
@@ -55,6 +55,17 @@ Query caps, loading skeletons, notification ActionResult, admin role ConfirmDial
 
 Parallel workspace resolve, visible skeletons, Clock In/Out on `/app/my/attendance`, debounced realtime on attendance/CRM/tickets.
 
+### Prompt 9 — Beepa DB apply + list pagination (2026-09-14)
+
+**Done definition:** `20260914120000` applied and verified on `nwvnawgxkzwiercllgmg`; hot queues paginate; gates green.
+
+**Shipped:**
+| Item | Fix |
+|------|-----|
+| Indexes | `attendance_records_employee_date_idx`, `crm_leads_status_updated_idx`, `crm_deals_open_close_idx` |
+| Realtime publication | attendance_records, crm_leads, crm_deals, tickets, job_applications |
+| List pager | `pageParam` + `ListPager` on tickets, employees, CRM, leave, applicants, client tickets, admin users |
+
 ---
 
 ## Role × page matrix (seeded demo roles)
@@ -75,9 +86,9 @@ Parallel workspace resolve, visible skeletons, Clock In/Out on `/app/my/attendan
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| Apply `20260914120000` on Beepa DB | Ops | Indexes + realtime publication |
-| Deploy shell-latency pass | Ops | Clock on Attendance + parallel workspace |
-| List pagination UI | P2 | Silent `.limit` remains |
+| Rotate chat/CLI Supabase token | Ops | Token was used in session; do not commit |
+| Confirm Vercel deploy | Ops | beepabpo.com should include this commit |
+| Remaining silent `.limit` lists | P2 | Dashboards/CMS/billing still cap without pager |
 | Admin search by role name | Low | Name/org only now |
 | OAuth / FTS / announcements | DEF | |
 | Org/workflow CRUD | DEF | Keep RO |
@@ -86,4 +97,4 @@ Parallel workspace resolve, visible skeletons, Clock In/Out on `/app/my/attendan
 
 ## Closing gate
 
-**READY.** Next single action: **commit + deploy** so beepabpo.com serves the lag/EmptyState/viewport fixes.
+**READY.** Next: rotate the chat token; confirm Vercel picked up this commit on beepabpo.com.
