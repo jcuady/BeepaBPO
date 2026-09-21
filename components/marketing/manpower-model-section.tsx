@@ -1,120 +1,107 @@
 import Link from "next/link";
-import {
-  IconArrowRight,
-  IconCoin,
-  IconSearch,
-  IconUserCheck,
-} from "@tabler/icons-react";
+import { IconArrowRight } from "@tabler/icons-react";
 import { Container } from "@/components/beepa/container";
-import { SectionEyebrow } from "@/components/beepa/section-eyebrow";
-import { SectionHeading } from "@/components/beepa/section-heading";
-import { Button } from "@/components/ui/button";
+import { Reveal } from "@/components/marketing/reveal";
+import { cn } from "@/lib/utils";
 
-/**
- * Manpower model — search for people, place them, handle salary.
- * Replaces the old consultancy-style “how it works” timeline.
- */
+const STEPS = [
+  {
+    word: "Search",
+    line: "Role brief, sourcing, and shortlists against the skills and hours you need.",
+  },
+  {
+    word: "Place",
+    line: "People start on your tools, in your process, on your schedule.",
+  },
+  {
+    word: "Pay",
+    line: "Beepa runs salary and employment admin. You do not build a payroll stack.",
+  },
+] as const;
+
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-strong/45 focus-visible:ring-offset-2";
+
 export function ManpowerModelSection() {
   return (
     <section
       id="how-we-work"
       data-manpower-model
-      className="scroll-mt-24 border-y border-line/70 bg-white py-24 md:py-32"
+      aria-labelledby="manpower-heading"
+      className="relative scroll-mt-24 overflow-x-clip bg-white pt-8 pb-14 sm:pt-10 sm:pb-16 lg:pt-10 lg:pb-20"
     >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-20 top-0 size-[18rem] rounded-full bg-soft-green blur-[90px]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-[-8rem] top-24 hidden size-[22rem] rounded-full bg-mist blur-[80px] lg:block"
+      />
+
       <Container>
-        <div className="grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-12">
-          <div className="lg:col-span-7">
-            <SectionEyebrow>Talent &amp; payroll</SectionEyebrow>
-            <SectionHeading className="mt-3 max-w-[18ch] text-balance">
-              We find the people. We handle the pay.
-            </SectionHeading>
-          </div>
-          <p className="max-w-[40ch] text-base leading-relaxed text-slate lg:col-span-5 lg:justify-self-end lg:pb-1">
-            Beepa is a manpower partner — we search for the right talent, place
-            them on your team, and manage salary so you stay focused on the work.
-          </p>
-        </div>
-
-        {/* Asymmetric two-pillar model — not a 3-card feature row */}
-        <div className="mt-14 grid gap-6 md:mt-16 lg:grid-cols-12 lg:gap-8">
-          <article className="relative overflow-hidden rounded-[28px] bg-navy px-8 py-10 text-white lg:col-span-7 lg:px-10 lg:py-12">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -right-16 top-0 font-display text-[11rem] font-extrabold leading-none tracking-tighter text-white/[0.04]"
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-end lg:gap-8">
+          <Reveal className="lg:col-span-7">
+            <h2
+              id="manpower-heading"
+              className="font-display text-[clamp(2.25rem,4.4vw,3.5rem)] font-bold leading-[1.08] tracking-tight text-balance"
             >
-              01
-            </span>
-            <span className="relative flex size-12 items-center justify-center rounded-[14px] bg-white/10 text-lime ring-1 ring-white/15">
-              <IconSearch stroke={1.5} className="size-6" aria-hidden />
-            </span>
-            <h3 className="relative mt-8 font-display text-2xl font-bold tracking-tight text-white text-balance md:text-[1.75rem]">
-              Search &amp; place talent
-            </h3>
-            <p className="relative mt-3 max-w-[42ch] text-base leading-relaxed text-white/70">
-              Tell us the roles, skills, and schedule. We source candidates,
-              shortlist fit, and place people who can start delivering on your
-              team.
+              <span className="block text-navy">Search. Place.</span>
+              <span className="block text-green-strong">Pay.</span>
+            </h2>
+            <p className="mt-4 max-w-[36ch] text-base leading-relaxed text-pretty text-slate sm:mt-5 sm:text-lg">
+              Beepa is a manpower partner for BPO teams. We search for talent,
+              place them on your team, and run salary so you keep the work.
             </p>
-            <ul className="relative mt-8 space-y-3 border-t border-white/10 pt-6 text-sm text-white/80">
-              <li className="flex gap-3">
-                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-lime" aria-hidden />
-                Role brief and requirements clarity
-              </li>
-              <li className="flex gap-3">
-                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-lime" aria-hidden />
-                Sourcing, screening, and shortlists
-              </li>
-              <li className="flex gap-3">
-                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-lime" aria-hidden />
-                Placement into your workflow
-              </li>
-            </ul>
-          </article>
+          </Reveal>
 
-          <article className="relative flex flex-col overflow-hidden rounded-[28px] bg-mist px-8 py-10 ring-1 ring-line lg:col-span-5 lg:px-9 lg:py-12">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -right-10 top-0 font-display text-[9rem] font-extrabold leading-none tracking-tighter text-navy/[0.04]"
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:col-span-5 lg:col-start-8 lg:justify-end">
+            <Link
+              href="/contact"
+              data-analytics="manpower_primary_cta"
+              className={cn(
+                "group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-green px-6 font-display text-base font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green-strong",
+                focusRing,
+              )}
             >
-              02
-            </span>
-            <span className="relative flex size-12 items-center justify-center rounded-[14px] bg-soft-green text-green-strong ring-1 ring-green-strong/10">
-              <IconCoin stroke={1.5} className="size-6" aria-hidden />
-            </span>
-            <h3 className="relative mt-8 font-display text-2xl font-bold tracking-tight text-navy text-balance">
-              We handle the salary
-            </h3>
-            <p className="relative mt-3 max-w-[36ch] text-base leading-relaxed text-slate">
-              Once people are placed, Beepa manages pay so your team gets paid
-              on time — without you building a full HR payroll stack.
-            </p>
-            <div className="relative mt-auto flex items-start gap-3 border-t border-line pt-8">
-              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-white text-green-strong ring-1 ring-line">
-                <IconUserCheck stroke={1.5} className="size-5" aria-hidden />
+              Request a team
+              <span className="flex size-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5">
+                <IconArrowRight
+                  stroke={1.75}
+                  className="size-3.5"
+                  aria-hidden="true"
+                />
               </span>
-              <p className="text-sm leading-relaxed text-slate">
-                You get working people. We take care of employment pay
-                administration behind the scenes.
-              </p>
-            </div>
-          </article>
+            </Link>
+            <Link
+              href="/why-beepa"
+              className={cn(
+                "inline-flex min-h-11 w-full items-center justify-center rounded-full border border-navy/20 bg-white px-6 font-display text-base font-semibold text-navy transition-[transform,background-color,border-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:border-navy/35 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
+                focusRing,
+              )}
+            >
+              How we staff
+            </Link>
+          </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-4 border-t border-line pt-10 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-[44ch] text-sm leading-relaxed text-slate md:text-base">
-            Need a role filled? Share what you need — we&apos;ll start the search.
-          </p>
-          <Button
-            className="group min-h-11 w-fit gap-2 rounded-full bg-green-strong text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green active:scale-[0.97]"
-            nativeButton={false}
-            render={<Link href="/contact" />}
-          >
-            Request talent
-            <span className="flex size-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
-              <IconArrowRight stroke={2} className="size-3" aria-hidden />
-            </span>
-          </Button>
-        </div>
+        <Reveal>
+          <ol className="mt-10 list-none border-t border-line sm:mt-12">
+            {STEPS.map((step) => (
+              <li
+                key={step.word}
+                className="grid grid-cols-1 gap-2 border-b border-line py-5 last:border-b-0 sm:py-6 lg:grid-cols-12 lg:items-start lg:gap-8"
+              >
+                <h3 className="font-display text-base font-semibold tracking-tight text-navy sm:text-lg lg:col-span-5">
+                  {step.word}
+                </h3>
+                <p className="text-sm leading-relaxed text-pretty text-slate sm:text-base lg:col-span-6 lg:col-start-7">
+                  {step.line}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </Reveal>
       </Container>
     </section>
   );

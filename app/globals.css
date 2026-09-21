@@ -144,7 +144,7 @@
   }
 }
 
-/* Hero: dissolve photo edges into page atmosphere (no hard card silhouette) */
+/* Shared section photos: dissolve edges into page atmosphere */
 .hero-image-blend {
   -webkit-mask-image: linear-gradient(
       90deg,
@@ -184,41 +184,33 @@
   }
 }
 
-/* Hero GSAP entrance — hide until client timeline runs (avoids FOUC) */
-@media (prefers-reduced-motion: no-preference) {
-  [data-hero] {
-    opacity: 0;
-  }
-}
-
-/* Scroll reveal — driven by <Reveal> IntersectionObserver, transform/opacity only */
-@media (prefers-reduced-motion: no-preference) {
-  .reveal {
-    opacity: 0;
-    transform: translateY(28px);
-    transition:
-      opacity 700ms var(--ease-out),
-      transform 700ms var(--ease-out);
-    transition-delay: var(--reveal-delay, 0ms);
-  }
-
-  .reveal.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* Trust strip infinite marquee — ALWAYS on (CSS).
    Intentionally NOT gated by prefers-reduced-motion so the strip never goes static.
    Pause via hover / :focus-within (WCAG 2.2.2) — no control button. */
 .trust-marquee-mask {
+  outline: none;
   mask-image: linear-gradient(
     90deg,
     transparent 0%,
-    #000 8%,
-    #000 92%,
+    #000 7%,
+    #000 90%,
     transparent 100%
   );
+}
+
+@media (min-width: 768px) {
+  .trust-marquee-mask {
+    mask-image: linear-gradient(
+      90deg,
+      #000 0%,
+      #000 90%,
+      transparent 100%
+    );
+  }
+}
+
+.trust-marquee-mask:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-green-strong);
 }
 
 .trust-marquee-track {

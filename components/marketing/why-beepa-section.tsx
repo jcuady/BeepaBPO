@@ -1,131 +1,137 @@
-import Image from "next/image";
 import Link from "next/link";
-import {
-  IconArrowRight,
-  IconChartBar,
-  IconHeart,
-  IconShieldCheck,
-  IconUsersGroup,
-} from "@tabler/icons-react";
-import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { IconArrowRight } from "@tabler/icons-react";
 import { Container } from "@/components/beepa/container";
 import { Reveal } from "@/components/marketing/reveal";
+import { cn } from "@/lib/utils";
+import whyAgentPhoto from "../../public/images/sections/why-beepa-agent.webp";
 
-const VALUES = [
+const SPLIT = [
   {
-    title: "People-First",
-    description: "We hire for attitude, train for excellence.",
-    icon: IconUsersGroup,
+    label: "You",
+    items: [
+      "Brief the role and the outcome",
+      "Direct the day-to-day work",
+      "Keep your tools, hours, and standard",
+    ],
   },
   {
-    title: "Reliable & Secure",
-    description: "Your data and trust are always protected.",
-    icon: IconShieldCheck,
-  },
-  {
-    title: "Built for Growth",
-    description: "We scale with you, not just for you.",
-    icon: IconChartBar,
-  },
-  {
-    title: "A Culture That Cares",
-    description: "Happy people deliver great work.",
-    icon: IconHeart,
+    label: "Beepa",
+    items: [
+      "Search, screen, and shortlist",
+      "Place people on your team",
+      "Run salary and employment admin",
+    ],
   },
 ] as const;
 
-const NOISE =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E\")";
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-strong/45 focus-visible:ring-offset-2";
 
 export function WhyBeepaSection() {
   return (
     <section
       id="why-beepa"
-      className="relative scroll-mt-24 overflow-hidden bg-navy py-24 md:py-32"
+      aria-labelledby="why-beepa-heading"
+      className="relative scroll-mt-24 overflow-x-clip bg-white pt-8 pb-14 sm:pt-10 sm:pb-16 lg:pt-10 lg:pb-20"
     >
-      {/* Ambient glows + grain (static, paint-once) */}
       <div
-        aria-hidden
-        className="pointer-events-none absolute -left-40 top-0 size-[480px] rounded-full bg-green/25 blur-[120px]"
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-20 top-0 size-[18rem] rounded-full bg-soft-green blur-[90px]"
       />
       <div
-        aria-hidden
-        className="pointer-events-none absolute -right-32 bottom-0 size-[420px] rounded-full bg-lime/15 blur-[120px]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        style={{ backgroundImage: NOISE }}
+        aria-hidden="true"
+        className="pointer-events-none absolute right-[-8rem] top-24 hidden size-[22rem] rounded-full bg-mist blur-[80px] lg:block"
       />
 
-      <Container className="relative">
-        <div className="grid items-stretch gap-12 lg:grid-cols-12 lg:gap-10">
-          <Reveal className="flex flex-col justify-center lg:col-span-4">
-            <p className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-lime">
-              Why Beepa
-            </p>
-            <h2 className="mt-3 font-display text-[clamp(1.75rem,3vw,2.35rem)] font-bold leading-tight tracking-tight text-white text-balance">
-              A partner invested in your success.
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-white/70">
-              We combine great people, operational excellence, and a genuine
-              partnership mindset to help you achieve more.
-            </p>
-            <Button
-              className="group mt-8 w-fit gap-2 rounded-full bg-lime text-navy transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-white active:scale-[0.97]"
-              nativeButton={false}
-              render={<Link href="/why-beepa" />}
+      <Container>
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-8">
+          <Reveal className="lg:col-span-5">
+            <h2
+              id="why-beepa-heading"
+              className="font-display text-[clamp(2.25rem,4.4vw,3.5rem)] font-bold leading-[1.08] tracking-tight text-balance"
             >
-              Discover the Beepa Difference
-              <span className="flex size-7 items-center justify-center rounded-full bg-navy/10 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5 group-hover:scale-105">
-                <IconArrowRight stroke={2} className="size-3.5" aria-hidden />
-              </span>
-            </Button>
-          </Reveal>
-
-          <ul className="grid grid-cols-1 self-center sm:grid-cols-2 lg:col-span-4">
-            {VALUES.map((value, index) => {
-              const Icon = value.icon;
-              return (
-                <li
-                  key={value.title}
-                  className="group border-white/10 py-6 sm:px-6 sm:py-7 sm:odd:border-l-0 sm:odd:pl-0 sm:even:border-l sm:even:pr-0 sm:[&:nth-child(n+3)]:border-t max-sm:[&:not(:first-child)]:border-t"
-                >
-                  <Reveal delay={index * 80}>
-                    <Icon
-                      stroke={1.5}
-                      className="size-7 text-lime transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:-translate-y-0.5"
-                      aria-hidden
-                    />
-                    <h3 className="mt-3 font-display text-base font-bold text-white">
-                      {value.title}
-                    </h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-white/65">
-                      {value.description}
-                    </p>
-                  </Reveal>
-                </li>
-              );
-            })}
-          </ul>
-
-          <Reveal delay={140} className="lg:col-span-4">
-            {/* Double-bezel — mockup sec1 portrait card */}
-            <div className="h-full rounded-[1.75rem] bg-white p-1.5 shadow-[0_24px_48px_-28px_rgb(0_0_0/0.45)] sm:rounded-[2rem] sm:p-2">
-              <div className="relative aspect-[3/4] min-h-[340px] w-full overflow-hidden rounded-[calc(1.75rem-0.35rem)] bg-navy/20 sm:rounded-[calc(2rem-0.4rem)] lg:min-h-[460px]">
-                <Image
-                  src="/images/sections/why-beepa-agent.webp"
-                  alt="Beepa support professional with headset in the office"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 33vw"
-                  quality={75}
-                  className="object-cover object-[center_18%]"
-                  data-why-media="sec1"
-                />
-              </div>
+              <span className="block text-navy">We find the people.</span>
+              <span className="block text-green-strong">You keep the process.</span>
+            </h2>
+            <p className="mt-4 max-w-[36ch] text-base leading-relaxed text-pretty text-slate sm:mt-5 sm:text-lg">
+              Beepa is a manpower partner for BPO teams. We search, screen, and
+              place. Payroll stays with us. The work stays on your tools.
+            </p>
+            <div className="mt-7 flex w-full flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center">
+              <Link
+                href="/why-beepa"
+                data-analytics="why_beepa_primary_cta"
+                className={cn(
+                  "group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-green px-6 font-display text-base font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green-strong",
+                  focusRing,
+                )}
+              >
+                How we staff
+                <span className="flex size-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5">
+                  <IconArrowRight
+                    stroke={1.75}
+                    className="size-3.5"
+                    aria-hidden="true"
+                  />
+                </span>
+              </Link>
+              <Link
+                href="/contact"
+                data-analytics="why_beepa_contact"
+                className={cn(
+                  "inline-flex min-h-11 w-full items-center justify-center rounded-full border border-navy/20 bg-white px-6 font-display text-base font-semibold text-navy transition-[transform,background-color,border-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:border-navy/35 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
+                  focusRing,
+                )}
+              >
+                Request a team
+              </Link>
             </div>
           </Reveal>
+
+          <Reveal className="lg:col-span-6 lg:col-start-7">
+            <figure className="relative aspect-[4/3] overflow-hidden rounded-[1.25rem] bg-mist shadow-[0_24px_48px_-28px_rgb(31_32_88_/_0.35)] sm:aspect-[16/10] lg:aspect-[4/3] lg:rounded-[1.75rem]">
+              <Image
+                src={whyAgentPhoto}
+                alt="Beepa support professional with headset in the office"
+                fill
+                sizes="(max-width: 640px) 92vw, (max-width: 1024px) 90vw, 48vw"
+                quality={70}
+                data-why-media="sec1"
+                className="object-cover object-[center_18%]"
+              />
+            </figure>
+          </Reveal>
         </div>
+
+        <Reveal>
+          <div className="mt-10 grid grid-cols-1 gap-0 border-t border-line sm:mt-12 md:grid-cols-2">
+            {SPLIT.map((column) => (
+              <div
+                key={column.label}
+                className="border-b border-line p-6 last:border-b-0 md:border-b-0 md:border-r md:p-7 md:last:border-r-0"
+              >
+                <p className="font-display text-sm font-semibold text-green-strong">
+                  {column.label}
+                </p>
+                <ul className="mt-4 space-y-3">
+                  {column.items.map((item) => (
+                    <li
+                      key={item}
+                      className="flex gap-3 text-sm leading-relaxed text-navy"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="mt-2 size-1.5 shrink-0 rounded-full bg-lime"
+                      />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </Container>
     </section>
   );

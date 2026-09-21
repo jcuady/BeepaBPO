@@ -28,7 +28,7 @@ export const BRAND = {
    * Meta description (~150–160 chars) with value + CTA.
    */
   description:
-    "BeepoBPO is a people-first BPO partner for dependable support, ops, and talent teams. Scale with confidence — tell us what you need.",
+    "BeepoBPO is a people-first BPO partner for dependable support, ops, and talent teams. Scale with confidence. Tell us what you need.",
   url: resolveSiteUrl(),
   /** Square mark for favicon / PWA (navy) */
   iconUrl: "/brand/icon-512.png",

@@ -12,6 +12,7 @@ import { BRAND } from "@/lib/site";
 import {
   JsonLd,
   organizationJsonLd,
+  servicesItemListJsonLd,
   websiteJsonLd,
 } from "@/lib/seo/json-ld";
 import { createClient } from "@/lib/supabase/server";
@@ -68,6 +69,7 @@ export default async function HomePage() {
     <>
       <JsonLd data={organizationJsonLd()} />
       <JsonLd data={websiteJsonLd()} />
+      <JsonLd data={servicesItemListJsonLd()} />
       <JsonLd data={faqJsonLd} />
       <HeroSection />
       <TrustedBySection />

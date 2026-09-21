@@ -1,3 +1,4 @@
+import { SERVICES_CATALOG } from "@/lib/marketing/services-catalog";
 import { BRAND } from "@/lib/site";
 
 type BreadcrumbItem = { name: string; path: string };
@@ -40,6 +41,12 @@ export function organizationJsonLd() {
       "Recruitment process outsourcing",
       "Virtual assistants",
       "Manpower staffing",
+      "IT support outsourcing",
+      "Marketing support staffing",
+      "eLearning course development",
+      "Presentation design staffing",
+      "Data entry outsourcing",
+      "Customer relations staffing",
     ],
     contactPoint: {
       "@type": "ContactPoint",
@@ -48,6 +55,20 @@ export function organizationJsonLd() {
       url: `${BRAND.url}/contact`,
       availableLanguage: ["English"],
     },
+  };
+}
+
+export function servicesItemListJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "BeepoBPO outsourcing services",
+    itemListElement: SERVICES_CATALOG.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.title,
+      url: `${BRAND.url}/services#${item.slug}`,
+    })),
   };
 }
 

@@ -45,10 +45,10 @@ function pkgOk() {
   await page.goto(BASE, { waitUntil: "domcontentloaded", timeout: 45000 });
   await page.waitForSelector("[data-hero='title']", { timeout: 20000 });
 
-  // ---- HERO: sample mid-entrance (reload + sample early) ----
+  // ---- HERO: first paint must already be visible (no entrance fade) ----
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.waitForSelector("[data-hero='title']");
-  // Sample at ~100ms and ~400ms and ~2000ms after hydration
+  // Sample early and late so a hidden-then-fade pattern still fails
   const heroSamples = [];
   for (const wait of [80, 250, 600, 1800]) {
     await page.waitForTimeout(wait === 80 ? 80 : wait - (heroSamples.length ? [80, 250, 600, 1800][heroSamples.length - 1] : 0));
@@ -74,10 +74,10 @@ function pkgOk() {
     heroSamples.push(sample);
   }
 
-  // Detect whether ANY mid-sample showed opacity < 1 (proves from() ran)
-  const heroAnimated =
-    heroSamples.some((s) => s.items.some((i) => i.opacity < 0.99 || i.ty !== 0)) &&
-    heroSamples[heroSamples.length - 1].items.every((i) => i.opacity > 0.99);
+  // Entrance fade was removed: every hero sample must already be fully visible.
+  const heroAlwaysVisible = heroSamples.every((s) =>
+    s.items.every((i) => i.opacity > 0.99 && i.ty === 0),
+  );
 
   // ---- MARQUEE ----
   const marquee = await page.evaluate(() => {
@@ -268,7 +268,7 @@ function pkgOk() {
     install,
     consoleErrors,
     hero: {
-      animated: heroAnimated,
+      alwaysVisible: heroAlwaysVisible,
       samples: heroSamples.map((s) => ({
         items: s.items.map((i) => ({
           key: i.key,
@@ -292,7 +292,7 @@ function pkgOk() {
     verdict: {
       installOk:
         !!install.dep && install.mod && install.hasScrollTrigger && !!install.version,
-      heroOk: heroAnimated,
+      heroOk: heroAlwaysVisible,
       marqueeOk: marqueeMoving && marqueeIgnoresHover,
       revealOk: reveal.inViewNotVisible.length === 0,
       processOk: pinWorks,

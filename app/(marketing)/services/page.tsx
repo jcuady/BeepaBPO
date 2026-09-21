@@ -4,75 +4,48 @@ import {
   IconArrowUpRight,
   IconChartBar,
   IconCoin,
+  IconDeviceDesktop,
   IconFileDescription,
   IconHeadset,
+  IconHeartHandshake,
+  IconKeyboard,
+  IconPresentation,
+  IconSchool,
   IconSearch,
+  IconSpeakerphone,
   IconUsers,
 } from "@tabler/icons-react";
+import type { TablerIcon } from "@tabler/icons-react";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/beepa/container";
 import { SectionHeading } from "@/components/beepa/section-heading";
 import { FinalCTA } from "@/components/marketing/final-cta";
 import { PageHero } from "@/components/marketing/page-hero";
+import { resolveMarketingServices } from "@/lib/marketing/services-catalog";
 import { BRAND } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Talent search and payroll-backed staffing for support, ops, VA, and sales roles — Beepa finds people and handles pay.",
+    "Talent search and payroll-backed staffing for support, ops, IT, marketing, eLearning, and sales roles — Beepa finds people and handles pay.",
   alternates: { canonical: "/services" },
 };
 
-const FALLBACK_SERVICES = [
-  {
-    id: "fallback-customer-support",
-    slug: "customer-support",
-    title: "Customer Support",
-    summary:
-      "Frontline voice, chat, and email talent who represent your brand — placed on your team, paid through Beepa.",
-    description:
-      "We source and place support professionals who match your hours, tools, and tone. You manage the work; we handle employment pay.",
-  },
-  {
-    id: "fallback-back-office",
-    slug: "back-office",
-    title: "Back Office Support",
-    summary:
-      "Ops talent for accurate day-to-day work — data, admin, and process execution without fixed headcount drag.",
-    description:
-      "Tell us the workflows. We find people who can execute them reliably, then manage salary so your core team stays focused on growth.",
-  },
-  {
-    id: "fallback-virtual-assistants",
-    slug: "virtual-assistants",
-    title: "Virtual Assistants",
-    summary:
-      "Administrative partners for calendars, inboxes, research, and priority follow-through.",
-    description:
-      "VA roles filled through Beepa’s manpower model: screened talent, clear placement, salary handled on our side.",
-  },
-  {
-    id: "fallback-sales-support",
-    slug: "sales-support",
-    title: "Sales Support",
-    summary:
-      "Research, outreach, and pipeline support that extends your revenue team.",
-    description:
-      "We place sales-support talent who fit your CRM and cadence. You own the pipeline; we own finding people and paying them.",
-  },
-] as const;
-
-const ICON_BY_SLUG: Record<
-  string,
-  typeof IconHeadset
-> = {
+const ICON_BY_SLUG: Record<string, TablerIcon> = {
   "customer-support": IconHeadset,
   "back-office": IconFileDescription,
   "virtual-assistants": IconUsers,
   "sales-support": IconChartBar,
+  "it-support": IconDeviceDesktop,
+  marketing: IconSpeakerphone,
+  "elearning-course-dev": IconSchool,
+  "slide-creator": IconPresentation,
+  "data-entry": IconKeyboard,
+  "customer-relations": IconHeartHandshake,
 };
 
+/** Asymmetric 7/5 bento tones — cycles for 10+ cards without equal columns. */
 const TONES = [
   {
     card: "bg-navy text-white",
@@ -117,7 +90,7 @@ export default async function ServicesPage() {
     .order("sort_order", { ascending: true })
     .limit(50);
 
-  const list = services?.length ? services : [...FALLBACK_SERVICES];
+  const list = resolveMarketingServices(services);
 
   return (
     <>
@@ -230,7 +203,7 @@ export default async function ServicesPage() {
                   <Link
                     href="/contact"
                     className={cn(
-                      "mt-8 inline-flex size-10 items-center justify-center rounded-full transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 [@media(hover:hover)_and_(pointer:fine)]:group-hover:-translate-y-0.5",
+                      "mt-8 inline-flex size-10 min-h-11 min-w-11 items-center justify-center rounded-full transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 [@media(hover:hover)_and_(pointer:fine)]:group-hover:-translate-y-0.5",
                       tone.arrow,
                     )}
                     aria-label={`Request ${service.title} talent`}
