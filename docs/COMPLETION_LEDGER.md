@@ -10,7 +10,7 @@
 |---|---|
 | `tsc --noEmit` | PASS |
 | `eslint .` | PASS (`--max-warnings=0`) |
-| `vitest run` | **490/490** across 83 files |
+| `vitest run` | **504/504** across 84 files |
 | `pnpm build` | PASS |
 | **Release gate** | **18/18 passed — exit 0, "All checks passed. Ship it."** |
 | Route RBAC | **75/78 (96%)** + 3 structural exemptions, exit 0 |
@@ -58,7 +58,7 @@ it waited for an event it could never receive. The publication already had all 1
 | 2 | Critical workflows documented with pass/fail | **PASS** |
 | 3 | No open P0/P1 **in code** | **PASS** — four P0/P1 defects fixed this session (SW data leak, unapproved payslip exposure, stale payroll minutes, attendance timezone) |
 | 4 | UI consistency on audited hubs | **PASS** — EmptyState + loading + overflow clip + 16px mobile body copy |
-| 5 | Automated gates green | **PASS** — typecheck · lint · vitest 490 · build · Playwright 100/4/0 · release gate 18/18 |
+| 5 | Automated gates green | **PASS** — typecheck · lint · vitest 504 · build · Playwright 100/4/0 · release gate 18/18 |
 | 6 | PROJECT_STATUS honest | **PASS** — blockers marked BLOCKED while open, and rewritten to CLOSED with the evidence once resolved |
 
 **Overall:** **READY.** The release gate passes 18/18 with exit 0, and both former blockers

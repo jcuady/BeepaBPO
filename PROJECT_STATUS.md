@@ -14,7 +14,7 @@
 |---|---|---|
 | TypeScript | **PASS** | `tsc --noEmit` exit 0 |
 | Lint | **PASS** | `eslint . --max-warnings=0` exit 0 |
-| Unit tests | **PASS** | **490/490 across 83 files** (5 guard suites added 2026-10-09: encoding integrity, migration function clauses, payroll overlap reconciliation, payroll seed window, `lead_attribution` RLS — each negative-controlled) |
+| Unit tests | **PASS** | **504/504 across 84 files** (6 guard suites added 2026-10-09: encoding integrity, migration function clauses, payroll overlap reconciliation, payroll seed window, `lead_attribution` RLS, realtime probe contract — each negative-controlled) |
 | Production build | **PASS** | `next build` exit 0 |
 | E2E (Playwright) | **PASS** | **100 passed, 4 skipped, 0 failed** — prod build, cold `.auth`, 59.5s |
 | Ship gate | **PASS** | `verify-all.mjs` → **18/18 passed. "All checks passed. Ship it."** exit 0 |
@@ -189,7 +189,7 @@ and emptied `leave_requests`, because every row in the table carried that reason
 Consequence: `leave_requests` is now empty, so `tests/live-data-smoke.test.ts` asserts
 `count("leave_requests") >= 1` and **fails by design**. No seed script ever creates that
 table, so the assertion was passing on e2e residue rather than on seeded data. Decision and
-options: `docs/REMAINING_WORK.md` §1.5. **Unit tests: 490/490 across 83 files** — the
+options: `docs/REMAINING_WORK.md` §1.5. **Unit tests: 504/504 across 84 files** — the
 `leave_requests` table has since been repopulated by `scripts/seed-demo-leave.mjs`, so this
 assertion is now backed by real demo data.
 

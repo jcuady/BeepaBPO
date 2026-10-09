@@ -260,22 +260,35 @@ if (haveSupabase) {
     const out = r.stdout.toString() + r.stderr.toString();
     if (r.status === 0) {
       console.log(`  ${DIM}realtime delivery confirmed${RESET}`);
-    } else if (out.includes("realtime BROKEN")) {
-      if (SKIP_MIGRATION) {
-        // Deliberately reported as skipped, not passed. `step()` does not count
-        // a skipped result toward the total, so the run cannot print "Ship it"
-        // while realtime notifications are silently broken.
-        return {
-          skipped: true,
-          reason: "realtime events broken — known: migration 20261006140000 not pushed yet",
-        };
-      }
-      throw new Error("realtime events broken — DB needs migration `20261006140000_realtime_and_profile_sync.sql`");
-    } else if (out.includes("no HR profile found")) {
-      return { skipped: true, reason: "HR profile missing — run seed first" };
-    } else {
-      throw new Error(out);
+      return;
     }
+    if (out.includes("no HR profile found")) {
+      return { skipped: true, reason: "HR profile missing — run seed first" };
+    }
+    // Surface the probe's own diagnosis instead of a canned guess.
+    //
+    // This step used to collapse every non-zero exit into "realtime events broken
+    // — DB needs migration `20261006140000`". That migration is applied, and the
+    // real cause that time was a probe that inserted before its channel had
+    // acknowledged SUBSCRIBED. A wrong cause on a red gate is worse than no
+    // cause: it points the reader at the database instead of at the tool.
+    const marker =
+      out.includes("PROBE_RESULT=DELIVERY_FAILED") ? "DELIVERY_FAILED" :
+      out.includes("PROBE_RESULT=NOT_SUBSCRIBED") ? "NOT_SUBSCRIBED" :
+      null;
+
+    if (marker === "DELIVERY_FAILED" && SKIP_MIGRATION) {
+      // Deliberately reported as skipped, not passed. `step()` does not count
+      // a skipped result toward the total, so the run cannot print "Ship it"
+      // while realtime notifications are silently broken.
+      return {
+        skipped: true,
+        reason: "realtime events broken — known: migration 20261006140000 not pushed yet",
+      };
+    }
+    throw new Error(
+      out.trim().slice(-800) || `realtime probe exited ${r.status} with no output`,
+    );
   });
 } else {
   step("Live DB connection", () => {

@@ -1009,10 +1009,83 @@ already inserted UTF-8 BOMs into `scripts/reconcile-payroll-period-overlap.mjs` 
 `tests/lead-attribution-rls.test.ts`, and BOMs are now asserted absent across the tree
 by `tests/encoding-integrity.test.ts`.
 
-### 21.7 State after this section
+### 21.7 The realtime probe had a race, and the gate blamed the database
 
-`tsc --noEmit` 0 · `eslint . --max-warnings=0` 0 · **vitest 490/490 across 83 files** ·
-`next build` 0 · release gate **18/18, "All checks passed. Ship it."**, exit 0 ·
+Found while re-running the gate to confirm §21, not by reading the code. Step 16
+failed: *"realtime events broken — DB needs migration `20261006140000`"*.
+
+That message was wrong twice over. `20261006140000` is applied, and running the
+probe on its own printed `✓ realtime WORKS` (exit 0). So a working system had just
+produced a red gate with a confident, false explanation.
+
+The probe had a race, by construction:
+
+```js
+await new Promise((resolve) => {
+  channel.subscribe((status) => {
+    if (status === "SUBSCRIBED") { resolve(); }
+    else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") { resolve(); }
+  });
+  setTimeout(resolve, 2000);   // resolves regardless of status
+});
+```
+
+That `setTimeout` resolves the *same* promise the callback resolves, so after two
+seconds the probe proceeded whether or not the channel had acknowledged. It then
+inserted, slept a flat 2500ms, and sampled once. Standalone on an idle box every
+leg fits in that window. Inside `verify-all.mjs` — right after vitest and the
+live-data smoke step, on a loaded machine — the insert can land before the channel
+is live, or the event can arrive after the single sample. Either way: "BROKEN".
+
+Then `verify-all.mjs` collapsed every non-zero exit into one canned explanation
+naming a migration that is already applied. **The probe's own diagnosis was
+discarded and replaced with a guess**, which is why the failure looked like a
+database problem for as long as it took to notice the standalone probe passing.
+
+Fixed:
+
+- The probe waits for an explicit `SUBSCRIBED` (15s ceiling), settles 500ms after
+  the ack, then **polls** for the event up to 15s instead of sampling once.
+- "Never finished subscribing" and "subscribed, no event" are now different exits
+  (`3` vs `1`) with `PROBE_RESULT=NOT_SUBSCRIBED` / `DELIVERY_FAILED` / `OK`
+  markers, because they need different fixes.
+- `verify-all.mjs` surfaces the probe's output verbatim and no longer pattern-matches
+  a prose string to decide the cause.
+
+Both failure branches were negative-controlled by running temporary copies with the
+timeouts collapsed to 1ms: `DELIVERY_FAILED` exited 1 with the row inserted and
+deleted, `NOT_SUBSCRIBED` exited 3 **without attempting an insert**. The copies were
+deleted. The committed script carries no test-only branches.
+
+`tests/realtime-probe-contract.test.ts` (14 cases) locks the shape, because a race
+cannot be caught by exercising a success path.
+
+> **The guard caught itself.** Its first draft asserted `verify-all.mjs` does not
+> contain the string `DB needs migration` — and failed, because the comment I had
+> written *explaining the removal* contains that string. The same self-reference
+> trap as §20.5. Fixed by stripping comments before asserting, with a control that
+> asserts the raw source still contains it, so the stripping can't quietly become
+> vacuous.
+
+This is the fifth tool in this repo that reported something it had not earned,
+after §16.4, §20.3, §20.5 and §20.7. The pattern is consistent enough to be worth
+naming: **every one of them reported a confident cause for a symptom it had not
+isolated.** The defences are the same each time — fail loudly, distinguish causes by
+exit code, and prove the negative control fires.
+
+### 21.8 State after this section
+
+`tsc --noEmit` 0 · `eslint . --max-warnings=0` 0 · **vitest 504/504 across 84 files** ·
+release gate **18/18, "All checks passed. Ship it."**, exit 0 ·
 Playwright **100 passed / 4 skipped / 0 failed** against a production build on port
-3100. Commits `3706a09` → `fbed912` → `63aa1a7` on
+3100 (unchanged; no application code was touched in §21.7, only the probe and its
+wrapper).
+
+Worth stating plainly: the gate read **17/18** before the §21.7 fix and **18/18**
+after, with no database change and no application change in between. The earlier
+"18/18" in this document's history was a number I carried forward from a run whose
+step-16 result was a timing artefact. It was re-measured rather than reasserted,
+which is the only reason the difference is visible at all.
+
+Commits `3706a09` → `fbed912` → `63aa1a7` on
 `fix/auth-signout-scope-and-payroll-coherence`. Not pushed.

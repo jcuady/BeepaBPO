@@ -13,7 +13,7 @@ lives in `SYSTEM_AUDIT.md`.
 ## 0. One-paragraph state
 
 **The platform is shippable.** The 18-step gate passes end to end — *"All checks passed.
-Ship it."* exit 0 — covering typecheck, lint, 490 unit tests, production build, RBAC, page
+Ship it."* exit 0 — covering typecheck, lint, 504 unit tests, production build, RBAC, page
 wiring, page inventory, design-system and filter-persistence audits, a nav-driven crawl of 219
 pages across all 13 roles, a 224-combination responsive sweep, and 100 Playwright tests against
 a production build. The two blockers that remained on 2026-10-08 are closed: the payroll overlap
