@@ -22,7 +22,8 @@ user anything real?**
 | Release gate | `node scripts/verify-all.mjs` | **18/18 — "All checks passed. Ship it." — exit 0** |
 | **Per-role page sweep** | `scripts/audit/audit-role-sweep.mjs` | **13 roles × nav-reachable pages + 10 marketing pages = 471 visits** |
 | **Data population** | `scripts/audit/audit-data-population.mjs` | **every table the app queries** |
-| **Live workflow exercise** | `scripts/audit/qa-exercise-leave-workflow.mjs` | **employee → team lead → HR, 12 assertions** |
+| **Live workflow exercise** | `qa-exercise-leave-workflow.mjs` | **employee → team lead → HR, 12 assertions** |
+| **Ticket workflow exercise** | `qa-exercise-ticket-workflow.mjs` | **client admin → operations, 9 assertions** |
 | Interactive | Playwright MCP | login, headings, live workflow |
 
 ### Heading spot-check (Playwright MCP, owner, production build)
@@ -253,6 +254,35 @@ Both are now fixed and covered. The lesson matches §16.4, §20.3, §20.7 and §
 `SYSTEM_AUDIT.md`: this repo's recurring failure is a tool reporting a confident cause
 for something it has not isolated.
 
+### Ticket workflow — `qa-exercise-ticket-workflow.mjs`, 9/9
+
+```
+clientadmin@  creates a ticket  ->  operations@  assigns it
+```
+
+The live notifications table had only ever held `leave.request` rows and harness
+residue, so **both ticket notification paths were unexercised**. They are correct and
+correctly distributed:
+
+| Assertion | Result |
+|---|---|
+| Ticket created by the client contact | PASS (`TKT-20261009-00002`) |
+| Ticket starts in `new` | PASS |
+| Requester received `ticket.created` | PASS — `We received your request: QA ticket exercise … — payroll question` |
+| `ticket.created` names the subject | PASS |
+| Assignment exercised | PASS |
+| Ticket has an assignee | PASS |
+| Assignee received `ticket.assigned` | PASS — `TKT-20261009-00002: QA ticket exercise … — payroll question` |
+| `ticket.assigned` names the ticket number | PASS |
+| Notifications actually created | PASS (29 → 31) |
+
+Both messages already carried identifying detail, so unlike the leave notifications
+these needed no fix — they only needed proving.
+
+The assignment control lives on the ticket **detail** page, not the list, and the
+select opens a `ConfirmDialog`. Selecting an option and moving on changes nothing,
+which is exactly what the first run did — the same trap as the leave workflow.
+
 ### Traps this pass hit in its own tooling
 
 Recorded because each produced a report full of defects that did not exist:
@@ -278,7 +308,7 @@ Recorded because each produced a report full of defects that did not exist:
 | # | Item | Why |
 |---|---|---|
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
-| 2 | Ticket, admin role-assign and cron notification paths | Not exercised this pass; only the leave paths were proven end to end |
+| 2 | Admin role-assign and cron notification paths | Not exercised; only the leave and ticket paths were proven end to end |
 | 3 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
 | 4 | Playwright e2e not running in CI | Needs `RUN_E2E=true` plus secrets |
 | 5 | `payslip_items` / `payslip_components` | Do not exist; my earlier guess. The app uses `payroll_components` |
