@@ -82,6 +82,39 @@ Not executed: retiring a period cascade-deletes 10 records, 30 components and 10
 so it needs an explicit go-ahead. Run `pnpm audit:payroll-plan` first to re-read the exact
 SQL and blast radius against live data.
 
+**CLOSED 2026-10-09 — approved, executed, verified.** `pnpm fix:payroll-overlap --apply` retired
+the stub period (1 period, 10 records, 30 components, 10 payslips, 0 rows on the
+`ON DELETE SET NULL` legs) and the independent audit now reports `Overlapping payroll periods: 0`.
+The pipeline was then rebuilt from the engine rather than from seed fiction:
+`pnpm seed:payroll:window` created `September 16–30, 2026` with 10 draft records and
+₱240,000 gross, using `lib/payroll/schedule.ts`'s own `salaryFactorFor` and `fixedPayAmount`.
+Migration `20261007120000_payroll_period_no_overlap.sql` applied cleanly afterwards.
+
+**UPDATE 2026-10-09 — the retirement is now a reviewed, guarded command.**
+
+`scripts/reconcile-payroll-period-overlap.mjs` (`pnpm fix:payroll-overlap`) does the first
+step. It is dry-run unless `--apply` is passed, and it refuses to write unless it can prove
+the target period holds nothing real:
+
+| Guard | Why it exists |
+|---|---|
+| Refuses a period in `finalized` / `disbursed` / `closed` | never deletes approved payroll |
+| Refuses unless **every** record is `calculation_snapshot.engine === "stub_v1"` | a real computed run cannot be deleted by pointing this at the wrong period |
+| Prints the whole delete cascade before writing | 1 period, 10 records, 30 components, 10 payslips, 0 rows with `ON DELETE SET NULL` |
+| Refuses when a cash-advance or commission row would be orphaned | those rows survive but lose the link to the payslip that carried them |
+| Deletes with one statement on the period | Postgres applies the cascade atomically, so there is no half-deleted state |
+| Re-runs the overlap test afterwards and exits non-zero if any conflict remains | the repair cannot report success it did not achieve |
+
+Dry-run output is confirmed against live data: it selects the draft period, shows all 10
+records at `engine=stub_v1` with `worked_minutes=4800`, and reports 0 rows at risk from the
+`SET NULL` legs. Still not executed: it deletes rows, so it needs the explicit go-ahead.
+
+One correction worth recording: the script cannot read `payroll_periods.pay_frequency`,
+because that column only arrives with the unapplied
+`20260922120000_payroll_frequency_fixed_salary.sql`. The repair has to run *before* that
+migration, so it selects only columns present in every schema revision, and `tests/
+payroll-overlap-reconciliation.test.ts` fails the build if that dependency is reintroduced.
+
 **Before choosing, read what each option actually costs.** `pnpm audit:payroll-plan`
 prints the full blast radius against live data, and two of these consequences are not
 visible from the option names alone:
@@ -130,6 +163,24 @@ validates the whole table and will fail while the conflict exists.
 
 ### 1.2 Database credentials — 4 migrations are written but unapplied
 
+**CLOSED 2026-10-09.** All **7** pending migrations applied; `supabase migration list`
+shows remote equal to local for every one. The DB password was sufficient — the project
+was already linked via `supabase/.temp`, so `supabase db push` never needed a personal
+access token. Two defects had to be fixed first:
+
+- `20261006140000` declared `handle_user_sign_in()` with no `returns trigger` (`42P13`).
+- The Supabase CLI's migration splitter rejects the canonical clause order; **`RETURNS`
+  must precede `LANGUAGE`**, verified by bisection against the live database.
+  `tests/migration-function-clauses.test.ts` pins both rules.
+
+The realtime gate then still failed, but not because of the database: the probe
+subscribed with the **anon** key while `notifications` RLS is `user_id = auth.uid()`
+scoped to `authenticated`, so it could never receive the event it was waiting for. It
+now signs in as the notification's owner.
+
+<details>
+<summary>Original notes (kept for history)</summary>
+
 Nothing is partially applied; all four are pending.
 
 | Migration | What it does | Consequence while unapplied |
@@ -165,6 +216,26 @@ node scripts/verify-all.mjs
 `20261006140000` creates a trigger on `auth.sessions`, which needs DB-level
 (`postgres`) access, not the service-role API key. The CLI access token currently
 present returns `Unauthorized` for `supabase projects list`.
+
+</details>
+
+### 1.2a Environment note — `.env.local` was truncated and rebuilt (2026-10-09)
+
+`.env.local` is gitignored, so a mid-session truncation had no version to restore
+from. Twelve of fourteen keys were rebuilt: the five `NEXT_PUBLIC_*` values from the
+last production build's client bundle in `.next/static/chunks/`, `AUTH_SECRET` intact,
+and the rest from the operator. Three could not be recovered and were replaced:
+
+| Key | Replacement | Consequence |
+|---|---|---|
+| `VAPID_PRIVATE_KEY` | new VAPID keypair generated via `web-push`, verified coherent | **Existing browser push subscriptions are invalid** and must re-subscribe |
+| `DEMO_PASSWORD` | 13 demo accounts reset through the admin API; sign-in verified on 5 role accounts | none, once clients re-subscribe |
+| `CRON_SECRET` | new random value | any deployed environment calling `/api/jobs/cron` must be updated to match |
+
+`SUPABASE_SECRET_KEY` and `SUPABASE_ACCESS_TOKEN` remain unset. Both were then shown
+to be non-blocking: every consumer falls back to `SUPABASE_SERVICE_ROLE_KEY` (one script,
+`test-realtime-events.mjs`, did not, and was fixed), and `supabase db push` works from
+the existing `supabase/.temp` link without a personal access token.
 
 ### 1.3 Push delivery — never observed end to end
 

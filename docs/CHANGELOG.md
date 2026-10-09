@@ -2,6 +2,98 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## A permissive RLS policy that the product never needed (2026-10-09)
+
+- **`public.lead_attribution` granted `WITH CHECK (true)` to `authenticated`**,
+  which Supabase's linter flags as `rls_policy_always_true` (lint 0024). Any signed-in
+  account — an applicant, a client-portal user, anyone with a valid session — could
+  write an attribution row against **any** `lead_id`, poisoning the CRM attribution
+  data that sales reads.
+- **The policy was pure attack surface.** The only writer in the codebase is
+  `createLeadFromContact` (`lib/crm/actions.ts:205`), which deliberately uses
+  `createAdminClient()` because the public marketing contact form is submitted by an
+  anonymous visitor holding no `crm.manage` JWT. `relforcerowsecurity` is `false` on
+  this table, so the service role bypasses RLS and the policy contributed nothing to
+  that flow. The `SELECT` policy is untouched and still requires `crm.read` or
+  `crm.manage`.
+- **Verified in both directions against the live database**, not just applied:
+  an authenticated insert now returns **`42501 insufficient_privilege`**, while the
+  service-role insert the marketing form depends on still succeeds, and an anon
+  `SELECT` still sees zero rows. A fix that only demonstrates the first half would
+  have shipped a broken contact form.
+- **`tests/lead-attribution-rls.test.ts` pins it, after the first version of that
+  guard proved itself useless.** It originally asserted only that the `DROP POLICY`
+  statement existed, so appending `create policy ... with check (true)` on the next
+  line still passed. The negative control caught precisely that. The guard now
+  asserts the policy is never recreated and that no `with check (true)` appears in
+  the file at all, and separately proves the app's writer uses the service role so
+  the policy cannot be "restored for safety".
+- **I also left three debug functions in the database** during the clause-order
+  bisection (`probe_order_fn`, `probe_simple_fn`, `probe_trig_fn`) and only noticed
+  because the advisor run flagged them as mutable-`search_path` security warnings.
+  Dropped, and re-queried to confirm zero remain. **A diagnostic that writes to the
+  system under investigation needs its own cleanup step**, because "I only created a
+  probe" is not a reason it does not count as production state.
+
+## The realtime gate was never testing realtime (2026-10-09)
+
+- **Ship gate step 16 had been reporting "needs the realtime migration" for weeks.** Applying the migration did not fix it. The probe was subscribing with the **anon** key and then inserting a notification owned by the HR user, so it waited for an event it was structurally incapable of receiving: `notifications` carries RLS `user_id = auth.uid()` scoped to the `authenticated` role, and anon is filtered out of every row. **The step could not have passed with or without the publication.**
+- **The publication was never the problem.** After the migration applied, `pg_publication_tables` already listed all 12 tables including `notifications`, and the RLS policies were exactly right. Chasing "add the table to the publication" would have been the wrong fix, applied to a table that was already there.
+- **The probe now signs in as the notification's owner** and subscribes with that session, which is the case the app actually depends on. It also refuses to run if the signed-in user is not the row owner, so it cannot pass or fail for the wrong reason. Result: the event arrives, and the step reports what it claims to report.
+- **A second defect sat next to it.** `test-realtime-events.mjs` read `SUPABASE_SECRET_KEY` with no fallback, unlike every other Supabase script in the repo, so it died with a bare `supabaseKey is required` whenever only the legacy key was configured. Now `SUPABASE_SECRET_KEY ?? SUPABASE_SERVICE_ROLE_KEY`, which is what the rest of the codebase does.
+- **A gate step that cannot fail for the right reason is worse than no gate.** It reads as coverage, it costs a person minutes each time it goes red, and it hides the fact that the underlying capability was never verified.
+
+## The payroll pipeline is populated by the engine, not by seed fiction (2026-10-09)
+
+- Retiring the `stub_v1` period left the demo tenant with one finalized fortnight and an empty pipeline, which is the correct outcome and also a broken demo. `scripts/seed-payroll-window.mjs` (`pnpm seed:payroll:window`) creates the remaining September 16–30 semi-monthly window using the engine's own `salaryFactorFor` and `fixedPayAmount`: **10 draft records, ₱240,000 gross**, no overlap with the finalized fortnight.
+- **The script restates the pay math rather than importing it,** because it runs as plain Node. `tests/payroll-seed-window.test.ts` closes that gap by evaluating the script's own function body and comparing it against `lib/payroll/schedule.ts` for every frequency. Changing the seed's factor from `0.5` to `0.45` fails the build with `expected 0.45 to be 0.5`, so the copy cannot drift.
+- It refuses a window that overlaps an existing period using the same inclusive-inclusive comparison as the `payroll_periods_no_overlap` constraint, and refuses outright if any active employee has no `payroll_profiles` row rather than quietly seeding a zero-pay record.
+
+## Two migration defects that only a live database could catch (2026-10-09)
+
+- **`20260921100000` was missing from the pending list entirely.** `supabase migration list` showed **7** pending migrations, not the 4 the preflight audit reported. The discrepancy is worth recording: the preflight compares migrations on disk against the remote, but the earlier count was taken before `20260921100000` was identified as untracked-but-unapplied. Trusting the audit alone would have left a migration unapplied and the schema quietly short.
+- **`20261006140000` declared a trigger function with no return type.** `create or replace function public.handle_user_sign_in() language plpgsql ... as $$` with no `returns` clause. PostgreSQL rejects it with `42P13 function result type must be specified`; a trigger function still has to say `returns trigger`, Postgres does not infer it. This migration had never been applied, so the defect was invisible until the push.
+- **Adding `returns trigger` the canonical way then failed a *second* time**, with `syntax error at or near "trigger"`. That is not a PostgreSQL error, and assuming it was would have meant rewriting working SQL to chase a phantom. Bisected on the live database instead:
+  - `language plpgsql` then `returns trigger` with a dollar-quoted body: **fails**
+  - `returns trigger` then `language plpgsql`, dollar-quoted: **succeeds**
+  - `returns trigger` with a single-quoted body: **succeeds**
+  - `returns void` with a dollar-quoted body: **fails at `void`**, so it is the clause order, not the word `trigger`
+  - `returns trigger` with a tagged `$fn$` body: **fails**, so it is not about `$$` being special
+
+  The Supabase CLI's migration splitter accepts `RETURNS` only before `LANGUAGE`. The migration is now written in that order, with the reason recorded beside it so nobody "corrects" it back.
+- **`tests/migration-function-clauses.test.ts` pins both traps.** It parses every `CREATE FUNCTION` head in `supabase/migrations/`, asserts each declares a return type, and asserts `RETURNS` precedes `LANGUAGE`. It carries its own vacuity guard, since "no functions found" would otherwise pass silently.
+- **Both are the same lesson as the missing `pay_frequency` column:** the preflight catches what is statically visible, and only applying the migration catches the rest. The sequence that found all three was dry-run, apply, and read the real error rather than reasoning about it.
+
+## Mojibake in shipped copy, and a scanner that cannot be fooled by the console (2026-10-09)
+
+> This section describes corrupted text, so it names the sequences by code point rather than pasting them. A changelog that reproduces the corruption fails the very guard it documents.
+
+- **`components/marketing/contact-form.tsx` shipped a mangled em dash** in the line "No spam [mangled] just a clear next step": one U+2014 em dash, three characters wide, because the file had been decoded as cp1252 and re-encoded as UTF-8. Nothing failed. The build is clean, the types are correct, and no test asserts on copy, so it would have shipped.
+- **The console actively misleads in both directions.** Reading `20260921100000_seed_marketing_services.sql` with `Get-Content` *appeared* to show the same corruption, which looked like a third incident. A byte-level scan proved the opposite: the file holds 2 genuine em dashes, 1 right single quote, and **zero** `U+00E2`. Repairing on the strength of what the terminal printed would have "fixed" a clean file and left the real one broken. **Decide encoding repairs on bytes, never on terminal output.**
+- **`tests/encoding-integrity.test.ts` now scans all tracked text.** It walks 576 files, asserts zero mojibake sequences, and asserts migrations are clean separately, because a corrupted migration writes corrupted copy into the CMS permanently and can only be corrected by a new migration, not an edit.
+- **The test has controls, because "no mojibake found" is also what a broken scanner reports.** A second assertion requires a healthy count of *real* Unicode punctuation (currently 1321), so a repo stripped of em dashes cannot pass. A third asserts the scan actually visited files, so a broken walk cannot pass vacuously. A fourth excludes the test file itself, because its signature literals would otherwise make it report itself.
+- **Negative-controlled.** Injecting a single corrupted sequence into the contact form failed the suite and named `components/marketing/contact-form.tsx:451`.
+
+## I truncated `.env.local` and recovered it (2026-10-09)
+
+- **What happened.** Appending `SUPABASE_DB_PASSWORD` with a PowerShell `StreamWriter` concatenated onto the previous line because the file ended without a trailing newline, so the key landed inside the `AUTH_SECRET` value. The repair script then rebuilt the file from a PowerShell array slice that collapsed, reducing 14 keys to 2. The file is gitignored, so there was no version to restore from.
+- **What was recovered, and how.** Five `NEXT_PUBLIC_*` values were inlined into the client bundle by the last production build in `.next/static/chunks/`, and were extracted from there; `AUTH_SECRET` survived intact because the split put it back on its own line; the service_role JWT and DB password came from the operator. 12 of 14 keys are back. The VAPID public key extracted at exactly 87 characters, matching what the ship gate independently reported, which is what proved the extraction was faithful rather than truncated.
+- **`VAPID_PRIVATE_KEY` was unrecoverable, so the pair was regenerated.** The public key is derived from the private key, so keeping the recovered public key would have left web-push rejecting the pair. Both were replaced with a freshly generated, verified-coherent pair, which is what restored `tests/push-notification-flow.test.ts` to 18/18. **Existing browser push subscriptions are now invalid and must re-subscribe.**
+- **`DEMO_PASSWORD` was unrecoverable, so the 13 demo accounts were reset** through the admin API to a generated value, and sign-in was verified on 5 role accounts rather than assumed. `CRON_SECRET` was regenerated; `authorizeCronRequest` fails closed when it is absent, so its loss was a functional gap, not an exposure.
+- **Two values remain unset and are optional:** `SUPABASE_SECRET_KEY` (every consumer already falls back to `SUPABASE_SERVICE_ROLE_KEY`) and `SUPABASE_ACCESS_TOKEN` (only needed for `supabase link`, and the project is already linked via `supabase/.temp`).
+- **The lesson, recorded because it will recur.** PowerShell string surgery on a file containing secrets is not recoverable by the file itself. Every other edit in this session went through the `edit`/`write` tools precisely because of this; the one file that did not is the one that broke.
+
+## The payroll overlap is now a guarded one-command repair (2026-10-09)
+
+- **The overlap itself is stale news dressed as a live bug.** `scripts/audit/audit-payroll-period-overlap.mjs` reports the conflict exactly: `September 1–15, 2026` (finalized, 09-01..09-15) is fully contained by `September 2026 payroll` (draft, 09-01..09-30), and employee `108f95ff` holds a record in both, 24,500 and 26,760. The org pays `semi_monthly`, so September is legitimately two fortnights. The month-wide period is not a second payroll result at all: all 10 of its records read `engine=stub_v1`, `worked_minutes=4800`, and none carries a statutory deduction.
+- **Retiring it was previously a hand-run destructive migration,** which is why it sat undone behind a go-ahead nobody could give confidently. `scripts/reconcile-payroll-period-overlap.mjs` (`pnpm fix:payroll-overlap`) makes it a reviewed command: dry-run unless `--apply`, refuses a period in `finalized`/`disbursed`/`closed`, and refuses unless **every** record in the target is `calculation_snapshot.engine === "stub_v1"`. That last guard is the whole safety argument, so it cannot be widened into "mostly stub" without failing the build.
+- **The cascade is printed before anything is written,** so the cost is never a surprise: 1 period, 10 records, 30 components, 10 payslips, and **0 rows on the `ON DELETE SET NULL` legs** (`cash_advance_deductions`, `commission_records` — both would survive the delete but lose the link to the payslip that carried them, so a non-zero count halts the script unless `--allow-orphan-links` is passed).
+- **One statement on the period, so there is no half-deleted state.** Deleting records or payslips by hand would leave a window where the records are gone but the period still overlaps. Postgres applies the cascade atomically; the script then re-runs the overlap test and **exits non-zero if any conflict remains**, so the repair cannot report a success it did not achieve.
+- **A latent failure surfaced while writing it:** the script could not read `payroll_periods.pay_frequency` (hard `42703`), because that column only arrives with the still-unapplied `20260922120000_payroll_frequency_fixed_salary.sql`. The repair has to run *before* that migration, so it reads only columns present in every schema revision, and `tests/payroll-overlap-reconciliation.test.ts` fails the build if that dependency is reintroduced. A repair that cannot run at the moment it is needed is not a repair.
+- **`process.exit()` is a crash on this machine after any Supabase query.** Probing the guards at runtime (pointing `--period` at the approved fortnight, and at a period in no conflict) produced the correct refusal messages and then died with `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` and exit `0xC0000409`. Isolated with a three-way probe against this repo's own client: `process.exit(2)` after one query exits `0xC0000409`; `process.exit(0)` exits `0`; `process.exitCode = 2` exits `2`. It is libuv tearing down while undici's keep-alive socket is still closing. The practical scope is narrower than it looks and worth stating precisely: **only non-zero exits are affected, so audits that pass still exit `0` and the ship gate is unaffected** — `verify-all` itself also exits cleanly, because it drives its Supabase audits through `spawnSync`. What is affected is *diagnostic quality*: a script that refuses on purpose exits with a Windows crash code instead of `2`, so an operator cannot tell a safety stop from a broken script. That is precisely the signal this repair depends on. The reconcile script routes all exits through a `stop()` helper that unwinds the module and lets the loop drain; the guard test strips comments and fails the build on any reintroduction of `process.exit(`. **The same latent pattern remains in the other Supabase scripts** (`fix-premature-finalization.mjs`, `seed-demo-leave.mjs`, `refresh-demo-timeline.mjs`, and the Supabase-backed audits under `scripts/audit/`); they are left alone here rather than refactored blind, since none of them currently misreports a result.
+- **The guards were exercised at runtime, not just in the source.** Pointing `--period` at the finalized fortnight refuses with `is 'finalized', which is approved payroll`; pointing it at a period in no conflict refuses with `is not part of any overlapping pair`. Both now exit `2`, and the dry run still exits `0`. A guard that has only been read is not a guard that works.
+- **Still not executed.** It deletes rows. It is staged, dry-run verified against live data, and waiting on the same explicit go-ahead as before — but now the go-ahead covers a command whose blast radius and guards are both inspectable, not a hand-written cascade.
+
 ## A bare `signOut()` was signing users out of every device (2026-10-09)
 
 - **`supabase.auth.signOut()` defaults to `scope: "global"`.** Confirmed in the installed `@supabase/auth-js@2.115.0`: `async signOut(options = { scope: 'global' })`, and `_signOut` forwards the scope straight to GoTrue's `/logout`. A bare call therefore revokes **every refresh token the user has, on every device**. The project already had the right shape — `logoutAllAction` passes `{ scope: "global" }` explicitly — which is what makes the bare calls an oversight rather than a decision.

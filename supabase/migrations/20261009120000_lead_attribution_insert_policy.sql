@@ -1,0 +1,21 @@
+-- Remove the permissive INSERT policy on public.lead_attribution.
+--
+-- `lead_attribution_insert` was `WITH CHECK (true)` for the `authenticated`
+-- role. That is exactly the shape Supabase's database linter flags as
+-- `rls_policy_always_true` (lint 0024): any signed-in account could write an
+-- attribution row for any `lead_id`, so an applicant or a client-portal user
+-- could poison the CRM attribution data that sales reads.
+--
+-- It was never needed. The only writer in this codebase is
+-- `createLeadFromContact` in `lib/crm/actions.ts:205`, which deliberately uses
+-- `createAdminClient()` because the public marketing contact form is submitted
+-- by an anonymous visitor who has no `crm.manage` JWT. The service role bypasses
+-- RLS (`relforcerowsecurity = false` on this table), so the policy contributed
+-- nothing to that flow and everything to the attack surface.
+--
+-- The SELECT policy is untouched and still requires `crm.read` or `crm.manage`.
+--
+-- Verified after applying: an `authenticated` insert is now rejected, and the
+-- service-role insert the marketing form depends on still succeeds.
+
+drop policy if exists lead_attribution_insert on public.lead_attribution;

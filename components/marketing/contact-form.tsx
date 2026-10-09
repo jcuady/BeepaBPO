@@ -448,7 +448,7 @@ export function ContactForm() {
       </div>
 
       <p className="text-center text-base text-slate">
-        We respond to qualified inquiries. No spam â€” just a clear next step from{" "}
+        We respond to qualified inquiries. No spam — just a clear next step from{" "}
         {BRAND.displayName}.
       </p>
     </form>

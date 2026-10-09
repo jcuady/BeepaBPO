@@ -5,7 +5,14 @@
 // Run:  pnpm vitest run tests/live-data-smoke.test.ts
 import { readFileSync, existsSync } from "node:fs";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { describe, test, beforeAll, expect } from "vitest";
+import { describe, test, beforeAll, expect, vi } from "vitest";
+
+// Every assertion in this file is a round-trip to a remote Postgres over the
+// internet, and several tests issue five to eight of them. Vitest's 5s default
+// is a budget for in-process logic, not for a networked integration suite, so
+// the whole file failed intermittently while every assertion was true. Individual
+// tests still fail fast on a real hang; this only widens the network allowance.
+vi.setConfig({ testTimeout: 20_000 });
 
 function loadEnv(file: string) {
   if (!existsSync(file)) return {};
@@ -102,16 +109,44 @@ describeIf("live data smoke (nwvnawgxkzwiercllgmg)", () => {
     expect(await count("crm_proposals")).toBeGreaterThanOrEqual(1);
   });
 
-  test("ATS + performance data", async () => {
-    expect(await count("job_posts")).toBeGreaterThanOrEqual(1);
-    expect(await count("applicants")).toBeGreaterThanOrEqual(1);
-    expect(await count("job_applications")).toBeGreaterThanOrEqual(1);
-    expect(await count("application_stage_history")).toBeGreaterThanOrEqual(1);
-    expect(await count("interviews")).toBeGreaterThanOrEqual(1);
-    expect(await count("assessments")).toBeGreaterThanOrEqual(1);
-    expect(await count("performance_cycles")).toBeGreaterThanOrEqual(1);
-    expect(await count("performance_kpis")).toBeGreaterThanOrEqual(2);
-  });
+  test(
+    "ATS + performance data",
+    async () => {
+      // Eight sequential round-trips against a remote database sat right on
+      // vitest's 5s default, so this failed intermittently on a busy machine while
+      // every assertion was in fact true. They are independent reads, so issue
+      // them together and keep an explicit ceiling for the network.
+      const [
+        jobPosts,
+        applicants,
+        jobApplications,
+        stageHistory,
+        interviews,
+        assessments,
+        cycles,
+        kpis,
+      ] = await Promise.all([
+        count("job_posts"),
+        count("applicants"),
+        count("job_applications"),
+        count("application_stage_history"),
+        count("interviews"),
+        count("assessments"),
+        count("performance_cycles"),
+        count("performance_kpis"),
+      ]);
+
+      expect(jobPosts).toBeGreaterThanOrEqual(1);
+      expect(applicants).toBeGreaterThanOrEqual(1);
+      expect(jobApplications).toBeGreaterThanOrEqual(1);
+      expect(stageHistory).toBeGreaterThanOrEqual(1);
+      expect(interviews).toBeGreaterThanOrEqual(1);
+      expect(assessments).toBeGreaterThanOrEqual(1);
+      expect(cycles).toBeGreaterThanOrEqual(1);
+      expect(kpis).toBeGreaterThanOrEqual(2);
+    },
+    20_000,
+  );
 
   test("No duplicate bereavement leave for demo employee", async () => {
     // After dedupe we expect at most 1 bereavement row per (employee, dates).

@@ -13,10 +13,10 @@
 |---|---|---|
 | TypeScript | **PASS** | `tsc --noEmit` exit 0 |
 | Lint | **PASS** | `eslint . --max-warnings=0` exit 0 |
-| Unit tests | **PASS** | **458/458 across 78 files** |
+| Unit tests | **PASS** | **474+ across 80+ files** (3 new guard suites: encoding integrity, migration clauses, payroll seed drift) |
 | Production build | **PASS** | `next build` exit 0 |
 | E2E (Playwright) | **PASS** | **100 passed, 4 skipped, 0 failed** — prod build, cold `.auth`, 59.5s |
-| Ship gate | **FAIL — honest** | `verify-all.mjs` → **16/18 passed, 2 failed. "Do not ship."** exit 1 |
+| Ship gate | **PASS** | `verify-all.mjs` → **18/18 passed. "All checks passed. Ship it."** exit 0 |
 | Authorization (routes) | **PASS** | `audit-rbac.mjs` **75/78 (96%)** + 3 structural exemptions, exit 0 |
 | Authorization (actions) | **PASS** | `audit-action-rbac.mjs` **63/64**, exit 0 |
 | Page wiring | **PASS** | `audit-page-wiring.mjs` scanned 269 `.tsx`, **0 candidates** (validated by negative control) |
@@ -70,10 +70,45 @@ was double-counted as a failure (13 + 3 + 1 = 17 "failures" out of 16 steps).
 | 1 Node · 2 VAPID present · 3 VAPID accepted · 4 route RBAC · 5 action RBAC · 6 page wiring · 7 page inventory | PASS |
 | **8 Design system consistency** | **PASS** — 0 raw primitives, 0 hardcoded colours |
 | **9 Filters survive pagination** | **PASS** — 32 paginated pages, 0 dropped filters, 0 unverified |
-| **10 Payroll periods do not overlap** | **FAIL** — same days in two runs; 1 employee paid twice (₱24,500 vs ₱26,760) |
-| 11 Payroll period/record status coherent | **PASS** — 10 records returned to draft, ₱0 exposed before approval |
-| 12 TypeScript · 13 lint · 14 vitest (458) · 15 live data smoke · 17 DB row counts · 18 production build | PASS |
-| 16 Realtime event delivery | **FAIL** — needs migration `20261006140000_realtime_and_profile_sync.sql`, **which is now safe to apply** (see below) |
+| **10 Payroll periods do not overlap** | **PASS** — stub period retired; 0 overlapping pairs |
+| 11 Payroll period/record status coherent | **PASS** — ₱0 exposed before approval |
+| 12 TypeScript · 13 lint · 14 vitest · 15 live data smoke · 17 DB row counts · 18 production build | PASS |
+| 16 Realtime event delivery | **PASS** — event received end to end |
+
+## The gate is 18/18 — "All checks passed. Ship it." (2026-10-09)
+
+Both remaining failures are closed, and neither closed the way the notes above
+expected.
+
+**Step 10 was closed by retiring fiction, not by choosing a number.** The draft
+`September 2026 payroll` period (2026-09-01..09-30) fully contained the finalized
+fortnight, so the same days sat in two runs. Every one of its 10 records read
+`engine=stub_v1`, `worked_minutes: 4800` across a 30-day window, with zero
+statutory deductions and `net_pay` equal to `gross_pay`. It was not a second
+payroll result to reconcile, so there was no figure to choose between.
+`scripts/reconcile-payroll-period-overlap.mjs` (`pnpm fix:payroll-overlap`)
+retired it: 1 period, 10 records, 30 components, 10 payslips, **0 rows** on the
+`ON DELETE SET NULL` legs. It refuses any period that is `finalized`/`disbursed`/
+`closed`, and refuses unless *every* record is `stub_v1`.
+
+The pipeline was then repopulated by the engine rather than by seed data:
+`scripts/seed-payroll-window.mjs` created `September 16–30, 2026` with 10 draft
+records and ₱240,000 gross, using `lib/payroll/schedule.ts`'s own
+`salaryFactorFor` / `fixedPayAmount`. `tests/payroll-seed-window.test.ts`
+evaluates that restated math against the engine so the copy cannot drift.
+
+**Step 16 was never broken realtime — it was a probe that could not pass.** It
+subscribed with the **anon** key while `notifications` RLS is
+`user_id = auth.uid()` scoped to `authenticated`, so it waited for an event anon
+could never receive. The publication already listed all 12 tables. The probe now
+signs in as the notification's owner and refuses to run if that user is not the
+row owner; the event arrives.
+
+**Applying the 7 pending migrations required two fixes first.** One trigger
+function omitted `returns trigger` (`42P13`), and the CLI then rejected the
+canonical clause order — `RETURNS` must precede `LANGUAGE` — which was bisected
+against the live database rather than guessed at. `tests/migration-function-clauses.test.ts`
+pins both.
 
 **The gate went 13/18 → 15/18 → 16/18 on 2026-10-09.** Step 15 (live data smoke) had been
 failing on an empty `leave_requests` table, which `scripts/seed-demo-leave.mjs` repopulated
