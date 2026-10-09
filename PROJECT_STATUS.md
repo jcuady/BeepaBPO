@@ -19,8 +19,10 @@
 | E2E (Playwright) | **PASS** | **100 passed, 4 skipped, 0 failed** — prod build, cold `.auth`, 59.5s |
 | Ship gate | **PASS** | `verify-all.mjs` → **18/18 passed. "All checks passed. Ship it."** exit 0 |
 | **Role × page sweep** | **PASS** | `audit-role-sweep.mjs` — every nav-reachable page for all 13 roles, plus 10 marketing pages: **0 console errors, 0 page errors, 0 error states**. Download endpoints recorded separately (they are not navigable by design) |
-| **Data population** | **PASS** | `audit-data-population.mjs` — every table the app queries, distinguishing **missing** from **empty** (a `head:true` count against a nonexistent table returns `null` with no error). 945 rows across app tables |
-| **Live workflow exercise** | **PASS** | `qa-exercise-leave-workflow.mjs` — employee → team lead → HR, asserting against the database rather than the DOM: **12/12** |
+| **Data population** | **PASS** | `audit-data-population.mjs` — every table the app queries, distinguishing **missing** from **empty** (a `head:true` count returns `null` for a nonexistent table *or* a nonexistent column, with no error). **996 rows** across app tables |
+| **Live workflow exercises** | **PASS** | `qa-exercise-leave-workflow.mjs` — employee → team lead → HR, asserting against the database rather than the DOM: **13/13**. `qa-exercise-ticket-workflow.mjs` — client admin → assignee: **10/10**. Both clean up in a `finally` and assert they left nothing (mutation-proved) |
+| **Notification integrity** | **PASS** | `qa-verify-notifications.mjs` — 58 rows, **58 distinct bodies**, 0 legacy generic strings, **0 dead links**. The 27 orphaned rows carrying the old body were deleted via `cleanup-orphan-notifications.mjs` and reseeded from live records |
+| **Page headings** | **PASS** | `page-heading-contract.test.ts` — 79 `<PageHeader>` call sites across `app/` **and** `lib/`; **76 now carry a `title`**, 2 are documented exceptions. Before the fix, 78 of 79 rendered the greeting `Good morning, Demo.` — byte-identical, because every seeded profile is named "Demo" |
 | Authorization (routes) | **PASS** | `audit-rbac.mjs` **75/78 (96%)** + 3 structural exemptions, exit 0 |
 | Authorization (actions) | **PASS** | `audit-action-rbac.mjs` **63/64**, exit 0 |
 | Page wiring | **PASS** | `audit-page-wiring.mjs` scanned 269 `.tsx`, **0 candidates** (validated by negative control) |

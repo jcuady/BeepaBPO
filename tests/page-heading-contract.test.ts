@@ -8,9 +8,10 @@ import { describe, expect, it } from "vitest";
  * `PageHeader` falls back to a time-of-day greeting when no `title` is passed.
  * `SYSTEM_AUDIT.md` §16.5 spotted this on the job detail page, added the `title`
  * prop, and fixed that one caller — while explicitly noting "every existing
- * caller is unaffected". 70 call sites were left greeting. Because every seeded
- * demo profile has `first_name = "Demo"`, all 70 rendered the byte-identical
- * string "Good morning, Demo.".
+ * caller is unaffected". Measured against a73f55a, 79 call sites existed and only
+ * that 1 carried a title, so the other 78 rendered a greeting. Because every seeded
+ * demo profile has `first_name = "Demo"`, all 78 rendered the byte-identical
+ * string "Good morning, Demo.". 76 were given titles; 2 are documented exceptions.
  *
  * An H1 has to identify the page for a screen-reader user arriving by a link, a
  * search, or a bookmark. A greeting identifies the user, not the page, and here

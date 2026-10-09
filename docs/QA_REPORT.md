@@ -80,8 +80,10 @@ rendering an error state, 0 marketing problems.**
 ### P0 — Every page's `<h1>` was a greeting. Fixed.
 
 `PageHeader` renders `{greeting}, {first_name}.` unless given a `title` prop.
-**70 of 71 call sites passed no `title`.** Because every seeded demo profile has
-`first_name = "Demo"`, the H1 on 70 pages read, byte for byte:
+Measured against `a73f55a`, the commit before the fix: **79 call sites existed,
+and only 1 carried a `title`** — the single one `SYSTEM_AUDIT.md` §16.5 fixed in
+August. The other **78 rendered the greeting**. Because every seeded demo
+profile has `first_name = "Demo"`, 78 of them read, byte for byte:
 
 > **Good morning, Demo.**
 
@@ -95,11 +97,16 @@ An H1 identifies the page for a screen-reader user arriving by link, search or
 bookmark. A greeting identifies the user — and here not even that, since it was the
 same string everywhere.
 
-**Fix:** 66 files now pass a `title`, taken from each page's existing
-`metadata.title` so the H1 and the document title agree. Two pages —
-`app/app/my/page.tsx` and `app/app/client/page.tsx` — keep the greeting on purpose;
-both are personal home pages that also render a quote, and both are allowlisted in
-the guard test so adding a third is a deliberate act.
+**Fix:** 76 of those 78 call sites now pass a `title` — 68 across 61 files under
+`app/`, plus the 8 in `lib/app/admin-pages.tsx` — taken from each page's existing
+`metadata.title` so the H1 and the document title agree. The remaining 2 are
+`app/app/my/page.tsx` and `app/app/client/page.tsx`, which keep the greeting on
+purpose; both are personal home pages that also render a quote, and both are
+allowlisted in the guard test so adding a third is a deliberate act.
+
+> The first draft of this section claimed "70 of 71 call sites". That was wrong
+> on both numbers, and so was "66 files". The figures above are counted by
+> diffing `a73f55a..HEAD` with the guard's own regex, not estimated.
 
 **Eight more hid in `lib/`.** After the first fix, driving a browser showed
 `/app/payroll` still reading `Good morning, Demo.` That page is four lines long:
@@ -137,11 +144,35 @@ second one after the first was already fixed.
 **Fix:** `lib/leave/notification-body.ts` builds both sentences from parts and is
 unit-tested. Failures now `console.error`. Live, verified end to end:
 
-> Team lead: `Demo Employee requested 3 days of Bereavement Leave (Oct 30 – Nov 1).`
+> Team lead: `Demo Employee requested 3 days of Emergency Leave (Oct 30 – Nov 1).`
 > Employee: `Your leave request for 3 days (Oct 30 – Nov 1) was approved by Demo HR.`
 
 **Guard:** `tests/leave-notification-body.test.ts`, 16 cases, with a control asserting
 the old generic string would fail every actionable-property test.
+
+**The code fix did not clear the inbox, and this section previously implied it
+had.** Fixing a generator does nothing about the rows it already produced. The 27
+rows were still sitting there, and checking them properly showed something worse
+than stale copy: **all 27 pointed at a `leave_request` row that no longer exists**
+(verified in chunks of 50 with `error` checked on every read — 0 of 27 resolved).
+So they were not merely uninformative but *dead*: nothing to rebuild a correct body
+from, and nothing behind the link when a manager clicked one.
+
+Resolution was three parts, not one:
+
+1. **Deleted the 27** via `scripts/cleanup-orphan-notifications.mjs` — dry run by
+   default, and scoped to rows that are *both* dead-linked *and* carrying the legacy
+   body. A dead-linked row with real content is reported for review instead of
+   deleted. 0 matched that second category.
+2. **Made the exercises self-cleaning** (see §5) so they stop producing new residue.
+3. **Reseeded from live records** with `scripts/seed-qa-notifications.mjs`, which
+   imports the app's own builder rather than reimplementing it — reimplementing
+   copy logic is what produced the grammar bug described in
+   `lib/leave/notification-body.ts`.
+
+The team lead's inbox is now **17 rows, 17 distinct bodies**, down from 27 rows and
+1. `scripts/audit/qa-verify-notifications.mjs` asserts distinctness, absence of the
+legacy string, and that no row is dead-linked.
 
 ### P1 — The approval queue hides work in progress. Open.
 
@@ -176,17 +207,34 @@ a table that does not exist returns `count: null` **and no error** — which rea
 exactly like "unknown". The first draft of this audit reported ten "empty" tables
 that were simply names I had invented.
 
-| | Before | After |
+| | Before | Now |
 |---|---|---|
-| Total rows across app tables | **594** | **945** |
-| `attendance_records` | 2 | 202 |
-| `tickets` / `ticket_messages` | 1 / 1 | 13 / 39 |
+| Total rows across app tables | **594** | **996** |
+| `attendance_records` | 2 | 201 |
+| `tickets` / `ticket_messages` | 1 / 1 | 13 / 37 |
 | `crm_deals` / `crm_proposals` | 1 / 1 | 7 / 7 |
 | `crm_activities` | **0** | 24 |
-| `job_posts` / `applicants` / `job_applications` | 1 / 1 / 1 | 5 / 5 / 5 |
-| `invoices` / `invoice_items` / `invoice_payments` | 1 / 3 / 1 | 7 / 28 / 4 |
+| `job_posts` / `applicants` / `job_applications` | 1 / 1 / 1 | 5 / 7 / 7 |
+| `invoices` / `invoice_items` / `invoice_payments` | 1 / 3 / 1 | 7 / 27 / 4 |
 | `documents` | 2 | 8 |
-| `approval_actions` | **0** | 10 |
+| `notifications` | 27 (27 identical, 27 dead-linked) | 58 (58 distinct, 0 dead-linked) |
+| `approval_actions` | **0** | **0** |
+
+Two rows moved *backwards* against the previous draft of this table, and both are
+correct:
+
+- **`approval_actions` is 0 again**, not 10. The 10 were written by the leave
+  exercise, and the exercise now cleans up after itself (§5), so they no longer
+  accumulate. The workflow was genuinely actioned — each run asserts
+  `approval_actions` grows `0 -> 2` mid-run before deleting them.
+- **`notifications` is 58, not 0 and not 31.** Zero was the honest state after the
+  orphan purge and the first self-cleaning runs, but it left the feature with no
+  data to display. They were reseeded from live records (§2).
+
+The previous version of this table reported totals that no longer matched the
+database (`attendance_records` 202, `ticket_messages` 39, `applicants`/`job_applications`
+5, `invoice_items` 28). Every figure above is re-measured from
+`scripts/audit/audit-data-population.mjs` at the end of this pass.
 
 **Seeded by** `scripts/seed-qa-fixtures.mjs` — dry run by default, `--apply` to write,
 every insert keyed on natural columns and skipped when present. Re-running `--apply`
@@ -219,7 +267,7 @@ path and asserts against the **database**, not the DOM:
 employee@demo  →  leave request  →  teamlead@  approves step 1  →  hr@  approves step 2
 ```
 
-**12/12 checks pass.** The workflow is two-step (Team Lead → HR).
+**13/13 checks pass.** The workflow is two-step (Team Lead → HR).
 
 | Assertion | Result |
 |---|---|
@@ -230,10 +278,11 @@ employee@demo  →  leave request  →  teamlead@  approves step 1  →  hr@  ap
 | Team lead approved step 1 | PASS |
 | Workflow advanced to step 2 | PASS |
 | HR approved step 2 | PASS |
-| `approval_actions` row written | PASS (8 → 10) |
+| `approval_actions` row written | PASS (0 → 2, then removed on cleanup) |
 | Leave left `pending` | PASS (`approved`) |
 | Employee received `leave.decision` | PASS |
 | Its body names who decided and which dates | PASS |
+| **This run left no leave request behind** | **PASS (0 residual before → 0 after)** |
 
 This exercise earned its keep immediately. It caught **two defects I had introduced
 myself**, neither of which any typecheck, lint or unit test would have found:
@@ -254,7 +303,7 @@ Both are now fixed and covered. The lesson matches §16.4, §20.3, §20.7 and §
 `SYSTEM_AUDIT.md`: this repo's recurring failure is a tool reporting a confident cause
 for something it has not isolated.
 
-### Ticket workflow — `qa-exercise-ticket-workflow.mjs`, 9/9
+### Ticket workflow — `qa-exercise-ticket-workflow.mjs`, 10/10
 
 ```
 clientadmin@  creates a ticket  ->  operations@  assigns it
@@ -266,15 +315,16 @@ correctly distributed:
 
 | Assertion | Result |
 |---|---|
-| Ticket created by the client contact | PASS (`TKT-20261009-00002`) |
+| Ticket created by the client contact | PASS (`TKT-20261009-00003`) |
 | Ticket starts in `new` | PASS |
 | Requester received `ticket.created` | PASS — `We received your request: QA ticket exercise … — payroll question` |
 | `ticket.created` names the subject | PASS |
 | Assignment exercised | PASS |
 | Ticket has an assignee | PASS |
-| Assignee received `ticket.assigned` | PASS — `TKT-20261009-00002: QA ticket exercise … — payroll question` |
+| Assignee received `ticket.assigned` | PASS — `TKT-20261009-00003: QA ticket exercise … — payroll question` |
 | `ticket.assigned` names the ticket number | PASS |
-| Notifications actually created | PASS (29 → 31) |
+| Notifications actually created | PASS (57 → 59) |
+| **This run left no ticket behind** | **PASS (0 residual before → 0 after)** |
 
 Both messages already carried identifying detail, so unlike the leave notifications
 these needed no fix — they only needed proving.
@@ -282,6 +332,34 @@ these needed no fix — they only needed proving.
 The assignment control lives on the ticket **detail** page, not the list, and the
 select opens a `ConfirmDialog`. Selecting an option and moving on changes nothing,
 which is exactly what the first run did — the same trap as the leave workflow.
+
+### Self-cleaning — the fix the verifier caught
+
+Both exercises swept leftovers from *previous* runs at the start and **nothing at the
+end**. That is enough to clean the run before the last one and not the last one, so
+a session's final run left its rows behind — a ticket, a leave request, and four
+notifications that a real user could see. The scripts claimed "cleans up after
+itself"; the code did not.
+
+Cleanup now runs in a `finally`, so it fires on the success path *and* on a throw —
+a crashed exercise can no longer be the thing that leaves data behind. Both scripts
+end with an assertion rather than a comment:
+
+```
+PASS  this run left no ticket behind  — 0 residual before -> 0 after
+PASS  this run left no leave request behind  — 0 residual before -> 0 after
+```
+
+An assertion is only worth what a broken version costs, so this one was
+mutation-proved. With the cleanup call replaced by a no-op, the same run reports:
+
+```
+FAIL  this run left no ticket behind  — 0 residual before -> 1 after
+9/10 checks passed   (exit 1)
+```
+
+The residue the mutant left was then removed by the unmodified script's start-sweep,
+which is the third independent confirmation that the sweep works.
 
 ### Traps this pass hit in its own tooling
 
@@ -300,6 +378,26 @@ Recorded because each produced a report full of defects that did not exist:
 - **Pages render two `PageHeader` call sites** (an early-return variant and the main
   one). A single-match regex patched the first and missed the second — the guard test
   caught it.
+- **A select against a non-existent column returns `null` *and* an `error`, and does
+  not throw.** `leave_requests` has `start_at` / `end_at`; querying `start_date` /
+  `end_date` returned `data: null` on a row that demonstrably existed, and the
+  inspection script printed `null` as though it meant "nothing found". This is the
+  same defect class as the first §3 draft reporting ten invented table names as
+  empty — a read that fails and a read that finds nothing are indistinguishable if
+  you only look at `data`. Every read in the new scripts now checks `error` and
+  refuses to continue on `null`.
+- **A `null` count is not a count.** `select("id", { count: "exact", head: true })`
+  returns `count: null` with no error for a table that does not exist *or* has no
+  `id` column. Five tables in the first §3 draft read `null` that way. Counting
+  every relation from the live PostgREST schema instead gave 86 relations,
+  69 non-empty, and exposed that the names being queried (`clients`, `leads`,
+  `support_agents`, `knowledge_base_articles`) did not exist at all — the real ones
+  are `client_profiles`, `crm_leads`, `ticket_sla_policies`, and there is no
+  `support_agents` table.
+- **Fixing a generator does not clear its output.** The leave-notification code fix
+  left all 27 bad rows in place, and this report described that as "Fixed". It took
+  a second look to notice the rows were still there — and that they were also dead
+  links, which is why they could not simply be rewritten.
 
 ---
 
@@ -311,7 +409,10 @@ Recorded because each produced a report full of defects that did not exist:
 | 2 | Admin role-assign and cron notification paths | Not exercised; only the leave and ticket paths were proven end to end |
 | 3 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
 | 4 | Playwright e2e not running in CI | Needs `RUN_E2E=true` plus secrets |
-| 5 | `payslip_items` / `payslip_components` | Do not exist; my earlier guess. The app uses `payroll_components` |
+| 5 | `payslip_items` / `payslip_components` | **Resolved, not open.** They do not exist — an earlier audit of mine guessed them. The app uses `payroll_components`; the population audit reports both as MISSING rather than EMPTY |
+
+The 27 legacy notification rows are **no longer open** — see §2. They were deleted,
+and the inbox was reseeded from live records with correct bodies.
 
 ---
 
@@ -319,12 +420,23 @@ Recorded because each produced a report full of defects that did not exist:
 
 ```bash
 npx next build && npx next start -p 3100     # in one shell
-node scripts/audit/audit-data-population.mjs  # what data exists
-node scripts/audit/audit-role-sweep.mjs       # every role x page, console errors included
-node scripts/audit/qa-exercise-leave-workflow.mjs   # live workflow, 12 assertions
-node scripts/seed-qa-fixtures.mjs            # dry run; --apply to write
-node scripts/cleanup-test-notifications.mjs   # dry run; --apply to delete
+
+# read-only
+node scripts/audit/audit-data-population.mjs        # what data exists
+node scripts/audit/audit-role-sweep.mjs             # every role x page, console errors included
+node scripts/audit/qa-verify-notifications.mjs      # distinctness, dead links, legacy bodies
+
+# live workflow (need the server running); each leaves nothing behind
+node scripts/audit/qa-exercise-leave-workflow.mjs   # 13 assertions
+node scripts/audit/qa-exercise-ticket-workflow.mjs  # 10 assertions
+
+# writers — all dry run by default, all refuse to write without an explicit flag
+node scripts/seed-qa-fixtures.mjs            # --apply
+node scripts/seed-qa-notifications.mjs       # --apply   (imports the app's own body builder)
+node scripts/cleanup-test-notifications.mjs  # --apply   (test.% only)
+node scripts/cleanup-orphan-notifications.mjs# --apply   (dead-linked + legacy body only)
 ```
 
-The first two are read-only. The last two write, and both refuse to without an
-explicit flag.
+The three read-only scripts touch nothing. Every writer prints exactly what it
+matched before changing anything, and both cleanup scripts re-read afterwards to
+confirm rather than trusting the delete's own count.

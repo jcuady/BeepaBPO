@@ -102,35 +102,56 @@ const RUN_START = new Date(Date.now() - 60_000).toISOString();
 const MARKER = `QA workflow exercise ${Date.now().toString(36)}`;
 const REASON = `${MARKER} — family commitment out of town.`;
 
+/** Delete leave requests and everything hanging off them. */
+async function purgeLeaveIds(ids) {
+  if (!ids.length) return;
+  const { data: reqs } = await db.from("approval_requests").select("id").in("entity_id", ids);
+  const reqIds = (reqs ?? []).map((r) => r.id);
+  if (reqIds.length) {
+    await db.from("approval_actions").delete().in("request_id", reqIds);
+    await db.from("approval_requests").delete().in("id", reqIds);
+  }
+  await db.from("notifications").delete().in("entity_id", ids);
+  await db.from("leave_requests").delete().in("id", ids);
+}
+
+/** How many of our own leave requests are still in the database right now. */
+async function countExerciseLeave() {
+  const { count, error } = await db
+    .from("leave_requests")
+    .select("id", { count: "exact", head: true })
+    .like("reason", "QA workflow exercise%");
+  if (error) throw new Error(`count failed: ${error.message}`);
+  return count ?? 0;
+}
+
 // ---- 0. clear anything a previous run of THIS script left behind ----
 //
 // Without this the exercise is a data generator, not a test: six runs left six
 // bereavement leave rows for the same employee and the same dates, which
 // tripped `live-data-smoke.test.ts` — "No duplicate bereavement leave for demo
 // employee" — an invariant this script was breaking on every invocation.
+//
+// Sweeping at START is not enough, though — it only cleans up the run BEFORE
+// the last one, which is exactly how a ticket from the final run of a session
+// survived. The end-of-run cleanup in the `finally` below is what actually
+// makes the script leave nothing.
 if (APPLY_CLEANUP) {
-  const { data: stale } = await db
+  const { data: stale, error } = await db
     .from("leave_requests")
     .select("id")
     .like("reason", "QA workflow exercise%");
+  if (error) throw new Error(`previous-run sweep failed: ${error.message}`);
   if (stale?.length) {
-    const ids = stale.map((r) => r.id);
-    const { data: reqs } = await db
-      .from("approval_requests")
-      .select("id")
-      .in("entity_id", ids);
-    const reqIds = (reqs ?? []).map((r) => r.id);
-    if (reqIds.length) {
-      await db.from("approval_actions").delete().in("request_id", reqIds);
-      await db.from("approval_requests").delete().in("id", reqIds);
-    }
-    await db.from("notifications").delete().in("entity_id", ids);
-    await db.from("leave_requests").delete().in("id", ids);
-    console.log(`cleanup: removed ${ids.length} leave request(s) from previous runs`);
+    await purgeLeaveIds(stale.map((r) => r.id));
+    console.log(`cleanup: removed ${stale.length} leave request(s) left by previous runs`);
   }
 } else {
   console.log("cleanup: skipped (--no-cleanup)");
 }
+
+const residualBefore = await countExerciseLeave();
+let createdLeaveId = null;
 
 // ---- 1. employee submits ----
 // Baseline is taken AFTER cleanup. Capturing it first made the cleanup's own
@@ -141,7 +162,10 @@ const { count: notifBefore } = await db
 const { count: actionsBefore } = await db
   .from("approval_actions")
   .select("id", { count: "exact", head: true });
-console.log(`baseline: ${notifBefore} notifications, ${actionsBefore} approval actions\n`);
+console.log(`baseline: ${notifBefore} notifications, ${actionsBefore} approval actions, ${residualBefore} residual exercise leaves\n`);
+
+try {
+// ---- 1. employee submits ----
 const emp = await signIn("employee@demo.beepabpo.com");
 await emp.page.goto(`${BASE}/app/my/leave`, { waitUntil: "domcontentloaded" });
 await emp.page.waitForSelector("#leave_type_id", { timeout: 20000 });
@@ -169,6 +193,7 @@ const { data: newLeaves } = await db
   .order("created_at", { ascending: false })
   .limit(1);
 const leave = newLeaves?.[0];
+if (leave?.id) createdLeaveId = leave.id;
 check("leave request created", Boolean(leave), leave ? `id=${leave.id} status=${leave.status}` : "none");
 check("leave request is pending", leave?.status === "pending", `status=${leave?.status}`);
 
@@ -310,8 +335,33 @@ check(
   decision?.body,
 );
 
-await browser.close();
+} finally {
+  // ---- end-of-run cleanup: this run's own rows, whatever happened above ----
+  //
+  // Runs on the success path AND on a throw. The start-of-run sweep alone left
+  // the previous session's ticket and leave request behind, because a sweep
+  // only cleans up the run BEFORE the last one.
+  if (!APPLY_CLEANUP) {
+    console.log("\nend-of-run cleanup: skipped (--no-cleanup)");
+  } else if (createdLeaveId) {
+    try {
+      await purgeLeaveIds([createdLeaveId]);
+      const residualAfter = await countExerciseLeave();
+      check(
+        "this run left no leave request behind",
+        residualAfter === residualBefore,
+        `${residualBefore} residual before -> ${residualAfter} after`,
+      );
+    } catch (err) {
+      check("this run left no leave request behind", false, `cleanup threw: ${err.message}`);
+    }
+  } else {
+    console.log("\nend-of-run cleanup: nothing was created by this run");
+  }
 
-const failed = results.filter((r) => !r.pass);
-console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
-if (failed.length) process.exitCode = 1;
+  await browser.close().catch(() => {});
+
+  const failed = results.filter((r) => !r.pass);
+  console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
+  if (failed.length) process.exitCode = 1;
+}
