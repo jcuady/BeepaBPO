@@ -1,6 +1,7 @@
 # PROJECT_STATUS — Beepa / BeepoBeepa
 
-**Updated:** 2026-10-09 · **Branch:** `fix/auth-signout-scope-and-payroll-coherence` · **HEAD:** `3706a09`
+**Updated:** 2026-10-09 · **Branch:** `fix/auth-signout-scope-and-payroll-coherence`
+> No HEAD SHA is pinned here on purpose: a doc committed in commit X cannot name X, so the pin is always stale by the next commit. Live state is `node scripts/verify-all.mjs`; the numbers below are the ones that command prints.
 **Overall:** **Shippable.** The 18-step gate passes end to end: *"All checks passed. Ship it."* exit 0. Zero pending migrations, zero overlapping payroll periods, realtime delivery confirmed end to end. Forward roadmap: `docs/REMAINING_WORK.md`.
 
 > Supersedes the 2026-09-14 "READY" claim, which asserted gates that were not being enforced. Evidence in `docs/SYSTEM_AUDIT.md`.
@@ -13,7 +14,7 @@
 |---|---|---|
 | TypeScript | **PASS** | `tsc --noEmit` exit 0 |
 | Lint | **PASS** | `eslint . --max-warnings=0` exit 0 |
-| Unit tests | **PASS** | **474+ across 80+ files** (3 new guard suites: encoding integrity, migration clauses, payroll seed drift) |
+| Unit tests | **PASS** | **490/490 across 83 files** (5 guard suites added 2026-10-09: encoding integrity, migration function clauses, payroll overlap reconciliation, payroll seed window, `lead_attribution` RLS — each negative-controlled) |
 | Production build | **PASS** | `next build` exit 0 |
 | E2E (Playwright) | **PASS** | **100 passed, 4 skipped, 0 failed** — prod build, cold `.auth`, 59.5s |
 | Ship gate | **PASS** | `verify-all.mjs` → **18/18 passed. "All checks passed. Ship it."** exit 0 |
@@ -188,7 +189,7 @@ and emptied `leave_requests`, because every row in the table carried that reason
 Consequence: `leave_requests` is now empty, so `tests/live-data-smoke.test.ts` asserts
 `count("leave_requests") >= 1` and **fails by design**. No seed script ever creates that
 table, so the assertion was passing on e2e residue rather than on seeded data. Decision and
-options: `docs/REMAINING_WORK.md` §1.5. **Unit tests: 488/488 across 83 files** — the
+options: `docs/REMAINING_WORK.md` §1.5. **Unit tests: 490/490 across 83 files** — the
 `leave_requests` table has since been repopulated by `scripts/seed-demo-leave.mjs`, so this
 assertion is now backed by real demo data.
 

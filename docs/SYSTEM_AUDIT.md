@@ -1,6 +1,6 @@
 # SYSTEM_AUDIT.md — BeepoBeepa
 
-**Last updated:** 2026-10-07 (payroll status-coherence remediation)
+**Last updated:** 2026-10-09 (release gate closed — payroll reconciliation, migrations, RLS, §21)
 **Auditor role:** Principal Full-Stack Engineer + QA Engineer + UI/UX Engineer + Product Manager
 **Repository:** `C:\Users\jcuad\OneDrive\Documents\BeepoBeepa`
 **Supabase:** `nwvnawgxkzwiercllgmg`
@@ -73,7 +73,7 @@
 | **P1** | `motion-reduce:` missing on CTA transforms | Added to 11 components | `apply-reduce-motion.mjs` |
 | **P1** | Missing `notification_preferences` for 13 demo users | Created | `setup-notification-prefs.mjs` |
 | **P1** | VAPID keys mismatched | Updated | `.env.local` |
-| **P2** | `realtime` for `notifications` not firing | Migration `20261006140000` written, **unapplied** | `supabase/migrations/` |
+| **P2** | `realtime` for `notifications` not firing | Migration `20261006140000` written, **unapplied** *(closed 2026-10-09 — applied; the step failed until the probe was fixed, §21.2)* | `supabase/migrations/` |
 | **P2** | `seed-demo.mts` not idempotent for extended tables | Wrote `seed-demo-extended.mts` | `scripts/` |
 | **P3** | Pre-existing lint error in vendored `claude-seo/` | Scoped out of the app lint ruleset | `eslint.config.mjs` |
 
@@ -177,32 +177,40 @@ passed and none was skipped.** It does not print "Ship it" — see §15.3.
 
 | Priority | Item | Owner | Status |
 |---|---|---|---|
-| **P0** | Reconcile the 2 overlapping payroll periods and their premature finalized records | **user** | ⚠ blocked — business decision, §17.1 |
-| **P0** | Apply `20261007120000` (no-overlap) and `20261007130000` (status coherence) | user | ⚠ needs `SUPABASE_DB_PASSWORD` + db-push PAT |
-| **P0** | Apply `20261008120000` (HR recruitment access) — until then HR still gets 403 on `/app/recruitment` | user | ⚠ same credentials |
-| **P0** | Apply `20261006140000` (realtime + profile sync) | user | ⚠ same credentials |
-| **P1** | Verify push delivery on a real device | user | ⚠ `docs/PUSH_NOTIFICATIONS.md` |
-| **P1** | Confirm whether `ulrjitekiylgepdyijsw` is staging | user | ⚠ decides payroll rollout path |
+| **P0** | Reconcile the 2 overlapping payroll periods and their premature finalized records | — | ✅ **closed 2026-10-09** — the overlap was retired fiction, not a conflict (§17.1) |
+| **P0** | Apply `20261007120000` (no-overlap) and `20261007130000` (status coherence) | — | ✅ **closed 2026-10-09** — both applied; `supabase migration list` reports 0 pending |
+| **P0** | Apply `20261008120000` (HR recruitment access) — until then HR still gets 403 on `/app/recruitment` | — | ✅ **closed 2026-10-09** — applied; `audit-rbac.mjs` reports `recruitment 5/5` |
+| **P0** | Apply `20261006140000` (realtime + profile sync) | — | ✅ **closed 2026-10-09** — applied. The step still failed until the *probe* was fixed: it subscribed with the anon key against a `user_id = auth.uid()` RLS policy, so it could never receive the event (§21.2) |
+| **P1** | Verify push delivery on a real device | user | ⚠ open — `docs/PUSH_NOTIFICATIONS.md`. Still true: headless Chromium produces a phantom FCM subscription |
+| **P1** | Re-subscribe existing browser push subscribers | user | ⚠ **new 2026-10-09** — the VAPID pair was rotated during the `.env.local` rebuild, so stored subscriptions no longer match the server key |
+| **P1** | Confirm whether `ulrjitekiylgepdyijsw` is staging | user | ⚠ open — decides payroll rollout path |
 | **P2** | E2E is non-hermetic (live auth rate-limits); projects must run **sequentially** | — | known, documented |
 | **P2** | `RUN_E2E` unset in CI | user | E2E never runs on push |
 | **P2** | OAuth / FTS / announcements / email digest cron | future | deferred |
 
 ---
 
-## 12. Next steps
+## 12. Next steps *(updated 2026-10-09)*
 
-1. **You** — decide the payroll reconciliation (§17.1). This is a business
-   decision, not a technical one: which period is authoritative, and whether the
-   premature records should fall back to `draft`.
-2. **You** — set `SUPABASE_DB_PASSWORD` and a db-push-scoped PAT, then apply the
-   three pending migrations. Once applied, drop `--skip-migration` from
-   `verify-all.mjs` and the realtime step will flip to PASS.
-3. **You** — verify push delivery on a real device using `docs/PUSH_NOTIFICATIONS.md`.
+1. ~~**You** — decide the payroll reconciliation (§17.1).~~ ✅ **done, and no decision
+   was required** — the draft run was stub-engine fiction, so it was retired by script
+   rather than by choosing a figure (§21.1).
+2. ~~**You** — set `SUPABASE_DB_PASSWORD` and a db-push-scoped PAT, then apply the
+   three pending migrations.~~ ✅ **done** — all eight are applied, `verify-all.mjs` no
+   longer skips migrations, and the release gate reports 18/18 (§21.4). A db-push PAT
+   turned out not to be needed: the pooler plus `SUPABASE_DB_PASSWORD` was sufficient.
+3. **You** — verify push delivery on a real device using `docs/PUSH_NOTIFICATIONS.md`,
+   **and re-subscribe existing browser push subscribers.** The VAPID pair was rotated on
+   2026-10-09, so subscriptions already on a device no longer match the server key and
+   will stop receiving pushes silently (§21.6).
 4. **You** — set `RUN_E2E=true` in CI once seeds are stable. Note that
    `e2e/mutations.spec.ts` creates a duplicate leave row per run; clean up with
    `node scripts/cleanup-leave-duplicates.mjs --apply`.
-5. **Security** — rotate the VAPID keys and the Supabase CLI token once they are
-   out of the live session. Both were exposed in plaintext on 2026-10-06.
+5. ~~**Security** — rotate the VAPID keys and the Supabase CLI token.~~ ✅ **VAPID done**
+   on 2026-10-09 (§21.6). **Supabase CLI token — no action available:** the plaintext
+   token from 2026-10-06 is no longer in any environment file, `SUPABASE_ACCESS_TOKEN`
+   is unset, and its absence is **proven non-blocking** because the pooler plus the DB
+   password drives every applied migration. There is nothing left to revoke.
 
 ---
 
@@ -582,13 +590,19 @@ running it rather than reading it:
 The applicant row is the direct payoff of §16.2: four reachable pages where
 there were previously three, and `/app/applicant/notifications` is no longer a
 dead URL. The `hr` row is 18 pages *without* `/app/recruitment` — the migration
-that adds it is still unapplied.
+that adds it is still unapplied. *(Closed 2026-10-09: `20261008120000` applied,
+`audit-rbac.mjs` now reports `recruitment 5/5`, §21.)*
 
 ---
 
-## 17. Open data findings — blocked, not fixed
+## 17. Data findings *(historical — 2026-10-07; closed 2026-10-09, see §21)*
 
-These require a business decision or credentials. Neither is a code problem.
+> **Resolved.** Both blockers in this section were closed on 2026-10-09. The text below
+> is preserved unedited as the original finding, because §21.1 shows the payroll framing
+> was wrong — and the sequence of wrong conclusions is itself the audit finding. Read
+> §21 alongside it, not instead of it.
+
+These required a business decision or credentials. Neither is a code problem.
 
 ### 17.1 Payroll period reconciliation
 
@@ -864,3 +878,141 @@ it gets committed to the docs as a reason not to retry.** Someone reading
 `REMAINING_WORK.md` §2.0 would have seen "auth rate limit" and moved on. The script
 now detects an email by shape rather than by position, and both invocation forms are
 verified against a running server.
+
+---
+
+## 21. Closing the release gate (2026-10-09)
+
+Both P0 blockers in §10 were closed, and in each case the first explanation was wrong.
+This section records what was actually wrong, because §17 is left in place as the
+historical record and a reader who only reads the original finding would draw the
+original conclusion.
+
+### 21.1 The payroll overlap was fiction, not a conflict
+
+§17.1 framed this as a business decision: two runs disagreed, so a human had to say
+which figure was right. That framing was wrong, and the correction is what made it
+mechanically resolvable.
+
+Reading `calculation_snapshot` on all ten records of the draft period
+`929abbb1-7afa-42fa-b972-cdc78b36f80f`:
+
+| | September 1–15 (finalized) | September 2026 payroll (draft) |
+|---|---|---|
+| `calculation_snapshot` | `{"seeded":true}` | `{"engine":"stub_v1","seeded_by":"batch4b",…}` |
+| Statutory deductions | applied (₱3,500 on 1/1) | **0 on all 10** |
+| `net_pay` vs `gross_pay` | differ | **identical on all 10** |
+| `worked_minutes` | 4,800 | **4,800 on all 10 — across 30 days** |
+
+The draft run was produced by a stub engine that booked the same 4,800 worked minutes
+on every record regardless of the period and deducted nothing. There was no second
+payroll result to reconcile against the first, so "which figure is authoritative" had
+no answer to give. The ₱26,760 in §17.1 was a stub artifact, not a competing payroll.
+
+Resolution, in two scripted steps rather than by hand:
+
+- `node scripts/reconcile-payroll-period-overlap.mjs --apply` retired the draft period —
+  1 period, 10 records, 30 components, 10 payslips removed, and **0 rows** on the
+  `ON DELETE SET NULL` legs, so nothing outside the period was touched. The 10
+  premature `finalized` records went with it; they did not need demoting to `draft`
+  because there was no surviving period for them to be premature *in*.
+- `node scripts/seed-payroll-window.mjs --apply` then created `September 16–30, 2026`
+  (`5d765fec-a0b9-4a3f-90e1-7e090264479a`) with 10 draft records and ₱240,000 gross,
+  computed by the engine's **own** `salaryFactorFor` / `fixedPayAmount` — not by a
+  hand-typed number that would drift from the code on the next change.
+
+Both scripts dry-run by default and only write under `--apply`. `20261007120000` then
+made the overlap structurally impossible. The new periods are adjacent, not
+overlapping, so the §17.1 option 1 and option 2 outcomes coincide.
+
+### 21.2 The realtime gate was a broken probe, not broken realtime
+
+`scripts/audit/test-realtime-events.mjs` subscribed with the **anon** key. The
+`notifications` table is protected by `user_id = auth.uid()` scoped to `authenticated`,
+so an anon subscriber can never pass RLS and could never receive the event it was
+waiting for. The step was guaranteed to fail regardless of database health — a fourth
+tool reporting something it had not earned (§16.4, §20.3).
+
+The probe now signs in as the notification's owner, **refuses to run if that user is
+not the row owner**, gained the `SUPABASE_SECRET_KEY ?? SUPABASE_SERVICE_ROLE_KEY`
+fallback, and retries a rate-limited sign-in with backoff.
+
+That last one is a defect I introduced: adding a password grant so the probe could sign
+in created enough traffic to trip the auth rate limiter, and the first fix reported the
+limiter as a realtime failure. That is the §20.7 mistake again — a plausible story,
+committed before it was disproved.
+
+Notifications have exactly one path, the application code. The DB triggers stay removed.
+
+### 21.3 A permissive RLS policy that was pure attack surface
+
+`supabase db advisors` returned lint **0024** on `public.lead_attribution`:
+`lead_attribution_insert` carried `WITH CHECK (true)` for `authenticated`, i.e. any
+signed-in user could insert attribution rows for any lead.
+
+`20261009120000_lead_attribution_insert_policy.sql` drops it. Verified in both
+directions rather than assumed: an authenticated insert now fails `42501`, a
+service-role insert still succeeds, and anon `SELECT` returns 0 rows. RLS is enabled
+and `relforcerowsecurity = false`, so the service role bypasses RLS entirely — and
+`createLeadFromContact` (`lib/crm/actions.ts:205`) already uses `createAdminClient()`.
+**The policy protected nothing and permitted everything.**
+
+The policy was originally created by `20260906001100_ats_crm_cms.sql`. Realized
+migrations are history and are not edited; the RLS invariant in
+`tests/lead-attribution-rls.test.ts` is scoped **forward-looking** — it rejects any
+migration sorting *after* `20260906001100` that re-creates a permissive
+`lead_attribution` policy.
+
+### 21.4 Two migration defects that only appeared on apply
+
+Writing a migration is not the same as it being accepted. All eight are now applied and
+`supabase migration list` reports 0 pending; two failed first:
+
+- `handle_user_sign_in()` omitted `returns trigger` → `42P13`.
+- The Supabase CLI requires `RETURNS` **before** `LANGUAGE`. Bisected live rather than
+  guessed: LANGUAGE-first fails, RETURNS-first succeeds, a single-quoted body succeeds
+  either way, and `$fn$` quoting fails regardless.
+
+`tests/migration-function-clauses.test.ts` (3 cases) now asserts the ordering so a
+future migration cannot reintroduce it. The first draft of that guard was written in a
+way that passed on files which had never been applied — it was negative-controlled and
+rewritten.
+
+### 21.5 `process.exit()` crashes on Windows after a Supabase query
+
+Calling `process.exit()` directly after a Supabase query terminates with `0xC0000409`
+(status `STATUS_STACK_BUFFER_OVERRUN`) on Windows, because the native driver is still
+tearing down on the same thread. The reconcile script routes every exit through a
+`stop()` helper that sets `process.exitCode` and raises `StopSignal` instead. Found
+because the script "hung" after doing exactly the right thing.
+
+### 21.6 An incident I caused, recorded because the docs must not hide it
+
+A PowerShell array-slice rebuild of `.env.local` collapsed **14 keys to 2**. Twelve were
+rebuilt from the `.next/static/chunks` client bundle, the surviving `AUTH_SECRET`, and
+operator-supplied values. The VAPID pair was regenerated (public 87 / private 43 chars,
+web-push verified), 13 demo accounts were reset through the admin API (5/5 sign-ins
+verified), and `CRON_SECRET` was regenerated (64 hex).
+
+Two operator actions follow from the rotation and are **not** optional:
+
+1. **Existing browser push subscribers must re-subscribe.** Stored subscriptions no
+   longer match the server VAPID key, so they will silently stop receiving pushes.
+2. **Any deployed environment calling `/api/jobs/cron` needs the new `CRON_SECRET`.**
+
+`SUPABASE_SECRET_KEY` and `SUPABASE_ACCESS_TOKEN` remain unset and are **proven
+non-blocking**.
+
+The root cause was using shell string surgery for file edits. `edit`/`write` are now
+the default for any file with content worth preserving — the same class of mistake had
+already inserted UTF-8 BOMs into `scripts/reconcile-payroll-period-overlap.mjs` and
+`tests/lead-attribution-rls.test.ts`, and BOMs are now asserted absent across the tree
+by `tests/encoding-integrity.test.ts`.
+
+### 21.7 State after this section
+
+`tsc --noEmit` 0 · `eslint . --max-warnings=0` 0 · **vitest 490/490 across 83 files** ·
+`next build` 0 · release gate **18/18, "All checks passed. Ship it."**, exit 0 ·
+Playwright **100 passed / 4 skipped / 0 failed** against a production build on port
+3100. Commits `3706a09` → `fbed912` → `63aa1a7` on
+`fix/auth-signout-scope-and-payroll-coherence`. Not pushed.

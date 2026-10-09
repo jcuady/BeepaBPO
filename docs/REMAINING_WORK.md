@@ -1,6 +1,7 @@
 # Remaining work — what is still needed to finish
 
-**Updated:** 2026-10-09 · **Branch:** `fix/auth-signout-scope-and-payroll-coherence` · **HEAD:** `3706a09` (working tree clean)
+**Updated:** 2026-10-09 · **Branch:** `fix/auth-signout-scope-and-payroll-coherence` (working tree clean)
+> No HEAD SHA is pinned here on purpose — a doc committed in commit X cannot name X, so the pin goes stale on the next commit. `PROJECT_STATUS.md` holds the live gate numbers.
 
 This is the forward-looking document: what is done, what is blocked, and the exact
 next steps in the order they should be taken. Current gate numbers live in
@@ -12,7 +13,7 @@ lives in `SYSTEM_AUDIT.md`.
 ## 0. One-paragraph state
 
 **The platform is shippable.** The 18-step gate passes end to end — *"All checks passed.
-Ship it."* exit 0 — covering typecheck, lint, 488 unit tests, production build, RBAC, page
+Ship it."* exit 0 — covering typecheck, lint, 490 unit tests, production build, RBAC, page
 wiring, page inventory, design-system and filter-persistence audits, a nav-driven crawl of 219
 pages across all 13 roles, a 224-combination responsive sweep, and 100 Playwright tests against
 a production build. The two blockers that remained on 2026-10-08 are closed: the payroll overlap
