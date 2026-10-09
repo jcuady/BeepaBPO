@@ -50,14 +50,44 @@ if (!password) {
   process.exit(2);
 }
 
-const { data: signedIn, error: signInError } = await sbAnon.auth.signInWithPassword({
-  email: HR_EMAIL,
-  password,
-});
+/**
+ * Sign in, retrying on a rate limit.
+ *
+ * Subscribing as a real user is what makes this probe meaningful, but it also
+ * makes the probe spend a password grant, and Supabase throttles those per IP.
+ * The gate runs this right after other Supabase-touching steps, so a 429 here
+ * reads exactly like broken realtime and turns a green gate red at random. A 429
+ * is an environment condition, not a delivery failure, so it is retried rather
+ * than reported as "realtime BROKEN".
+ */
+async function signInWithRetry(email, pass, attempts = 4) {
+  for (let i = 1; i <= attempts; i += 1) {
+    const { data, error } = await sbAnon.auth.signInWithPassword({ email, password: pass });
+    if (!error) return data;
+    const rateLimited = /rate|too many|429|security purposes/i.test(error.message);
+    if (!rateLimited) throw new Error(`could not sign in as ${email}: ${error.message}`);
+    if (i === attempts) {
+      throw new Error(
+        `could not sign in as ${email} after ${attempts} attempts (rate limited): ${error.message}. ` +
+          "This is Supabase throttling password grants, NOT a realtime failure; rerun once the limit clears.",
+      );
+    }
+    const waitMs = i * 4000;
+    console.log(`rate limited on attempt ${i}; waiting ${waitMs / 1000}s`);
+    await new Promise((r) => setTimeout(r, waitMs));
+  }
+  throw new Error("unreachable");
+}
+
+const { user: signedInUser, error: signInError } = await signInWithRetry(HR_EMAIL, password).then(
+  (d) => ({ user: d.user, error: null }),
+  (e) => ({ user: null, error: e }),
+);
 if (signInError) {
-  console.error(`could not sign in as ${HR_EMAIL}: ${signInError.message}`);
+  console.error(`[${signInError.message}]`);
   process.exit(2);
 }
+const signedIn = { user: signedInUser };
 console.log(`Subscribing as ${signedIn.user.email} (${signedIn.user.id})`);
 
 if (signedIn.user.id !== userId) {

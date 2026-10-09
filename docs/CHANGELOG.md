@@ -21,13 +21,34 @@ Phased delivery of the Beepa BPO platform (not semver releases).
   service-role insert the marketing form depends on still succeeds, and an anon
   `SELECT` still sees zero rows. A fix that only demonstrates the first half would
   have shipped a broken contact form.
-- **`tests/lead-attribution-rls.test.ts` pins it, after the first version of that
-  guard proved itself useless.** It originally asserted only that the `DROP POLICY`
-  statement existed, so appending `create policy ... with check (true)` on the next
-  line still passed. The negative control caught precisely that. The guard now
-  asserts the policy is never recreated and that no `with check (true)` appears in
-  the file at all, and separately proves the app's writer uses the service role so
-  the policy cannot be "restored for safety".
+- **`tests/lead-attribution-rls.test.ts` pins it, after two weaknesses were found in
+  it.** The first version asserted only that the `DROP POLICY` statement existed, so
+  appending `create policy ... with check (true)` on the next line still passed.
+  Widening it to that single migration file then exposed a second gap: a *different,
+  later* migration could re-create the policy and the guard would never see it. It
+  now scans every migration and asserts that none sorting **after** the fix
+  re-creates the policy, either by name or via any always-true `WITH CHECK` on that
+  table.
+  - Widening it immediately found a real occurrence: `20260906001100_ats_crm_cms.sql`
+    is the original creator of the policy. That file is applied migration history and
+    must not be edited, so the invariant is forward-looking instead — the fix drops
+    it, and nothing later may bring it back. **A guard that only reads the file
+    holding the fix is not a guard, and one that cannot see history will fight the
+    history instead of fixing the future.**
+  - Negative-controlled by adding a *new* migration that re-creates the policy: both
+    forward checks failed and named the offending file, then it was deleted. A second
+    control, a vacuity assertion that failed because the fix is currently the newest
+    migration, was replaced with one that tests the scoping mechanism itself, by
+    asserting the historical creator sorts strictly before the fix and is excluded.
+- **`docs/COMPLETION_LEDGER.md` was left claiming the platform was blocked** while the
+  gate had been passing for hours: "CODE COMPLETE — BLOCKED ON DATA + CREDENTIALS", a
+  verbatim 15/18 gate transcript with exit 1, 422 unit tests across 73 files, and both
+  closed blockers still listed. Corrected, along with the stale "rotate the chat
+  token" line the owner had explicitly waived. `PROJECT_STATUS.md` and
+  `docs/REMAINING_WORK.md` needed the same correction for the same reason. **Fixing a
+  status document is not the same as fixing the one next to it**, and a status file
+  that contradicts itself is worse than one that is merely out of date, because a
+  reader has no way to tell which half is current.
 - **I also left three debug functions in the database** during the clause-order
   bisection (`probe_order_fn`, `probe_simple_fn`, `probe_trig_fn`) and only noticed
   because the advisor run flagged them as mutable-`search_path` security warnings.
