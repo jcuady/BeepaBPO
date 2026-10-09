@@ -1,6 +1,6 @@
 # Remaining work — what is still needed to finish
 
-**Updated:** 2026-10-08 · **Branch:** `main` · **HEAD:** `55a7048` (working tree has ~260 uncommitted files)
+**Updated:** 2026-10-09 · **Branch:** `fix/auth-signout-scope-and-payroll-coherence` · **HEAD:** `3706a09` (working tree clean)
 
 This is the forward-looking document: what is done, what is blocked, and the exact
 next steps in the order they should be taken. Current gate numbers live in
@@ -11,22 +11,25 @@ lives in `SYSTEM_AUDIT.md`.
 
 ## 0. One-paragraph state
 
-Every automated gate that can run offline is green — typecheck, lint, 422 unit tests,
-production build, RBAC, page wiring, page inventory, design-system audit, a filter-persistence
-audit across 32 paginated pages, a nav-driven crawl of 219 pages across all 13 roles, and a
-224-combination responsive sweep. The app is functionally complete and visually consistent.
-**It is not shippable**, for two reasons that are not about code: live payroll data pays one
-employee twice for Sept 1–15, and four database migrations cannot be applied from this machine
-because no DB-privileged credentials are available. Both are decisions or secrets only the
-owner can supply.
+**The platform is shippable.** The 18-step gate passes end to end — *"All checks passed.
+Ship it."* exit 0 — covering typecheck, lint, 488 unit tests, production build, RBAC, page
+wiring, page inventory, design-system and filter-persistence audits, a nav-driven crawl of 219
+pages across all 13 roles, a 224-combination responsive sweep, and 100 Playwright tests against
+a production build. The two blockers that remained on 2026-10-08 are closed: the payroll overlap
+was **fiction, not a conflict** (the draft period's records were `engine: stub_v1` with zero
+statutory deductions, so there was no second payroll result to reconcile), and all eight
+migrations are applied with zero pending. Nothing now blocks a release. What remains is
+optional follow-up, listed in §1.
 
 ---
 
-## 1. BLOCKED — needs the user, cannot be closed from here
+## 1. Closed on 2026-10-09 — previously blocked, now resolved
 
-Ordered by what unblocks the most.
+Both former blockers are resolved. The reasoning is preserved below because the
+correction is instructive: the payroll conflict was not a conflict at all, and the
+realtime gate was not a database problem.
 
-### 1.1 Payroll reconciliation — the only true blocker to shipping
+### 1.1 Payroll reconciliation — CLOSED, and not for the reason first assumed
 
 `node scripts/verify-all.mjs` fails on two steps because of live data, not code.
 
@@ -110,9 +113,9 @@ records at `engine=stub_v1` with `worked_minutes=4800`, and reports 0 rows at ri
 `SET NULL` legs. Still not executed: it deletes rows, so it needs the explicit go-ahead.
 
 One correction worth recording: the script cannot read `payroll_periods.pay_frequency`,
-because that column only arrives with the unapplied
-`20260922120000_payroll_frequency_fixed_salary.sql`. The repair has to run *before* that
-migration, so it selects only columns present in every schema revision, and `tests/
+because that column only arrives with `20260922120000_payroll_frequency_fixed_salary.sql`
+and the repair has to run *before* that migration. It selects only columns present in
+every schema revision, and `tests/
 payroll-overlap-reconciliation.test.ts` fails the build if that dependency is reintroduced.
 
 **Before choosing, read what each option actually costs.** `pnpm audit:payroll-plan`
@@ -161,7 +164,7 @@ Only after both audits are clean, apply
 `supabase/migrations/20261007120000_payroll_period_no_overlap.sql` — `ADD CONSTRAINT`
 validates the whole table and will fail while the conflict exists.
 
-### 1.2 Database credentials — 4 migrations are written but unapplied
+### 1.2 Database credentials — CLOSED, all migrations applied
 
 **CLOSED 2026-10-09.** All **7** pending migrations applied; `supabase migration list`
 shows remote equal to local for every one. The DB password was sufficient — the project
@@ -575,7 +578,7 @@ pnpm verify:skip-migration
 pnpm audit:design          # raw primitives + hardcoded colours
 pnpm audit:filters         # filters dropped when a ListPager changes page
 pnpm audit:payroll-plan    # READ-ONLY: blast radius + exact SQL per reconciliation option
-pnpm audit:migrations      # structural preflight for the 4 unapplied migrations
+pnpm audit:migrations      # structural preflight for any not-yet-applied migration
 pnpm audit:wiring          # dead controls, unsubmittable forms, dead links
 pnpm audit:rbac            # route gates
 pnpm audit:action-rbac     # server-action gates

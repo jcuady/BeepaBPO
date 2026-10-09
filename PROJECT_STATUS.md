@@ -1,7 +1,7 @@
 # PROJECT_STATUS — Beepa / BeepoBeepa
 
-**Updated:** 2026-10-08 · **Branch:** `main` · **HEAD:** `55a7048`
-**Overall:** **Code complete and consistent. Not shippable** — one payroll data decision and DB-privileged credentials are outstanding. Forward roadmap: `docs/REMAINING_WORK.md`.
+**Updated:** 2026-10-09 · **Branch:** `fix/auth-signout-scope-and-payroll-coherence` · **HEAD:** `3706a09`
+**Overall:** **Shippable.** The 18-step gate passes end to end: *"All checks passed. Ship it."* exit 0. Zero pending migrations, zero overlapping payroll periods, realtime delivery confirmed end to end. Forward roadmap: `docs/REMAINING_WORK.md`.
 
 > Supersedes the 2026-09-14 "READY" claim, which asserted gates that were not being enforced. Evidence in `docs/SYSTEM_AUDIT.md`.
 
@@ -37,27 +37,25 @@
 | Attendance corrections | **PASS** | correction request → review → corrected-times path |
 | Applicant careers | **PASS** | `/app/applicant/jobs` + `/app/applicant/jobs/[id]`, in-app apply, notifications reachable from nav |
 | Application stage statuses | **PASS** | all 12 stages: label, tone, applicant note, staff note, terminal flag, pipeline step |
-| **HR careers access** | **BLOCKED on migration** | `hr` had **no** `recruitment.*` permission — live 403 on `/app/recruitment` confirmed. Grant written in `20261008120000_hr_recruitment_access.sql` |
-| **Realtime notifications** | **NOT VERIFIED** | migration `20261006140000` unapplied; app falls back to polling |
-| **Payroll period overlap** | **BLOCKED — needs a decision** | Sept 1–15 is in two periods; one employee paid twice (₱24,500 duplicated) |
-| **Payroll approval gating** | **PASS in code / dirty data** | payslips require an approved period + DB trigger; the live draft period still holds ₱500,000 of finalized records |
+| **HR careers access** | **PASS** | `20261008120000` applied; `audit-rbac.mjs` reports `recruitment 5/5` — the former live 403 on `/app/recruitment` is gone |
+| **Realtime notifications** | **PASS** | `20261006140000` applied (Local == Remote); a notification event was received end to end by an authenticated subscriber |
+| **Payroll period overlap** | **PASS** | 0 overlapping periods; the `stub_v1` fiction was retired and the window rebuilt from the engine |
+| **Payroll approval gating** | **PASS** | ₱0 exposed before approval; the `20261007130000` trigger now enforces the same rule in the database |
+| **Lead attribution RLS** | **PASS** | the permissive `WITH CHECK (true)` policy is gone; authenticated insert now `42501`, service-role insert still succeeds |
 | **Push delivery** | **NOT VERIFIED** | headless FCM endpoint is a phantom; needs a real device (`docs/PUSH_NOTIFICATIONS.md`) |
 
 ---
 
-## Release gate — `node scripts/verify-all.mjs --skip-migration`
+## Release gate — `node scripts/verify-all.mjs`
 
 ```
-15/18 steps passed
-1 step(s) skipped — not verified
-Failing steps:
-  - Payroll periods do not overlap
-  - Payroll period/record status coherent
+18/18 steps passed
 
-2 step(s) failed, 1 skipped. Do not ship.
+All checks passed. Ship it.
 ```
 
-**exit 1.** That is the correct result for the current database.
+**exit 0.** This transcript supersedes the earlier `15/18 … 2 step(s) failed … Do not ship.`
+output, which was correct at the time and is kept below as history only.
 
 The gate used to print `All checks passed. Ship it.` in the same run that reported
 the double payment and the unapproved payroll, because both payroll audits only
@@ -104,11 +102,13 @@ could never receive. The publication already listed all 12 tables. The probe now
 signs in as the notification's owner and refuses to run if that user is not the
 row owner; the event arrives.
 
-**Applying the 7 pending migrations required two fixes first.** One trigger
-function omitted `returns trigger` (`42P13`), and the CLI then rejected the
-canonical clause order — `RETURNS` must precede `LANGUAGE` — which was bisected
-against the live database rather than guessed at. `tests/migration-function-clauses.test.ts`
-pins both.
+**Applying the 7 pending migrations required two fixes first**, and an 8th
+(`20261009120000_lead_attribution_insert_policy.sql`) followed from the database
+advisor pass. One trigger function omitted `returns trigger` (`42P13`), and the CLI
+then rejected the canonical clause order — `RETURNS` must precede `LANGUAGE` — which
+was bisected against the live database rather than guessed at.
+`tests/migration-function-clauses.test.ts` pins both. `supabase migration list` now
+reports zero pending.
 
 **The gate went 13/18 → 15/18 → 16/18 on 2026-10-09.** Step 15 (live data smoke) had been
 failing on an empty `leave_requests` table, which `scripts/seed-demo-leave.mjs` repopulated
@@ -120,8 +120,10 @@ migration `20261007130000_payroll_record_status_coherence.sql` installs a trigge
 *rejects* a finalized record under an unapproved period, so leaving the rows as-is would
 have left the database permanently out of step with its own rule.
 
-The two remaining failures need you: **10** is a business decision (the two payroll runs
-disagree, so neither can be assumed right) and **16** needs the unapplied migrations.
+Both of the failures that remained mid-session are now closed: **10** was closed by
+retiring the `stub_v1` seed period, because it was never a second payroll result to
+reconcile, and **16** was closed by fixing a probe that could not have passed rather
+than by adding anything to the database. See the 18/18 section above.
 
 **The realtime migration was carrying two defects of its own — now removed.** It created
 `notify_ticket_created` and `notify_leave_request` as table triggers, while the application
@@ -138,17 +140,18 @@ Failures are now **named** in the summary, skips are tracked separately, and
 
 ---
 
-## What is blocked, and on whom
+## What is still open, and on whom
 
-Full detail, exact IDs and the runbook for each: **`docs/REMAINING_WORK.md` §1**.
+Nothing here blocks a release; the gate passes. Full detail in
+**`docs/REMAINING_WORK.md`**.
 
-1. **Payroll data reconciliation** — a business decision. Two periods cover Sept
-   1–15; employee `108f95ff-e…` is paid in both. Plus 10 records (₱500,000)
-   finalized inside an unapproved period.
-2. **Four unapplied migrations** — needs `SUPABASE_DB_PASSWORD` and a db-push-scoped
-   PAT. Realtime, payroll overlap constraint, payroll status trigger, HR recruitment
-   access. Nothing is partially applied.
-3. **Push delivery** — needs a real device.
+1. **Push delivery** — needs a real device; the headless FCM endpoint is a phantom
+   (`docs/PUSH_NOTIFICATIONS.md`). **Also:** the VAPID keypair was rotated when
+   `.env.local` was truncated, so existing browser subscriptions must re-subscribe.
+2. **Deployed `CRON_SECRET`** — regenerated locally after the same incident. Any
+   deployed environment calling `/api/jobs/cron` must be set to the new value;
+   locally nothing is exposed either way, since `authorizeCronRequest` fails closed.
+3. **E2E in CI** — the job is runnable and needs only `RUN_E2E=true` plus secrets.
 4. **Is `ulrjitekiylgepdyijsw` staging?** — determines which dev affordances may be
    enabled there.
 
@@ -185,7 +188,7 @@ and emptied `leave_requests`, because every row in the table carried that reason
 Consequence: `leave_requests` is now empty, so `tests/live-data-smoke.test.ts` asserts
 `count("leave_requests") >= 1` and **fails by design**. No seed script ever creates that
 table, so the assertion was passing on e2e residue rather than on seeded data. Decision and
-options: `docs/REMAINING_WORK.md` §1.5. **Unit tests: 454/454 across 77 files** — the
+options: `docs/REMAINING_WORK.md` §1.5. **Unit tests: 488/488 across 83 files** — the
 `leave_requests` table has since been repopulated by `scripts/seed-demo-leave.mjs`, so this
 assertion is now backed by real demo data.
 
