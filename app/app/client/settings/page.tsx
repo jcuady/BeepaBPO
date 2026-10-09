@@ -77,7 +77,7 @@ export default async function ClientSettingsPage() {
                 {orgName}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
+            <CardContent className="space-y-2 text-base sm:text-sm">
               <p className="text-slate">Industry: {profile?.industry ?? "—"}</p>
               <p className="text-slate">Website: {profile?.website ?? "—"}</p>
               <p className="text-slate">

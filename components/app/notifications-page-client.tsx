@@ -114,7 +114,6 @@ export function NotificationsPageClient({
                 <Button
                 variant="outline"
                 size="sm"
-                className="min-h-11"
                 disabled={pending}
                 onClick={handleMarkAllRead}
               >
@@ -124,7 +123,6 @@ export function NotificationsPageClient({
               <Button
                 variant="outline"
                 size="sm"
-                className="min-h-11"
                 disabled={pending || pushState === "loading" || pushState === "subscribed"}
                 onClick={() => void handleEnablePush()}
               >
@@ -142,8 +140,18 @@ export function NotificationsPageClient({
               ] as const
             ).map(([key, label]) => (
               <div key={key} className="flex items-center justify-between gap-4">
-                <span className="text-sm text-navy">{label}</span>
+                {/* A bare <span> left the toggle with no accessible name, so a
+                    screen reader announced an unlabelled switch
+                    (axe: aria-toggle-field-name, serious, WCAG 4.1.2). The
+                    visible text is a real <label>, and the control carries a
+                    matching aria-label so the association survives regardless
+                    of how base-ui wires its hidden input. */}
+                <label htmlFor={`pref-${key}`} className="text-sm text-navy">
+                  {label}
+                </label>
                 <Switch
+                  id={`pref-${key}`}
+                  aria-label={label}
                   checked={prefs[key]}
                   disabled={pending}
                   onCheckedChange={(checked) =>
@@ -152,7 +160,7 @@ export function NotificationsPageClient({
                 />
               </div>
             ))}
-            <p className="text-xs text-slate">
+            <p className="text-base text-slate sm:text-xs">
               Email digests summarize unread notifications (about once a day)
               when Resend is configured on the server.
             </p>
@@ -196,7 +204,7 @@ export function NotificationsPageClient({
                     <p className="mt-1 text-sm text-slate">{n.body}</p>
                   </button>
                 )}
-                <p className="mt-2 text-xs text-slate">
+                <p className="mt-2 text-base text-slate sm:text-xs">
                   {format(new Date(n.created_at), "MMM d, yyyy h:mm a")}
                   {!n.read_at ? " · Unread" : ""}
                   {n.action_url ? (

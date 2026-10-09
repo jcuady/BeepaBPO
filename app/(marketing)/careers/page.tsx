@@ -98,7 +98,7 @@ export default async function CareersPage() {
                     <h3 className="mt-3 font-display text-base font-semibold text-navy">
                       {item.title}
                     </h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-slate">
+                    <p className="mt-1.5 text-base leading-relaxed text-slate">
                       {item.line}
                     </p>
                   </li>
@@ -169,7 +169,7 @@ export default async function CareersPage() {
                       <p className="font-display text-lg font-semibold text-navy transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:group-hover:text-green-strong">
                         {job.title}
                       </p>
-                      <p className="mt-1 text-sm text-slate">
+                      <p className="mt-1 text-base text-slate">
                         {job.location_text ?? formatLabel(job.location_type)} ·{" "}
                         {formatLabel(job.employment_type)}
                         {job.salary_display ? ` · ${job.salary_display}` : ""}

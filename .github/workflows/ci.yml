@@ -37,7 +37,7 @@ jobs:
           AUTH_SECRET: "beepa-ci-secret-change-me-32chars!!"
 
   # Optional: enable with repo variable RUN_E2E=true and required secrets.
-  # Do not gate on secrets.* in `if` — GitHub treats that as a broken workflow.
+  # Do not gate on secrets.* in `if` Ã¢â‚¬â€ GitHub treats that as a broken workflow.
   e2e:
     runs-on: ubuntu-latest
     if: ${{ vars.RUN_E2E == 'true' }}
@@ -51,8 +51,47 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
+      # Build and serve a PRODUCTION bundle rather than letting Playwright fall
+      # back to `pnpm dev` four times over.
+      #
+      # Two reasons, both learned the hard way elsewhere in this repo:
+      #   1. `playwright.config.ts` only auto-starts a webServer when
+      #      PLAYWRIGHT_BASE_URL is unset, and it starts a *dev* server. Four
+      #      sequential projects would each pay a dev compile, and behaviour that
+      #      differs by build (the service worker, demo-login gating) would not be
+      #      what ships.
+      #   2. Performance and E2E are only meaningful against `next build &&
+      #      next start` Ã¢â‚¬â€ `next dev` is a different runtime.
+      - run: pnpm build
         env:
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      - name: start server
+        run: |
+          pnpm start > /tmp/beepa-server.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3000/login > /dev/null; then
+              echo "server up after ${i} attempt(s)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "server never became ready"
+          cat /tmp/beepa-server.log
+          exit 1
+      # Projects run sequentially, not as one `playwright test`. Several specs
+      # sign in as the SAME demo account (roles.spec.ts uses clientadmin while
+      # the `client` project reuses that persisted session). Running projects
+      # concurrently races those logins against each other and invalidates the
+      # stored session, producing failures that reproduce only in the combined
+      # run. Sequential steps keep each project's session intact.
+      - name: e2e (anonymous)
+        run: pnpm exec playwright test --project=anonymous
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
           DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
           NEXT_PUBLIC_SITE_URL: http://localhost:3000
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -60,3 +99,50 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      - name: e2e (employee)
+        run: pnpm exec playwright test --project=chromium
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      - name: e2e (owner)
+        run: pnpm exec playwright test --project=owner
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      - name: e2e (client)
+        run: pnpm exec playwright test --project=client
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      # No cleanup step, deliberately. There used to be one here:
+      #   `node scripts/cleanup-leave-duplicates.mjs --apply` with `if: always()`
+      # whose stated reason was that `mutations.spec.ts` left a duplicate
+      # bereavement row per run. That is fixed at the source Ã¢â‚¬â€ the spec now picks
+      # a benign leave type by name (it used to select index 1, which happened to
+      # be BEREAVEMENT) and deletes the row it created, scoped by row ID.
+      #
+      # A CI step whose justification is false is worse than no step: it runs on
+      # every build, it needs privileged Supabase credentials in the job, and it
+      # deletes live demo data on a schedule nobody reasons about. The repair
+      # script still exists for when the table genuinely does hold duplicates.
+      - name: server log on failure
+        if: failure()
+        run: cat /tmp/beepa-server.log

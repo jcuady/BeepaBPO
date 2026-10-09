@@ -279,6 +279,7 @@ export async function publishJobPost(input: unknown): Promise<ActionResult> {
   return { ok: true, message: "Job post published." };
 }
 
+// unauthenticated: public job application form on /careers/[slug].
 export async function submitJobApplication(
   input: unknown,
 ): Promise<ActionResult> {

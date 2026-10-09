@@ -12,6 +12,7 @@ export type NotificationActionResult = {
 export async function markNotificationRead(
   notificationId: string,
 ): Promise<NotificationActionResult> {
+  // rls-gated: notifications_update_own restricts to auth.uid() == user_id.
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
 
@@ -31,6 +32,7 @@ export async function markNotificationRead(
 }
 
 export async function markAllRead(): Promise<NotificationActionResult> {
+  // rls-gated: notifications_update_own restricts to auth.uid() == user_id.
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
 
@@ -49,6 +51,7 @@ export async function markAllRead(): Promise<NotificationActionResult> {
 }
 
 export async function updateNotificationPreferences(prefs: {
+  // rls-gated: notification_preferences row belongs to the calling user.
   in_app_enabled?: boolean;
   push_enabled?: boolean;
   email_enabled?: boolean;

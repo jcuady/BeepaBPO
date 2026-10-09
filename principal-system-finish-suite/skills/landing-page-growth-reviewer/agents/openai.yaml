@@ -1,0 +1,4 @@
+interface:
+  display_name: "Landing Page Growth Reviewer"
+  short_description: "Make landing pages credible, measurable, and converting"
+  default_prompt: "Use $landing-page-growth-reviewer to audit and improve this landing page, its complete lead funnel, and its launch readiness."

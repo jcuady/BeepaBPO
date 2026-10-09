@@ -1,0 +1,4 @@
+interface:
+  display_name: "Premium Frontend Reviewer"
+  short_description: "Create polished, consistent, non-generic interfaces"
+  default_prompt: "Use $premium-frontend-reviewer to audit and refine this product UI across every route, state, role, and breakpoint."

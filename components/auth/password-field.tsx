@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { IconEye, IconEyeOff, IconLock } from "@tabler/icons-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -48,9 +49,11 @@ export function PasswordField({
         onChange={onChange}
         {...props}
       />
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         type="button"
-        className="absolute top-1/2 right-0.5 flex size-11 -translate-y-1/2 items-center justify-center rounded-[8px] text-slate hover:text-navy"
+        className="absolute top-1/2 right-0.5 size-11 -translate-y-1/2 text-slate hover:text-navy"
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? "Hide password" : "Show password"}
       >
@@ -59,7 +62,7 @@ export function PasswordField({
         ) : (
           <IconEye stroke={1.5} className="size-5" />
         )}
-      </button>
+      </Button>
     </div>
   );
 }

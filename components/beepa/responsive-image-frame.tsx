@@ -8,7 +8,7 @@ type Props = {
   className?: string;
   imageClassName?: string;
   sizes?: string;
-  /** interlocking: brand corners; soft: rounded; blend: edge fade into page; none: raw */
+  /** interlocking: brand corners; soft: rounded; blend: large rounded (sharp, no dissolve) */
   frame?: "interlocking" | "soft" | "blend" | "none";
 };
 
@@ -28,7 +28,7 @@ export function ResponsiveImageFrame({
         frame === "interlocking" &&
           "rounded-tl-[24px] rounded-br-[24px] rounded-tr-[8px] rounded-bl-[8px] ring-1 ring-line",
         frame === "soft" && "rounded-[16px] ring-1 ring-line",
-        frame === "blend" && "hero-image-blend rounded-[28px] md:rounded-[36px]",
+        frame === "blend" && "rounded-[1.25rem] ring-1 ring-line md:rounded-[1.75rem]",
         className,
       )}
     >
@@ -43,7 +43,7 @@ export function ResponsiveImageFrame({
         alt={alt}
         fill
         priority={priority}
-        quality={priority ? 70 : 75}
+        quality={priority ? 82 : 78}
         sizes={sizes}
         className={cn(
           "object-cover object-[70%_center] md:object-right",

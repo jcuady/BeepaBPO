@@ -6,6 +6,7 @@ import { assignTicket } from "@/lib/tickets/actions";
 import type { TicketAssigneeOption } from "@/lib/tickets/assignees";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export function TicketAssignForm({
   ticketId,
@@ -62,10 +63,9 @@ export function TicketAssignForm({
   return (
     <div className="space-y-2">
       <Label htmlFor={`ticket-assignee-${ticketId}`}>Assignee</Label>
-      <select
+      <NativeSelect
         ref={selectRef}
         id={`ticket-assignee-${ticketId}`}
-        className="flex min-h-11 w-full max-w-xs rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
         defaultValue={currentAssigneeId ?? ""}
         disabled={pending}
         onChange={(e) => handleChange(e.target.value)}
@@ -76,7 +76,7 @@ export function TicketAssignForm({
             {person.displayName}
           </option>
         ))}
-      </select>
+      </NativeSelect>
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={handleOpenChange}

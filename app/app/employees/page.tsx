@@ -161,7 +161,7 @@ export default async function EmployeesPage({
 
       <Link
         href="/app/hr"
-        className="text-sm font-medium text-green-strong hover:underline"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
       >
         ← Back to HR
       </Link>

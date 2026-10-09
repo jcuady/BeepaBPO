@@ -10,6 +10,7 @@ import { applyFieldErrors } from "@/lib/forms/field-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { z } from "zod";
 
 type InviteInput = z.infer<typeof adminInviteSchema>;
@@ -105,9 +106,8 @@ export function AdminInviteForm() {
       </div>
       <div className="space-y-2">
         <Label htmlFor="invite-role">Role</Label>
-        <select
+        <NativeSelect
           id="invite-role"
-          className="flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
           {...form.register("role_code")}
         >
           {ROLE_OPTIONS.map((opt) => (
@@ -115,14 +115,14 @@ export function AdminInviteForm() {
               {opt.label}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         {errors.role_code ? (
           <p className="text-sm text-destructive" role="alert">
             {errors.role_code.message}
           </p>
         ) : null}
       </div>
-      <p className="text-xs text-slate">
+      <p className="text-base text-slate sm:text-xs">
         Sends a Supabase invite email and grants an internal Beepa membership.
         Owner and Super Admin are not available here.
       </p>

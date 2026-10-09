@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verified Fix Implementer"
+  short_description: "Implement findings safely and prove every fix"
+  default_prompt: "Use $verified-fix-implementer to resolve prioritized findings in safe batches and verify every change."

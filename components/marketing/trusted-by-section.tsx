@@ -10,6 +10,7 @@ import {
 } from "@tabler/icons-react";
 import type { TablerIcon } from "@tabler/icons-react";
 import { Container } from "@/components/beepa/container";
+import { EyebrowPill } from "@/components/marketing/landing-primitives";
 
 /** Honest focus areas — no fabricated client logos. */
 const FOCUS = [
@@ -37,7 +38,7 @@ function MarqueeTrack({ decorative = false }: { decorative?: boolean }) {
             className="flex shrink-0 items-center"
           >
             <span className="flex items-center gap-2.5 px-4 sm:gap-3 sm:px-6">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-white text-green-strong shadow-[0_1px_0_rgb(31_32_88/0.04)] ring-1 ring-line">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-white text-green-strong ring-1 ring-line">
                 <Icon stroke={1.5} className="size-4" aria-hidden />
               </span>
               <span className="font-display text-[13px] font-semibold tracking-tight text-navy whitespace-nowrap sm:text-[15px]">
@@ -73,9 +74,11 @@ export function TrustedBySection() {
 
       <Container>
         <div className="flex flex-col gap-4 py-6 sm:py-7 md:flex-row md:items-center md:gap-8 md:py-8 lg:gap-10">
-          <p className="shrink-0 font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-green-strong whitespace-nowrap">
-            Built for growing teams
-          </p>
+          {/* Eyebrow pill replaces bare uppercase label — visually consistent
+              with the rest of the redesigned landing page. */}
+          <div className="shrink-0">
+            <EyebrowPill>Built for growing teams</EyebrowPill>
+          </div>
 
           <div
             className="hidden h-9 w-px shrink-0 bg-navy/10 md:block"
@@ -83,7 +86,7 @@ export function TrustedBySection() {
           />
 
           <div
-            className="trust-marquee-mask relative min-w-0 flex-1 overflow-hidden py-0.5"
+            className="trust-marquee-mask relative flex min-h-11 min-w-0 flex-1 items-center overflow-hidden"
             data-marquee="trust"
             tabIndex={0}
             aria-label="Focus areas. Pause by hovering or focusing this region."

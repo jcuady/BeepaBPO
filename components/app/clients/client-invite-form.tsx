@@ -10,6 +10,7 @@ import { applyFieldErrors } from "@/lib/forms/field-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { z } from "zod";
 
 type InviteInput = z.infer<typeof clientInviteSchema>;
@@ -67,9 +68,8 @@ export function ClientInviteForm({
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="client-org">Client organization</Label>
-        <select
+        <NativeSelect
           id="client-org"
-          className="flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
           {...form.register("organization_id")}
         >
           {organizations.map((org) => (
@@ -77,7 +77,7 @@ export function ClientInviteForm({
               {org.name}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         {errors.organization_id ? (
           <p className="text-sm text-destructive" role="alert">
             {errors.organization_id.message}
@@ -132,9 +132,8 @@ export function ClientInviteForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="client-role">Portal role</Label>
-        <select
+        <NativeSelect
           id="client-role"
-          className="flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
           {...form.register("role_code")}
         >
           {ROLE_OPTIONS.map((opt) => (
@@ -142,9 +141,11 @@ export function ClientInviteForm({
               {opt.label}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </div>
-      <p className="text-xs text-slate">
+      {/* 16px on phones, 12px on desktop — same pattern as
+          components/app/admin/admin-invite-form.tsx. */}
+      <p className="text-base text-slate sm:text-xs">
         Sends a Supabase invite and grants a client membership. They sign in at
         /login and land on the client portal.
       </p>

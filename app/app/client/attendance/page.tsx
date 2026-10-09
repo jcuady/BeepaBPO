@@ -4,6 +4,7 @@ import { IconClock } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { StatusBadge } from "@/components/app/status-badge";
 import { PageContainer } from "@/components/app/page-container";
 import {
@@ -20,10 +21,11 @@ import { resolveWorkspace } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { formatWorkedMinutes } from "@/lib/attendance/minutes";
-import { enumParam, dateParam } from "@/lib/app/search-params";
+import { enumParam, dateParam, pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Attendance" };
 
+const PAGE_SIZE = 50;
 const STATUSES = [
   "present",
   "late",
@@ -47,6 +49,7 @@ export default async function ClientAttendancePage({
     dateParam(params.from) ?? format(subDays(new Date(), 13), "yyyy-MM-dd");
   const to = dateParam(params.to);
   const status = enumParam(params.status, STATUSES);
+  const page = pageParam(params.page);
 
   const clientOrgId = getClientOrganizationId(workspace);
   const supabase = await createClient();
@@ -93,7 +96,7 @@ export default async function ClientAttendancePage({
       .eq("client_organization_id", clientOrgId)
       .gte("work_date", from)
       .order("work_date", { ascending: false })
-      .limit(100);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
     if (to) query = query.lte("work_date", to);
     if (status) query = query.eq("status", status);
@@ -187,6 +190,13 @@ export default async function ClientAttendancePage({
           </Table>
         </div>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={rows.length}
+        query={{ from, to, status }}
+      />
     </PageContainer>
   );
 }

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { applyStoredSession } from "./fixtures";
 
 /**
  * Viewport matrix: marketing + auth shells at phone → desktop widths.
@@ -43,41 +44,31 @@ for (const vp of VIEWPORTS) {
 }
 
 test.describe("app shell viewports (authenticated)", () => {
-  const password = process.env.DEMO_PASSWORD;
-  test.beforeAll(() => {
-    test.skip(!password, "DEMO_PASSWORD required for app shell viewport checks");
-  });
-
+  // These measure layout at several widths; nothing about the sign-in flow is
+  // under test, so they adopt the session auth.setup already created rather
+  // than spending a rate-limited password grant at each width.
   for (const vp of [
     { name: "375", width: 375, height: 812 },
     { name: "1280", width: 1280, height: 800 },
   ] as const) {
     test(`employee my workspace @ ${vp.name}`, async ({ page }) => {
-      test.skip(!password);
       await page.setViewportSize({ width: vp.width, height: vp.height });
-      await page.goto("/employee/login");
-      await page.getByLabel(/email/i).fill("employee@demo.beepabpo.com");
-      await page.getByLabel(/^password$/i).fill(password!);
-      await page.getByRole("button", { name: /access portal/i }).click();
-      await page.waitForURL(/\/app\/my/, { timeout: 30_000 });
+      await applyStoredSession(page, "employee");
+      await page.goto("/app/my", { waitUntil: "domcontentloaded" });
       await assertNoHorizontalOverflow(page);
 
-      await page.goto("/app/my/leave");
+      await page.goto("/app/my/leave", { waitUntil: "domcontentloaded" });
       await expect(page.locator("body")).toBeVisible();
       await assertNoHorizontalOverflow(page);
     });
 
     test(`client portal @ ${vp.name}`, async ({ page }) => {
-      test.skip(!password);
       await page.setViewportSize({ width: vp.width, height: vp.height });
-      await page.goto("/login");
-      await page.getByLabel(/email/i).fill("clientadmin@demo.beepabpo.com");
-      await page.getByLabel(/^password$/i).fill(password!);
-      await page.getByRole("button", { name: /sign in/i }).click();
-      await page.waitForURL(/\/app\/client/, { timeout: 30_000 });
+      await applyStoredSession(page, "clientadmin");
+      await page.goto("/app/client", { waitUntil: "domcontentloaded" });
       await assertNoHorizontalOverflow(page);
 
-      await page.goto("/app/client/team");
+      await page.goto("/app/client/team", { waitUntil: "domcontentloaded" });
       await expect(page.locator("body")).toBeVisible();
       await assertNoHorizontalOverflow(page);
     });

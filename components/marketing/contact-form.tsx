@@ -198,7 +198,7 @@ export function ContactForm() {
         <p className="mt-2 text-base leading-relaxed text-slate">
           {state.message}
         </p>
-        <p className="mt-4 text-sm text-slate">
+        <p className="mt-4 text-base text-slate">
           A {BRAND.displayName} teammate will follow up shortly.
         </p>
       </div>
@@ -287,7 +287,7 @@ export function ContactForm() {
         <h2 className="mt-5 font-display text-xl font-bold text-navy">
           {current.title}
         </h2>
-        <p className="mt-1 text-sm text-slate">{current.hint}</p>
+        <p className="mt-1 text-base text-slate">{current.hint}</p>
       </div>
 
       {step === 0 ? (
@@ -309,7 +309,7 @@ export function ContactForm() {
             {fieldError("name") ? (
               <p
                 id={`${formId}-name-err`}
-                className="text-sm text-destructive"
+                className="text-base text-destructive"
                 role="alert"
               >
                 {fieldError("name")}
@@ -334,7 +334,7 @@ export function ContactForm() {
             {fieldError("email") ? (
               <p
                 id={`${formId}-email-err`}
-                className="text-sm text-destructive"
+                className="text-base text-destructive"
                 role="alert"
               >
                 {fieldError("email")}
@@ -362,7 +362,7 @@ export function ContactForm() {
           {fieldError("company") ? (
             <p
               id={`${formId}-company-err`}
-              className="text-sm text-destructive"
+              className="text-base text-destructive"
               role="alert"
             >
               {fieldError("company")}
@@ -390,7 +390,7 @@ export function ContactForm() {
           {fieldError("message") ? (
             <p
               id={`${formId}-message-err`}
-              className="text-sm text-destructive"
+              className="text-base text-destructive"
               role="alert"
             >
               {fieldError("message")}
@@ -401,7 +401,7 @@ export function ContactForm() {
 
       {state.error ? (
         <p
-          className="rounded-[8px] bg-red-50 px-3 py-2 text-sm text-destructive"
+          className="rounded-[8px] bg-red-50 px-3 py-2 text-base text-destructive"
           role="alert"
         >
           {state.error}
@@ -447,8 +447,8 @@ export function ContactForm() {
         )}
       </div>
 
-      <p className="text-center text-xs text-slate">
-        We respond to qualified inquiries. No spam — just a clear next step from{" "}
+      <p className="text-center text-base text-slate">
+        We respond to qualified inquiries. No spam â€” just a clear next step from{" "}
         {BRAND.displayName}.
       </p>
     </form>

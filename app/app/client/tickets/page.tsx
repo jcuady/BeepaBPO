@@ -119,8 +119,8 @@ export default async function ClientTicketsPage({
               <Card className="transition-colors hover:border-green/40">
                 <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div>
-                    <p className="font-medium text-navy">{ticket.subject}</p>
-                    <p className="text-sm text-slate">
+                    <p className="font-medium text-base text-navy sm:text-sm">{ticket.subject}</p>
+                    <p className="text-base text-slate sm:text-sm">
                       {ticket.ticket_number} ·{" "}
                       {format(new Date(ticket.created_at), "MMM d, yyyy")}
                     </p>

@@ -3,6 +3,8 @@ import { format } from "date-fns";
 import { IconCash } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
+import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { CashAdvanceForm } from "@/components/app/cash-advance/cash-advance-form";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { resolveEmployeeForUser } from "@/lib/employees/resolve";
@@ -11,12 +13,33 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageContainer } from "@/components/app/page-container";
+import { enumParam, pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Cash Advances" };
 
-export default async function MyCashAdvancesPage() {
+const PAGE_SIZE = 20;
+const STATUSES = [
+  "pending",
+  "hr_review",
+  "finance_review",
+  "approved",
+  "rejected",
+  "released",
+  "completed",
+  "cancelled",
+] as const;
+
+export default async function MyCashAdvancesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+
+  const params = await searchParams;
+  const status = enumParam(params.status, STATUSES);
+  const page = pageParam(params.page);
 
   const employee = await resolveEmployeeForUser(workspace.user.id);
   const supabase = await createClient();
@@ -31,11 +54,14 @@ export default async function MyCashAdvancesPage() {
   }[] = [];
 
   if (employee) {
-    const { data } = await supabase
+    let q = supabase
       .from("cash_advance_requests")
       .select("id, requested_amount, remaining_balance, status, reason, created_at")
       .eq("employee_id", employee.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    if (status) q = q.eq("status", status);
+    const { data } = await q;
     requests = data ?? [];
   }
 
@@ -63,6 +89,20 @@ export default async function MyCashAdvancesPage() {
         </CardContent>
       </Card>
 
+      <form method="get">
+        <FilterBar showSearch={false}>
+          <FilterSelect
+            name="status"
+            label="Status"
+            defaultValue={status ?? ""}
+            options={[
+              { value: "", label: "All statuses" },
+              ...STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") })),
+            ]}
+          />
+        </FilterBar>
+      </form>
+
       {requests.length === 0 ? (
         <EmptyState
           icon={IconCash}
@@ -72,10 +112,7 @@ export default async function MyCashAdvancesPage() {
       ) : (
         <div className="space-y-2">
           {requests.map((row) => (
-            <Card
-              key={row.id}
-              className=""
-            >
+            <Card key={row.id}>
               <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div>
                   <p className="font-medium text-navy">
@@ -94,6 +131,13 @@ export default async function MyCashAdvancesPage() {
           ))}
         </div>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={requests.length}
+        query={{ status }}
+      />
     </PageContainer>
   );
 }

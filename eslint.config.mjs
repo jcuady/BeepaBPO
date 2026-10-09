@@ -13,6 +13,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "scripts/**",
+    // Vendored third-party skill bundle — CommonJS by design, not app code.
+    "claude-seo/**",
   ]),
 ]);
 

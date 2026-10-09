@@ -13,12 +13,23 @@ import { redirect } from "next/navigation";
 import { formatWorkedMinutes } from "@/lib/attendance/minutes";
 import { can } from "@/lib/permissions/can";
 import { PageContainer } from "@/components/app/page-container";
+import { ListPager } from "@/components/app/list-pager";
+import { pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Timesheets" };
 
-export default async function ClientTimesheetsPage() {
+const PAGE_SIZE = 20;
+
+export default async function ClientTimesheetsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+
+  const params = await searchParams;
+  const page = pageParam(params.page);
 
   const clientOrgId = getClientOrganizationId(workspace);
   const supabase = await createClient();
@@ -39,33 +50,44 @@ export default async function ClientTimesheetsPage() {
     work_date: string | null;
     worked_minutes: number | null;
   }[] = [];
+  let pendingReviewTotal = 0;
 
   if (clientOrgId) {
-    const [{ data: settings }, { data }, { data: pending }] = await Promise.all([
-      supabase
-        .from("client_settings")
-        .select("allow_timesheet_approval")
-        .eq("client_organization_id", clientOrgId)
-        .maybeSingle(),
-      supabase
-        .from("client_attendance_summary")
-        .select(
-          "employee_id, display_name, worked_minutes, work_date, approval_status",
-        )
-        .eq("client_organization_id", clientOrgId)
-        .gte("work_date", from)
-        // ponytail: rollup sample cap; upgrade to SQL GROUP BY if roster grows
-        .limit(2000),
-      supabase
-        .from("client_attendance_summary")
-        .select(
-          "attendance_record_id, display_name, work_date, worked_minutes",
-        )
-        .eq("client_organization_id", clientOrgId)
-        .eq("approval_status", "client_review")
-        .order("work_date", { ascending: false })
-        .limit(40),
-    ]);
+    const [{ data: settings }, { data }, { data: pending }, { count: pendingTotal }] =
+      await Promise.all([
+        supabase
+          .from("client_settings")
+          .select("allow_timesheet_approval")
+          .eq("client_organization_id", clientOrgId)
+          .maybeSingle(),
+        supabase
+          .from("client_attendance_summary")
+          .select(
+            "employee_id, display_name, worked_minutes, work_date, approval_status",
+          )
+          .eq("client_organization_id", clientOrgId)
+          .gte("work_date", from)
+          // ponytail: rollup sample cap; upgrade to SQL GROUP BY if roster grows
+          .limit(2000),
+        supabase
+          .from("client_attendance_summary")
+          .select(
+            "attendance_record_id, display_name, work_date, worked_minutes",
+          )
+          .eq("client_organization_id", clientOrgId)
+          .eq("approval_status", "client_review")
+          .order("work_date", { ascending: false })
+          // Was a silent `.limit(40)`: a client could have days 41+ waiting for
+          // approval with no pager and no indication they existed. The heading
+          // below also counted only what fit on the page, so it is now backed by
+          // a real `count` rather than by `pendingReview.length`.
+          .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
+        supabase
+          .from("client_attendance_summary")
+          .select("attendance_record_id", { count: "exact", head: true })
+          .eq("client_organization_id", clientOrgId)
+          .eq("approval_status", "client_review"),
+      ]);
 
     allowApproval = Boolean(settings?.allow_timesheet_approval);
     if (!allowApproval) {
@@ -88,6 +110,7 @@ export default async function ClientTimesheetsPage() {
       (row): row is typeof pendingReview[number] =>
         Boolean(row.attendance_record_id),
     );
+    pendingReviewTotal = pendingTotal ?? pendingReview.length;
 
     for (const row of data ?? []) {
       const key = row.employee_id ?? "unknown";
@@ -120,7 +143,7 @@ export default async function ClientTimesheetsPage() {
         <Card className="mb-4">
           <CardHeader>
             <CardTitle className="font-display text-base text-navy">
-              Awaiting your review ({pendingReview.length})
+              Awaiting your review ({pendingReviewTotal})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -157,6 +180,13 @@ export default async function ClientTimesheetsPage() {
               ))
             )}
           </CardContent>
+          <div className="px-4 pb-4">
+            <ListPager
+              page={page}
+              pageSize={PAGE_SIZE}
+              rowCount={pendingReviewTotal}
+            />
+          </div>
         </Card>
       ) : null}
 

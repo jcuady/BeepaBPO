@@ -1,0 +1,366 @@
+#!/usr/bin/env node
+// Per-session verify-all script. Runs the entire smoke + typecheck + test
+// suite + VAPID + realtime event test. Designed for "is this ready to
+// ship?" gating.
+//
+// Usage:  node scripts/verify-all.mjs [--skip-migration]
+//
+// Exit code 0 = all green, 1 = at least one failure.
+
+import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const ROOT = resolve(import.meta.dirname ?? new URL(".", import.meta.url).pathname, "..");
+const SKIP_MIGRATION = process.argv.includes("--skip-migration");
+
+// ANSI codes (skipped if NO_COLOR)
+const c = (n) => (process.env.NO_COLOR ? "" : `\x1b[${n}m`);
+const RED = c(31);
+const GREEN = c(32);
+const YELLOW = c(33);
+const BOLD = c(1);
+const DIM = c(2);
+const RESET = c(0);
+
+let totalSteps = 0;
+let passedSteps = 0;
+/** Steps that deliberately did not verify anything; never counted as passed. */
+const skippedSteps = [];
+/**
+ * Steps that actually threw. Tracked explicitly rather than derived.
+ *
+ * `totalSteps - passedSteps` was wrong: it silently classified every skipped
+ * step as a failure, so a run with 2 real failures and 1 skip reported
+ * "3 step(s) failed, 1 skipped" — 17 steps out of 16. The verdict was right by
+ * luck; the number was not. This tool exists to be believed, and a summary that
+ * does not add up is how people learn to ignore it.
+ */
+const failedStepList = [];
+
+function banner(label) {
+  console.log(`\n${BOLD}${label}${RESET}\n${"─".repeat(label.length)}`);
+}
+
+function step(label, fn) {
+  totalSteps++;
+  const start = Date.now();
+  console.log(`\n[${totalSteps}] ${label}`);
+  try {
+    const out = fn();
+    if (out?.skipped) {
+      console.log(`${YELLOW}  skipped${RESET} ${DIM}${out.reason}${RESET}`);
+      skippedSteps.push({ label, reason: out.reason });
+    } else {
+      const ms = Date.now() - start;
+      passedSteps++;
+      console.log(`${GREEN}  PASS${RESET} ${DIM}(${ms}ms)${RESET}`);
+    }
+  } catch (e) {
+    console.log(`${RED}  FAIL${RESET}\n  ${e.message}`);
+    failedStepList.push({ label, message: e.message });
+    if (e.stdout) console.log(e.stdout?.toString().split("\n").slice(-20).map((l) => "    " + l).join("\n"));
+    if (e.stderr) console.log(e.stderr?.toString().split("\n").slice(-20).map((l) => "    " + l).join("\n"));
+  }
+}
+
+function run(cmd, args, options = {}) {
+  const r = spawnSync(cmd, args, { cwd: ROOT, encoding: "utf8", ...options });
+  if (r.status !== 0) {
+    const out = (r.stdout || "") + (r.stderr || "");
+    throw new Error(`exit ${r.status}: ${out || "<empty output>"}`);
+  }
+  return r;
+}
+
+// Local binaries (avoid npx --no-install which can return null exit under spawn).
+const TSC = resolve(ROOT, "node_modules/.bin/tsc.cmd");
+const VITEST = resolve(ROOT, "node_modules/.bin/vitest.cmd");
+const ESLINT = resolve(ROOT, "node_modules/.bin/eslint.cmd");
+const NEXT = resolve(ROOT, "node_modules/.bin/next.cmd");
+
+// 1. Load env
+const env = {};
+for (const line of readFileSync(resolve(ROOT, ".env.local"), "utf8").split(/\r?\n/)) {
+  if (!line || line.trim().startsWith("#")) continue;
+  const idx = line.indexOf("=");
+  if (idx < 0) continue;
+  let v = line.slice(idx + 1).trim();
+  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
+  env[line.slice(0, idx).trim()] = v;
+}
+for (const [k, v] of Object.entries(env)) if (process.env[k] === undefined) process.env[k] = v;
+
+const haveSupabase = !!env.NEXT_PUBLIC_SUPABASE_URL && !!(env.SUPABASE_SECRET_KEY ?? env.SUPABASE_SERVICE_ROLE_KEY);
+
+// Build a redacted env for child processes — they need real keys but we don't
+// want them echoed in the parent console.
+function childEnv() {
+  return { ...process.env };
+}
+
+banner("VERIFY ALL — BeepoBeepa — " + new Date().toISOString());
+
+step("Node version >= 22", () => {
+  const r = spawnSync("node", ["--version"], { encoding: "utf8" });
+  const v = String(r.stdout).replace(/^v/, "").trim();
+  const major = parseInt(v.split(".")[0], 10);
+  if (major < 22) throw new Error(`Node ${v} found, need >= 22`);
+  console.log(`  ${DIM}node ${v}${RESET}`);
+});
+
+step("VAPID keys present + well-formed", () => {
+  const pub = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+  const priv = env.VAPID_PRIVATE_KEY ?? "";
+  if (!pub || !priv) throw new Error("VAPID keys missing");
+  if (pub.length !== 87) throw new Error(`public key length ${pub.length} != 87`);
+  if (priv.length !== 43) throw new Error(`private key length ${priv.length} != 43`);
+  console.log(`  ${DIM}public ${pub.length} chars, private ${priv.length} chars, subject ${env.VAPID_SUBJECT ?? "(unset)"}${RESET}`);
+});
+
+step("VAPID keys accepted by web-push", () => {
+  const r = spawnSync("node", ["scripts/audit/test-vapid.mjs"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) throw new Error(r.stderr || r.stdout);
+  console.log("  " + r.stdout.toString().split("\n").filter((l) => l.includes("[OK]")).join("\n  "));
+});
+
+step("Authorization (route gates)", () => {
+  const r = spawnSync("node", ["scripts/audit/audit-rbac.mjs"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) throw new Error(r.stderr || r.stdout);
+  const m = r.stdout.toString().match(/Gated:.*$/m);
+  console.log(`  ${DIM}${m ? m[0] : "ok"}${DIM}`);
+});
+
+step("Authorization (action handlers)", () => {
+  const r = spawnSync("node", ["scripts/audit/audit-action-rbac.mjs"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) throw new Error(r.stderr || r.stdout);
+  const m = r.stdout.toString().match(/action-rbac:.*$/m);
+  console.log(`  ${DIM}${m ? m[0] : "ok"}${DIM}`);
+});
+
+step("Page wiring (no dead controls)", () => {
+  const r = spawnSync("node", ["scripts/audit/audit-page-wiring.mjs"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) throw new Error(r.stderr || r.stdout);
+  const out = r.stdout.toString();
+  const total = Number(out.match(/Total candidates: (\d+)/)?.[1] ?? -1);
+  if (total < 0) throw new Error("page-wiring scan produced no verdict line");
+  if (total > 0) {
+    // Print the offenders, then fail: a dead button is a shipping defect, not
+    // a warning.
+    console.log(out.split("\n").filter((l) => l.trim().startsWith("components/") || l.trim().startsWith("app/")).slice(0, 20).map((l) => `  ${l}`).join("\n"));
+    throw new Error(`page wiring: ${total} unwired control(s) detected`);
+  }
+  console.log(`  ${DIM}${out.match(/Scanned .*$/m)?.[0] ?? "ok"}; 0 candidates${DIM}`);
+});
+
+step("Page inventory current", () => {
+  const r = spawnSync("node", ["scripts/audit/generate-page-inventory.mjs", "--check"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) throw new Error(r.stderr || r.stdout);
+  console.log(`  ${DIM}${(r.stdout.toString().trim())}${DIM}`);
+});
+
+step("Design system consistency", () => {
+  // Raw elements where a primitive already exists, or a colour literal outside
+  // the token layer, means the app has more than one design system. Both are
+  // real accessibility defects, not taste: the first pass found 26 dropdowns
+  // with no focus ring at all.
+  const r = spawnSync("node", ["scripts/audit-design-system.mjs"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) {
+    const out = r.stdout.toString();
+    console.log(out.split("\n").filter((l) => /RAW PRIMITIVE|HARDCODED|components\/|app\//.test(l)).slice(0, 25).map((l) => `  ${l}`).join("\n"));
+    throw new Error("design system drift: see the offenders listed above");
+  }
+  const out = r.stdout.toString();
+  const radius = out.match(/ARBITRARY RADIUS\s+(.+?)\s*$/m)?.[1]?.trim();
+  console.log(`  ${DIM}0 raw primitives, 0 hardcoded colours${radius ? `; ${radius}` : ""}${DIM}`);
+});
+
+step("Filters survive pagination", () => {
+  // A filter rendered in the FilterBar but left out of the pager's `query`
+  // prop is dropped the moment the user clicks Next. No error, no empty state —
+  // just a wider list that answers a question nobody asked. Found on
+  // /app/admin/users, where the role filter vanished on page two.
+  const r = spawnSync("node", ["scripts/audit-filter-persistence.mjs"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) {
+    console.log(r.stdout.toString().split("\n").filter((l) => /FAIL|app\/|reads:/.test(l)).slice(0, 25).map((l) => `  ${l}`).join("\n"));
+    throw new Error("a paginated page drops a filter when the page changes");
+  }
+  const out = r.stdout.toString();
+  console.log(`  ${DIM}${out.match(/scanned .*$/m)?.[0] ?? "ok"}; 0 dropped${DIM}`);
+});
+
+step("Payroll periods do not overlap", () => {
+  // Overlapping periods pay the same days twice. This blocks the gate: the fix
+  // may be a business decision, but "Ship it" must never print while an
+  // employee is being paid twice for the same hours.
+  const r = spawnSync("node", ["scripts/audit/audit-payroll-period-overlap.mjs"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) throw new Error(r.stderr || r.stdout);
+  const out = r.stdout.toString();
+  console.log(out.split("\n").filter((l) => l.trim()).map((l) => `  ${DIM}${l}${DIM}`).join("\n"));
+  if (/VERDICT: BLOCKED/.test(out)) {
+    throw new Error(
+      "overlapping payroll periods: the same days are in two runs, so at least one employee is " +
+        "paid twice. Reconcile the periods, then apply 20261007120000_payroll_period_no_overlap.sql.",
+    );
+  }
+});
+
+step("Payroll period/record status coherent", () => {
+  // A finalized record inside an unapproved period makes unapproved pay payable.
+  const r = spawnSync("node", ["scripts/audit/audit-payroll-status-coherence.mjs"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) throw new Error(r.stderr || r.stdout);
+  const out = r.stdout.toString();
+  console.log(out.split("\n").filter((l) => l.trim()).map((l) => `  ${DIM}${l}${DIM}`).join("\n"));
+  if (/INCOHERENT/.test(out)) {
+    throw new Error(
+      "payroll records are finalized inside an unapproved period, so unapproved pay is payable. " +
+        "Reconcile the period and its records.",
+    );
+  }
+});
+
+step("TypeScript clean", () => {
+  const r = spawnSync(TSC, ["--noEmit"], { cwd: ROOT, encoding: "utf8", env: childEnv(), shell: true });
+  if (r.status !== 0) {
+    const out = (r.stdout || "") + (r.stderr || "");
+    throw new Error(`tsc exit ${r.status}: ${out || "no output"}`);
+  }
+});
+
+step("Lint clean (eslint)", () => {
+  const r = spawnSync(ESLINT, ["."], { cwd: ROOT, encoding: "utf8", env: childEnv(), shell: true });
+  if (r.status !== 0) {
+    const out = (r.stdout || "") + (r.stderr || "");
+    throw new Error(`eslint exit ${r.status}:\n${out.slice(-1500) || "no output"}`);
+  }
+});
+
+step("Vitest (full suite)", () => {
+  // vitest v5 doesn't have a "basic" reporter; use the default.
+  const r = spawnSync("cmd.exe", ["/c", "pnpm", "vitest", "run"], { cwd: ROOT, encoding: "utf8", env: childEnv() });
+  if (r.status !== 0) {
+    const out = (r.stdout || "") + (r.stderr || "");
+    throw new Error(`vitest exit ${r.status}: ${out.slice(-500) || "no output"}`);
+  }
+  const summary = r.stdout.toString().split("\n").filter((l) => l.includes("Test Files") || l.includes("Tests")).join(" ");
+  console.log(`  ${DIM}${summary}${RESET}`);
+});
+
+if (haveSupabase) {
+  step("Live data smoke (DB state)", () => {
+    const r = spawnSync("cmd.exe", ["/c", "pnpm", "vitest", "run", "tests/live-data-smoke.test.ts"], { cwd: ROOT, encoding: "utf8", env: childEnv() });
+    if (r.status !== 0) {
+      const out = (r.stdout || "") + (r.stderr || "");
+      throw new Error(`vitest smoke exit ${r.status}: ${out.slice(-500) || "no output"}`);
+    }
+  });
+
+  step("Realtime event delivery (notifications)", () => {
+    const r = spawnSync("node", ["scripts/audit/test-realtime-events.mjs"], { cwd: ROOT, encoding: "utf8", env: childEnv() });
+    const out = r.stdout.toString() + r.stderr.toString();
+    if (r.status === 0) {
+      console.log(`  ${DIM}realtime delivery confirmed${RESET}`);
+    } else if (out.includes("realtime BROKEN")) {
+      if (SKIP_MIGRATION) {
+        // Deliberately reported as skipped, not passed. `step()` does not count
+        // a skipped result toward the total, so the run cannot print "Ship it"
+        // while realtime notifications are silently broken.
+        return {
+          skipped: true,
+          reason: "realtime events broken — known: migration 20261006140000 not pushed yet",
+        };
+      }
+      throw new Error("realtime events broken — DB needs migration `20261006140000_realtime_and_profile_sync.sql`");
+    } else if (out.includes("no HR profile found")) {
+      return { skipped: true, reason: "HR profile missing — run seed first" };
+    } else {
+      throw new Error(out);
+    }
+  });
+} else {
+  step("Live DB connection", () => {
+    throw new Error("supabase env not configured");
+  });
+}
+
+step("DB row counts (target)", () => {
+  const r = spawnSync("node", ["scripts/audit/read-state.mjs"], { cwd: ROOT, encoding: "utf8", env: childEnv() });
+  if (r.status !== 0) throw new Error(r.stderr || r.stdout);
+  const lines = r.stdout.toString().split("\n");
+  const tables = [
+    "services", "industries", "faqs", "testimonials", "case_studies", "blog_posts",
+    "departments", "teams", "holidays", "payroll_profiles", "payslips",
+    "client_contacts", "billing_accounts", "invoice_items",
+    "performance_cycles", "performance_kpis",
+    "notifications", "audit_logs",
+  ];
+  for (const t of tables) {
+    const line = lines.find((l) => l.startsWith(t + " "));
+    if (!line) continue;
+    const count = parseInt(line.replace(/\s+/g, " ").split(" ")[1], 10);
+    if (!Number.isFinite(count)) continue;
+    console.log(`  ${DIM}${t.padEnd(22)} ${count}${RESET}`);
+  }
+});
+
+// Production build. NOTE: `next build` and `next dev` both write .next and will
+// corrupt each other, so stop any dev server before running this gate.
+step("Production build (next build)", () => {
+  const r = spawnSync(NEXT, ["build"], {
+    cwd: ROOT,
+    encoding: "utf8",
+    env: {
+      ...childEnv(),
+      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+      AUTH_SECRET: process.env.AUTH_SECRET ?? "verify-all-build-placeholder-secret",
+    },
+    shell: true,
+  });
+  if (r.status !== 0) {
+    const out = (r.stdout || "") + (r.stderr || "");
+    throw new Error(`next build exit ${r.status}:\n${out.slice(-2000) || "no output"}`);
+  }
+  const built = (r.stdout || "").match(/Compiled successfully in [\d.]+s/);
+  console.log(`  ${DIM}${built ? built[0] : "build completed"}${DIM}`);
+});
+
+// Summary
+const failedSteps = failedStepList.length;
+
+// The three counts must account for every step exactly once. This is not
+// defensive arithmetic — it is the one place a reader checks the tool's work,
+// so it is asserted rather than assumed.
+const accounted = passedSteps + failedSteps + skippedSteps.length;
+if (accounted !== totalSteps) {
+  console.log(
+    `${RED}${BOLD}INTERNAL COUNT ERROR: ${passedSteps} passed + ${failedSteps} failed + ${skippedSteps.length} skipped = ${accounted}, but ${totalSteps} steps ran.${RESET}\n`,
+  );
+  process.exit(2);
+}
+
+console.log(`\n${BOLD}${passedSteps}/${totalSteps} steps passed${RESET}`);
+if (skippedSteps.length) {
+  console.log(`${YELLOW}${skippedSteps.length} step(s) skipped — not verified${RESET}`);
+}
+if (failedSteps) {
+  console.log(`${RED}Failing steps:${RESET}`);
+  for (const s of failedStepList) console.log(`${RED}  - ${s.label}${RESET}`);
+}
+console.log("");
+
+if (failedSteps === 0 && skippedSteps.length === 0) {
+  console.log(`${GREEN}${BOLD}All checks passed. Ship it.${RESET}\n`);
+  process.exit(0);
+}
+if (failedSteps > 0 && skippedSteps.length > 0) {
+  console.log(
+    `${RED}${BOLD}${failedSteps} step(s) failed, ${skippedSteps.length} skipped. Do not ship.${RESET}\n`,
+  );
+} else if (failedSteps > 0) {
+  console.log(`${RED}${BOLD}${failedSteps} step(s) failed. See above. Do not ship.${RESET}\n`);
+} else {
+  console.log(
+    `${YELLOW}${BOLD}No failures, but ${skippedSteps.length} check(s) were not verified.${RESET}\n`,
+  );
+}
+process.exit(1);

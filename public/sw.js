@@ -1,6 +1,15 @@
 // ponytail: minimal SW — precache shell + push handlers, no Serwist/Turbopack coupling
 const CACHE = "beepa-v1";
-const PRECACHE = ["/app", "/brand/icon-192.svg", "/brand/icon-512.svg"];
+// Only ever static, auth-independent files. Precaching a dynamic route such as
+// "/app" stores whatever HTML the installer happened to get back — the signed-in
+// app shell, or the /login redirect — and then serves it to everybody afterwards.
+const PRECACHE = ["/brand/icon-192.svg", "/brand/icon-512.svg"];
+
+// Only build-hashed static chunks are cacheable. Everything else (navigations,
+// /api/*, and every authed route) must go straight to the network: caching it
+// would leak one employee's rendered payslips/attendance to the next person to
+// pick up a shared device, and would pin the app to a stale shell.
+const CACHEABLE = /^\/_next\/static\//;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -19,15 +28,17 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
+  const { request } = event;
+  if (!CACHEABLE.test(new URL(request.url).pathname)) return;
+
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    caches.match(request).then((cached) => {
       if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== "basic") {
-          return response;
+      return fetch(request).then((response) => {
+        if (response && response.status === 200 && response.type === "basic") {
+          const copy = response.clone();
+          void caches.open(CACHE).then((cache) => cache.put(request, copy));
         }
-        const copy = response.clone();
-        void caches.open(CACHE).then((cache) => cache.put(event.request, copy));
         return response;
       });
     }),

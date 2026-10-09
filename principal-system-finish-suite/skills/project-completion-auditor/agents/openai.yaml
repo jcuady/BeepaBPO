@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Completion Auditor"
+  short_description: "Audit every page, role, workflow, and feature"
+  default_prompt: "Use $project-completion-auditor to produce an evidence-based completion audit for this entire system."

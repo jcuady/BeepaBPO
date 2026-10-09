@@ -113,10 +113,10 @@ export default async function ServicesPage() {
                 <IconSearch stroke={1.5} className="size-5" aria-hidden />
               </span>
               <div>
-                <p className="font-display text-sm font-semibold text-navy">
+                <p className="font-display text-base font-semibold text-navy">
                   We find the people
                 </p>
-                <p className="mt-1 text-sm leading-relaxed text-slate">
+                <p className="mt-1 text-base leading-relaxed text-slate">
                   Brief the role. We source, screen, and place.
                 </p>
               </div>
@@ -126,10 +126,10 @@ export default async function ServicesPage() {
                 <IconCoin stroke={1.5} className="size-5" aria-hidden />
               </span>
               <div>
-                <p className="font-display text-sm font-semibold text-navy">
+                <p className="font-display text-base font-semibold text-navy">
                   We handle the pay
                 </p>
-                <p className="mt-1 text-sm leading-relaxed text-slate">
+                <p className="mt-1 text-base leading-relaxed text-slate">
                   Salary and employment admin stay with Beepa.
                 </p>
               </div>
@@ -193,7 +193,7 @@ export default async function ServicesPage() {
                   {service.description ? (
                     <p
                       className={cn(
-                        "mt-3 max-w-[48ch] whitespace-pre-wrap text-sm leading-relaxed opacity-90",
+                        "mt-3 max-w-[48ch] whitespace-pre-wrap text-base leading-relaxed opacity-90",
                         tone.body,
                       )}
                     >

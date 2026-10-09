@@ -1,3 +1,12 @@
 allowBuilds:
   sharp: true
   unrs-resolver: true
+
+# `@playwright/mcp@0.0.83` pins an alpha Playwright. Left alone it installs a
+# second playwright-core alongside the project's stable 1.62.1, and TypeScript
+# then sees two incompatible `Page` types (TS2741 in e2e/a11y.spec.ts).
+# Pinning the whole tree to the version @playwright/test already uses removes
+# the type split without changing behaviour.
+overrides:
+  playwright: 1.62.1
+  playwright-core: 1.62.1

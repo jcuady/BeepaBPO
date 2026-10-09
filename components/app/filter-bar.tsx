@@ -2,6 +2,7 @@ import { IconSearch } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { NativeSelectCompact } from "@/components/ui/native-select";
 
 type FilterBarProps = {
   placeholder?: string;
@@ -71,20 +72,23 @@ export function FilterSelect({
   defaultValue?: string;
   options: { value: string; label: string }[];
 }) {
+  // Previously this carried its own hand-rolled class string
+  // (`min-h-11 rounded-[12px] border border-line bg-mist/50 px-3 text-sm`),
+  // which matched no other control: wrong radius against Input's 16px and no
+  // focus ring at all. Delegates to the shared primitive so a filter dropdown
+  // and a form dropdown cannot drift apart again.
   return (
-    <label className="flex min-w-[9rem] flex-col gap-1 text-xs font-medium text-slate">
-      <span>{label}</span>
-      <select
-        name={name}
-        defaultValue={defaultValue ?? ""}
-        className="min-h-11 rounded-[12px] border border-line bg-mist/50 px-3 text-sm text-navy"
-      >
-        {options.map((opt) => (
-          <option key={opt.value || "all"} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    <NativeSelectCompact
+      id={`filter-${name}`}
+      name={name}
+      label={label}
+      defaultValue={defaultValue ?? ""}
+    >
+      {options.map((opt) => (
+        <option key={opt.value || "all"} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </NativeSelectCompact>
   );
 }

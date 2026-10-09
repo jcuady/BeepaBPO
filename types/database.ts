@@ -3395,6 +3395,7 @@ export type Database = {
           name: string
           organization_id: string
           pay_date: string
+          pay_frequency: Database["public"]["Enums"]["pay_frequency"]
           start_date: string
           status: Database["public"]["Enums"]["payroll_period_status"]
           updated_at: string
@@ -3409,6 +3410,7 @@ export type Database = {
           name: string
           organization_id: string
           pay_date: string
+          pay_frequency?: Database["public"]["Enums"]["pay_frequency"]
           start_date: string
           status?: Database["public"]["Enums"]["payroll_period_status"]
           updated_at?: string
@@ -3423,6 +3425,7 @@ export type Database = {
           name?: string
           organization_id?: string
           pay_date?: string
+          pay_frequency?: Database["public"]["Enums"]["pay_frequency"]
           start_date?: string
           status?: Database["public"]["Enums"]["payroll_period_status"]
           updated_at?: string

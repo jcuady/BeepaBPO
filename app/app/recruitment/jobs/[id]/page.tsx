@@ -51,7 +51,7 @@ export default async function RecruitmentJobDetailPage({
         {job.status === "published" ? (
           <Link
             href={`/careers/${job.slug}`}
-            className="text-sm font-medium text-green-strong hover:underline"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
           >
             View public
           </Link>
@@ -94,7 +94,7 @@ export default async function RecruitmentJobDetailPage({
 
       <Link
         href="/app/recruitment/jobs"
-        className="text-sm font-medium text-green-strong hover:underline"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
       >
         ← Back to jobs
       </Link>

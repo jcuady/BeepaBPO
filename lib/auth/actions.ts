@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { getEnv } from "@/lib/env";
 import { safeNext } from "@/lib/auth/safe-next";
+import { authErrorMessage } from "@/lib/auth/error-messages";
 import {
   employeeLoginSchema,
   forgotPasswordSchema,
@@ -65,12 +66,19 @@ export async function loginAction(
     password: parsed.data.password,
   });
   if (error) {
-    return { ok: false, error: "Invalid email or password." };
+    return { ok: false, error: authErrorMessage(error) };
   }
 
   redirect(safeNext((formData.get("next") as string) || "/app"));
 }
 
+/**
+ * Turn a Supabase auth failure into something the user can act on.
+ *
+ * Imported rather than defined here so it can be unit tested: a `"use server"`
+ * module may only export async functions, so a pure helper living in this file
+ * would be permanently untestable. See `lib/auth/error-messages.ts`.
+ */
 export async function employeeLoginAction(
   _prev: ActionState,
   formData: FormData,
@@ -102,18 +110,26 @@ export async function employeeLoginAction(
     password: parsed.data.password,
   });
   if (error) {
-    return { ok: false, error: "Invalid email or password." };
+    return { ok: false, error: authErrorMessage(error) };
   }
 
   const userId = signInData.user?.id;
   if (!userId) {
-    await supabase.auth.signOut();
+    // `scope: "local"` is load-bearing. supabase-js defaults signOut() to
+    // "global", which revokes every refresh token this user has on every
+    // device — so a failed login attempt could sign the user out of a working
+    // session on their phone. Discard only the session this attempt created.
+    await supabase.auth.signOut({ scope: "local" });
     return { ok: false, error: "Invalid email or password." };
   }
 
   const { data: isInternal } = await supabase.rpc("is_internal_user");
   if (!isInternal) {
-    await supabase.auth.signOut();
+    // Same reason as above, and this path is reachable by accident: a client
+    // who types their address into the employee portal lands here. With a bare
+    // signOut() they were signed out of their real client portal too, on every
+    // device. Refuse this attempt only.
+    await supabase.auth.signOut({ scope: "local" });
     return {
       ok: false,
       error: "Use the client or applicant sign-in at /login",
@@ -338,14 +354,19 @@ export async function verifyEmailAction(token: string): Promise<ActionState> {
 
 export async function logoutAction() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  // Local, not global: signing out on a work laptop should end that browser's
+  // session, not revoke the user's phone too. `logoutAllAction` below is the
+  // deliberate way to do that.
+  await supabase.auth.signOut({ scope: "local" });
   redirect("/");
 }
 
 /** Sign out then land on login — used when switching accounts from access-denied. */
 export async function switchAccountAction() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  // Local for the same reason: switching accounts in this browser replaces the
+  // session here, it does not sign the user out everywhere.
+  await supabase.auth.signOut({ scope: "local" });
   redirect("/login");
 }
 

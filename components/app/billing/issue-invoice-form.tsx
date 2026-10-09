@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { z } from "zod";
 
 type FormInput = z.input<typeof issueInvoiceSchema>;
@@ -85,9 +86,8 @@ export function IssueInvoiceForm({
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="client_organization_id">Client</Label>
-        <select
+        <NativeSelect
           id="client_organization_id"
-          className="flex min-h-11 w-full rounded-[10px] border border-line bg-white px-3 text-sm text-navy"
           {...form.register("client_organization_id")}
         >
           {clients.map((c) => (
@@ -95,7 +95,7 @@ export function IssueInvoiceForm({
               {c.name}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         {errors.client_organization_id ? (
           <p className="text-sm text-destructive">
             {errors.client_organization_id.message}

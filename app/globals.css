@@ -40,11 +40,68 @@
   --font-display: var(--font-manrope);
   --font-heading: var(--font-manrope);
   --font-body: var(--font-inter);
+  /* Editorial display serif — hero headlines + pull quotes only. */
+  --font-editorial: var(--font-instrument);
 
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
+
+  /* Sidebar surface tokens.
+   *
+   * These lived as Tailwind arbitrary properties on the <Sidebar> element in
+   * components/app/app-sidebar.tsx, which re-declared the brand palette as hex
+   * at the call site. That is design-system drift: the sidebar carried its own
+   * copy of the colours, so a palette change would have had to be made twice
+   * and nothing would tell you the second copy had been missed. They now sit in
+   * the token layer beside every other colour. */
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--color-ink);
+  --sidebar-border: var(--color-line);
+  --sidebar-accent: #eef7e8;
+  --sidebar-accent-foreground: var(--color-green-strong);
+
+  /* Semantic status layer.
+   *
+   * The palette was documented as navy/green/lime/mist, but nothing defined what
+   * "a warning surface" or "a negative surface" *is*. Three separate files each
+   * invented one: the attendance heatmap built a six-colour status map inline,
+   * the team donut a four-colour categorical ramp, and the application stage
+   * badge a five-tone scale. Same class of decision, three unrelated palettes,
+   * no shared vocabulary — which is why the design system felt inconsistent
+   * even though every component "used tokens".
+   *
+   * Each status is a pair: a saturated foreground for text and icons, and a
+   * tinted surface for backgrounds. Pairing them here means a new status cannot
+   * be added without choosing both.
+   *
+   * All foreground values are >= 4.5:1 on their own surface and on white.
+   */
+  --color-positive: var(--color-green-strong);
+  --color-positive-surface: #eef7e8;
+  --color-caution: #92610a;
+  --color-caution-surface: #fdf3e0;
+  --color-critical: var(--destructive);
+  --color-critical-surface: #fdecea;
+  --color-info: #1b6ea8;
+  --color-info-surface: #e8f2fa;
+  --color-neutral-surface: var(--color-mist);
+
+  /* Categorical ramp for data visualisation.
+   *
+   * Chart series need colours that stay distinguishable next to each other,
+   * which the brand palette does not guarantee — navy/green/lime are not four
+   * usable series colours. This is a separate scale on purpose, not a fifth
+   * brand colour. Order matters: assign series in index order. */
+  --color-series-1: var(--color-green-strong);
+  --color-series-2: #1b6ea8;
+  --color-series-3: #92610a;
+  --color-series-4: var(--color-slate);
+  --color-series-5: var(--color-lime);
+
+  /* Neutral scale for empty / inactive / unknown data cells. */
+  --color-data-empty: #e8eaee;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -114,11 +171,10 @@
   }
 }
 
-/* Header scrolled state via scroll timeline; fallback is solid white */
+/* Sharp solid header — no frosted glass / backdrop blur on marketing */
 .site-header {
-  background-color: rgb(255 255 255 / 0.92);
-  border-bottom: 1px solid transparent;
-  backdrop-filter: blur(8px);
+  background-color: #ffffff;
+  border-bottom: 1px solid #eaecf0;
 }
 
 @supports (animation-timeline: scroll()) {
@@ -133,54 +189,14 @@
 
 @keyframes header-solid {
   from {
-    background-color: rgb(255 255 255 / 0.72);
+    background-color: #ffffff;
     border-bottom-color: transparent;
     box-shadow: none;
   }
   to {
     background-color: #ffffff;
     border-bottom-color: #eaecf0;
-    box-shadow: 0 1px 0 rgb(23 24 43 / 0.04);
-  }
-}
-
-/* Shared section photos: dissolve edges into page atmosphere */
-.hero-image-blend {
-  -webkit-mask-image: linear-gradient(
-      90deg,
-      transparent 0%,
-      #000 12%,
-      #000 88%,
-      transparent 100%
-    ),
-    linear-gradient(180deg, transparent 0%, #000 10%, #000 92%, transparent 100%);
-  mask-image: linear-gradient(
-      90deg,
-      transparent 0%,
-      #000 12%,
-      #000 88%,
-      transparent 100%
-    ),
-    linear-gradient(180deg, transparent 0%, #000 10%, #000 92%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-}
-
-@media (min-width: 1024px) {
-  .hero-image-blend {
-    -webkit-mask-image: linear-gradient(
-        95deg,
-        transparent 0%,
-        #000 18%,
-        #000 100%
-      ),
-      linear-gradient(180deg, transparent 0%, #000 8%, #000 94%, transparent 100%);
-    mask-image: linear-gradient(95deg, transparent 0%, #000 18%, #000 100%),
-      linear-gradient(180deg, transparent 0%, #000 8%, #000 94%, transparent 100%);
+    box-shadow: none;
   }
 }
 
@@ -189,24 +205,6 @@
    Pause via hover / :focus-within (WCAG 2.2.2) — no control button. */
 .trust-marquee-mask {
   outline: none;
-  mask-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    #000 7%,
-    #000 90%,
-    transparent 100%
-  );
-}
-
-@media (min-width: 768px) {
-  .trust-marquee-mask {
-    mask-image: linear-gradient(
-      90deg,
-      #000 0%,
-      #000 90%,
-      transparent 100%
-    );
-  }
 }
 
 .trust-marquee-mask:focus-visible {

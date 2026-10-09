@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Manrope } from "next/font/google";
+import { Instrument_Serif, Inter, Manrope } from "next/font/google";
 import { BRAND } from "@/lib/site";
 import "./globals.css";
 
@@ -7,6 +7,20 @@ const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
   weight: ["500", "600", "700"],
+  display: "swap",
+});
+
+/**
+ * Editorial display serif — hero headlines and pull-quotes only.
+ * Keeps the sans (Manrope/Inter) for body, UI, labels, and buttons so the
+ * product stays legible; the serif is a single, deliberate accent that gives
+ * the marketing hero its premium editorial voice.
+ */
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument",
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -123,7 +137,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.variable} ${inter.variable} h-full`}
+      className={`${manrope.variable} ${instrumentSerif.variable} ${inter.variable} h-full`}
     >
       <body className="flex min-h-full flex-col font-sans text-ink">
         {children}

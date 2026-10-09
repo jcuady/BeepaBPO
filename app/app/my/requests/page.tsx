@@ -163,7 +163,7 @@ export default async function MyRequestsPage() {
                       <p className="font-medium text-navy">
                         ₱{Number(row.requested_amount).toLocaleString()}
                       </p>
-                      <p className="text-sm text-slate line-clamp-1">
+                      <p className="text-base text-slate line-clamp-1 sm:text-sm">
                         {row.reason}
                       </p>
                     </div>

@@ -110,7 +110,7 @@ export default async function ResourcesPage() {
                     <h2 className="mt-3 font-display text-[clamp(1.75rem,3vw,2.5rem)] font-bold tracking-tight text-navy text-balance">
                       <Link
                         href={`/resources/${featured.slug}`}
-                        className="transition-colors duration-200 hover:text-green-strong"
+                        className="inline-flex min-h-11 items-center transition-colors duration-200 hover:text-green-strong"
                       >
                         {featured.title}
                       </Link>
@@ -155,7 +155,7 @@ export default async function ResourcesPage() {
                         <h3 className="mt-2 font-display text-xl font-semibold text-navy">
                           <Link
                             href={`/resources/${post.slug}`}
-                            className="transition-colors duration-200 hover:text-green-strong"
+                            className="inline-flex min-h-11 items-center transition-colors duration-200 hover:text-green-strong"
                           >
                             {post.title}
                           </Link>
@@ -167,7 +167,7 @@ export default async function ResourcesPage() {
                         ) : null}
                         <Link
                           href={`/resources/${post.slug}`}
-                          className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-green-strong underline-offset-4 hover:underline"
+                          className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-green-strong underline-offset-4 hover:underline"
                         >
                           Read article
                           <IconArrowRight

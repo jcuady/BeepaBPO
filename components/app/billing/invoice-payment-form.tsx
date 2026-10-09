@@ -114,7 +114,7 @@ export function InvoicePaymentForm({
           />
         </div>
       </div>
-      <Button type="submit" size="sm" className="min-h-9" disabled={pending}>
+      <Button type="submit" size="sm" className="min-h-9 [@media(pointer:coarse)]:min-h-11" disabled={pending}>
         {pending ? "Saving…" : "Record payment"}
       </Button>
     </form>

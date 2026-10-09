@@ -71,7 +71,12 @@ async function checkRole(email, required) {
   const { data: codes, error: rpcError } = await client.rpc(
     "user_permission_codes",
   );
-  await client.auth.signOut();
+  // `scope: "local"` is load-bearing. supabase-js defaults signOut() to
+  // "global", which revokes every refresh token this user has on every device.
+  // This script signs in as a real demo user, so a bare signOut() here would
+  // sign that person out of their browser and out of any e2e session sharing
+  // the demo accounts. Discard only the session this script just created.
+  await client.auth.signOut({ scope: "local" });
 
   if (rpcError) {
     return { email, ok: false, error: rpcError.message, missing: required };

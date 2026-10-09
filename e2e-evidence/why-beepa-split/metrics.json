@@ -1,0 +1,90 @@
+[
+  {
+    "width": 375,
+    "overlapPx": 0,
+    "overflowX": 0,
+    "headingText": "We find the people.You keep the process.",
+    "headingVisible": true,
+    "ctaText": "Request a team",
+    "ctaHref": "/contact",
+    "headingBox": {
+      "left": 16,
+      "right": 359,
+      "top": 100,
+      "bottom": 217
+    },
+    "mediaBox": {
+      "left": 16,
+      "right": 359,
+      "top": 471,
+      "bottom": 728
+    },
+    "file": "e2e-evidence\\why-beepa-split\\why-beepa-375.png"
+  },
+  {
+    "width": 768,
+    "overlapPx": 0,
+    "overflowX": 0,
+    "headingText": "We find the people.You keep the process.",
+    "headingVisible": true,
+    "ctaText": "Request a team",
+    "ctaHref": "/contact",
+    "headingBox": {
+      "left": 24,
+      "right": 744,
+      "top": 124,
+      "bottom": 202
+    },
+    "mediaBox": {
+      "left": 24,
+      "right": 744,
+      "top": 418,
+      "bottom": 868
+    },
+    "file": "e2e-evidence\\why-beepa-split\\why-beepa-768.png"
+  },
+  {
+    "width": 1024,
+    "overlapPx": 0,
+    "overflowX": 0,
+    "headingText": "We find the people.You keep the process.",
+    "headingVisible": true,
+    "ctaText": "Request a team",
+    "ctaHref": "/contact",
+    "headingBox": {
+      "left": 32,
+      "right": 413,
+      "top": 124,
+      "bottom": 319
+    },
+    "mediaBox": {
+      "left": 528,
+      "right": 992,
+      "top": 139,
+      "bottom": 487
+    },
+    "file": "e2e-evidence\\why-beepa-split\\why-beepa-1024.png"
+  },
+  {
+    "width": 1440,
+    "overlapPx": 0,
+    "overflowX": 0,
+    "headingText": "We find the people.You keep the process.",
+    "headingVisible": true,
+    "ctaText": "Request a team",
+    "ctaHref": "/contact",
+    "headingBox": {
+      "left": 112,
+      "right": 600,
+      "top": 133,
+      "bottom": 375
+    },
+    "mediaBox": {
+      "left": 736,
+      "right": 1328,
+      "top": 124,
+      "bottom": 568
+    },
+    "file": "e2e-evidence\\why-beepa-split\\why-beepa-1440.png"
+  }
+]

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { updateCrmLeadStatus } from "@/lib/crm/actions";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const STATUSES = [
   "new",
@@ -60,10 +61,9 @@ export function LeadStatusForm({
   return (
     <div className="space-y-2">
       <Label htmlFor={`lead-status-${leadId}`}>Update status</Label>
-      <select
+      <NativeSelect
         ref={selectRef}
         id={`lead-status-${leadId}`}
-        className="flex min-h-11 w-full max-w-xs rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
         defaultValue={currentStatus}
         disabled={pending}
         onChange={(e) => handleChange(e.target.value)}
@@ -73,7 +73,7 @@ export function LeadStatusForm({
             {status}
           </option>
         ))}
-      </select>
+      </NativeSelect>
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={handleOpenChange}

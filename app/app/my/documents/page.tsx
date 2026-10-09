@@ -3,6 +3,8 @@ import { format } from "date-fns";
 import { IconFileText } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
+import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { DocumentDownloadButton } from "@/components/app/documents/document-download-button";
 import { DocumentUploadForm } from "@/components/app/documents/document-upload-form";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,12 +14,24 @@ import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
+import { enumParam, pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Documents" };
 
-export default async function MyDocumentsPage() {
+const PAGE_SIZE = 25;
+const VISIBILITIES = ["private", "employee_visible", "client_visible", "internal", "public"] as const;
+
+export default async function MyDocumentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+
+  const params = await searchParams;
+  const visibility = enumParam(params.visibility, VISIBILITIES);
+  const page = pageParam(params.page);
 
   const employee = await resolveEmployeeForUser(workspace.user.id);
   const supabase = await createClient();
@@ -31,12 +45,14 @@ export default async function MyDocumentsPage() {
   }[] = [];
 
   if (employee) {
-    const { data } = await supabase
+    let q = supabase
       .from("documents")
       .select("id, title, category, created_at, visibility")
       .eq("employee_id", employee.id)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    if (visibility) q = q.eq("visibility", visibility);
+    const { data } = await q;
     documents = data ?? [];
   }
 
@@ -53,6 +69,21 @@ export default async function MyDocumentsPage() {
           No employee record is linked to your account, so uploads are unavailable.
         </p>
       )}
+
+      <form method="get">
+        <FilterBar showSearch={false}>
+          <FilterSelect
+            name="visibility"
+            label="Visibility"
+            defaultValue={visibility ?? ""}
+            options={[
+              { value: "", label: "All" },
+              ...VISIBILITIES.map((v) => ({ value: v, label: v.replace(/_/g, " ") })),
+            ]}
+          />
+        </FilterBar>
+      </form>
+
       {documents.length === 0 ? (
         <EmptyState
           icon={IconFileText}
@@ -82,6 +113,13 @@ export default async function MyDocumentsPage() {
           ))}
         </div>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={documents.length}
+        query={{ visibility }}
+      />
     </PageContainer>
   );
 }

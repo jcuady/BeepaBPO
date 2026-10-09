@@ -1,5 +1,6 @@
 import type { TablerIcon } from "@tabler/icons-react";
 import {
+  IconBell,
   IconBriefcase,
   IconBuilding,
   IconCalendar,
@@ -16,6 +17,7 @@ import {
   IconLayoutDashboard,
   IconReceipt,
   IconReportAnalytics,
+  IconSearch,
   IconSettings,
   IconTicket,
   IconUser,
@@ -105,6 +107,15 @@ export const clientNav: NavItem[] = [
 
 export const applicantNav: NavItem[] = [
   { title: "Applications", href: "/app/applicant", icon: IconBriefcase },
+  // In-app careers. An applicant previously had to leave the portal and use the
+  // public /careers page to apply at all — the empty state on their own
+  // dashboard told them to do exactly that.
+  { title: "Open roles", href: "/app/applicant/jobs", icon: IconSearch },
+  {
+    title: "Notifications",
+    href: "/app/applicant/notifications",
+    icon: IconBell,
+  },
   { title: "Profile", href: "/app/applicant/profile", icon: IconUserCircle },
 ];
 
@@ -140,6 +151,12 @@ export const adminNavGroups: NavGroup[] = [
         href: "/app/payroll",
         icon: IconCoin,
         permission: ["payroll.read", "payroll.manage"],
+      },
+      {
+        title: "Payroll settings",
+        href: "/app/payroll/settings",
+        icon: IconSettings,
+        permission: ["payroll.manage"],
       },
       {
         title: "Billing",
@@ -333,6 +350,12 @@ export const clientMobileNav: NavItem[] = [
 
 export const applicantMobileNav: NavItem[] = [
   { title: "Apps", href: "/app/applicant", icon: IconBriefcase },
+  { title: "Roles", href: "/app/applicant/jobs", icon: IconSearch },
+  {
+    title: "Alerts",
+    href: "/app/applicant/notifications",
+    icon: IconBell,
+  },
   { title: "Profile", href: "/app/applicant/profile", icon: IconUser },
 ];
 
@@ -448,4 +471,18 @@ export function getGreeting(): "morning" | "afternoon" | "evening" {
 export function greetingLabel(): string {
   const part = getGreeting();
   return part.charAt(0).toUpperCase() + part.slice(1);
+}
+
+/** One active tab: the longest href that matches the path. Prefix parents stay off. */
+export function activeNavHref(
+  pathname: string,
+  hrefs: readonly string[],
+): string | null {
+  let best: string | null = null;
+  for (const href of hrefs) {
+    const hit = pathname === href || pathname.startsWith(`${href}/`);
+    if (!hit) continue;
+    if (!best || href.length > best.length) best = href;
+  }
+  return best;
 }

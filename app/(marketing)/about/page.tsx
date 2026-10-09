@@ -207,8 +207,8 @@ export default async function AboutPage() {
                   <p
                     className={
                       index === 0
-                        ? "mt-2 whitespace-pre-wrap text-sm leading-relaxed text-white/70"
-                        : "mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate"
+                        ? "mt-2 whitespace-pre-wrap text-base leading-relaxed text-white/70"
+                        : "mt-2 whitespace-pre-wrap text-base leading-relaxed text-slate"
                     }
                   >
                     {item.description}

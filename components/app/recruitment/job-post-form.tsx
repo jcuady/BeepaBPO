@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { z } from "zod";
 
 type JobPostInput = z.infer<typeof jobPostSchema>;
@@ -100,33 +101,30 @@ export function JobPostForm({
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
-          <select
+          <NativeSelect
             id="status"
-            className="flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm"
             {...form.register("status")}
           >
             <option value="draft">Draft</option>
             <option value="published">Published</option>
             <option value="closed">Closed</option>
-          </select>
+          </NativeSelect>
         </div>
         <div className="space-y-2">
           <Label htmlFor="location_type">Location type</Label>
-          <select
+          <NativeSelect
             id="location_type"
-            className="flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm"
             {...form.register("location_type")}
           >
             <option value="remote">Remote</option>
             <option value="onsite">Onsite</option>
             <option value="hybrid">Hybrid</option>
-          </select>
+          </NativeSelect>
         </div>
         <div className="space-y-2">
           <Label htmlFor="employment_type">Employment type</Label>
-          <select
+          <NativeSelect
             id="employment_type"
-            className="flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm"
             {...form.register("employment_type")}
           >
             <option value="regular">Regular</option>
@@ -134,7 +132,7 @@ export function JobPostForm({
             <option value="contractual">Contractual</option>
             <option value="part_time">Part time</option>
             <option value="intern">Intern</option>
-          </select>
+          </NativeSelect>
         </div>
       </div>
       <div className="flex flex-wrap gap-2">

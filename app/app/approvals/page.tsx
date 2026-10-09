@@ -4,12 +4,16 @@ import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { StatusBadge } from "@/components/app/status-badge";
 import { PageContainer } from "@/components/app/page-container";
+import { ListPager } from "@/components/app/list-pager";
+import { pageParam } from "@/lib/app/search-params";
 import { resolveWorkspace, requireAnyPermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import {
   canActOnApprovalStep,
   type ApprovalStepRow,
 } from "@/lib/approvals/engine";
+
+const PAGE_SIZE = 50;
 
 type ReviewTarget = {
   href: string;
@@ -72,7 +76,11 @@ function reviewTarget(
   }
 }
 
-export default async function ApprovalsPage() {
+export default async function ApprovalsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
   requireInternal(workspace);
@@ -88,13 +96,19 @@ export default async function ApprovalsPage() {
     "payroll.approve",
   ]);
 
+  // This is the cross-domain action queue, so a silent cap here hides work
+  // nobody can reach: a pending approval at position 51 was simply invisible,
+  // with no pager to say so. It used to be `.limit(50)` with no pager at all.
+  const params = await searchParams;
+  const page = pageParam(params.page);
+
   const supabase = await createClient();
   const { data: requests } = await supabase
     .from("approval_requests")
     .select("id, entity_type, entity_id, status, created_at, current_step, workflow_id, payload")
     .eq("status", "pending")
     .order("created_at", { ascending: false })
-    .limit(50);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   const workflowIds = [
     ...new Set((requests ?? []).map((r) => r.workflow_id).filter(Boolean)),
@@ -162,7 +176,7 @@ export default async function ApprovalsPage() {
                   <p className="font-display text-sm font-semibold text-navy">
                     {req.entity_type.replace(/_/g, " ")}
                   </p>
-                  <p className="text-xs text-slate">
+                  <p className="text-base text-slate sm:text-xs">
                     {new Date(req.created_at).toLocaleString()}
                     {current?.name ? ` · Step: ${current.name}` : ""}
                   </p>
@@ -189,6 +203,8 @@ export default async function ApprovalsPage() {
           })}
         </ul>
       )}
+
+      <ListPager page={page} pageSize={PAGE_SIZE} rowCount={requests?.length ?? 0} />
     </PageContainer>
   );
 }

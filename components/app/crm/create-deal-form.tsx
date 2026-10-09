@@ -10,6 +10,7 @@ import { applyFieldErrors } from "@/lib/forms/field-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { z } from "zod";
 
 type DealInput = z.infer<typeof crmDealSchema>;
@@ -71,9 +72,8 @@ export function CreateDealForm({
       ) : leadOptions?.length ? (
         <div className="space-y-2">
           <Label htmlFor="deal-lead">Linked lead (optional)</Label>
-          <select
+          <NativeSelect
             id="deal-lead"
-            className="flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
             {...form.register("lead_id")}
           >
             <option value="">No linked lead</option>
@@ -82,7 +82,7 @@ export function CreateDealForm({
                 {opt.label}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       ) : null}
 

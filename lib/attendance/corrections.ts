@@ -6,6 +6,7 @@ import {
   advanceApprovalRequest,
   createApprovalRequest,
 } from "@/lib/approvals/engine";
+import { resolveCorrectedClockTimes } from "@/lib/attendance/corrected-times";
 import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can, canAny } from "@/lib/permissions/can";
@@ -15,17 +16,6 @@ import {
   attendanceCorrectionReviewSchema,
   attendanceCorrectionSchema,
 } from "@/lib/validation/app";
-
-function workedMinutesBetween(
-  clockInAt: string | null,
-  clockOutAt: string | null,
-): number | null {
-  if (!clockInAt || !clockOutAt) return null;
-  const start = Date.parse(clockInAt);
-  const end = Date.parse(clockOutAt);
-  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return null;
-  return Math.max(0, Math.round((end - start) / 60_000));
-}
 
 export async function createAttendanceCorrection(
   input: unknown,
@@ -175,14 +165,25 @@ export async function reviewAttendanceCorrection(
   const newStatus = parsed.data.action === "approve" ? "approved" : "rejected";
 
   if (parsed.data.action === "approve" && advanced.completed) {
-    const clockIn =
-      correction.requested_clock_in_at ?? undefined;
-    const clockOut =
-      correction.requested_clock_out_at ?? undefined;
-    const worked = workedMinutesBetween(
-      correction.requested_clock_in_at,
-      correction.requested_clock_out_at,
-    );
+    // A correction may change only one of the two clock times, so the effective
+    // pair is the requested values merged over the record's current ones.
+    // Resolving worked_minutes from the request alone would return null whenever
+    // only one side was requested, leaving payroll to read a worked_minutes that
+    // no longer matches the stored clock times.
+    const { data: current } = await supabase
+      .from("attendance_records")
+      .select("clock_in_at, clock_out_at")
+      .eq("id", correction.attendance_record_id)
+      .maybeSingle();
+
+    const resolved = resolveCorrectedClockTimes(current, {
+      clock_in_at: correction.requested_clock_in_at,
+      clock_out_at: correction.requested_clock_out_at,
+    });
+
+    if (!resolved.ok) {
+      return { ok: false, error: resolved.error };
+    }
 
     // RLS update on attendance_records needs attendance.correct/manage;
     // approve-only roles (e.g. team_lead) use service role after authz gate.
@@ -196,12 +197,7 @@ export async function reviewAttendanceCorrection(
 
     const { error: recordError } = await writer
       .from("attendance_records")
-      .update({
-        ...(clockIn ? { clock_in_at: clockIn } : {}),
-        ...(clockOut ? { clock_out_at: clockOut } : {}),
-        ...(worked !== null ? { worked_minutes: worked } : {}),
-        approval_status: "finalized",
-      })
+      .update({ ...resolved.patch, approval_status: "finalized" })
       .eq("id", correction.attendance_record_id);
 
     if (recordError) {

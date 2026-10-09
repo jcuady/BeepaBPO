@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Finish Orchestrator"
+  short_description: "Drive a system from current state to client-ready"
+  default_prompt: "Use $project-finish-orchestrator to finish this system end to end with minimal supervision and produce a verified client-ready release."

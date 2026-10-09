@@ -15,7 +15,7 @@ export type WeeklyBar = {
 };
 
 const chartConfig = {
-  hours: { label: "Hours", color: "#119446" },
+  hours: { label: "Hours", color: "var(--color-series-1)" },
 } satisfies ChartConfig;
 
 export function WeeklyAttendanceChart({ data }: { data: WeeklyBar[] }) {

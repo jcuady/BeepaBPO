@@ -7,7 +7,10 @@ import { PageHeader } from "@/components/app/page-header";
 import { ApplicationStageForm } from "@/components/app/recruitment/application-stage-form";
 import { HireConvertButton } from "@/components/app/recruitment/hire-convert-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import {
+  StageBadge,
+  StageExplainer,
+} from "@/components/app/recruitment/stage-badge";
 import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { can, canAll } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
@@ -86,12 +89,18 @@ export default async function RecruitmentApplicantDetailPage({
             <CardTitle className="font-display text-base text-navy">
               {name}
             </CardTitle>
-            <Badge variant="outline" className="capitalize">
-              {application.stage.replace(/_/g, " ")}
-            </Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              <StageBadge stage={application.stage} />
+              {job?.status === "closed" ? (
+                <span className="rounded-full border border-line bg-mist px-2.5 py-0.5 text-sm font-medium text-slate">
+                  Role closed
+                </span>
+              ) : null}
+            </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm">
+        <CardContent className="space-y-3 text-base sm:text-sm">
+          <StageExplainer stage={application.stage} audience="staff" />
           <p className="text-slate">
             Role:{" "}
             <span className="font-medium text-navy">
@@ -153,17 +162,18 @@ export default async function RecruitmentApplicantDetailPage({
         ) : (
           (history ?? []).map((row) => (
             <Card key={row.id}>
-              <CardContent className="p-4 text-sm">
-                <p className="font-medium text-navy capitalize">
-                  {(row.from_stage ?? "—").replace(/_/g, " ")} →{" "}
-                  {row.to_stage.replace(/_/g, " ")}
-                </p>
-                <p className="text-xs text-slate">
+              <CardContent className="space-y-2 p-4 text-base sm:text-sm">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StageBadge stage={row.from_stage ?? null} />
+                  <span aria-hidden className="text-slate">
+                    →
+                  </span>
+                  <StageBadge stage={row.to_stage} />
+                </div>
+                <p className="text-base text-slate sm:text-sm">
                   {format(new Date(row.created_at), "MMM d, yyyy h:mm a")}
                 </p>
-                {row.notes ? (
-                  <p className="mt-1 text-slate">{row.notes}</p>
-                ) : null}
+                {row.notes ? <p className="text-slate">{row.notes}</p> : null}
               </CardContent>
             </Card>
           ))
@@ -172,7 +182,7 @@ export default async function RecruitmentApplicantDetailPage({
 
       <Link
         href="/app/recruitment/applicants"
-        className="text-sm font-medium text-green-strong hover:underline"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
       >
         ← Back to applicants
       </Link>

@@ -11,7 +11,7 @@ export function PayslipDownloadButton({
       href={`/app/my/payroll/${payrollRecordId}/payslip`}
       className={cn(
         buttonVariants({ variant: "outline", size: "sm" }),
-        "min-h-9",
+        "min-h-9 [@media(pointer:coarse)]:min-h-11",
       )}
     >
       Download PDF

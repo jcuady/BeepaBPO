@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import { PageContainer } from "@/components/app/page-container";
 import { RealtimeRefresh } from "@/components/app/realtime-refresh";
 import { SubmitForClientReviewButton } from "@/components/app/attendance/submit-for-client-review-button";
@@ -29,6 +30,7 @@ import {
   ilikePattern,
   pageParam,
 } from "@/lib/app/search-params";
+import { formatZonedTime } from "@/lib/attendance/zoned-time";
 import {
   HEATMAP_FILTERS,
   cellKind,
@@ -193,11 +195,17 @@ export default async function AttendanceAdminPage({
           />
           <label className="flex min-w-[9rem] flex-col gap-1 text-xs font-medium text-slate">
             <span>Week of</span>
-            <input
+            <Input
               type="date"
               name="week"
               defaultValue={week}
-              className="min-h-11 rounded-[12px] border border-line bg-mist/50 px-3 text-sm text-navy"
+              // Matches NativeSelectCompact, which is the control sitting next
+              // to it: rounded-lg, border-line, bg-mist/50, text-base on mobile
+              // and 32px on desktop rising to 44px on coarse pointers.
+              // Carrying the old `text-sm min-h-11` over from the raw element
+              // would have left the two controls unable to match, which is the
+              // exact defect this replaced.
+              className="border-line bg-mist/50 text-navy md:min-w-40"
             />
           </label>
           <Link
@@ -311,12 +319,12 @@ export default async function AttendanceAdminPage({
                     </TableCell>
                     <TableCell>
                       {row.clock_in_at
-                        ? format(new Date(row.clock_in_at), "h:mm a")
+                        ? formatZonedTime(row.clock_in_at)
                         : "—"}
                     </TableCell>
                     <TableCell>
                       {row.clock_out_at
-                        ? format(new Date(row.clock_out_at), "h:mm a")
+                        ? formatZonedTime(row.clock_out_at)
                         : "—"}
                     </TableCell>
                     <TableCell>

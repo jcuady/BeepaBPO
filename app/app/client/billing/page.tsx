@@ -4,6 +4,8 @@ import { format } from "date-fns";
 import { IconCoin } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
+import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getClientOrganizationId } from "@/lib/organizations/client";
@@ -11,12 +13,24 @@ import { resolveWorkspace } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
+import { enumParam, pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Billing" };
 
-export default async function ClientBillingPage() {
+const PAGE_SIZE = 24;
+const STATUSES = ["draft", "issued", "sent", "partially_paid", "paid", "overdue", "void"] as const;
+
+export default async function ClientBillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+
+  const params = await searchParams;
+  const status = enumParam(params.status, STATUSES);
+  const page = pageParam(params.page);
 
   const clientOrgId = getClientOrganizationId(workspace);
   const supabase = await createClient();
@@ -30,10 +44,7 @@ export default async function ClientBillingPage() {
     if (settings && !settings.allow_billing_view) {
       return (
         <PageContainer>
-          <PageHeader
-            name={workspace.profile.first_name}
-            subtitle="Billing"
-          />
+          <PageHeader name={workspace.profile.first_name} subtitle="Billing" />
           <EmptyState
             icon={IconCoin}
             title="Billing unavailable"
@@ -56,14 +67,16 @@ export default async function ClientBillingPage() {
   }[] = [];
 
   if (clientOrgId) {
-    const { data } = await supabase
+    let query = supabase
       .from("invoices")
       .select(
         "id, invoice_number, period_start, period_end, due_date, total, currency, status",
       )
       .eq("client_organization_id", clientOrgId)
       .order("due_date", { ascending: false })
-      .limit(24);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    if (status) query = query.eq("status", status);
+    const { data } = await query;
     invoices = data ?? [];
   }
 
@@ -73,6 +86,21 @@ export default async function ClientBillingPage() {
         name={workspace.profile.first_name}
         subtitle="Open an invoice for line items and payment history."
       />
+
+      <form method="get">
+        <FilterBar showSearch={false}>
+          <FilterSelect
+            name="status"
+            label="Status"
+            defaultValue={status ?? ""}
+            options={[
+              { value: "", label: "All statuses" },
+              ...STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") })),
+            ]}
+          />
+        </FilterBar>
+      </form>
+
       {invoices.length === 0 ? (
         <EmptyState
           icon={IconCoin}
@@ -93,7 +121,7 @@ export default async function ClientBillingPage() {
                       {invoice.invoice_number}
                     </Link>
                   </p>
-                  <p className="text-sm text-slate">
+                  <p className="text-base text-slate sm:text-sm">
                     {format(new Date(invoice.period_start), "MMM d")} –{" "}
                     {format(new Date(invoice.period_end), "MMM d, yyyy")} · Due{" "}
                     {format(new Date(invoice.due_date), "MMM d")}
@@ -111,7 +139,7 @@ export default async function ClientBillingPage() {
                   </div>
                   <Link
                     href={`/app/client/billing/${invoice.id}`}
-                    className="text-sm font-medium text-green-strong hover:underline"
+                    className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
                   >
                     View
                   </Link>
@@ -121,6 +149,13 @@ export default async function ClientBillingPage() {
           ))}
         </div>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={invoices.length}
+        query={{ status }}
+      />
     </PageContainer>
   );
 }

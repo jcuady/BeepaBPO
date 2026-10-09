@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { notFound, redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
@@ -85,11 +85,11 @@ export default async function PayrollPeriodDetailPage({
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4 text-sm text-slate">
+        <CardContent className="space-y-4 text-base text-slate sm:text-sm">
           <p>
-            {format(new Date(period.start_date), "MMM d")} –{" "}
-            {format(new Date(period.end_date), "MMM d, yyyy")} · Pay{" "}
-            {format(new Date(period.pay_date), "MMM d, yyyy")}
+            {format(parseISO(period.start_date), "MMM d")} –{" "}
+            {format(parseISO(period.end_date), "MMM d, yyyy")} · Pay{" "}
+            {format(parseISO(period.pay_date), "MMM d, yyyy")}
           </p>
           {showSubmit ? (
             <SubmitPayrollApprovalButton payrollPeriodId={id} />
@@ -129,8 +129,8 @@ export default async function PayrollPeriodDetailPage({
               <Card key={row.id}>
                 <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div>
-                    <p className="font-medium text-navy">{name}</p>
-                    <p className="text-sm text-slate">
+                    <p className="font-medium text-base text-navy sm:text-sm">{name}</p>
+                    <p className="text-base text-slate sm:text-sm">
                       Gross {Number(row.gross_pay ?? 0).toLocaleString()} · Net{" "}
                       {Number(row.net_pay ?? 0).toLocaleString()}
                     </p>
@@ -152,7 +152,7 @@ export default async function PayrollPeriodDetailPage({
 
       <Link
         href="/app/payroll/periods"
-        className="text-sm font-medium text-green-strong hover:underline"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
       >
         ← Back to periods
       </Link>

@@ -4,7 +4,14 @@ import { Button } from "@/components/ui/button";
 
 export default function ForbiddenPage() {
   return (
-    <div className="min-h-[100dvh] bg-mist">
+    // `data-page-status` is a machine-readable marker, not decoration.
+    //
+    // Next renders this page at the *requested* URL rather than redirecting, so
+    // an auditor that only watches for a URL change scores a 403 as a perfect
+    // page: no overflow, no small targets, no console errors. That is exactly
+    // how `/app/recruitment` was reported clean for an `hr` account that cannot
+    // open it. The audit now asserts on this attribute instead of sniffing text.
+    <div className="min-h-[100dvh] bg-mist" data-page-status="forbidden">
       <Container className="flex min-h-[100dvh] items-center justify-center py-16">
         <div className="mx-auto max-w-lg rounded-[16px] border border-line bg-white p-8 text-center">
           <p className="font-display text-sm font-semibold uppercase tracking-wide text-slate">

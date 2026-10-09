@@ -1,0 +1,4 @@
+interface:
+  display_name: "Product Workflow Judge"
+  short_description: "Choose and document efficient, client-ready workflows"
+  default_prompt: "Use $product-workflow-judge to inspect this system, resolve ordinary workflow gaps using defensible standards, and document the decisions."

@@ -157,7 +157,7 @@ export function NotificationBell({
                     )}
                   >
                     <p className="text-sm font-medium text-navy">{n.title}</p>
-                    <p className="mt-0.5 line-clamp-2 text-xs text-slate">
+                    <p className="mt-0.5 line-clamp-2 text-base text-slate sm:text-xs">
                       {n.body}
                     </p>
                     <p className="mt-1 text-[10px] text-slate">

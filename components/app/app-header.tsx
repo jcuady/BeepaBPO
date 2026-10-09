@@ -78,12 +78,13 @@ export function AppHeader({
   }
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-white/95 px-4 backdrop-blur-sm safe-area-inset-top md:h-16 md:px-6">
-      <SidebarTrigger className="md:hidden" />
+    <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-white px-4 safe-area-inset-top md:h-16 md:px-6">
+      <SidebarTrigger className="min-h-11 min-w-11 md:hidden" />
 
       <button
         type="button"
         onClick={onSearchOpen}
+        aria-label="Search"
         className="hidden min-h-11 flex-1 items-center gap-2 rounded-xl border border-line bg-mist/60 px-4 text-sm text-slate transition-colors hover:bg-mist md:flex md:max-w-xl"
       >
         <IconSearch stroke={1.75} className="size-4 shrink-0" />
@@ -96,7 +97,7 @@ export function AppHeader({
       <Button
         variant="ghost"
         size="icon"
-        className="min-h-11 min-w-11 md:hidden"
+        className="md:hidden"
         onClick={onSearchOpen}
         aria-label="Search"
       >
@@ -113,9 +114,10 @@ export function AppHeader({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 type="button"
-                className="flex min-h-11 items-center gap-2 rounded-lg px-2 hover:bg-mist"
                 aria-label="Account menu"
               />
             }
@@ -175,7 +177,8 @@ export function AppHeader({
             >
               <IconBell stroke={1.75} className="size-4" />
               Notifications
-            </DropdownMenuItem>            <DropdownMenuSeparator />
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
               disabled={pending}

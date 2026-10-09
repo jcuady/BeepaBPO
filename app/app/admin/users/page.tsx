@@ -5,7 +5,7 @@ import { IconUsers } from "@tabler/icons-react";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
-import { FilterBar } from "@/components/app/filter-bar";
+import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
 import { ListPager } from "@/components/app/list-pager";
 import { StatusBadge } from "@/components/app/status-badge";
 import { AdminInviteForm } from "@/components/app/admin/admin-invite-form";
@@ -52,10 +52,39 @@ export default async function AdminUsersPage({
 
   const params = await searchParams;
   const q = stringParam(params.q);
+  const roleCode = stringParam(params.role);
   const page = pageParam(params.page);
   const pattern = q ? ilikePattern(q) : undefined;
 
   const supabase = await createClient();
+
+  // Roles are read from the database, not hardcoded. `admin-invite-form.tsx`
+  // has a ROLE_OPTIONS list but it is deliberately a *subset* — it omits Owner
+  // and Super Admin because you cannot invite yourself as one. Reusing it here
+  // would make "who has Owner?" unanswerable, which is one of the questions this
+  // filter exists to answer.
+  const { data: availableRoles } = await supabase
+    .from("roles")
+    .select("id, code, name")
+    .order("name", { ascending: true });
+
+  let roleIds: string[] | null = null;
+  if (roleCode) {
+    const role = (availableRoles ?? []).find((r) => r.code === roleCode);
+    const { data: membershipRoles } = role
+      ? await supabase
+          .from("membership_roles")
+          .select("membership_id")
+          .eq("role_id", role.id)
+          // Bounded because these ids are inlined into a PostgREST `.in()`
+          // filter on the next query, and a URL has a length ceiling. Matches
+          // the caps on the text-search sub-queries below; a role held by more
+          // people than that would report an undercount, which is preferable to
+          // a 414 and a page that renders nothing at all.
+          .limit(1000)
+      : { data: [] as { membership_id: string }[] };
+    roleIds = (membershipRoles ?? []).map((r) => r.membership_id);
+  }
 
   let userIds: string[] = [];
   let orgIds: string[] = [];
@@ -80,7 +109,13 @@ export default async function AdminUsersPage({
 
   let memberships: MembershipRow[] = [];
 
-  if (pattern && userIds.length === 0 && orgIds.length === 0) {
+  // A selected role that matches nobody short-circuits, exactly like a text
+  // search with no hits. Without this, `.in("id", [])` has to be sent to
+  // PostgREST and its empty-list behaviour relied upon.
+  const roleExhausted = roleIds !== null && roleIds.length === 0;
+  const textExhausted = !!pattern && userIds.length === 0 && orgIds.length === 0;
+
+  if (roleExhausted || textExhausted) {
     memberships = [];
   } else {
     let query = supabase
@@ -91,6 +126,11 @@ export default async function AdminUsersPage({
       .in("status", ["active", "invited"])
       .order("created_at", { ascending: false })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+
+    // PostgREST ANDs separate filter calls, so the role narrowing and the text
+    // narrowing compose. A single `.or()` cannot express "role X AND name Y",
+    // which is why the role filter constrains `id` rather than joining inline.
+    if (roleIds) query = query.in("id", roleIds);
 
     if (pattern) {
       const parts: string[] = [];
@@ -122,16 +162,31 @@ export default async function AdminUsersPage({
       </Card>
 
       <form method="get">
-        <FilterBar placeholder="Search by name or organization…" defaultValue={q} />
+        <FilterBar placeholder="Search by name or organization…" defaultValue={q}>
+          <FilterSelect
+            name="role"
+            label="Role"
+            defaultValue={roleCode}
+            options={[
+              { value: "", label: "All roles" },
+              ...(availableRoles ?? []).map((r) => ({
+                value: r.code,
+                label: r.name,
+              })),
+            ]}
+          />
+        </FilterBar>
       </form>
 
       {memberships.length === 0 ? (
         <EmptyState
           icon={IconUsers}
-          title={q ? "No users match that search" : "No users found"}
+          title={
+            q || roleCode ? "No users match those filters" : "No users found"
+          }
           description={
-            q
-              ? "Try another name or organization. Search covers profiles and org names."
+            q || roleCode
+              ? "Try a different role, or clear the search box to match everyone."
               : "Active and invited memberships will appear here."
           }
         />
@@ -211,7 +266,11 @@ export default async function AdminUsersPage({
         page={page}
         pageSize={PAGE_SIZE}
         rowCount={memberships.length}
-        query={{ q }}
+        // Both filters must survive a page change. Listing only `q` meant
+        // paging forward from ?role=owner silently widened the result to every
+        // role — the admin asked a question, got an answer, and the answer
+        // described a different population.
+        query={{ q, role: roleCode }}
       />
 
       <Link

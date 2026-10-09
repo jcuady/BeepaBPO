@@ -5,8 +5,9 @@ import { buildSimplePdf, formatMoney } from "@/lib/payroll/payslip-pdf";
 import { BRAND } from "@/lib/site";
 
 describe("favicon and SEO assets", () => {
-  it("ships favicon.ico derived from Assets/logo.png", () => {
-    expect(existsSync(join(process.cwd(), "Assets/logo.png"))).toBe(true);
+  it("ships favicon.ico + brand logo source (logo pack lives in /public/brand)", () => {
+    // Legacy Assets/logo.png was archived to principal-system-finish-suite/_archive/
+    // during the 2026-10-06 asset-pack swap. Live brand assets live under /public/brand/.
     expect(existsSync(join(process.cwd(), "app/favicon.ico"))).toBe(true);
     expect(existsSync(join(process.cwd(), "public/favicon.ico"))).toBe(true);
     expect(existsSync(join(process.cwd(), "app/icon.png"))).toBe(true);

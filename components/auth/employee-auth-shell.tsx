@@ -45,8 +45,8 @@ export function EmployeeAuthShell({
   const year = new Date().getFullYear();
 
   return (
-    <div className="flex min-h-[100dvh] flex-col overflow-x-hidden bg-[#F5F7F6]">
-      <header className="sticky top-0 z-40 border-b border-line/60 bg-white/95 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+    <div className="flex min-h-[100dvh] flex-col overflow-x-hidden bg-mist">
+      <header className="sticky top-0 z-40 border-b border-line/60 bg-white pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-14 max-w-[1280px] items-center justify-between gap-3 px-4 sm:h-[72px] sm:px-6 lg:px-8">
           <Link
             href="/"
@@ -87,7 +87,7 @@ export function EmployeeAuthShell({
           <Button
             size="sm"
             variant="outline"
-            className="group min-h-11 shrink-0 gap-2 border-navy/20 text-navy hover:bg-mist"
+            className="group shrink-0 gap-2 border-navy/20 text-navy hover:bg-mist"
             nativeButton={false}
             render={<Link href="/" />}
           >
@@ -147,7 +147,7 @@ export function EmployeeAuthShell({
             >
               <path
                 d="M40 380C40 180 180 40 380 40"
-                stroke="#93C63D"
+                className="stroke-lime"
                 strokeWidth="48"
                 strokeLinecap="round"
                 opacity="0.55"

@@ -20,23 +20,14 @@ import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth
 import { createClient } from "@/lib/supabase/server";
 import { stringParam, enumParam, ilikePattern, pageParam } from "@/lib/app/search-params";
 import { redirect } from "next/navigation";
+import {
+  APPLICATION_STAGES,
+  stageMeta,
+} from "@/lib/recruitment/application-stage";
 
 export const metadata: Metadata = { title: "Applicants" };
 
-const STAGES = [
-  "applied",
-  "screening",
-  "initial_interview",
-  "assessment",
-  "client_endorsement",
-  "client_interview",
-  "offer",
-  "hired",
-  "rejected",
-  "withdrawn",
-  "talent_pool",
-  "on_hold",
-] as const;
+const STAGES = APPLICATION_STAGES;
 
 const PAGE_SIZE = 50;
 
@@ -120,7 +111,7 @@ export default async function RecruitmentApplicantsPage({
               { value: "", label: "All stages" },
               ...STAGES.map((s) => ({
                 value: s,
-                label: s.replace(/_/g, " "),
+                label: stageMeta(s).label,
               })),
             ]}
           />
@@ -198,7 +189,7 @@ export default async function RecruitmentApplicantsPage({
 
       <Link
         href="/app/recruitment/jobs"
-        className="text-sm font-medium text-green-strong hover:underline"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
       >
         ← Job posts
       </Link>

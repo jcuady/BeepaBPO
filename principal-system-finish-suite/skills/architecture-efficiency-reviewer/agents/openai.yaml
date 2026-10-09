@@ -1,0 +1,4 @@
+interface:
+  display_name: "Architecture Efficiency Reviewer"
+  short_description: "Remove proven redundancy, complexity, and bottlenecks"
+  default_prompt: "Use $architecture-efficiency-reviewer to review this system for correctness, redundancy, maintainability, and measured performance risks."

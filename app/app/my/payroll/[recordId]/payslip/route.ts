@@ -4,6 +4,27 @@ import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { can, canAny } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 import { buildSimplePdf, formatMoney } from "@/lib/payroll/payslip-pdf";
+import {
+  isRecordPayable,
+  isRecordStatusPayable,
+} from "@/lib/payroll/status-coherence";
+
+/**
+ * A payslip is only payable once the *period* has been approved, not merely once
+ * the record carries a final-looking status.
+ *
+ * `payroll_records.status` and `payroll_periods.status` move independently, and
+ * nothing in application code kept them consistent. Live data proved the gap: a
+ * period still in `draft` held ten finalized records totalling 500,000 in net
+ * pay, and an employee could download the PDF.
+ *
+ * Requiring both is strictly narrowing — the normal approval flow finalises the
+ * period and its records together — so this cannot withhold a legitimately
+ * approved payslip.
+ *
+ * The rule itself lives in `@/lib/payroll/status-coherence` so this route, the
+ * payroll list, the seed script, and the database trigger cannot drift apart.
+ */
 
 export async function GET(
   _request: Request,
@@ -19,7 +40,7 @@ export async function GET(
   const { data: record } = await supabase
     .from("payroll_records")
     .select(
-      "id, employee_id, status, basic_pay, allowances, overtime_pay, bonuses, incentives, commissions, gross_pay, total_deductions, cash_advance_deduction, undertime_deduction, absence_deduction, unpaid_leave_deduction, other_deductions, net_pay, worked_minutes, payroll_periods(name, pay_date, start_date, end_date), employees(employee_number, job_title, work_email, profiles(display_name))",
+      "id, employee_id, status, basic_pay, allowances, overtime_pay, bonuses, incentives, commissions, gross_pay, total_deductions, cash_advance_deduction, undertime_deduction, absence_deduction, unpaid_leave_deduction, other_deductions, net_pay, worked_minutes, payroll_periods(name, pay_date, start_date, end_date, status), employees(employee_number, job_title, work_email, profiles(display_name))",
     )
     .eq("id", recordId)
     .maybeSingle();
@@ -28,9 +49,21 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (!["finalized", "paid", "approved"].includes(record.status)) {
+  const periodStatus = (record.payroll_periods as { status?: string } | null)?.status;
+
+  if (!isRecordPayable(record.status, periodStatus)) {
+    // Separate the two reasons so the employee is told which one is blocking
+    // them: "not finalized yet" is normal, "this run isn't approved" is not.
+    if (!isRecordStatusPayable(record.status)) {
+      return NextResponse.json(
+        { error: "Payslip available after payroll is approved or finalized." },
+        { status: 403 },
+      );
+    }
     return NextResponse.json(
-      { error: "Payslip available after payroll is approved or finalized." },
+      {
+        error: `This payroll run is still ${periodStatus ?? "unapproved"}. Payslips are released once the period is approved.`,
+      },
       { status: 403 },
     );
   }

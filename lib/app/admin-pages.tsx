@@ -20,7 +20,7 @@ import { ClientInviteForm } from "@/components/app/clients/client-invite-form";
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { canAny } from "@/lib/permissions/can";
+import { can, canAny } from "@/lib/permissions/can";
 import { AdminOpsSmokeActions } from "@/components/app/admin/admin-ops-smoke-actions";
 import { RealtimeRefresh } from "@/components/app/realtime-refresh";
 
@@ -135,8 +135,18 @@ export async function PayrollAdminPage() {
             nativeButton={false}
             render={<Link href="/app/payroll/periods" />}
           >
-            Periods
+            Run payroll
           </Button>
+          {can(workspace.permissions, "payroll.manage") ? (
+            <Button
+              variant="secondary"
+              className="min-h-11"
+              nativeButton={false}
+              render={<Link href="/app/payroll/settings" />}
+            >
+              Salary settings
+            </Button>
+          ) : null}
         </CardContent>
       </Card>
     </PageContainer>
@@ -510,9 +520,9 @@ export async function ClientsAdminPage() {
               <CardContent className="flex items-center justify-between p-4">
                 <div>
                   <p className="font-medium text-navy">{org.name}</p>
-                  <p className="text-sm text-slate">{org.slug}</p>
+                  <p className="text-base text-slate sm:text-sm">{org.slug}</p>
                 </div>
-                <span className="text-sm capitalize text-slate">
+                <span className="text-base capitalize text-slate sm:text-sm">
                   {org.status}
                 </span>
               </CardContent>
@@ -551,7 +561,7 @@ export async function ClientsAdminPage() {
                 >
                   <div>
                     <p className="font-medium text-navy">{name}</p>
-                    <p className="text-sm text-slate">
+                    <p className="text-base text-slate sm:text-sm">
                       {org?.name ?? "—"}
                       {roleRow?.name ? ` · ${roleRow.name}` : ""}
                     </p>
@@ -630,7 +640,7 @@ export async function ReportsAdminPage() {
         <CardContent className="space-y-3">
           {canExport ? (
             <>
-              <p className="text-sm text-slate">
+              <p className="text-base text-slate sm:text-sm">
                 Downloads respect your row-level access. Up to 2,000 rows per
                 file.
               </p>
@@ -737,7 +747,7 @@ export async function AdminPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-sm text-slate">
+          <p className="text-base text-slate sm:text-sm">
             Dry-run counts cron work without notifying users or marking invoices
             overdue. Test push sends an in-app (and push if subscribed) alert to
             you.

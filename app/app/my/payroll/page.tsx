@@ -11,6 +11,10 @@ import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageContainer } from "@/components/app/page-container";
+import {
+  APPROVED_PERIOD_STATUSES,
+  PAYABLE_RECORD_STATUSES,
+} from "@/lib/payroll/status-coherence";
 
 export const metadata: Metadata = { title: "Payroll" };
 
@@ -30,11 +34,17 @@ export default async function MyPayrollPage() {
   }[] = [];
 
   if (employee) {
+    // Both the record and its period must be approved. Record status alone is
+    // not enough: a period still in draft can hold finalized records, and
+    // listing those would advertise a payslip the download route refuses.
     const { data } = await supabase
       .from("payroll_records")
-      .select("id, net_pay, gross_pay, status, payroll_periods(name, pay_date)")
+      .select(
+        "id, net_pay, gross_pay, status, payroll_periods!inner(name, pay_date, status)",
+      )
       .eq("employee_id", employee.id)
-      .in("status", ["finalized", "paid", "approved"])
+      .in("status", [...PAYABLE_RECORD_STATUSES])
+      .in("payroll_periods.status", [...APPROVED_PERIOD_STATUSES])
       .order("created_at", { ascending: false })
       .limit(12);
 
@@ -45,7 +55,7 @@ export default async function MyPayrollPage() {
     <PageContainer>
       <PageHeader
         name={workspace.profile.first_name}
-        subtitle="Finalized payroll summaries with PDF payslip download."
+        subtitle="Approved payroll summaries with PDF payslip download."
       />
 
       {!employee ? (

@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/leads";
 import { createLeadFromContact } from "@/lib/crm/actions";
 import type { ActionState } from "@/lib/auth/actions";
 
+// unauthenticated: public contact form on /contact.
 export async function contactAction(
   _prev: ActionState,
   formData: FormData,

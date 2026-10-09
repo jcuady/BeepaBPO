@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const RESOLUTION_TYPES = [
   { value: "cleared", label: "Cleared / no action" },
@@ -71,9 +72,8 @@ export function NteResolveForm({
       <p className="text-sm font-medium text-navy">Resolve case</p>
       <div className="space-y-2">
         <Label htmlFor={`nte-resolution-${nteCaseId}`}>Resolution</Label>
-        <select
+        <NativeSelect
           id={`nte-resolution-${nteCaseId}`}
-          className="flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
           value={resolutionType}
           disabled={pending}
           onChange={(e) =>
@@ -85,7 +85,7 @@ export function NteResolveForm({
               {opt.label}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </div>
       {resolutionType !== "cleared" ? (
         <div className="space-y-2">

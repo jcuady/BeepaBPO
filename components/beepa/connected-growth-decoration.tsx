@@ -17,14 +17,14 @@ export function ConnectedGrowthDecoration({
     >
       <path
         d="M28 78V42c0-8 6-14 14-14h36"
-        stroke="#119446"
+        className="stroke-green"
         strokeWidth="10"
         strokeLinecap="round"
         opacity={opacity}
       />
       <path
         d="M92 42v36c0 8-6 14-14 14H42"
-        stroke="#93C63D"
+        className="stroke-lime"
         strokeWidth="10"
         strokeLinecap="round"
         opacity={opacity}
@@ -43,7 +43,7 @@ export function LimeArc({ className }: { className?: string }) {
     >
       <path
         d="M20 180C20 90 90 20 180 20"
-        stroke="#93C63D"
+        className="stroke-lime"
         strokeWidth="18"
         strokeLinecap="round"
         opacity="0.35"

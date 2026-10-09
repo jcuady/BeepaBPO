@@ -1,0 +1,4 @@
+interface:
+  display_name: "Client Handoff Documenter"
+  short_description: "Build visual HTML/PDF client handoff guides"
+  default_prompt: "Use $client-handoff-documenter to capture every in-scope page with Cursor, then build and verify the branded HTML and PDF client handoff."

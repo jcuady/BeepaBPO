@@ -4,6 +4,14 @@ import { useMemo, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   cellKind,
   cellLabel,
   cellMark,
@@ -33,23 +41,34 @@ export type HeatmapRecord = {
   approval_status: string;
 };
 
-const KIND_CLASS: Record<HeatmapKind, string> = {
-  empty: "bg-[#e8eaee] text-slate",
-  present: "bg-green text-white",
-  late: "bg-[#f0c94d] text-navy",
-  absent: "bg-[#f3c1c1] text-navy",
-  incomplete: "bg-amber-100 text-amber-900",
-  off: "bg-navy/15 text-navy",
+/**
+ * Cell colours come from the semantic status layer in `app/globals.css`.
+ *
+ * This used to be two parallel maps of raw hex — `KIND_CLASS` for the cell and
+ * `KIND_SWATCH` for the legend — which meant every colour was written down
+ * twice and nothing would have told you when one copy drifted from the other.
+ * One map now holds the background and the foreground separately, and the
+ * legend derives itself, so the two cannot disagree.
+ */
+const KIND: Record<
+  HeatmapKind,
+  { bg: string; fg: string }
+> = {
+  empty: { bg: "bg-[color:var(--color-data-empty)]", fg: "text-slate" },
+  present: { bg: "bg-green", fg: "text-white" },
+  late: { bg: "bg-[color:var(--color-caution-surface)]", fg: "text-[color:var(--color-caution)]" },
+  absent: { bg: "bg-[color:var(--color-critical-surface)]", fg: "text-[color:var(--color-critical)]" },
+  incomplete: { bg: "bg-[color:var(--color-info-surface)]", fg: "text-[color:var(--color-info)]" },
+  off: { bg: "bg-navy/15", fg: "text-navy" },
 };
 
-const KIND_SWATCH: Record<HeatmapKind, string> = {
-  empty: "bg-[#e8eaee]",
-  present: "bg-green",
-  late: "bg-[#f0c94d]",
-  absent: "bg-[#f3c1c1]",
-  incomplete: "bg-amber-100",
-  off: "bg-navy/15",
-};
+const KIND_CLASS: Record<HeatmapKind, string> = Object.fromEntries(
+  Object.entries(KIND).map(([k, v]) => [k, `${v.bg} ${v.fg}`]),
+) as Record<HeatmapKind, string>;
+
+const KIND_SWATCH: Record<HeatmapKind, string> = Object.fromEntries(
+  Object.entries(KIND).map(([k, v]) => [k, v.bg]),
+) as Record<HeatmapKind, string>;
 
 function timeHm(iso: string | null): string {
   if (!iso) return "";
@@ -112,38 +131,44 @@ export function AttendanceHeatmap({
   return (
     <div className="rounded-[16px] border border-line bg-white p-4 sm:p-5">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] border-separate border-spacing-y-2">
-          <thead>
-            <tr>
-              <th className="w-40 px-2 text-left text-[11px] font-semibold tracking-wide text-slate uppercase">
+        {/* Uses the Table primitive. This was the last hand-rolled <table> in the
+            app; it carried its own thead/cell styling that had already drifted
+            from every other table in the product. The density classes here are
+            deliberate — a 6-week grid has different needs from a paginated list —
+            but the structure, borders and focus treatment now come from one
+            place. */}
+        <Table className="w-full min-w-[640px] border-separate border-spacing-y-2">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-40 px-2 text-left text-[11px] font-semibold tracking-wide text-slate uppercase">
                 Team
-              </th>
+              </TableHead>
               {dates.map((date) => (
-                <th
+                <TableHead
                   key={date}
                   className="px-1 text-center text-[11px] font-medium text-slate"
                 >
                   {format(parseISO(date), "EEE d")}
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {employees.map((employee) => (
-              <tr key={employee.id}>
-                <td className="px-2 py-1 align-middle">
+              <TableRow key={employee.id}>
+                <TableCell className="px-2 py-1 align-middle">
                   <p className="font-medium text-navy">{employee.name}</p>
                   {employee.title ? (
                     <p className="text-xs text-slate">{employee.title}</p>
                   ) : null}
-                </td>
+                </TableCell>
                 {dates.map((date) => {
                   const rec = byKey.get(recordKey(employee.id, date));
                   const kind = cellKind(rec?.status);
                   const label = `${employee.name}, ${format(parseISO(date), "EEE d MMM")}, ${cellLabel(kind)}`;
                   const mark = cellMark(kind);
                   return (
-                    <td key={date} className="px-1 py-1">
+                    <TableCell key={date} className="px-1 py-1">
                       <button
                         type="button"
                         className={cn(
@@ -160,13 +185,13 @@ export function AttendanceHeatmap({
                       >
                         {mark}
                       </button>
-                    </td>
+                    </TableCell>
                   );
                 })}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <ul className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-3 text-xs text-slate">

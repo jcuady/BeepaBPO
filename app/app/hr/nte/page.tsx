@@ -6,6 +6,8 @@ import { IconFileText } from "@tabler/icons-react";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
+import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { NteCaseForm } from "@/components/app/nte/nte-case-form";
 import { NteResolveForm } from "@/components/app/nte/nte-resolve-form";
 import { StatusBadge } from "@/components/app/status-badge";
@@ -13,16 +15,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
+import { enumParam, pageParam, stringParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "NTE Cases" };
 
 const OPEN_STATUSES = new Set(["issued", "awaiting_response", "under_review"]);
+const ALL_STATUSES = [
+  "draft",
+  "issued",
+  "awaiting_response",
+  "under_review",
+  "resolved",
+] as const;
+const PAGE_SIZE = 50;
 
-export default async function HrNtePage() {
+export default async function HrNtePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
   requireInternal(workspace);
   requirePermission(workspace, "nte.read");
+
+  const params = await searchParams;
+  const status = enumParam(params.status, ALL_STATUSES);
+  const q = stringParam(params.q);
+  const page = pageParam(params.page);
 
   const supabase = await createClient();
   const canManage = can(workspace.permissions, "nte.manage");
@@ -34,7 +54,7 @@ export default async function HrNtePage() {
         "id, case_number, subject, description, incident_date, status, resolution_type, resolution_notes, resolved_at, created_at, employees(employee_number, profiles(display_name)), nte_responses(id, response_text, submitted_at)",
       )
       .order("created_at", { ascending: false })
-      .limit(50),
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
     canManage
       ? supabase
           .from("employees")
@@ -78,6 +98,20 @@ export default async function HrNtePage() {
           </CardContent>
         </Card>
       ) : null}
+
+      <form method="get">
+        <FilterBar placeholder="Search subject or case number…" defaultValue={q}>
+          <FilterSelect
+            name="status"
+            label="Status"
+            defaultValue={status ?? ""}
+            options={[
+              { value: "", label: "All statuses" },
+              ...ALL_STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") })),
+            ]}
+          />
+        </FilterBar>
+      </form>
 
       {!cases?.length ? (
         <EmptyState
@@ -177,6 +211,13 @@ export default async function HrNtePage() {
       >
         ← Back to HR
       </Link>
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={cases?.length ?? 0}
+        query={{ q, status }}
+      />
     </PageContainer>
   );
 }

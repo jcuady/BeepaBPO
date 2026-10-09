@@ -16,7 +16,11 @@ describe("payroll period create seam", () => {
     "utf8",
   );
   const form = readFileSync(
-    join(process.cwd(), "components/app/payroll/create-period-form.tsx"),
+    join(process.cwd(), "components/app/payroll/payroll-run-wizard.tsx"),
+    "utf8",
+  );
+  const settings = readFileSync(
+    join(process.cwd(), "app/app/payroll/settings/page.tsx"),
     "utf8",
   );
 
@@ -28,9 +32,14 @@ describe("payroll period create seam", () => {
     expect(validation).toContain("export const createPayrollPeriodSchema");
   });
 
-  it("list page exposes create form for managers", () => {
-    expect(listPage).toContain("CreatePayrollPeriodForm");
+  it("list page exposes the payroll wizard for managers", () => {
+    expect(listPage).toContain("PayrollRunWizard");
     expect(listPage).toContain("payroll.manage");
     expect(form).toContain("createPayrollPeriod");
+    expect(form).toContain("windowAlreadyRun");
+    expect(actions).toContain("A payroll run already covers this cutoff");
+    expect(actions).toContain("saveEmployeePayrollSettings");
+    expect(settings).toContain("payroll.manage");
+    expect(validation).toContain("savePayrollSalarySchema");
   });
 });

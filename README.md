@@ -115,6 +115,8 @@ Full index: [docs/README.md](docs/README.md)
 - [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md)
 - [TESTING.md](docs/TESTING.md)
 - [QA_CHECKLIST.md](docs/QA_CHECKLIST.md)
+- [REMAINING_WORK.md](docs/REMAINING_WORK.md) — what is still needed to finish, in order
+- [SYSTEM_AUDIT.md](docs/SYSTEM_AUDIT.md) — evidence behind every claim
 - [CHANGELOG.md](docs/CHANGELOG.md)
 
 ## Deploy

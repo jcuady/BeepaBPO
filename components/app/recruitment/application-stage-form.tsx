@@ -3,23 +3,32 @@
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { updateApplicationStage } from "@/lib/recruitment/actions";
+import {
+  APPLICATION_STAGES,
+  PIPELINE_STAGES,
+  stageMeta,
+  type ApplicationStage,
+} from "@/lib/recruitment/application-stage";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 
-const STAGES = [
-  "applied",
-  "screening",
-  "initial_interview",
-  "assessment",
-  "client_endorsement",
-  "client_interview",
-  "offer",
-  "hired",
-  "rejected",
-  "withdrawn",
-  "talent_pool",
-  "on_hold",
-] as const;
+/**
+ * Grouped so a reviewer is not picking from a flat list of twelve identical
+ * strings. The grouping encodes the decision: "advance the pipeline", "finish
+ * it", or "park it".
+ */
+const GROUPS: readonly { label: string; stages: readonly ApplicationStage[] }[] = [
+  { label: "Pipeline", stages: PIPELINE_STAGES },
+  {
+    label: "Finished",
+    stages: APPLICATION_STAGES.filter((s) => stageMeta(s).tone === "negative"),
+  },
+  {
+    label: "Parked",
+    stages: APPLICATION_STAGES.filter((s) => stageMeta(s).tone === "warning"),
+  },
+];
 
 export function ApplicationStageForm({
   applicationId,
@@ -51,7 +60,7 @@ export function ApplicationStageForm({
     startTransition(async () => {
       const result = await updateApplicationStage({
         application_id: applicationId,
-        stage: nextStage as (typeof STAGES)[number],
+        stage: nextStage as ApplicationStage,
       });
       if (result.ok) {
         toast.success(result.message);
@@ -63,31 +72,44 @@ export function ApplicationStageForm({
     });
   }
 
+  const nextMeta = stageMeta(nextStage);
+  const destructive =
+    nextMeta.tone === "negative" || nextStage === currentStage;
+
   return (
     <div className="space-y-2">
       <Label htmlFor={`application-stage-${applicationId}`}>Move stage</Label>
-      <select
+      <NativeSelect
         ref={selectRef}
         id={`application-stage-${applicationId}`}
-        className="flex min-h-11 w-full max-w-xs rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
+        // Layout only — the styling comes from the primitive. Restored after the
+        // migration stripped it along with the old hand-rolled class string; a
+        // full-width dropdown inside a card reads as a bug.
+        className="max-w-xs"
         defaultValue={currentStage}
         disabled={pending}
         onChange={(e) => handleChange(e.target.value)}
       >
-        {STAGES.map((stage) => (
-          <option key={stage} value={stage}>
-            {stage.replace(/_/g, " ")}
-          </option>
+        {GROUPS.map((group) => (
+          <optgroup key={group.label} label={group.label}>
+            {group.stages.map((stage) => (
+              <option key={stage} value={stage}>
+                {stageMeta(stage).label}
+              </option>
+            ))}
+          </optgroup>
         ))}
-      </select>
+      </NativeSelect>
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={handleOpenChange}
         title="Move application stage?"
-        description={`Move this candidate to “${nextStage.replace(/_/g, " ")}”.`}
+        // Say what the target stage means, not just its name. A reviewer moving
+        // someone to "talent_pool" should be reminded it is not terminal.
+        description={`${nextMeta.label} — ${nextMeta.staffNote}`}
         confirmLabel="Move stage"
         pending={pending}
-        destructive={nextStage === "rejected" || nextStage === "withdrawn"}
+        destructive={destructive}
         onConfirm={confirm}
       />
     </div>

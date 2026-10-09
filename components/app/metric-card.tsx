@@ -36,7 +36,7 @@ export function MetricCard({
           <p className="text-sm text-slate">{title}</p>
           <p className="font-display text-xl font-bold text-navy">{value}</p>
           {subtitle ? (
-            <p className="mt-0.5 text-xs text-slate">{subtitle}</p>
+            <p className="mt-0.5 text-base text-slate sm:text-xs">{subtitle}</p>
           ) : null}
           {delta ? (
             <p

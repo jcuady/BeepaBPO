@@ -173,7 +173,9 @@ export async function createLeadFromContact(input: {
     referrer_url?: string;
   };
 }): Promise<{ leadId: string | null; error?: string }> {
-  // Public marketing form has no crm.manage JWT — service role bypasses RLS.
+  // unauthenticated: public marketing form. Service role is used because the
+  // caller has no crm.manage JWT; the row lands in crm_leads with a "new"
+  // status for the sales team to triage.
   const supabase = createAdminClient();
   const { data: lead, error } = await supabase
     .from("crm_leads")

@@ -4,6 +4,7 @@ import { IconClockEdit } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { CorrectionReviewActions } from "@/components/app/attendance/correction-review-actions";
 import { StatusBadge } from "@/components/app/status-badge";
 import { PageContainer } from "@/components/app/page-container";
@@ -17,13 +18,15 @@ import {
 } from "@/components/ui/table";
 import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
-import { enumParam } from "@/lib/app/search-params";
+import { enumParam, pageParam } from "@/lib/app/search-params";
 import { canAny } from "@/lib/permissions/can";
 import { mapPendingApprovalActability } from "@/lib/approvals/engine";
 import { redirect } from "next/navigation";
+import { formatZonedTime } from "@/lib/attendance/zoned-time";
 
 export const metadata: Metadata = { title: "Attendance Corrections" };
 
+const PAGE_SIZE = 50;
 const STATUSES = ["pending", "approved", "rejected", "cancelled"] as const;
 
 export default async function AttendanceCorrectionsPage({
@@ -46,6 +49,7 @@ export default async function AttendanceCorrectionsPage({
 
   const params = await searchParams;
   const status = enumParam(params.status, STATUSES, "pending") ?? "pending";
+  const page = pageParam(params.page);
 
   const supabase = await createClient();
   const { data: requests } = await supabase
@@ -55,7 +59,7 @@ export default async function AttendanceCorrectionsPage({
     )
     .eq("status", status)
     .order("created_at", { ascending: true })
-    .limit(100);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   const pendingIds =
     status === "pending" ? (requests ?? []).map((r) => r.id) : [];
@@ -70,7 +74,7 @@ export default async function AttendanceCorrectionsPage({
     <PageContainer>
       <PageHeader
         name={workspace.profile.first_name}
-        subtitle="Review attendance correction requests."
+        subtitle="Review and resolve employee correction requests."
       />
 
       <form method="get">
@@ -79,10 +83,10 @@ export default async function AttendanceCorrectionsPage({
             name="status"
             label="Status"
             defaultValue={status}
-            options={STATUSES.map((s) => ({
-              value: s,
-              label: s.replace(/_/g, " "),
-            }))}
+            options={[
+              { value: "", label: "All statuses" },
+              ...STATUSES.map((s) => ({ value: s, label: s })),
+            ]}
           />
         </FilterBar>
       </form>
@@ -114,49 +118,27 @@ export default async function AttendanceCorrectionsPage({
                   profiles: { display_name: string } | null;
                 } | null;
                 const record = req.attendance_records as {
-                  work_date: string;
+                  work_date: string | null;
                   clock_in_at: string | null;
                   clock_out_at: string | null;
                 } | null;
-                const name =
-                  employee?.profiles?.display_name ??
-                  employee?.employee_number ??
-                  "Employee";
+                const name = employee?.profiles?.display_name ?? employee?.employee_number ?? "Employee";
                 const act = actability.get(req.id);
                 return (
                   <TableRow key={req.id}>
                     <TableCell className="font-medium text-navy">
                       {name}
-                      <p className="text-xs font-normal text-slate">
-                        {employee?.job_title}
-                      </p>
+                      <p className="text-xs text-slate">{employee?.job_title ?? ""}</p>
                     </TableCell>
-                    <TableCell className="text-sm text-slate">
-                      {record?.work_date
-                        ? format(new Date(record.work_date), "MMM d, yyyy")
-                        : "—"}
+                    <TableCell className="text-slate">
+                      {record?.work_date ? format(new Date(`${record.work_date}T00:00:00`), "MMM d, yyyy") : "—"}
                     </TableCell>
-                    <TableCell className="text-sm text-slate">
-                      <div>
-                        In:{" "}
-                        {req.requested_clock_in_at
-                          ? format(
-                              new Date(req.requested_clock_in_at),
-                              "HH:mm",
-                            )
-                          : "—"}
-                      </div>
-                      <div>
-                        Out:{" "}
-                        {req.requested_clock_out_at
-                          ? format(
-                              new Date(req.requested_clock_out_at),
-                              "HH:mm",
-                            )
-                          : "—"}
-                      </div>
+                    <TableCell className="text-xs text-slate">
+                      in: {formatZonedTime(req.requested_clock_in_at)}
+                      <br />
+                      out: {formatZonedTime(req.requested_clock_out_at)}
                     </TableCell>
-                    <TableCell className="max-w-[240px] truncate text-sm text-slate">
+                    <TableCell className="max-w-xs text-sm text-slate">
                       {req.reason}
                     </TableCell>
                     <TableCell>
@@ -165,9 +147,7 @@ export default async function AttendanceCorrectionsPage({
                     {status === "pending" ? (
                       <TableCell>
                         {act?.canAct ? (
-                          <CorrectionReviewActions
-                            correctionRequestId={req.id}
-                          />
+                          <CorrectionReviewActions correctionRequestId={req.id} />
                         ) : act?.stepName ? (
                           <span className="text-xs text-slate">
                             Waiting for {act.stepName}
@@ -184,6 +164,13 @@ export default async function AttendanceCorrectionsPage({
           </Table>
         </div>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={requests?.length ?? 0}
+        query={{ status }}
+      />
     </PageContainer>
   );
 }

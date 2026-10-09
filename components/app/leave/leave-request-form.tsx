@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { z } from "zod";
 
 type LeaveRequestInput = z.infer<typeof leaveRequestSchema>;
@@ -49,9 +50,8 @@ export function LeaveRequestForm({
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="leave_type_id">Leave type</Label>
-        <select
+        <NativeSelect
           id="leave_type_id"
-          className="flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
           {...form.register("leave_type_id")}
         >
           <option value="">Select type…</option>
@@ -60,7 +60,7 @@ export function LeaveRequestForm({
               {type.name}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         {errors.leave_type_id && (
           <p className="text-sm text-destructive">{errors.leave_type_id.message}</p>
         )}

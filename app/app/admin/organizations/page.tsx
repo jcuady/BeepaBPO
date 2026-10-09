@@ -5,25 +5,45 @@ import { IconBuilding } from "@tabler/icons-react";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
+import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
+import { enumParam, pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Organizations" };
 
-export default async function AdminOrganizationsPage() {
+const PAGE_SIZE = 50;
+const TYPES = ["internal", "client"] as const;
+const STATUSES = ["active", "inactive", "onboarding"] as const;
+
+export default async function AdminOrganizationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
   requireInternal(workspace);
   requirePermission(workspace, "system.manage");
 
+  const params = await searchParams;
+  const type = enumParam(params.type, TYPES);
+  const status = enumParam(params.status, STATUSES);
+  const page = pageParam(params.page);
+
   const supabase = await createClient();
-  const { data: orgs } = await supabase
+  let query = supabase
     .from("organizations")
     .select("id, name, slug, type, status, created_at")
     .order("name")
-    .limit(100);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  if (type) query = query.eq("type", type);
+  if (status) query = query.eq("status", status);
+
+  const { data: orgs } = await query;
 
   return (
     <PageContainer>
@@ -31,6 +51,29 @@ export default async function AdminOrganizationsPage() {
         name={workspace.profile.first_name}
         subtitle="View-only list of internal and client organizations."
       />
+
+      <form method="get">
+        <FilterBar showSearch={false}>
+          <FilterSelect
+            name="type"
+            label="Type"
+            defaultValue={type ?? ""}
+            options={[
+              { value: "", label: "All types" },
+              ...TYPES.map((t) => ({ value: t, label: t })),
+            ]}
+          />
+          <FilterSelect
+            name="status"
+            label="Status"
+            defaultValue={status ?? ""}
+            options={[
+              { value: "", label: "All statuses" },
+              ...STATUSES.map((s) => ({ value: s, label: s })),
+            ]}
+          />
+        </FilterBar>
+      </form>
 
       {!orgs?.length ? (
         <EmptyState
@@ -58,9 +101,16 @@ export default async function AdminOrganizationsPage() {
         </div>
       )}
 
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={orgs?.length ?? 0}
+        query={{ type, status }}
+      />
+
       <Link
         href="/app/admin"
-        className="text-sm font-medium text-green-strong hover:underline"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
       >
         ← Back to admin
       </Link>

@@ -1,0 +1,98 @@
+[
+  {
+    "width": 375,
+    "overlapPx": 0,
+    "overflowX": 0,
+    "headingText": "People powerbetter business.",
+    "headingTop": 121,
+    "headingVisible": true,
+    "ctaText": "Let's Talk",
+    "ctaHref": "/contact",
+    "titleBox": {
+      "left": 16,
+      "right": 359,
+      "top": 121,
+      "bottom": 198
+    },
+    "mediaBox": {
+      "left": 16,
+      "right": 359,
+      "top": 452,
+      "bottom": 710
+    },
+    "fadeHidden": 0,
+    "file": "e2e-evidence\\hero-split\\hero-375.png"
+  },
+  {
+    "width": 768,
+    "overlapPx": 0,
+    "overflowX": 0,
+    "headingText": "People powerbetter business.",
+    "headingTop": 149,
+    "headingVisible": true,
+    "ctaText": "Let's Talk",
+    "ctaHref": "/contact",
+    "titleBox": {
+      "left": 24,
+      "right": 744,
+      "top": 149,
+      "bottom": 226
+    },
+    "mediaBox": {
+      "left": 24,
+      "right": 744,
+      "top": 442,
+      "bottom": 892
+    },
+    "fadeHidden": 0,
+    "file": "e2e-evidence\\hero-split\\hero-768.png"
+  },
+  {
+    "width": 1024,
+    "overlapPx": 0,
+    "overflowX": 0,
+    "headingText": "People powerbetter business.",
+    "headingTop": 149,
+    "headingVisible": true,
+    "ctaText": "Let's Talk",
+    "ctaHref": "/contact",
+    "titleBox": {
+      "left": 32,
+      "right": 413,
+      "top": 149,
+      "bottom": 246
+    },
+    "mediaBox": {
+      "left": 528,
+      "right": 992,
+      "top": 125,
+      "bottom": 473
+    },
+    "fadeHidden": 0,
+    "file": "e2e-evidence\\hero-split\\hero-1024.png"
+  },
+  {
+    "width": 1440,
+    "overlapPx": 0,
+    "overflowX": 0,
+    "headingText": "People powerbetter business.",
+    "headingTop": 200,
+    "headingVisible": true,
+    "ctaText": "Let's Talk",
+    "ctaHref": "/contact",
+    "titleBox": {
+      "left": 112,
+      "right": 600,
+      "top": 200,
+      "bottom": 321
+    },
+    "mediaBox": {
+      "left": 736,
+      "right": 1328,
+      "top": 112,
+      "bottom": 556
+    },
+    "fadeHidden": 0,
+    "file": "e2e-evidence\\hero-split\\hero-1440.png"
+  }
+]

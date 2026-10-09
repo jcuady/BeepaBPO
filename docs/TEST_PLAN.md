@@ -91,8 +91,52 @@ Automation: Manual from `/app/approvals` with seeded pending rows.
 | Check | Automation |
 |-------|------------|
 | Login, my, client, dashboard, applicant — no serious/critical axe | `e2e/a11y.spec.ts` |
+| Approvals queue, client timesheets, CMS admin — no serious/critical axe | `e2e/a11y.spec.ts` (added with the 2026-10-08 pagination work) |
 | Form-heavy pages (leave, tickets, CRM) | Manual axe / keyboard |
 | Touch targets ≥ 44px on primary actions | Manual |
+| Every dropdown has a focus ring | `tests/design-system-contract.test.ts` + `audit-design-system.mjs` |
+| `NativeSelect` keeps its 44px coarse-pointer floor | `tests/design-system-contract.test.ts` |
+| `Card` does not impose a font size on its subtree | `tests/design-system-contract.test.ts` |
+
+**Known coverage limit.** With the seeded demo data none of the pagers actually
+render — `ListPager` returns null until a page is full, and the largest content
+table has ~10 rows. The axe checks on those pages therefore prove the pages still
+pass after the change, not that a *rendered* pager does. Creating >50 rows purely to
+satisfy a test would pollute the demo data; the pager markup is shared with the 27
+list pages that do render it.
+
+## 8b. Automated gates
+
+Run everything at once with the release gate. It exits 0 only when there are **zero
+failures and zero skips**, and names the steps that failed.
+
+```bash
+node scripts/verify-all.mjs --skip-migration
+```
+
+| Step | Script |
+|------|--------|
+| VAPID keys | `scripts/audit/test-vapid.mjs` |
+| Route authorization | `scripts/audit/audit-rbac.mjs` |
+| Action authorization | `scripts/audit/audit-action-rbac.mjs` |
+| Dead controls / unsubmittable forms | `scripts/audit/audit-page-wiring.mjs` |
+| Page inventory drift | `scripts/audit/generate-page-inventory.mjs --check` |
+| **Design-system consistency** | `scripts/audit-design-system.mjs` |
+| Payroll period overlap | `scripts/audit/audit-payroll-period-overlap.mjs` |
+| Payroll status coherence | `scripts/audit/audit-payroll-status-coherence.mjs` |
+| TypeScript / lint / vitest / build | `tsc --noEmit`, `eslint .`, `vitest run`, `next build` |
+| Live data smoke | `tests/live-data-smoke.test.ts` |
+| Realtime delivery | `scripts/audit/test-realtime-events.mjs` |
+| DB row counts | `scripts/audit/read-state.mjs` |
+
+Needs a running server (use `next build && next start`, never `next dev`):
+
+| Script | What it proves |
+|--------|----------------|
+| `scripts/audit-role-pages.mjs` | Every page a role can *see* is actually reachable — reads the rendered sidebar |
+| `scripts/audit-app-responsive.mjs` | Layout at 390/768/1280/1920; a 403 is reported as `DENIED forbidden`, not scored |
+| `scripts/audit-performance.mjs` | LCP/CLS/FCP/TTFB budgets against a production build |
+| `scripts/audit-responsive.mjs` | Marketing routes across 8 viewports |
 
 ## 9. Known out-of-scope backlog (must stay unchecked until built)
 

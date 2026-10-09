@@ -11,6 +11,7 @@ import { applyFieldErrors } from "@/lib/forms/field-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { z } from "zod";
 
 type FormInput = z.input<typeof crmProposalSchema>;
@@ -73,9 +74,8 @@ export function CreateProposalForm({
       ) : (
         <div className="space-y-2">
           <Label htmlFor="proposal-deal">Deal</Label>
-          <select
+          <NativeSelect
             id="proposal-deal"
-            className="flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
             {...form.register("deal_id")}
           >
             {deals.map((d) => (
@@ -83,7 +83,7 @@ export function CreateProposalForm({
                 {d.label}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           {errors.deal_id ? (
             <p className="text-sm text-destructive">{errors.deal_id.message}</p>
           ) : null}

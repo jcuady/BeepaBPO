@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { SerializedWorkspace } from "@/lib/app/serialize-workspace";
 import {
+  activeNavHref,
   getAdminNavGroups,
   getPrimaryNavGroups,
 } from "@/lib/app/navigation";
@@ -59,25 +60,16 @@ function NavLink({
   );
 }
 
-function isNavActive(pathname: string, href: string) {
-  if (pathname === href) return true;
-  const hubs = new Set([
-    "/app/my",
-    "/app/client",
-    "/app/applicant",
-    "/app/hr",
-    "/app/admin",
-  ]);
-  if (hubs.has(href)) return false;
-  return pathname.startsWith(`${href}/`);
-}
-
 export function AppSidebar({ workspace }: AppSidebarProps) {
   const pathname = usePathname();
   const primaryGroups = getPrimaryNavGroups(workspace);
   const adminGroups = workspace.isInternal
     ? getAdminNavGroups(workspace.permissions)
     : [];
+  const activeHref = activeNavHref(pathname, [
+    ...primaryGroups.flatMap((group) => group.items.map((item) => item.href)),
+    ...adminGroups.flatMap((group) => group.items.map((item) => item.href)),
+  ]);
 
   const supportHref = workspace.isApplicantOnly
     ? "/app/applicant"
@@ -88,10 +80,10 @@ export function AppSidebar({ workspace }: AppSidebarProps) {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-line bg-white [--sidebar-accent:#eef7e8] [--sidebar-accent-foreground:#0b6e34] [--sidebar-border:#eaecf0] [--sidebar-foreground:#17182b] [--sidebar:#ffffff]"
+      className="border-line bg-white"
     >
       <SidebarHeader className="border-b border-line px-4 py-4">
-        <Link href="/app" className="flex items-center gap-2">
+        <Link href="/app" className="flex min-h-11 items-center gap-2">
           <Image
             src="/brand/beepa-logo-horizontal.png"
             alt="BEEPA"
@@ -127,7 +119,7 @@ export function AppSidebar({ workspace }: AppSidebarProps) {
                     href={item.href}
                     title={item.title}
                     icon={item.icon}
-                    isActive={isNavActive(pathname, item.href)}
+                    isActive={item.href === activeHref}
                   />
                 ))}
               </SidebarMenu>
@@ -151,7 +143,7 @@ export function AppSidebar({ workspace }: AppSidebarProps) {
                         href={item.href}
                         title={item.title}
                         icon={item.icon}
-                        isActive={pathname.startsWith(item.href)}
+                        isActive={item.href === activeHref}
                       />
                     ))}
                   </SidebarMenu>

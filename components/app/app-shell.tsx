@@ -46,9 +46,12 @@ export function AppShell({
             unreadCount={unreadCount}
             onSearchOpen={() => setSearchOpen(true)}
           />
-          <main className="flex-1 px-4 pb-24 pt-4 md:px-6 md:pb-6 md:pt-6">
+          {/* SidebarInset already renders the <main> landmark; nesting a
+              second <main> here would be invalid HTML and expose duplicate
+              landmarks to assistive tech. */}
+          <div className="flex-1 px-4 pb-24 pt-4 md:px-6 md:pb-6 md:pt-6">
             {children}
-          </main>
+          </div>
           <MobileBottomNav workspace={workspace} />
         </SidebarInset>
         <CommandSearch

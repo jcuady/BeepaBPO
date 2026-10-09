@@ -32,7 +32,6 @@ export function RecalculatePayrollButton({
         type="button"
         size="sm"
         variant="secondary"
-        className="min-h-11"
         disabled={pending}
         onClick={() => setOpen(true)}
       >

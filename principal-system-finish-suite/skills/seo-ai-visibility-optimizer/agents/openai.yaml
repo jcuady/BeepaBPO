@@ -1,0 +1,4 @@
+interface:
+  display_name: "SEO and AI Visibility Optimizer"
+  short_description: "Optimize search, crawlability, and AI visibility"
+  default_prompt: "Use $seo-ai-visibility-optimizer to audit and implement evidence-based SEO and AI-search visibility across all public pages."

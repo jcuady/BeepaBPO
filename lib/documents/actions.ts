@@ -39,6 +39,8 @@ function readFile(formData: FormData): File | null {
 }
 
 export async function getDocumentDownloadUrl(
+  // rls-gated: documents select RLS scopes to the caller; storage signed URL
+  // inherits the JWT, so storage RLS enforces the second hop.
   documentId: string,
 ): Promise<ActionResult> {
   const workspace = await resolveWorkspace();

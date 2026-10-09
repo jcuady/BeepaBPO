@@ -32,15 +32,7 @@ export default async function ContactPage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-mist/50 py-16 md:py-24">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -left-24 top-0 size-[320px] rounded-full bg-green/10 blur-[100px]"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-16 bottom-0 size-[280px] rounded-full bg-lime/15 blur-[90px]"
-        />
+      <section className="relative bg-mist/50 py-16 md:py-24">
         <Container className="relative">
           <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-16">
             <div>
@@ -75,7 +67,7 @@ export default async function ContactPage() {
                 Prefer email?{" "}
                 <a
                   href={`mailto:${BRAND.email}`}
-                  className="font-semibold text-green-strong underline-offset-2 hover:underline"
+                  className="inline-flex min-h-11 items-center font-semibold text-green-strong underline-offset-2 hover:underline"
                 >
                   {BRAND.email}
                 </a>

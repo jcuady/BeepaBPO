@@ -111,7 +111,7 @@ export default function WhyBeepaPage() {
                   <p className="mt-3 font-display text-base font-semibold text-navy">
                     Talent search
                   </p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-slate">
+                  <p className="mt-1.5 text-base leading-relaxed text-slate">
                     Source, screen, shortlist, place.
                   </p>
                 </div>
@@ -120,7 +120,7 @@ export default function WhyBeepaPage() {
                   <p className="mt-3 font-display text-base font-semibold text-white">
                     Payroll handled
                   </p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-white/70">
+                  <p className="mt-1.5 text-base leading-relaxed text-white/70">
                     Salary stays with Beepa.
                   </p>
                 </div>
@@ -205,7 +205,7 @@ export default function WhyBeepaPage() {
                   <h3 className="mt-4 font-display text-lg font-bold text-navy">
                     {pillar.title}
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-slate">
+                  <p className="mt-2 text-base leading-relaxed text-slate">
                     {pillar.description}
                   </p>
                   <span className="sr-only">Pillar {index + 1}</span>

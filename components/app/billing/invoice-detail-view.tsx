@@ -210,7 +210,7 @@ export function InvoiceDetailView({
 
       <Link
         href={backHref}
-        className="text-sm font-medium text-green-strong hover:underline"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
       >
         ← Back to billing
       </Link>

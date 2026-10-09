@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { z } from "zod";
 
 type Input = z.infer<typeof nteCaseSchema>;
@@ -57,9 +58,8 @@ export function NteCaseForm({
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="employee_id">Employee</Label>
-        <select
+        <NativeSelect
           id="employee_id"
-          className="flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm"
           {...form.register("employee_id")}
         >
           {employees.map((emp) => (
@@ -67,7 +67,7 @@ export function NteCaseForm({
               {emp.label}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         {errors.employee_id ? (
           <p className="text-sm text-destructive">{errors.employee_id.message}</p>
         ) : null}

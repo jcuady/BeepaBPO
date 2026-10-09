@@ -6,6 +6,7 @@ import { updateCrmDealStage } from "@/lib/crm/actions";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const STAGES = [
   "new_lead",
@@ -73,10 +74,9 @@ export function DealStageForm({
   return (
     <div className="space-y-2">
       <Label htmlFor={`deal-stage-${dealId}`}>Update stage</Label>
-      <select
+      <NativeSelect
         ref={selectRef}
         id={`deal-stage-${dealId}`}
-        className="flex min-h-11 w-full max-w-xs rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
         defaultValue={currentStage}
         disabled={pending}
         onChange={(e) => handleChange(e.target.value)}
@@ -86,7 +86,7 @@ export function DealStageForm({
             {stageLabel(stage)}
           </option>
         ))}
-      </select>
+      </NativeSelect>
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={handleOpenChange}

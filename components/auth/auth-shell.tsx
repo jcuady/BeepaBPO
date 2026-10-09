@@ -77,7 +77,7 @@ export function AuthShell({
   const year = new Date().getFullYear();
 
   return (
-    <div className="flex min-h-[100dvh] flex-col overflow-x-hidden bg-[#F5F7F6]">
+    <div className="flex min-h-[100dvh] flex-col overflow-x-hidden bg-mist">
       <SiteHeader />
 
       <main className="relative flex-1">
@@ -130,7 +130,7 @@ export function AuthShell({
             >
               <path
                 d="M40 380C40 180 180 40 380 40"
-                stroke="#93C63D"
+                className="stroke-lime"
                 strokeWidth="48"
                 strokeLinecap="round"
                 opacity="0.55"
@@ -203,7 +203,7 @@ export function AuthShell({
             >
               <path
                 d="M20 200C20 80 120 20 300 20"
-                stroke="#93C63D"
+                className="stroke-lime"
                 strokeWidth="28"
                 strokeLinecap="round"
               />
@@ -265,7 +265,7 @@ export function AuthShell({
           </div>
         </div>
 
-        <div className="border-t border-line/70 bg-[#F3F7F1]">
+        <div className="border-t border-line/70 bg-[color:var(--color-positive-surface)]">
           <ul className="mx-auto grid max-w-[1280px] gap-4 px-4 py-5 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
             {values.map((item) => {
               const Icon = item.icon;

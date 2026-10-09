@@ -1,13 +1,34 @@
 # Role × surface checklist (Beepa)
 
-**Updated:** 2026-09-13  
+**Updated:** 2026-10-07  
 **DB:** `nwvnawgxkzwiercllgmg` (linked)  
 **Use:** Manual QA / demo walkthrough. Mark each box after verifying in the live app.  
 **Living progress:** [COMPLETION_LEDGER.md](./COMPLETION_LEDGER.md)
 
-**Live automation (2026-09-13):** `PLAYWRIGHT_BASE_URL=https://beepabpo.com` · `e2e/roles.spec.ts` — all 13 demo landings + segment isolation + open-redirect block PASS.
-
 Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only · **DEF** deferred · **FIX** fixed in code (verify live)
+
+---
+
+## Automation coverage
+
+| Surface | Coverage |
+|---------|----------|
+| Responsive (390 / 768) | **All 7 demo roles swept.** Run against a production build, never `next dev`. |
+| E2E (Playwright) | `owner`, `client`, `anonymous` projects have real specs. Run the projects **sequentially** — several specs sign in as the same demo account and racing them invalidates the shared `storageState`. |
+| RBAC routes | `scripts/audit/audit-rbac.mjs` — 73/76 + 3 structural exemptions |
+| RBAC actions | `scripts/audit/audit-action-rbac.mjs` — 63/64 |
+| Dead controls | `scripts/audit/audit-page-wiring.mjs` — 0 candidates |
+
+Reproduce the sweeps with `scripts/audit-app-responsive.mjs <email> <route...>`.
+
+### Demo login is off in production builds
+
+`getDemoLoginConfig` returns `null` when `NODE_ENV=production` unless
+`ALLOW_DEMO_LOGIN=true`, so the demo picker is not rendered at all. That is a
+deliberate security choice — a one-click shared-password bypass should never
+ship live — and `e2e/demo-login.spec.ts` now **skips with that reason** instead
+of failing. Set `ALLOW_DEMO_LOGIN=true` (at build and start) to actually run
+those three tests; verified 4/4 pass with it on.
 
 ---
 
@@ -55,6 +76,7 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 | NTE create/resolve | OK code |
 | Employee profile edit | OK |
 | Send to client timesheet (dual membership) | FIX |
+| Careers: post / advance stages / hire | **was 403** — `hr` had no `recruitment.*`. Fixed by `20261008120000_hr_recruitment_access.sql` (needs DB credentials to apply) |
 
 ---
 
@@ -64,7 +86,23 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 |-------|--------|
 | Clock in/out on My Workspace **and** Attendance | OK | Same `ClockInOutCard` + live refresh |
 | Leave / cash advance / tickets / payslip | OK / Live |
+| Payslip withheld until the period is approved | FIX | List and PDF both gate on period status |
 | Settings password | OK |
+
+**Verified sweep:** 7 routes x 390/768 clean. Attendance times render in the employee's own timezone, not the server's.
+
+---
+
+## Client Admin / Viewer
+
+| Check | Status |
+|-------|--------|
+| Ticketing / billing / timesheet flags hard-block | FIX |
+| Cannot open staff `/app/tickets` | OK |
+| Viewer: no Approvals without approve perms | OK |
+| Notification preference switches meet 44px on touch | FIX |
+
+**Verified sweep:** client admin 10 routes, client viewer 9 routes x 390/768 clean.
 
 ---
 
@@ -78,22 +116,17 @@ Legend: **OK** wired · **GAP** honesty issue · **RO** intentional read-only ·
 
 ---
 
-## Client Admin / Viewer
-
-| Check | Status |
-|-------|--------|
-| Ticketing / billing / timesheet flags hard-block | FIX |
-| Cannot open staff `/app/tickets` | OK |
-| Viewer: no Approvals without approve perms | OK |
-
----
-
 ## Applicant
 
 | Check | Status |
 |-------|--------|
 | Applications + profile only | OK |
-| No ATS `/app/recruitment` | FIX |
+| No ATS `/app/recruitment` | FIX — still true. The applicant role holds no `recruitment.read` (`20260911150000` removed it deliberately); open roles are reached through the `status = 'published'` RLS policy instead |
+| Browse open roles in-app | NEW — `/app/applicant/jobs` + `/app/applicant/jobs/[id]`, apply without leaving the portal |
+| Notifications reachable | FIX — the page existed but was not in any nav |
+| Stage shown with meaning | NEW — label, tone, applicant note and pipeline position instead of `stage.replace(/_/g," ")` |
+
+**Verified sweep:** 5 routes x 390/768 clean (`/app/applicant`, `/app/applicant/jobs`, `/app/applicant/notifications`, profile, plus the job detail). Live-checked in a browser: role list renders a published role with its "Applied" marker, and the detail page renders the stage explainer.
 
 ---
 

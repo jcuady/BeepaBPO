@@ -8,6 +8,7 @@ import {
 } from "@/lib/admin/actions";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { z } from "zod";
 import { adminMembershipRoleSchema } from "@/lib/validation/app";
 
@@ -80,8 +81,7 @@ export function AdminMembershipActions({
     <div className="flex flex-col gap-2">
       {membershipType === "internal" ? (
         <div className="flex flex-wrap items-center gap-2">
-          <select
-            className="flex min-h-9 rounded-[12px] border border-line bg-white px-2 text-xs text-navy"
+          <NativeSelect
             value={roleCode}
             disabled={pending}
             onChange={(e) => setRoleCode(e.target.value as RoleCode)}
@@ -92,12 +92,12 @@ export function AdminMembershipActions({
                 {opt.label}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           <Button
             type="button"
             size="sm"
             variant="outline"
-            className="min-h-9"
+            className="min-h-9 [@media(pointer:coarse)]:min-h-11"
             disabled={pending || roleCode === currentRoleCode}
             onClick={() => setRoleOpen(true)}
           >

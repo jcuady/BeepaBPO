@@ -7,6 +7,7 @@ import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
 import { FilterBar } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import {
   Table,
   TableBody,
@@ -17,9 +18,11 @@ import {
 } from "@/components/ui/table";
 import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
-import { stringParam, ilikePattern } from "@/lib/app/search-params";
+import { stringParam, ilikePattern, pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Audit Log" };
+
+const PAGE_SIZE = 100;
 
 export default async function AdminAuditPage({
   searchParams,
@@ -33,6 +36,7 @@ export default async function AdminAuditPage({
 
   const params = await searchParams;
   const q = stringParam(params.q);
+  const page = pageParam(params.page);
   const pattern = q ? ilikePattern(q) : undefined;
 
   const supabase = await createClient();
@@ -42,7 +46,7 @@ export default async function AdminAuditPage({
       "id, action, entity_type, entity_id, created_at, profiles:actor_user_id(display_name)",
     )
     .order("created_at", { ascending: false })
-    .limit(100);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   if (pattern) {
     query = query.or(`action.ilike.${pattern},entity_type.ilike.${pattern}`);
@@ -109,9 +113,16 @@ export default async function AdminAuditPage({
         </div>
       )}
 
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={logs?.length ?? 0}
+        query={{ q }}
+      />
+
       <Link
         href="/app/admin"
-        className="text-sm font-medium text-green-strong hover:underline"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
       >
         ← Back to admin
       </Link>

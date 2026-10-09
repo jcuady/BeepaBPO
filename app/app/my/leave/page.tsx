@@ -3,6 +3,8 @@ import { format } from "date-fns";
 import { IconCalendarEvent } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
+import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { CancelLeaveButton } from "@/components/app/leave/cancel-leave-button";
 import { LeaveRequestForm } from "@/components/app/leave/leave-request-form";
 import { StatusBadge } from "@/components/app/status-badge";
@@ -12,17 +14,36 @@ import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
+import { enumParam, pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Leave" };
+
+const PAGE_SIZE = 20;
+const STATUSES = [
+  "pending",
+  "manager_approved",
+  "hr_approved",
+  "approved",
+  "rejected",
+  "cancelled",
+] as const;
 
 function formatMinutes(mins: number) {
   const days = Math.round((mins / 480) * 10) / 10;
   return `${days} day${days === 1 ? "" : "s"}`;
 }
 
-export default async function MyLeavePage() {
+export default async function MyLeavePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+
+  const params = await searchParams;
+  const status = enumParam(params.status, STATUSES);
+  const page = pageParam(params.page);
 
   const employee = await resolveEmployeeForUser(workspace.user.id);
   const supabase = await createClient();
@@ -51,6 +72,14 @@ export default async function MyLeavePage() {
   }[] = [];
 
   if (employee) {
+    let reqQuery = supabase
+      .from("leave_requests")
+      .select("id, start_at, end_at, status, reason, leave_types(name)")
+      .eq("employee_id", employee.id)
+      .order("created_at", { ascending: false })
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    if (status) reqQuery = reqQuery.eq("status", status);
+
     const [{ data: balanceRows }, { data: requestRows }] = await Promise.all([
       supabase
         .from("leave_balances")
@@ -59,12 +88,7 @@ export default async function MyLeavePage() {
         )
         .eq("employee_id", employee.id)
         .eq("period_year", year),
-      supabase
-        .from("leave_requests")
-        .select("id, start_at, end_at, status, reason, leave_types(name)")
-        .eq("employee_id", employee.id)
-        .order("created_at", { ascending: false })
-        .limit(20),
+      reqQuery,
     ]);
 
     balances = (balanceRows ?? []) as typeof balances;
@@ -104,10 +128,10 @@ export default async function MyLeavePage() {
                       key={balance.id}
                       className="rounded-[12px] border border-line px-4 py-3"
                     >
-                      <p className="font-medium text-navy">
+                      <p className="font-medium text-base text-navy sm:text-sm">
                         {balance.leave_types?.name ?? "Leave"}
                       </p>
-                      <p className="mt-1 text-sm text-slate">
+                      <p className="mt-1 text-base text-slate sm:text-sm">
                         {formatMinutes(
                           balance.entitled_minutes -
                             balance.used_minutes -
@@ -138,6 +162,21 @@ export default async function MyLeavePage() {
             <h2 className="font-display text-base font-semibold text-navy">
               Your requests
             </h2>
+
+            <form method="get">
+              <FilterBar showSearch={false}>
+                <FilterSelect
+                  name="status"
+                  label="Status"
+                  defaultValue={status ?? ""}
+                  options={[
+                    { value: "", label: "All statuses" },
+                    ...STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") })),
+                  ]}
+                />
+              </FilterBar>
+            </form>
+
             {requests.length === 0 ? (
               <EmptyState
                 icon={IconCalendarEvent}
@@ -152,13 +191,13 @@ export default async function MyLeavePage() {
                 >
                   <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                     <div>
-                      <p className="font-medium text-navy">
+                      <p className="font-medium text-base text-navy sm:text-sm">
                         {req.leave_types?.name ?? "Leave"} ·{" "}
                         {format(new Date(req.start_at), "MMM d")} –{" "}
                         {format(new Date(req.end_at), "MMM d, yyyy")}
                       </p>
                       {req.reason ? (
-                        <p className="text-sm text-slate">{req.reason}</p>
+                        <p className="text-base text-slate sm:text-sm">{req.reason}</p>
                       ) : null}
                     </div>
                     <div className="flex items-center gap-2">
@@ -171,6 +210,13 @@ export default async function MyLeavePage() {
                 </Card>
               ))
             )}
+
+            <ListPager
+              page={page}
+              pageSize={PAGE_SIZE}
+              rowCount={requests.length}
+              query={{ status }}
+            />
           </div>
         </>
       )}

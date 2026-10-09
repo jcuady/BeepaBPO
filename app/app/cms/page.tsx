@@ -27,14 +27,37 @@ import {
 import { ABOUT_SETTING_KEY, parseAboutSetting } from "@/lib/cms/about";
 import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
+import { ListPager } from "@/components/app/list-pager";
+import { pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "CMS" };
 
-export default async function CmsAdminPage() {
+const PAGE_SIZE = 50;
+
+/**
+ * This page stacks six independent lists rather than putting each behind a tab,
+ * so each one needs its own page key. A single shared `page` param would mean
+ * advancing to testimonials page 3 because you had paginated FAQs. Every list
+ * was `.limit(50)` with no pager, so a marketing manager with 60 FAQs could
+ * never see FAQ 51.
+ */
+export default async function CmsAdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
   requireInternal(workspace);
   requirePermission(workspace, "cms.manage");
+
+  const params = await searchParams;
+  const postsPage = pageParam(params.postsPage);
+  const servicesPage = pageParam(params.servicesPage);
+  const faqsPage = pageParam(params.faqsPage);
+  const industriesPage = pageParam(params.industriesPage);
+  const testimonialsPage = pageParam(params.testimonialsPage);
+  const casesPage = pageParam(params.casesPage);
 
   const supabase = await createClient();
   const [
@@ -50,36 +73,39 @@ export default async function CmsAdminPage() {
       .from("blog_posts")
       .select("id, title, slug, excerpt, body, status, published_at, updated_at")
       .order("updated_at", { ascending: false })
-      .limit(50),
+      .range((postsPage - 1) * PAGE_SIZE, postsPage * PAGE_SIZE - 1),
     supabase
       .from("services")
       .select("id, title, slug, summary, description, status, sort_order, updated_at")
       .order("sort_order", { ascending: true })
-      .limit(50),
+      .range((servicesPage - 1) * PAGE_SIZE, servicesPage * PAGE_SIZE - 1),
     supabase
       .from("faqs")
       .select("id, question, answer, category, status, updated_at")
       .order("sort_order", { ascending: true })
-      .limit(50),
+      .range((faqsPage - 1) * PAGE_SIZE, faqsPage * PAGE_SIZE - 1),
     supabase
       .from("industries")
       .select("id, name, slug, description, status, updated_at")
       .order("sort_order", { ascending: true })
-      .limit(50),
+      .range((industriesPage - 1) * PAGE_SIZE, industriesPage * PAGE_SIZE - 1),
     supabase
       .from("testimonials")
       .select(
         "id, client_name, client_title, company_name, quote, rating, status, updated_at",
       )
       .order("sort_order", { ascending: true })
-      .limit(50),
+      .range(
+        (testimonialsPage - 1) * PAGE_SIZE,
+        testimonialsPage * PAGE_SIZE - 1,
+      ),
     supabase
       .from("case_studies")
       .select(
         "id, title, slug, summary, body, client_name, industry, status, published_at, updated_at",
       )
       .order("updated_at", { ascending: false })
-      .limit(50),
+      .range((casesPage - 1) * PAGE_SIZE, casesPage * PAGE_SIZE - 1),
     supabase
       .from("site_settings")
       .select("value")
@@ -203,6 +229,12 @@ export default async function CmsAdminPage() {
                 </TableBody>
               </Table>
             )}
+            <ListPager
+              page={faqsPage}
+              pageSize={PAGE_SIZE}
+              rowCount={faqs?.length ?? 0}
+              param="faqsPage"
+            />
           </CardContent>
         </Card>
       </div>
@@ -277,6 +309,12 @@ export default async function CmsAdminPage() {
                 </TableBody>
               </Table>
             )}
+            <ListPager
+              page={industriesPage}
+              pageSize={PAGE_SIZE}
+              rowCount={industries?.length ?? 0}
+              param="industriesPage"
+            />
           </CardContent>
         </Card>
       </div>
@@ -356,6 +394,12 @@ export default async function CmsAdminPage() {
                 </TableBody>
               </Table>
             )}
+            <ListPager
+              page={testimonialsPage}
+              pageSize={PAGE_SIZE}
+              rowCount={testimonials?.length ?? 0}
+              param="testimonialsPage"
+            />
           </CardContent>
         </Card>
       </div>
@@ -433,6 +477,12 @@ export default async function CmsAdminPage() {
                 </TableBody>
               </Table>
             )}
+            <ListPager
+              page={casesPage}
+              pageSize={PAGE_SIZE}
+              rowCount={caseStudies?.length ?? 0}
+              param="casesPage"
+            />
           </CardContent>
         </Card>
       </div>
@@ -496,6 +546,12 @@ export default async function CmsAdminPage() {
               </TableBody>
             </Table>
           )}
+          <ListPager
+            page={servicesPage}
+            pageSize={PAGE_SIZE}
+            rowCount={services?.length ?? 0}
+            param="servicesPage"
+          />
         </CardContent>
       </Card>
 
@@ -564,6 +620,12 @@ export default async function CmsAdminPage() {
               </TableBody>
             </Table>
           )}
+          <ListPager
+            page={postsPage}
+            pageSize={PAGE_SIZE}
+            rowCount={posts?.length ?? 0}
+            param="postsPage"
+          />
         </CardContent>
       </Card>
     </PageContainer>

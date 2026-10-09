@@ -28,7 +28,7 @@ export function CancelLeaveButton({ requestId }: { requestId: string }) {
         type="button"
         variant="outline"
         size="sm"
-        className="min-h-9"
+        className="min-h-9 [@media(pointer:coarse)]:min-h-11"
         disabled={pending}
         onClick={() => setOpen(true)}
       >

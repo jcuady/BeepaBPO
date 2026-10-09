@@ -14,6 +14,7 @@ import { applyFieldErrors } from "@/lib/forms/field-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   Dialog,
   DialogContent,
@@ -205,7 +206,7 @@ function AttendanceRecordForm({
           {pickEmployee ? (
             <div className="space-y-2">
               <Label htmlFor="attendance-employee">Employee</Label>
-              <select
+              <NativeSelect
                 id="attendance-employee"
                 className={selectClass}
                 disabled={locked}
@@ -217,7 +218,7 @@ function AttendanceRecordForm({
                     {row.name}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
               {errors.employee_id ? (
                 <p className="text-sm text-destructive">
                   {errors.employee_id.message}
@@ -243,7 +244,7 @@ function AttendanceRecordForm({
           )}
           <div className="space-y-2">
             <Label htmlFor="attendance-status">Status</Label>
-            <select
+            <NativeSelect
               id="attendance-status"
               className={selectClass}
               disabled={locked}
@@ -254,7 +255,7 @@ function AttendanceRecordForm({
                   {status.replace(/_/g, " ")}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">

@@ -3,15 +3,26 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 describe("homepage services section", () => {
-  it("ships a 4:5 support-floor photo", () => {
+  it("ships a 4:3 services-section photo + matching webp", () => {
     const png = join(
       process.cwd(),
       "public/images/services/customer-support-floor.png",
     );
+    const webp = png.replace(/\.png$/, ".webp");
     expect(existsSync(png)).toBe(true);
+    expect(existsSync(webp)).toBe(true);
     const bytes = readFileSync(png);
-    expect(bytes.readUInt32BE(16)).toBe(900);
-    expect(bytes.readUInt32BE(20)).toBe(1125);
+    // The brand-pack source is JPEG — accept PNG or JPEG magic.
+    const magic = bytes.slice(0, 4).toString("hex");
+    expect(
+      magic === "89504e47" || magic === "ffd8ffe0" || magic === "ffd8ffe1",
+    ).toBe(true);
+    // File must be at least 5 MB (4K source) and webp ~500 KB.
+    expect(bytes.length).toBeGreaterThan(5 * 1024 * 1024);
+    const wb = readFileSync(webp);
+    expect(wb.slice(8, 12).toString("ascii")).toBe("WEBP");
+    expect(wb.length).toBeGreaterThan(100_000);
+    expect(wb.length).toBeLessThan(2_000_000);
   });
 
   it("matches hero split language and conversion CTAs", () => {

@@ -12,12 +12,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { Container } from "@/components/beepa/container";
+import { focusRing } from "@/components/beepa/focus-ring";
 import { BRAND, NAV_LINKS } from "@/lib/site";
 import { cn } from "@/lib/utils";
-
-const focusRing =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-strong/45 focus-visible:ring-offset-2";
 
 function isActivePath(href: string, pathname: string) {
   if (href === "/") return pathname === "/";
@@ -30,13 +29,13 @@ function HeaderCta({ className }: { className?: string }) {
       href="/contact"
       data-analytics="header_cta"
       className={cn(
-        "group inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-green px-5 font-display text-sm font-semibold whitespace-nowrap text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green-strong",
+        "group inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-green-strong px-5 font-display text-sm font-semibold whitespace-nowrap text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100",
         focusRing,
         className,
       )}
     >
       {BRAND.cta}
-      <span className="flex size-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5">
+      <span className="flex size-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 motion-reduce:translate-x-0">
         <IconArrowRight stroke={1.75} className="size-3" aria-hidden="true" />
       </span>
     </Link>
@@ -61,7 +60,7 @@ function NavLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative inline-flex min-h-11 items-center font-display text-sm font-medium text-navy transition-[color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] after:pointer-events-none after:absolute after:inset-x-2 after:bottom-2 after:h-px after:bg-green-strong after:opacity-0",
+        "relative inline-flex min-h-11 min-w-11 items-center justify-center px-2 font-display text-sm font-medium text-navy transition-[color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] after:pointer-events-none after:absolute after:inset-x-2 after:bottom-2 after:h-px after:bg-green-strong after:opacity-0",
         active
           ? "text-green-strong after:opacity-100"
           : "[@media(hover:hover)_and_(pointer:fine)]:hover:text-green-strong",
@@ -120,7 +119,7 @@ export function SiteHeader() {
           <Link
             href="/login"
             className={cn(
-              "inline-flex min-h-11 items-center px-1 font-display text-sm font-semibold text-navy transition-[color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:hover:text-green-strong",
+              "inline-flex min-h-11 min-w-11 items-center justify-center px-2 font-display text-sm font-semibold text-navy transition-[color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:hover:text-green-strong",
               focusRing,
             )}
           >
@@ -134,11 +133,13 @@ export function SiteHeader() {
           <Sheet>
             <SheetTrigger
               render={
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   type="button"
                   aria-label="Open menu"
                   className={cn(
-                    "inline-flex size-11 items-center justify-center rounded-full text-navy transition-[background-color,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
+                    "size-11 rounded-full text-navy transition-[background-color,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
                     focusRing,
                   )}
                 />
@@ -208,7 +209,7 @@ export function SiteHeader() {
                       href="/contact"
                       data-analytics="header_cta"
                       className={cn(
-                        "inline-flex min-h-11 w-full items-center justify-center rounded-full bg-green px-6 font-display text-sm font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green-strong",
+                        "inline-flex min-h-11 w-full items-center justify-center rounded-full bg-green-strong px-6 font-display text-sm font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100",
                         focusRing,
                       )}
                     />

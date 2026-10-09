@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { updateCrmProposalStatus } from "@/lib/crm/actions";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const NEXT: Record<string, { value: string; label: string }[]> = {
   draft: [
@@ -69,10 +70,9 @@ export function ProposalStatusForm({
   return (
     <div className="space-y-2">
       <Label htmlFor={`proposal-status-${proposalId}`}>Update status</Label>
-      <select
+      <NativeSelect
         ref={selectRef}
         id={`proposal-status-${proposalId}`}
-        className="flex min-h-11 w-full max-w-xs rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
         defaultValue=""
         disabled={pending}
         onChange={(e) => handleChange(e.target.value)}
@@ -83,7 +83,7 @@ export function ProposalStatusForm({
             {opt.label}
           </option>
         ))}
-      </select>
+      </NativeSelect>
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={handleOpenChange}

@@ -1,0 +1,74 @@
+[
+  {
+    "width": 375,
+    "overflowX": 0,
+    "headingVisible": true,
+    "headingText": "Search. Place.Pay.",
+    "ctaText": "Request a team",
+    "ctaHref": "/contact",
+    "pinSpacers": 0,
+    "steps": [
+      "Search",
+      "Place",
+      "Pay"
+    ],
+    "fadeHidden": 0,
+    "sectionWidth": 375,
+    "olWidth": 343,
+    "file": "e2e-evidence\\manpower-spread\\manpower-375.png"
+  },
+  {
+    "width": 768,
+    "overflowX": 0,
+    "headingVisible": true,
+    "headingText": "Search. Place.Pay.",
+    "ctaText": "Request a team",
+    "ctaHref": "/contact",
+    "pinSpacers": 0,
+    "steps": [
+      "Search",
+      "Place",
+      "Pay"
+    ],
+    "fadeHidden": 0,
+    "sectionWidth": 768,
+    "olWidth": 720,
+    "file": "e2e-evidence\\manpower-spread\\manpower-768.png"
+  },
+  {
+    "width": 1024,
+    "overflowX": 0,
+    "headingVisible": true,
+    "headingText": "Search. Place.Pay.",
+    "ctaText": "Request a team",
+    "ctaHref": "/contact",
+    "pinSpacers": 0,
+    "steps": [
+      "Search",
+      "Place",
+      "Pay"
+    ],
+    "fadeHidden": 0,
+    "sectionWidth": 1024,
+    "olWidth": 960,
+    "file": "e2e-evidence\\manpower-spread\\manpower-1024.png"
+  },
+  {
+    "width": 1440,
+    "overflowX": 0,
+    "headingVisible": true,
+    "headingText": "Search. Place.Pay.",
+    "ctaText": "Request a team",
+    "ctaHref": "/contact",
+    "pinSpacers": 0,
+    "steps": [
+      "Search",
+      "Place",
+      "Pay"
+    ],
+    "fadeHidden": 0,
+    "sectionWidth": 1440,
+    "olWidth": 1216,
+    "file": "e2e-evidence\\manpower-spread\\manpower-1440.png"
+  }
+]

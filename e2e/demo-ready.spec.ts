@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { fillStable } from "./fixtures";
 
 const password = process.env.DEMO_PASSWORD;
 
@@ -8,24 +9,24 @@ test.beforeAll(() => {
 
 async function employeeLogin(page: Page, email: string) {
   await page.goto("/employee/login");
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/^password$/i).fill(password!);
+  await fillStable(page.getByLabel(/email/i), email);
+  await fillStable(page.getByLabel(/^password$/i), password!);
   await page.getByRole("button", { name: /access portal/i }).click();
-  await page.waitForURL(/\/app/, { timeout: 30_000 });
+  await page.waitForURL(/\/app/, { timeout: 30_000, waitUntil: "domcontentloaded" });
 }
 
 async function clientLogin(page: Page, email: string) {
   await page.goto("/login");
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/^password$/i).fill(password!);
+  await fillStable(page.getByLabel(/email/i), email);
+  await fillStable(page.getByLabel(/^password$/i), password!);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForURL(/\/app/, { timeout: 30_000 });
+  await page.waitForURL(/\/app/, { timeout: 30_000, waitUntil: "domcontentloaded" });
 }
 
 test.describe("auth guards", () => {
   test("unauthenticated /app redirects to login", async ({ page }) => {
     await page.goto("/app/employees");
-    await page.waitForURL(/\/(login|employee\/login)/, { timeout: 15_000 });
+    await page.waitForURL(/\/(login|employee\/login)/, { timeout: 15_000, waitUntil: "domcontentloaded" });
     expect(page.url()).toMatch(/login/);
   });
 

@@ -6,7 +6,10 @@ import { resolveWorkspace } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { profileUpdateSchema } from "@/lib/validation/app";
 
-export async function updateProfile(input: unknown): Promise<ActionResult> {
+export async function updateProfile(
+  input: unknown,
+  // rls-gated: profiles update policy scopes to auth.uid() == id.
+): Promise<ActionResult> {
   const workspace = await resolveWorkspace();
   if (!workspace) return { ok: false, error: "You must be signed in." };
 

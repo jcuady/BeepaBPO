@@ -1,0 +1,4 @@
+interface:
+  display_name: "Security Release Gate"
+  short_description: "Decide release readiness with security evidence"
+  default_prompt: "Use $security-release-gate to assess this exact candidate and issue a GO, CONDITIONAL GO, NO-GO, or UNVERIFIED decision."

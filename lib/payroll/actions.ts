@@ -14,7 +14,14 @@ import { createClient } from "@/lib/supabase/server";
 import {
   createPayrollPeriodSchema,
   payrollPeriodReviewSchema,
+  savePayrollSalarySchema,
 } from "@/lib/validation/app";
+import {
+  fixedPayAmount,
+  periodsOverlap,
+  salaryFactorFor,
+  windowForFrequency,
+} from "@/lib/payroll/schedule";
 
 export async function createPayrollPeriod(
   input: unknown,
@@ -41,15 +48,36 @@ export async function createPayrollPeriod(
     };
   }
 
+  const cutoff = windowForFrequency(parsed.data.pay_frequency);
   const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("payroll_periods")
+    .select("id, start_date, end_date")
+    .eq("organization_id", BEEPA_ORG_ID)
+    .lte("start_date", cutoff.end_date)
+    .gte("end_date", cutoff.start_date)
+    .limit(5);
+
+  const clash = (existing ?? []).find((period) =>
+    periodsOverlap(cutoff, period),
+  );
+  if (clash) {
+    return {
+      ok: false,
+      error:
+        "A payroll run already covers this cutoff. Open that period instead of starting another.",
+    };
+  }
+
   const { data: period, error } = await supabase
     .from("payroll_periods")
     .insert({
       organization_id: BEEPA_ORG_ID,
-      name: parsed.data.name.trim(),
-      start_date: parsed.data.start_date,
-      end_date: parsed.data.end_date,
-      pay_date: parsed.data.pay_date,
+      name: cutoff.name,
+      start_date: cutoff.start_date,
+      end_date: cutoff.end_date,
+      pay_date: cutoff.pay_date,
+      pay_frequency: cutoff.frequency,
       status: "draft",
       created_by: workspace.user.id,
     })
@@ -72,13 +100,34 @@ export async function createPayrollPeriod(
       .eq("employment_status", "active")
       .limit(500);
 
+    const salaryByEmployee = new Map<string, number>();
     if (employees?.length) {
+      const { data: salaries } = await supabase
+        .from("payroll_profiles")
+        .select("employee_id, base_salary")
+        .in(
+          "employee_id",
+          employees.map((employee) => employee.id),
+        );
+      for (const row of salaries ?? []) {
+        salaryByEmployee.set(row.employee_id, Number(row.base_salary ?? 0));
+      }
+    }
+
+    if (employees?.length) {
+      const factor = salaryFactorFor(cutoff.frequency);
       const { error: seedError } = await supabase.from("payroll_records").insert(
-        employees.map((e) => ({
-          payroll_period_id: period.id,
-          employee_id: e.id,
-          status: "draft" as const,
-        })),
+        employees.map((e) => {
+          const pay = fixedPayAmount(salaryByEmployee.get(e.id) ?? 0, factor);
+          return {
+            payroll_period_id: period.id,
+            employee_id: e.id,
+            status: "draft" as const,
+            basic_pay: pay,
+            gross_pay: pay,
+            net_pay: pay,
+          };
+        }),
       );
 
       if (seedError) {
@@ -102,9 +151,10 @@ export async function createPayrollPeriod(
     entityId: period.id,
     after: {
       name: period.name,
-      start_date: parsed.data.start_date,
-      end_date: parsed.data.end_date,
-      pay_date: parsed.data.pay_date,
+      start_date: cutoff.start_date,
+      end_date: cutoff.end_date,
+      pay_date: cutoff.pay_date,
+      pay_frequency: cutoff.frequency,
       seeded_records: seeded,
     },
   });
@@ -353,4 +403,77 @@ export async function reviewPayrollPeriod(
           ? "Payroll period finalized."
           : `Advanced past ${advanced.stepName}.`,
   };
+}
+
+/** Fixed monthly salary and PH pay frequency. No tax or statutory fields. */
+export async function saveEmployeePayrollSettings(
+  input: unknown,
+): Promise<ActionResult> {
+  const workspace = await resolveWorkspace();
+  if (!workspace) return { ok: false, error: "You must be signed in." };
+  if (!workspace.isInternal) return { ok: false, error: "Staff access required." };
+  if (!can(workspace.permissions, "payroll.manage")) {
+    return { ok: false, error: "You do not have permission to edit payroll settings." };
+  }
+
+  const parsed = savePayrollSalarySchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      error: "Check the salary and frequency.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data: employee } = await supabase
+    .from("employees")
+    .select("id")
+    .eq("id", parsed.data.employee_id)
+    .eq("organization_id", BEEPA_ORG_ID)
+    .maybeSingle();
+
+  if (!employee) return { ok: false, error: "Employee not found." };
+
+  const { data: profile, error } = await supabase
+    .from("payroll_profiles")
+    .upsert(
+      {
+        employee_id: parsed.data.employee_id,
+        pay_frequency: parsed.data.pay_frequency,
+        compensation_type: "monthly_salary",
+        base_salary: parsed.data.base_salary,
+        currency: "PHP",
+        active: true,
+      },
+      { onConflict: "employee_id" },
+    )
+    .select("id")
+    .single();
+
+  if (error || !profile) {
+    return { ok: false, error: error?.message ?? "Unable to save salary." };
+  }
+
+  await supabase
+    .from("employees")
+    .update({ payroll_profile_id: profile.id })
+    .eq("id", parsed.data.employee_id);
+
+  await logAudit(supabase, {
+    actorUserId: workspace.user.id,
+    organizationId: BEEPA_ORG_ID,
+    action: "payroll.settings.save",
+    entityType: "payroll_profile",
+    entityId: profile.id,
+    after: {
+      employee_id: parsed.data.employee_id,
+      base_salary: parsed.data.base_salary,
+      pay_frequency: parsed.data.pay_frequency,
+    },
+  });
+
+  revalidatePath("/app/payroll/settings");
+  revalidatePath("/app/payroll");
+  return { ok: true, message: "Salary saved." };
 }

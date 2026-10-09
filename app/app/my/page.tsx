@@ -23,6 +23,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { formatWorkedMinutes } from "@/lib/attendance/minutes";
 import { PageContainer } from "@/components/app/page-container";
+import { formatZonedTime } from "@/lib/attendance/zoned-time";
 
 export default async function EmployeeDashboardPage() {
   const workspace = await resolveWorkspace();
@@ -194,12 +195,12 @@ export default async function EmployeeDashboardPage() {
           title="Today's Shift"
           value={
             todayShift?.scheduled_start
-              ? format(new Date(todayShift.scheduled_start), "h:mm a")
+              ? formatZonedTime(todayShift.scheduled_start)
               : "—"
           }
           subtitle={
             todayShift?.scheduled_end
-              ? `Until ${format(new Date(todayShift.scheduled_end), "h:mm a")}`
+              ? `Until ${formatZonedTime(todayShift.scheduled_end)}`
               : "Schedule not assigned yet"
           }
           icon={IconCalendar}
@@ -379,7 +380,7 @@ export default async function EmployeeDashboardPage() {
                     </span>
                     <span className="text-slate">
                       {shift.scheduled_start
-                        ? format(new Date(shift.scheduled_start), "h:mm a")
+                        ? formatZonedTime(shift.scheduled_start)
                         : "—"}
                     </span>
                   </li>
@@ -396,7 +397,7 @@ export default async function EmployeeDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-slate">
+            <p className="text-base text-slate sm:text-sm">
               Company announcements are delivered as notifications for now.
             </p>
             <Button

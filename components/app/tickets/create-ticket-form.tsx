@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { z } from "zod";
 
 type TicketInput = z.infer<typeof ticketSchema>;
@@ -54,9 +55,8 @@ export function CreateTicketForm() {
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="category">Category</Label>
-        <select
+        <NativeSelect
           id="category"
-          className="flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm text-navy"
           {...form.register("category")}
         >
           {CATEGORIES.map((cat) => (
@@ -64,7 +64,7 @@ export function CreateTicketForm() {
               {cat.replace(/_/g, " ")}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         {errors.category && (
           <p className="text-sm text-destructive">{errors.category.message}</p>
         )}

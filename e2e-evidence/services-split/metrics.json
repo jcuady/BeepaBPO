@@ -1,0 +1,114 @@
+[
+  {
+    "width": 375,
+    "overlapPx": 0,
+    "overflowX": 0,
+    "headingText": "BPO teams thatfit your process.",
+    "headingVisible": true,
+    "ctaText": "Request a team",
+    "ctaHref": "/contact",
+    "roles": [
+      "Customer support",
+      "Back office support",
+      "Virtual assistants",
+      "Sales support"
+    ],
+    "headingBox": {
+      "left": 16,
+      "right": 359,
+      "top": 100,
+      "bottom": 178
+    },
+    "mediaBox": {
+      "left": 16,
+      "right": 359,
+      "top": 458,
+      "bottom": 715
+    },
+    "file": "e2e-evidence\\services-split\\services-375.png"
+  },
+  {
+    "width": 768,
+    "overlapPx": 0,
+    "overflowX": 0,
+    "headingText": "BPO teams thatfit your process.",
+    "headingVisible": true,
+    "ctaText": "Request a team",
+    "ctaHref": "/contact",
+    "roles": [
+      "Customer support",
+      "Back office support",
+      "Virtual assistants",
+      "Sales support"
+    ],
+    "headingBox": {
+      "left": 24,
+      "right": 744,
+      "top": 124,
+      "bottom": 202
+    },
+    "mediaBox": {
+      "left": 24,
+      "right": 744,
+      "top": 447,
+      "bottom": 897
+    },
+    "file": "e2e-evidence\\services-split\\services-768.png"
+  },
+  {
+    "width": 1024,
+    "overlapPx": 0,
+    "overflowX": 0,
+    "headingText": "BPO teams thatfit your process.",
+    "headingVisible": true,
+    "ctaText": "Request a team",
+    "ctaHref": "/contact",
+    "roles": [
+      "Customer support",
+      "Back office support",
+      "Virtual assistants",
+      "Sales support"
+    ],
+    "headingBox": {
+      "left": 32,
+      "right": 413,
+      "top": 142,
+      "bottom": 240
+    },
+    "mediaBox": {
+      "left": 528,
+      "right": 992,
+      "top": 124,
+      "bottom": 472
+    },
+    "file": "e2e-evidence\\services-split\\services-1024.png"
+  },
+  {
+    "width": 1440,
+    "overlapPx": 0,
+    "overflowX": 0,
+    "headingText": "BPO teams thatfit your process.",
+    "headingVisible": true,
+    "ctaText": "Request a team",
+    "ctaHref": "/contact",
+    "roles": [
+      "Customer support",
+      "Back office support",
+      "Virtual assistants",
+      "Sales support"
+    ],
+    "headingBox": {
+      "left": 112,
+      "right": 600,
+      "top": 179,
+      "bottom": 300
+    },
+    "mediaBox": {
+      "left": 736,
+      "right": 1328,
+      "top": 124,
+      "bottom": 568
+    },
+    "file": "e2e-evidence\\services-split\\services-1440.png"
+  }
+]

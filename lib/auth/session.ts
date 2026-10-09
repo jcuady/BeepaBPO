@@ -33,7 +33,9 @@ export async function setSessionCookie(payload: SessionPayload) {
 /** @deprecated */
 export async function clearSessionCookie() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  // Explicitly local: a bare signOut() defaults to "global" and would revoke
+  // every session this user has on every device.
+  await supabase.auth.signOut({ scope: "local" });
 }
 
 export async function getSessionFromCookies(): Promise<SessionPayload | null> {

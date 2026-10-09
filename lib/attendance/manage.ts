@@ -11,17 +11,10 @@ import {
   attendanceRecordDeleteSchema,
   attendanceRecordUpsertSchema,
 } from "@/lib/validation/app";
+import { DEFAULT_TIMEZONE, zonedWorkDateTime } from "@/lib/attendance/zoned-time";
 import type { Database } from "@/types/database";
 
 type AttendanceStatus = Database["public"]["Enums"]["attendance_record_status"];
-
-function combineLocal(workDate: string, time: string | undefined): string | null {
-  if (!time) return null;
-  const hm = time.slice(0, 5);
-  const dt = new Date(`${workDate}T${hm}:00`);
-  if (Number.isNaN(dt.getTime())) return null;
-  return dt.toISOString();
-}
 
 function workedFromClocks(
   clockIn: string | null,
@@ -84,8 +77,18 @@ export async function upsertAttendanceRecord(
     workDate = before.work_date;
   }
 
-  const clockIn = combineLocal(workDate, parsed.data.clock_in);
-  const clockOut = combineLocal(workDate, parsed.data.clock_out);
+  // Manual entry records the wall clock the manager typed, in the employee's
+  // own timezone, matching how clock_event resolves it. Using the server's zone
+  // here would put every manual record 8 hours out of step with clocked ones.
+  const { data: employeeRow } = await supabase
+    .from("employees")
+    .select("default_timezone")
+    .eq("id", employeeId)
+    .maybeSingle();
+  const timeZone = employeeRow?.default_timezone || DEFAULT_TIMEZONE;
+
+  const clockIn = zonedWorkDateTime(workDate, parsed.data.clock_in, timeZone);
+  const clockOut = zonedWorkDateTime(workDate, parsed.data.clock_out, timeZone);
   if (clockIn && clockOut && new Date(clockOut) <= new Date(clockIn)) {
     return {
       ok: false,

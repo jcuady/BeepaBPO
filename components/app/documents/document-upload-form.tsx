@@ -84,9 +84,9 @@ export function DocumentUploadForm({
           disabled={pending}
           accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.txt,application/pdf,image/*"
         />
-        <p className="text-xs text-slate">PDF, images, Word, or text · max 20MB</p>
+        <p className="text-base text-slate sm:text-xs">PDF, images, Word, or text · max 20MB</p>
       </div>
-      <Button type="submit" size="sm" className="min-h-9" disabled={pending}>
+      <Button type="submit" size="sm" className="min-h-9 [@media(pointer:coarse)]:min-h-11" disabled={pending}>
         {pending ? "Uploading…" : "Upload"}
       </Button>
     </form>

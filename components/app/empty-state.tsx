@@ -34,7 +34,7 @@ export function EmptyState({
         {title}
       </h3>
       {description ? (
-        <p className="mt-1 max-w-sm text-sm text-slate">{description}</p>
+        <p className="mt-1 max-w-sm text-base text-slate sm:text-sm">{description}</p>
       ) : null}
       {actionLabel && actionHref ? (
         <Button

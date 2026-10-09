@@ -10,6 +10,7 @@ import { applyFieldErrors } from "@/lib/forms/field-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { z } from "zod";
 
 type EmployeeInput = z.infer<typeof employeeUpdateSchema>;
@@ -60,7 +61,7 @@ export function EmployeeEditForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="employment_status">Status</Label>
-          <select
+          <NativeSelect
             id="employment_status"
             className={selectClass}
             {...form.register("employment_status")}
@@ -70,7 +71,7 @@ export function EmployeeEditForm({
             <option value="suspended">Suspended</option>
             <option value="terminated">Terminated</option>
             <option value="resigned">Resigned</option>
-          </select>
+          </NativeSelect>
           {errors.employment_status ? (
             <p className="text-sm text-destructive" role="alert">
               {errors.employment_status.message}
@@ -79,7 +80,7 @@ export function EmployeeEditForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="employment_type">Employment type</Label>
-          <select
+          <NativeSelect
             id="employment_type"
             className={selectClass}
             {...form.register("employment_type")}
@@ -89,7 +90,7 @@ export function EmployeeEditForm({
             <option value="contractual">Contractual</option>
             <option value="part_time">Part time</option>
             <option value="intern">Intern</option>
-          </select>
+          </NativeSelect>
         </div>
         <div className="space-y-2">
           <Label htmlFor="work_email">Work email</Label>

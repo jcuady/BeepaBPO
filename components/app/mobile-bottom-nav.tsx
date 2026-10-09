@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { SerializedWorkspace } from "@/lib/app/serialize-workspace";
-import { getMobileNav } from "@/lib/app/navigation";
+import { activeNavHref, getMobileNav } from "@/lib/app/navigation";
 
 type MobileBottomNavProps = {
   workspace: SerializedWorkspace;
@@ -13,6 +13,10 @@ type MobileBottomNavProps = {
 export function MobileBottomNav({ workspace }: MobileBottomNavProps) {
   const pathname = usePathname();
   const items = getMobileNav(workspace);
+  const activeHref = activeNavHref(
+    pathname,
+    items.map((item) => item.href),
+  );
 
   return (
     <nav
@@ -21,12 +25,7 @@ export function MobileBottomNav({ workspace }: MobileBottomNavProps) {
     >
       <ul className="flex items-stretch">
         {items.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== "/app/my" &&
-              item.href !== "/app/client" &&
-              item.href !== "/app/applicant" &&
-              pathname.startsWith(item.href));
+          const isActive = item.href === activeHref;
           const Icon = item.icon;
           return (
             <li key={item.href} className="flex-1">

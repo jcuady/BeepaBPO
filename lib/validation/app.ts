@@ -386,6 +386,9 @@ export const createPayrollPeriodSchema = z
     start_date: z.string().min(1, "Start date is required."),
     end_date: z.string().min(1, "End date is required."),
     pay_date: z.string().min(1, "Pay date is required."),
+    pay_frequency: z
+      .enum(["semi_monthly", "monthly", "weekly"])
+      .default("semi_monthly"),
     seed_records: z.coerce.boolean().optional().default(true),
   })
   .refine((data) => data.end_date >= data.start_date, {
@@ -396,6 +399,15 @@ export const createPayrollPeriodSchema = z
     message: "Pay date must be on or after period end.",
     path: ["pay_date"],
   });
+
+export const savePayrollSalarySchema = z.object({
+  employee_id: z.string().uuid(),
+  base_salary: z.coerce
+    .number()
+    .min(0, "Salary cannot be negative.")
+    .max(10_000_000, "Salary is too large."),
+  pay_frequency: z.enum(["semi_monthly", "monthly", "weekly"]),
+});
 
 export const payrollPeriodReviewSchema = z.object({
   payroll_period_id: z.string().uuid(),

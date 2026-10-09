@@ -61,7 +61,7 @@ export function ClockInOutCard({
             </>
           )}
         </Button>
-        <p className="text-sm text-slate">{locationLabel}</p>
+        <p className="text-base text-slate sm:text-sm">{locationLabel}</p>
       </CardContent>
     </Card>
   );

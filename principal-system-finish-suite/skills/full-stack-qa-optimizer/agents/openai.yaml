@@ -1,0 +1,4 @@
+interface:
+  display_name: "Full-Stack QA Optimizer"
+  short_description: "Verify frontend, backend, data, and performance"
+  default_prompt: "Use $full-stack-qa-optimizer to perform a risk-based full-stack QA pass and document verified flows and defects."

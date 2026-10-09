@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import type { DemoPortal, DemoUser } from "@/lib/demo/users";
 
 type DemoLoginPickerProps = {
@@ -36,15 +37,17 @@ export function DemoLoginPicker({
 
       <div className="mt-3 flex flex-wrap gap-2">
         {matching.map((user) => (
-          <button
+          <Button
             key={user.email}
+            variant="outline"
+            size="sm"
             type="button"
-            className="inline-flex min-h-9 items-center rounded-[8px] border border-line bg-white px-3 text-left text-xs font-medium text-navy hover:border-green-strong hover:text-green-strong"
+            className="min-h-9 text-xs"
             onClick={() => onFill(user.email, password)}
             title={user.email}
           >
             {user.label}
-          </button>
+          </Button>
         ))}
       </div>
 

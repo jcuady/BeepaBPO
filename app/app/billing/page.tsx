@@ -4,6 +4,8 @@ import { format } from "date-fns";
 import { IconCoin } from "@tabler/icons-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
+import { FilterBar, FilterSelect } from "@/components/app/filter-bar";
+import { ListPager } from "@/components/app/list-pager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageContainer } from "@/components/app/page-container";
@@ -12,10 +14,26 @@ import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth
 import { can, canAny } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { enumParam, pageParam, stringParam, ilikePattern } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Billing" };
 
-export default async function BillingPage() {
+const STATUSES = [
+  "draft",
+  "issued",
+  "sent",
+  "partially_paid",
+  "paid",
+  "overdue",
+  "void",
+] as const;
+const PAGE_SIZE = 50;
+
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
   requireInternal(workspace);
@@ -25,17 +43,28 @@ export default async function BillingPage() {
     requirePermission(workspace, "billing.read");
   }
 
+  const params = await searchParams;
+  const q = stringParam(params.q);
+  const status = enumParam(params.status, STATUSES);
+  const page = pageParam(params.page);
+  const pattern = q ? ilikePattern(q) : undefined;
+
   const canIssue = can(workspace.permissions, "billing.manage");
   const supabase = await createClient();
 
+  let query = supabase
+    .from("invoices")
+    .select(
+      "id, invoice_number, period_start, period_end, due_date, total, currency, status, organizations(name)",
+    )
+    .order("due_date", { ascending: false })
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+
+  if (status) query = query.eq("status", status);
+  if (pattern) query = query.ilike("invoice_number", pattern);
+
   const [{ data: invoices }, clientsResult] = await Promise.all([
-    supabase
-      .from("invoices")
-      .select(
-        "id, invoice_number, period_start, period_end, due_date, total, currency, status, organizations(name)",
-      )
-      .order("due_date", { ascending: false })
-      .limit(50),
+    query,
     canIssue
       ? supabase
           .from("organizations")
@@ -67,6 +96,20 @@ export default async function BillingPage() {
         </Card>
       ) : null}
 
+      <form method="get">
+        <FilterBar placeholder="Search invoice number…" defaultValue={q}>
+          <FilterSelect
+            name="status"
+            label="Status"
+            defaultValue={status ?? ""}
+            options={[
+              { value: "", label: "All statuses" },
+              ...STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") })),
+            ]}
+          />
+        </FilterBar>
+      </form>
+
       {!invoices?.length ? (
         <EmptyState
           icon={IconCoin}
@@ -93,7 +136,7 @@ export default async function BillingPage() {
                         {invoice.invoice_number}
                       </Link>
                     </p>
-                    <p className="text-sm text-slate">
+                    <p className="text-base text-slate sm:text-sm">
                       {org?.name ?? "Client"} ·{" "}
                       {format(new Date(invoice.period_start), "MMM d")} –{" "}
                       {format(new Date(invoice.period_end), "MMM d, yyyy")} · Due{" "}
@@ -112,7 +155,7 @@ export default async function BillingPage() {
                     </div>
                     <Link
                       href={`/app/billing/${invoice.id}`}
-                      className="text-sm font-medium text-green-strong hover:underline"
+                      className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
                     >
                       Open
                     </Link>
@@ -123,6 +166,13 @@ export default async function BillingPage() {
           })}
         </div>
       )}
+
+      <ListPager
+        page={page}
+        pageSize={PAGE_SIZE}
+        rowCount={invoices?.length ?? 0}
+        query={{ q, status }}
+      />
     </PageContainer>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -50,28 +51,34 @@ export function CommandSearch({
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Search pages…" />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup heading="Navigate">
-          {links.map((item) => {
-            const Icon = item.icon;
-            return (
-              <CommandItem
-                key={item.href}
-                value={`${item.title} ${item.href}`}
-                onSelect={() => {
-                  setOpen(false);
-                  router.push(item.href);
-                }}
-              >
-                <Icon stroke={1.75} className="size-4" />
-                <span>{item.title}</span>
-              </CommandItem>
-            );
-          })}
-        </CommandGroup>
-      </CommandList>
+      {/* `Command` supplies the cmdk store. Without it CommandList/Item call
+          useCommandState() against an undefined store and the whole palette
+          throws "Cannot read properties of undefined (reading 'subscribe')",
+          rendering an empty dialog. */}
+      <Command>
+        <CommandInput placeholder="Search pages…" />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Navigate">
+            {links.map((item) => {
+              const Icon = item.icon;
+              return (
+                <CommandItem
+                  key={item.href}
+                  value={`${item.title} ${item.href}`}
+                  onSelect={() => {
+                    setOpen(false);
+                    router.push(item.href);
+                  }}
+                >
+                  <Icon stroke={1.75} className="size-4" />
+                  <span>{item.title}</span>
+                </CommandItem>
+              );
+            })}
+          </CommandGroup>
+        </CommandList>
+      </Command>
     </CommandDialog>
   );
 }

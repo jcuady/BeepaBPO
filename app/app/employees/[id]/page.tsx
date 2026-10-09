@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { format, subDays } from "date-fns";
+import { format, parseISO, subDays } from "date-fns";
 import { notFound, redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
@@ -135,7 +135,7 @@ export default async function EmployeeDetailPage({
             <span className="text-slate">Hire date</span>{" "}
             <span className="font-medium text-navy">
               {employee.hire_date
-                ? format(new Date(employee.hire_date), "MMM d, yyyy")
+                ? format(parseISO(employee.hire_date), "MMM d, yyyy")
                 : "—"}
             </span>
           </p>
@@ -289,7 +289,7 @@ export default async function EmployeeDetailPage({
               <CardContent className="flex flex-wrap items-center justify-between gap-2 p-4">
                 <div>
                   <p className="font-medium text-navy">
-                    {format(new Date(row.work_date), "EEE, MMM d")}
+                    {format(parseISO(row.work_date), "EEE, MMM d")}
                   </p>
                   <p className="text-sm text-slate">
                     {row.worked_minutes != null
@@ -306,7 +306,7 @@ export default async function EmployeeDetailPage({
 
       <Link
         href="/app/employees"
-        className="text-sm font-medium text-green-strong hover:underline"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
       >
         ← Back to employees
       </Link>

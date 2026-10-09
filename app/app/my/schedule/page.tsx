@@ -10,6 +10,7 @@ import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { PageContainer } from "@/components/app/page-container";
+import { formatZonedTime } from "@/lib/attendance/zoned-time";
 
 export const metadata: Metadata = { title: "Schedule" };
 
@@ -67,11 +68,11 @@ export default async function MySchedulePage() {
                   </p>
                   <p className="text-sm text-slate">
                     {shift.scheduled_start
-                      ? format(new Date(shift.scheduled_start), "h:mm a")
+                      ? formatZonedTime(shift.scheduled_start)
                       : "—"}{" "}
                     –{" "}
                     {shift.scheduled_end
-                      ? format(new Date(shift.scheduled_end), "h:mm a")
+                      ? formatZonedTime(shift.scheduled_end)
                       : "—"}
                   </p>
                 </div>

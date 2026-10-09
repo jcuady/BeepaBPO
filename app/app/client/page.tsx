@@ -23,6 +23,12 @@ import { resolveWorkspace } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { PageContainer } from "@/components/app/page-container";
 import { slaCompliancePercent } from "@/lib/tickets/sla";
+import {
+  ABSENT_STATUSES,
+  ATTENDANCE_SERIES,
+  ATTENDANCE_SERIES_LABELS,
+  REST_STATUSES,
+} from "@/lib/attendance/status-colors";
 
 export default async function ClientDashboardPage() {
   const workspace = await resolveWorkspace();
@@ -138,30 +144,33 @@ export default async function ClientDashboardPage() {
     };
   });
 
+  // Series colours and the status groupings come from the shared attendance
+  // module, so this dashboard and the team donut cannot drift apart. They were
+  // three separate hardcoded palettes before the design-system audit.
   const donutData = [
     {
-      name: "Present",
+      name: ATTENDANCE_SERIES_LABELS.present,
       value: todayRows.filter((r) => r.status === "present").length,
-      fill: "#119446",
+      fill: ATTENDANCE_SERIES.present,
     },
     {
-      name: "On Leave",
+      name: ATTENDANCE_SERIES_LABELS.leave,
       value: todayRows.filter((r) => r.status === "leave").length,
-      fill: "#f59e0b",
+      fill: ATTENDANCE_SERIES.leave,
     },
     {
-      name: "Rest / holiday",
+      name: ATTENDANCE_SERIES_LABELS.rest,
       value: todayRows.filter((r) =>
-        ["rest_day", "holiday"].includes(r.status ?? ""),
+        REST_STATUSES.includes(r.status ?? ""),
       ).length,
-      fill: "#0ea5e9",
+      fill: ATTENDANCE_SERIES.rest,
     },
     {
-      name: "Absent",
+      name: ATTENDANCE_SERIES_LABELS.absent,
       value: todayRows.filter((r) =>
-        ["absent", "incomplete", null].includes(r.status),
+        [...ABSENT_STATUSES, null].includes(r.status),
       ).length,
-      fill: "#667085",
+      fill: ATTENDANCE_SERIES.absent,
     },
   ];
 
@@ -275,7 +284,7 @@ export default async function ClientDashboardPage() {
           </CardHeader>
           <CardContent>
             {(pendingApprovals ?? 0) === 0 ? (
-              <p className="text-sm text-slate">No timesheets awaiting your review.</p>
+              <p className="text-base text-slate sm:text-sm">No timesheets awaiting your review.</p>
             ) : (
               <p className="text-sm text-navy">
                 {pendingApprovals} timesheet day{pendingApprovals === 1 ? "" : "s"} awaiting
@@ -356,7 +365,7 @@ export default async function ClientDashboardPage() {
                     >
                       {ticket.subject}
                     </Link>
-                    <p className="text-xs text-slate">
+                    <p className="text-base text-slate sm:text-xs">
                       {ticket.ticket_number} · {ticket.status.replace(/_/g, " ")}
                     </p>
                   </li>
@@ -373,7 +382,7 @@ export default async function ClientDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-slate">
+            <p className="text-base text-slate sm:text-sm">
               Client-visible KPIs live on the performance page once QA publishes them.
             </p>
             <Button
@@ -423,7 +432,7 @@ export default async function ClientDashboardPage() {
         </CardHeader>
         <CardContent>
           {managerEmbed?.primary_contact_name ? (
-            <p className="text-sm text-navy">
+            <p className="text-base text-navy sm:text-sm">
               Primary contact: {managerEmbed.primary_contact_name}
             </p>
           ) : (
