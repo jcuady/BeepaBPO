@@ -60,6 +60,7 @@ export default async function ApplicantPage() {
         />
       ) : null}
       <PageHeader
+        title="My Applications"
         name={workspace.profile.first_name}
         subtitle="Track your application status and next steps."
         quote="Every great career starts with a single step forward."

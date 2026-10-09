@@ -81,7 +81,7 @@ export default async function RecruitmentApplicantDetailPage({
 
   return (
     <PageContainer size="narrow">
-      <PageHeader name={workspace.profile.first_name} subtitle={name} />
+      <PageHeader title={name} name={workspace.profile.first_name} subtitle="Applicant profile" />
 
       <Card>
         <CardHeader>

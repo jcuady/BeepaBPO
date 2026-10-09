@@ -45,6 +45,7 @@ export default async function MySchedulePage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Schedule"
         name={workspace.profile.first_name}
         subtitle="View your assigned shifts and calendar."
       />

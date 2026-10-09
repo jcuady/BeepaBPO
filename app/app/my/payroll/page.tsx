@@ -54,6 +54,7 @@ export default async function MyPayrollPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Payroll"
         name={workspace.profile.first_name}
         subtitle="Approved payroll summaries with PDF payslip download."
       />

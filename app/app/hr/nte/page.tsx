@@ -82,6 +82,7 @@ export default async function HrNtePage({
   return (
     <PageContainer>
       <PageHeader
+        title="NTE Cases"
         name={workspace.profile.first_name}
         subtitle="Notice to Explain cases."
       />

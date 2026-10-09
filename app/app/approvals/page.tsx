@@ -145,6 +145,7 @@ export default async function ApprovalsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Approvals"
         name={name}
         subtitle="Pending items. Review opens the queue you can act on."
       />

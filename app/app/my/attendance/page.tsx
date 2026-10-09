@@ -64,6 +64,7 @@ export default async function MyAttendancePage() {
         />
       ) : null}
       <PageHeader
+        title="Attendance"
         name={workspace.profile.first_name}
         subtitle="Clock in or out, then review your history and corrections."
       />

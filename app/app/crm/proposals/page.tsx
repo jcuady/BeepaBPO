@@ -93,6 +93,7 @@ export default async function CrmProposalsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="CRM Proposals"
         name={workspace.profile.first_name}
         subtitle="Draft and track sales proposals linked to deals."
       />

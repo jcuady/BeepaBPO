@@ -79,6 +79,7 @@ export default async function CrmDealDetailPage({
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="CRM Deal"
         name={workspace.profile.first_name}
         subtitle={deal.title}
       />

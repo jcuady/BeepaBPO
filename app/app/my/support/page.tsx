@@ -17,6 +17,7 @@ export default async function MySupportPage() {
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="Support"
         name={workspace.profile.first_name}
         subtitle="Get help from the Beepa support team."
       />

@@ -18,6 +18,9 @@
 | Production build | **PASS** | `next build` exit 0 |
 | E2E (Playwright) | **PASS** | **100 passed, 4 skipped, 0 failed** — prod build, cold `.auth`, 59.5s |
 | Ship gate | **PASS** | `verify-all.mjs` → **18/18 passed. "All checks passed. Ship it."** exit 0 |
+| **Role × page sweep** | **PASS** | `audit-role-sweep.mjs` — every nav-reachable page for all 13 roles, plus 10 marketing pages: **0 console errors, 0 page errors, 0 error states**. Download endpoints recorded separately (they are not navigable by design) |
+| **Data population** | **PASS** | `audit-data-population.mjs` — every table the app queries, distinguishing **missing** from **empty** (a `head:true` count against a nonexistent table returns `null` with no error). 945 rows across app tables |
+| **Live workflow exercise** | **PASS** | `qa-exercise-leave-workflow.mjs` — employee → team lead → HR, asserting against the database rather than the DOM: **12/12** |
 | Authorization (routes) | **PASS** | `audit-rbac.mjs` **75/78 (96%)** + 3 structural exemptions, exit 0 |
 | Authorization (actions) | **PASS** | `audit-action-rbac.mjs` **63/64**, exit 0 |
 | Page wiring | **PASS** | `audit-page-wiring.mjs` scanned 269 `.tsx`, **0 candidates** (validated by negative control) |

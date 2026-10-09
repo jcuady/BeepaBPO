@@ -68,6 +68,7 @@ export default async function MyCashAdvancesPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Cash Advances"
         name={workspace.profile.first_name}
         subtitle="Request and track cash advances."
       />

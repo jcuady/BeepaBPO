@@ -7,6 +7,7 @@ import {
   advanceApprovalRequest,
   createApprovalRequest,
 } from "@/lib/approvals/engine";
+import { buildLeaveDecisionNotificationBody, buildLeaveRequestNotificationBody } from "@/lib/leave/notification-body";
 import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
@@ -111,6 +112,17 @@ export async function createLeaveRequest(
     const { notifyUser } = await import("@/lib/notifications/notify");
     const { createAdminClient } = await import("@/lib/supabase/admin");
     const admin = createAdminClient();
+
+    // Name the leave type. A notification that says only "a team member
+    // submitted a leave request" is unactionable: the live table held 27 of them,
+    // byte-identical, so a team lead could not tell any two apart.
+    const { data: leaveType } = await admin
+      .from("leave_types")
+      .select("name")
+      .eq("id", parsed.data.leave_type_id)
+      .maybeSingle();
+    const typeName = leaveType?.name?.trim();
+
     const { data: rows } = await admin
       .from("membership_roles")
       .select(
@@ -119,6 +131,14 @@ export async function createLeaveRequest(
       .eq("roles.code", "team_lead")
       .eq("organization_memberships.organization_id", employee.organization_id)
       .eq("organization_memberships.status", "active");
+
+    const body = buildLeaveRequestNotificationBody({
+      requesterName: workspace.profile?.display_name,
+      leaveTypeName: typeName,
+      startDate: parsed.data.start_date,
+      endDate: parsed.data.end_date,
+    });
+
     for (const row of rows ?? []) {
       const membership = row.organization_memberships as unknown as {
         user_id: string;
@@ -130,14 +150,17 @@ export async function createLeaveRequest(
         userId: membership.user_id,
         type: "leave.request",
         title: "Leave request pending",
-        body: "A team member submitted a leave request for review.",
+        body,
         actionUrl: "/app/leave",
         entityType: "leave_request",
         entityId: leaveRequest.id,
       });
     }
-  } catch {
-    // Non-blocking
+  } catch (notifyError) {
+    // Still non-blocking for the request itself, but no longer silent: a
+    // swallowed throw here means a manager never learns a request is waiting,
+    // and nothing in the logs says why.
+    console.error("[leave] notification failed", notifyError);
   }
 
   revalidatePath("/app/my/leave");
@@ -277,9 +300,13 @@ export async function reviewLeaveRequest(
 
   if (advanced.completed) {
     try {
+      // `employees` has no `display_name` column — adding it to this embed made
+      // PostgREST reject the whole select, `leaveRow` came back null, and the
+      // decision notification silently never fired. Caught only by exercising
+      // the workflow end to end.
       const { data: leaveRow } = await supabase
         .from("leave_requests")
-        .select("employee_id, employees(profile_id)")
+        .select("start_at, end_at, employees(profile_id)")
         .eq("id", parsed.data.leave_request_id)
         .maybeSingle();
       const profileId = (
@@ -287,24 +314,31 @@ export async function reviewLeaveRequest(
       )?.profile_id;
       if (profileId) {
         const { notifyUser } = await import("@/lib/notifications/notify");
+        const approved = parsed.data.action === "approve";
+        const body = leaveRow?.start_at
+          ? buildLeaveDecisionNotificationBody({
+              startDate: leaveRow.start_at.slice(0, 10),
+              endDate: (leaveRow.end_at ?? leaveRow.start_at).slice(0, 10),
+              approved,
+              decidedBy: workspace.profile?.display_name,
+            })
+          : `Your leave request was ${approved ? "approved" : "rejected"}.`;
         await notifyUser({
           userId: profileId,
           type: "leave.decision",
-          title:
-            parsed.data.action === "approve"
-              ? "Leave approved"
-              : "Leave rejected",
-          body:
-            parsed.data.action === "approve"
-              ? "Your leave request was approved."
-              : "Your leave request was rejected.",
+          title: approved ? "Leave approved" : "Leave rejected",
+          body,
           actionUrl: "/app/my/leave",
           entityType: "leave_request",
           entityId: parsed.data.leave_request_id,
         });
+      } else {
+        console.error(
+          `[leave] decision notification skipped: no employee profile for leave ${parsed.data.leave_request_id}`,
+        );
       }
-    } catch {
-      // Non-blocking
+    } catch (notifyError) {
+      console.error("[leave] decision notification failed", notifyError);
     }
   }
 

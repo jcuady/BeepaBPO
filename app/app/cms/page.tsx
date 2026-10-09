@@ -118,6 +118,7 @@ export default async function CmsAdminPage({
   return (
     <PageContainer>
       <PageHeader
+        title="CMS"
         name={workspace.profile.first_name}
         subtitle="Create, edit, and publish About, industries, testimonials, case studies, services, resources, and FAQs."
       />

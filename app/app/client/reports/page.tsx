@@ -49,6 +49,7 @@ export default async function ClientReportsPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Reports"
         name={workspace.profile.first_name}
         subtitle="Attendance, timesheet, and roster snapshot for the last 14 days."
       />

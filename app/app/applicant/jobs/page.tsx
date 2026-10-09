@@ -75,6 +75,7 @@ export default async function ApplicantJobsPage() {
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="Open roles"
         name={workspace.profile.first_name}
         subtitle="Open roles at Beepa BPO."
         quote="Every great career starts with a single step forward."

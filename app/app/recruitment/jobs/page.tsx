@@ -53,6 +53,7 @@ export default async function RecruitmentJobsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Job Posts"
         name={workspace.profile.first_name}
         subtitle="Create, publish, edit, and close job posts."
       />

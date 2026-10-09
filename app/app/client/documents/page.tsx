@@ -65,6 +65,7 @@ export default async function ClientDocumentsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Documents"
         name={workspace.profile.first_name}
         subtitle="Shared client documents. Downloads use time-limited signed links."
       />

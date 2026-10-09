@@ -49,6 +49,7 @@ export default async function ClientTicketsPage({
     return (
       <PageContainer>
         <PageHeader
+          title="Tickets"
           name={workspace.profile.first_name}
           subtitle="Track support and service tickets."
         />
@@ -94,6 +95,7 @@ export default async function ClientTicketsPage({
         ]}
       />
       <PageHeader
+        title="Tickets"
         name={workspace.profile.first_name}
         subtitle="Track support and service tickets."
       />

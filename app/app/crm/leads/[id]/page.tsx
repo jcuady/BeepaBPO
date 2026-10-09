@@ -50,6 +50,7 @@ export default async function CrmLeadDetailPage({
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="CRM Lead"
         name={workspace.profile.first_name}
         subtitle={lead.company_name}
       />

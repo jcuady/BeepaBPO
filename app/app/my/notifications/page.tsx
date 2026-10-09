@@ -49,6 +49,7 @@ export default async function MyNotificationsPage({
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="Notifications"
         name={workspace.profile.first_name}
         subtitle="Stay updated on approvals, payroll, and announcements."
       />

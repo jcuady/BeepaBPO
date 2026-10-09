@@ -97,6 +97,7 @@ export default async function RecruitmentApplicantsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Applicants"
         name={workspace.profile.first_name}
         subtitle="Review candidates and application stages."
       />

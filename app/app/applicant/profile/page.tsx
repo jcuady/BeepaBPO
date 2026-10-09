@@ -17,6 +17,7 @@ export default async function ApplicantProfilePage() {
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="Applicant Profile"
         name={profile.first_name}
         subtitle="Keep your applicant profile up to date."
       />

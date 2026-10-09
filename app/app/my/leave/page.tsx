@@ -98,6 +98,7 @@ export default async function MyLeavePage({
   return (
     <PageContainer>
       <PageHeader
+        title="Leave"
         name={workspace.profile.first_name}
         subtitle="Request time off and track leave balances."
       />

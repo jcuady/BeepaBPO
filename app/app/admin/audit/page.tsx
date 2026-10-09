@@ -57,6 +57,7 @@ export default async function AdminAuditPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Audit Log"
         name={workspace.profile.first_name}
         subtitle="Recent audited mutations."
       />

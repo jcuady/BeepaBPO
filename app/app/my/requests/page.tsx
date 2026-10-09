@@ -69,6 +69,7 @@ export default async function MyRequestsPage() {
         ]}
       />
       <PageHeader
+        title="Requests"
         name={workspace.profile.first_name}
         subtitle="Track tickets, cash advances, and approval requests."
       />

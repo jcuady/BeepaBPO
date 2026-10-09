@@ -54,6 +54,7 @@ export default async function StaffTicketDetailPage({
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="Ticket"
         name={workspace.profile.first_name}
         subtitle={ticket.ticket_number}
       />

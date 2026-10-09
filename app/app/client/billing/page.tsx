@@ -44,7 +44,7 @@ export default async function ClientBillingPage({
     if (settings && !settings.allow_billing_view) {
       return (
         <PageContainer>
-          <PageHeader name={workspace.profile.first_name} subtitle="Billing" />
+          <PageHeader title="Billing" name={workspace.profile.first_name} subtitle="Billing" />
           <EmptyState
             icon={IconCoin}
             title="Billing unavailable"
@@ -83,6 +83,7 @@ export default async function ClientBillingPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Billing"
         name={workspace.profile.first_name}
         subtitle="Open an invoice for line items and payment history."
       />

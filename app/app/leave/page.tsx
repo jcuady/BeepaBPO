@@ -72,6 +72,7 @@ export default async function LeaveApprovalsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Leave Approvals"
         name={workspace.profile.first_name}
         subtitle="Review and action leave requests."
       />

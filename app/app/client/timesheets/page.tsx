@@ -94,6 +94,7 @@ export default async function ClientTimesheetsPage({
       return (
         <PageContainer>
           <PageHeader
+            title="Timesheets"
             name={workspace.profile.first_name}
             subtitle="Timesheets"
           />
@@ -131,6 +132,7 @@ export default async function ClientTimesheetsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Timesheets"
         name={workspace.profile.first_name}
         subtitle={
           showActions

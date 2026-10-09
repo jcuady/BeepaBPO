@@ -49,6 +49,7 @@ export default async function ClientNotificationsPage({
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="Notifications"
         name={workspace.profile.first_name}
         subtitle="Stay updated on tickets, billing, and team activity."
       />

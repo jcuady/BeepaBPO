@@ -73,6 +73,7 @@ export default async function AttendanceCorrectionsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Attendance Corrections"
         name={workspace.profile.first_name}
         subtitle="Review and resolve employee correction requests."
       />

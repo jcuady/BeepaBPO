@@ -60,6 +60,7 @@ export default async function ClientSettingsPage() {
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="Settings"
         name={workspace.profile.first_name}
         subtitle="Read-only organization profile and portal flags. Contact Beepa to change these."
       />

@@ -81,6 +81,7 @@ export default async function BillingPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Billing"
         name={workspace.profile.first_name}
         subtitle="Issue invoices and open a row to record payments."
       />

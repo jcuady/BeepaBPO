@@ -59,6 +59,7 @@ export default async function MyDocumentsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Documents"
         name={workspace.profile.first_name}
         subtitle="Your employee documents. Downloads use time-limited signed links."
       />

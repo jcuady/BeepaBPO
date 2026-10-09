@@ -75,6 +75,7 @@ export default async function CrmLeadsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="CRM Leads"
         name={workspace.profile.first_name}
         subtitle="Track inbound leads and pipeline status."
       />

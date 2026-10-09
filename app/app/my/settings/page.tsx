@@ -16,6 +16,7 @@ export default async function MySettingsPage() {
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="Settings"
         name={workspace.profile.first_name}
         subtitle="Account security and preferences."
       />

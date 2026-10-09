@@ -41,6 +41,7 @@ export default async function TicketSlaPoliciesPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Ticket SLA"
         name={workspace.profile.first_name}
         subtitle="Beepa priority SLA targets for new tickets. Existing tickets keep their due times."
       />

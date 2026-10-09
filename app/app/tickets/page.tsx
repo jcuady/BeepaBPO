@@ -81,6 +81,7 @@ export default async function InternalTicketsPage({
     <PageContainer>
       <RealtimeRefresh tables={[{ table: "tickets" }]} />
       <PageHeader
+        title="Tickets"
         name={workspace.profile.first_name}
         subtitle="Manage support queues and update ticket status."
       />

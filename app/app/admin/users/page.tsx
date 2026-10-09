@@ -146,6 +146,7 @@ export default async function AdminUsersPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Users"
         name={workspace.profile.first_name}
         subtitle="Invite teammates, change internal roles, or revoke access."
       />

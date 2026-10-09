@@ -53,6 +53,7 @@ export default async function BillingInvoiceDetailPage({
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="Invoice"
         name={workspace.profile.first_name}
         subtitle="Invoice detail"
       />

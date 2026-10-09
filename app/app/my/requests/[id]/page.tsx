@@ -43,6 +43,7 @@ export default async function MyTicketDetailPage({
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="My Ticket"
         name={workspace.profile.first_name}
         subtitle={ticket.ticket_number}
       />

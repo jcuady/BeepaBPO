@@ -64,6 +64,7 @@ export default async function ClientAttendancePage({
       return (
         <PageContainer>
           <PageHeader
+            title="Attendance"
             name={workspace.profile.first_name}
             subtitle="Attendance"
           />
@@ -108,6 +109,7 @@ export default async function ClientAttendancePage({
   return (
     <PageContainer>
       <PageHeader
+        title="Attendance"
         name={workspace.profile.first_name}
         subtitle="Monitor team attendance and exceptions."
       />

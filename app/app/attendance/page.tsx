@@ -169,6 +169,7 @@ export default async function AttendanceAdminPage({
     <PageContainer>
       <RealtimeRefresh tables={[{ table: "attendance_records" }]} />
       <PageHeader
+        title="Attendance"
         name={workspace.profile.first_name}
         subtitle={`Team attendance · ${weekLabel}`}
       />

@@ -84,6 +84,7 @@ export default async function EmployeesPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Employees"
         name={workspace.profile.first_name}
         subtitle="Search and browse employee records. New hires come from Recruitment → Convert."
       />

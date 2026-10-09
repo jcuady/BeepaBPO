@@ -49,6 +49,7 @@ export default async function ApplicantNotificationsPage({
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="Notifications"
         name={workspace.profile.first_name}
         subtitle="Updates on your applications and Beepa announcements."
       />

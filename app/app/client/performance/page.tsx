@@ -49,6 +49,7 @@ export default async function ClientPerformancePage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Performance"
         name={workspace.profile.first_name}
         subtitle="Track team productivity and quality metrics."
       />

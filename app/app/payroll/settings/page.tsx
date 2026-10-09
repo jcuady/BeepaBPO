@@ -78,6 +78,7 @@ export default async function PayrollSettingsPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Payroll settings"
         name={workspace.profile.first_name}
         subtitle="Set each monthly salary and pay frequency. Runs pay that fixed amount. Tax and statutory benefits are not deducted."
       />

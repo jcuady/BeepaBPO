@@ -70,6 +70,7 @@ export default async function PayrollPeriodDetailPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Payroll Period"
         name={workspace.profile.first_name}
         subtitle={period.name}
       />

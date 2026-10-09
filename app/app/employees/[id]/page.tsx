@@ -99,7 +99,7 @@ export default async function EmployeeDetailPage({
 
   return (
     <PageContainer>
-      <PageHeader name={workspace.profile.first_name} subtitle={name} />
+      <PageHeader title={name} name={workspace.profile.first_name} subtitle={`Employee profile · ${workspace.profile.first_name}`} />
 
       <Card>
         <CardHeader>

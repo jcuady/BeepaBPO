@@ -61,6 +61,7 @@ export async function HrPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="HR"
         name={workspace.profile.first_name}
         subtitle="Manage employees, documents, and HR workflows."
       />
@@ -115,6 +116,7 @@ export async function PayrollAdminPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Payroll"
         name={workspace.profile.first_name}
         subtitle="Run payroll cycles and manage compensation."
       />
@@ -175,6 +177,7 @@ export async function RecruitmentPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Recruitment"
         name={workspace.profile.first_name}
         subtitle="Manage applicants, pipelines, and hiring."
       />
@@ -299,6 +302,7 @@ export async function CrmPage() {
         tables={[{ table: "crm_leads" }, { table: "crm_deals" }]}
       />
       <PageHeader
+        title="CRM"
         name={workspace.profile.first_name}
         subtitle="Work the pipeline — new leads, open value, and aging risks."
       />
@@ -479,6 +483,7 @@ export async function ClientsAdminPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Clients"
         name={workspace.profile.first_name}
         subtitle="Manage client organizations and portal invites."
       />
@@ -621,6 +626,7 @@ export async function ReportsAdminPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Reports"
         name={workspace.profile.first_name}
         subtitle="Operational snapshot across workforce, tickets, and CRM."
       />
@@ -691,6 +697,7 @@ export async function AdminPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Admin"
         name={workspace.profile.first_name}
         subtitle="System administration and configuration."
       />
@@ -793,6 +800,7 @@ export async function OwnerDashboardPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Overview"
         name={workspace.profile.first_name}
         subtitle="Organization-wide overview and key metrics."
       />

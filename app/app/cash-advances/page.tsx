@@ -84,6 +84,7 @@ export default async function CashAdvancesQueuePage({
   return (
     <PageContainer>
       <PageHeader
+        title="Cash Advances"
         name={workspace.profile.first_name}
         subtitle="HR queue for cash advance requests."
       />

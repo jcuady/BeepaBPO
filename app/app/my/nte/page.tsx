@@ -23,6 +23,7 @@ export default async function MyNtePage() {
     return (
       <PageContainer size="narrow">
         <PageHeader
+          title="My NTE"
           name={workspace.profile.first_name}
           subtitle="Notice to Explain"
         />
@@ -48,6 +49,7 @@ export default async function MyNtePage() {
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="My NTE"
         name={workspace.profile.first_name}
         subtitle="Your Notice to Explain cases."
       />

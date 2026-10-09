@@ -59,6 +59,7 @@ export default async function ClientApprovalsPage() {
       return (
         <PageContainer>
           <PageHeader
+            title="Approvals"
             name={workspace.profile.first_name}
             subtitle="Timesheet approvals"
           />
@@ -81,6 +82,7 @@ export default async function ClientApprovalsPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Approvals"
         name={workspace.profile.first_name}
         subtitle={
           showActions

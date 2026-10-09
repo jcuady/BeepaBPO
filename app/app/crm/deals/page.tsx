@@ -106,6 +106,7 @@ export default async function CrmDealsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="CRM Deals"
         name={workspace.profile.first_name}
         subtitle="Track opportunities through the sales pipeline."
       />

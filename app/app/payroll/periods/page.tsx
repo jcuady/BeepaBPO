@@ -74,6 +74,7 @@ export default async function PayrollPeriodsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Payroll Periods"
         name={workspace.profile.first_name}
         subtitle="Open payroll cycles and review employee draft records."
       />

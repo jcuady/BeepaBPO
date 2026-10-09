@@ -40,6 +40,7 @@ export default async function RecruitmentJobDetailPage({
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="Job post"
         name={workspace.profile.first_name}
         subtitle={job.title}
       />

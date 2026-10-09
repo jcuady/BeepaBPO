@@ -30,6 +30,7 @@ export default async function AdminWorkflowsPage() {
   return (
     <PageContainer>
       <PageHeader
+        title="Approval Workflows"
         name={workspace.profile.first_name}
         subtitle="View-only map of active approval workflows and steps (DB-driven)."
       />

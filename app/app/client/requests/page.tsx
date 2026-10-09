@@ -52,6 +52,7 @@ export default async function ClientRequestsPage({
     return (
       <PageContainer>
         <PageHeader
+          title="Requests"
           name={workspace.profile.first_name}
           subtitle="Staffing and operational requests tracked as tickets."
         />
@@ -89,6 +90,7 @@ export default async function ClientRequestsPage({
   return (
     <PageContainer>
       <PageHeader
+        title="Requests"
         name={workspace.profile.first_name}
         subtitle="Staffing and operational requests tracked as tickets."
       />

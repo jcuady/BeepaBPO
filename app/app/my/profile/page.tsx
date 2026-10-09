@@ -16,6 +16,7 @@ export default async function MyProfilePage() {
   return (
     <PageContainer size="narrow">
       <PageHeader
+        title="Profile"
         name={profile.first_name}
         subtitle="Your account and employment profile."
       />

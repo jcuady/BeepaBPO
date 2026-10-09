@@ -59,6 +59,7 @@ export default async function ClientTeamPage({
   return (
     <PageContainer>
       <PageHeader
+        title="My Team"
         name={workspace.profile.first_name}
         subtitle="Assigned roster and engagement status (not live clock-in)."
       />
