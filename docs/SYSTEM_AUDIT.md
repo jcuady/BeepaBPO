@@ -1076,7 +1076,8 @@ exit code, and prove the negative control fires.
 ### 21.8 State after this section
 
 `tsc --noEmit` 0 · `eslint . --max-warnings=0` 0 · **vitest 504/504 across 84 files** ·
-release gate **18/18, "All checks passed. Ship it."**, exit 0 ·
+release gate **18/18, "All checks passed. Ship it."**, exit 0 — **twice consecutively**
+after the §21.7 fix ·
 Playwright **100 passed / 4 skipped / 0 failed** against a production build on port
 3100 (unchanged; no application code was touched in §21.7, only the probe and its
 wrapper).
@@ -1086,6 +1087,10 @@ after, with no database change and no application change in between. The earlier
 "18/18" in this document's history was a number I carried forward from a run whose
 step-16 result was a timing artefact. It was re-measured rather than reasserted,
 which is the only reason the difference is visible at all.
+
+The confirmation run matters for the same reason. One green run from a probe that
+was just rewritten is exactly the evidence that would have hidden this bug the first
+time, so the gate was run twice before the number was written down.
 
 Commits `3706a09` → `fbed912` → `63aa1a7` on
 `fix/auth-signout-scope-and-payroll-coherence`. Not pushed.
