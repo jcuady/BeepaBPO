@@ -1,6 +1,6 @@
 # PROJECT_STATUS — Beepa / BeepoBeepa
 
-**Updated:** 2026-10-09 · **Branch:** `fix/auth-signout-scope-and-payroll-coherence`
+**Updated:** 2026-10-10 · **Branch:** `fix/auth-signout-scope-and-payroll-coherence`
 > No HEAD SHA is pinned here on purpose: a doc committed in commit X cannot name X, so the pin is always stale by the next commit. Live state is `node scripts/verify-all.mjs`; the numbers below are the ones that command prints.
 **Overall:** **Shippable.** The 18-step gate passes end to end: *"All checks passed. Ship it."* exit 0. Zero pending migrations, zero overlapping payroll periods, realtime delivery confirmed end to end. Forward roadmap: `docs/REMAINING_WORK.md`.
 
@@ -22,7 +22,7 @@
 | **Data population** | **PASS** | `audit-data-population.mjs` — every table the app queries, distinguishing **missing** from **empty** (a `head:true` count returns `null` for a nonexistent table *or* a nonexistent column, with no error). **996 rows** across app tables |
 | **Live workflow exercises** | **PASS** | `qa-exercise-leave-workflow.mjs` — employee → team lead → HR, asserting against the database rather than the DOM: **13/13**. `qa-exercise-ticket-workflow.mjs` — client admin → assignee: **10/10**. `qa-exercise-admin-workflow.mjs` — cron, test push, role change, revoke: **18/18** (1 path BLOCKED by Supabase email rate limiting). `qa-exercise-hire-workflow.mjs` — stage → offer → hire: **18/18**. `qa-exercise-crm-workflow.mjs` — lead → deal → proposal → won → client org: **21/21**. `qa-exercise-payroll-workflow.mjs` — salary → run → recalc → 2-step approval → finalized: **19/19**. All restore what they change and assert the restoration |
 | **Admin role integrity** | **PASS** | `tests/admin-role-assignment.test.ts` — 12 cases. Changing a role used to delete every role a person held, silently stripping the `employee` self-service baseline (8 permissions: leave, payroll, attendance, tickets, approvals, cash advance, NTE, performance). Inviting staff granted no baseline at all. Both fixed; guard is mutation-proved |
-| **Action coverage** | **PARTIAL** | **83** exported server actions across 21 modules, counted by `qa-action-inventory.mjs`. **57 exercised end to end** against the database (leave 3, admin 5, CRM 7, payroll 5, auth 8, attendance 6, CMS 14, recruitment 7, ticket 2); the rest render (471 page visits, 0 console errors) and are unit-covered, but have not been driven through the UI. Per-domain breakdown in `docs/QA_REPORT.md` §5 |
+| **Action coverage** | **PARTIAL** | **83** exported server actions across 21 modules, counted by `qa-action-inventory.mjs`. **60 exercised end to end** against the database (leave 3, admin 5, CRM 7, payroll 5, auth 8, attendance 6, CMS 14, recruitment 7, NTE 3, ticket 2); the rest render (471 page visits, 0 console errors) and are unit-covered, but have not been driven through the UI. Per-domain breakdown in `docs/QA_REPORT.md` §5 |
 | **Notification integrity** | **PASS** | `qa-verify-notifications.mjs` — 58 rows, **58 distinct bodies**, 0 legacy generic strings, **0 dead links**. The 27 orphaned rows carrying the old body were deleted via `cleanup-orphan-notifications.mjs` and reseeded from live records |
 | **Page headings** | **PASS** | `page-heading-contract.test.ts` — 79 `<PageHeader>` call sites across `app/` **and** `lib/`; **76 now carry a `title`**, 2 are documented exceptions. Before the fix, 78 of 79 rendered the greeting `Good morning, Demo.` — byte-identical, because every seeded profile is named "Demo" |
 | Authorization (routes) | **PASS** | `audit-rbac.mjs` **75/78 (96%)** + 3 structural exemptions, exit 0 |
@@ -257,6 +257,35 @@ be created, edited, published and archived, never removed — Archive may be the
 intended soft delete, so this is documented, not changed), and `cms.manage` is held
 by **exactly one role, `marketing`** — not `owner`, not `super_admin`, not `hr`,
 which extends the `super_admin` finding below.
+
+**NTE: three actions driven, and two of them were broken (2026-10-10).**
+`qa-exercise-nte-workflow.mjs`, 24/24 — HR issues, the named employee answers, HR
+resolves with a disciplinary outcome. Two real defects:
+
+- **P0.** `submitNteResponse` inserted the response, then updated the case status —
+  but `nte_cases` UPDATE is gated on `nte.manage` and an employee holds `nte.self`,
+  so RLS rejected it. The error was never read, and the action returned "Response
+  submitted." anyway: the text was stored, the case stayed `issued`, and the employee
+  was told it had been filed. The tempting fix — an `for update` policy on
+  `is_self_employee(employee_id)` — would let an employee set `resolution_type` and
+  `resolved_at` on their own Notice to Explain, because RLS cannot restrict columns.
+  Instead `20261010120000` moves both halves into one narrow SECURITY DEFINER
+  function that resolves ownership from `auth.uid()` and **cannot resolve a case**.
+  Applied; the employee keeps no direct UPDATE on `nte_cases`.
+- **P1.** `createNteCase` stored `response_due_at` raw from a `datetime-local` input
+  (the attendance-correction bug, one module over). HR set 17:00 on 9 March; the
+  employee saw "Due Mar 10, 2026", because the render happens in UTC+8. Fixed on
+  both halves — `naiveDateTimeToZoned` on write, a new `formatZonedDate` on read.
+  I had reasoned from the code that this was latent and harmless, because the page
+  renders the date only; measuring what the employee actually sees is what caught it.
+- **P2.** The `/app/hr/nte` search box read `q`, echoed it back and passed it to the
+  pager, but never applied it to the query. "Page wiring (no dead controls)" passed
+  throughout — that audit sees a control that renders and submits, not one that is
+  ignored afterwards.
+
+The stale-tab race is now watched refusing rather than assumed: the resolve form only
+renders while a case is open, so the guard inside `resolveNteCase` is unreachable by
+clicking twice. The exercise opens a second HR tab first and submits the stale form.
 
 **Recruitment: the five remaining actions driven, no defect (2026-10-10).**
 `qa-exercise-recruitment-workflow.mjs`, 23/23 — createJobPost, updateJobPost,

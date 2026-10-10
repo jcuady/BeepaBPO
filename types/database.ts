@@ -4847,6 +4847,10 @@ export type Database = {
       is_client_member: { Args: { p_org_id: string }; Returns: boolean }
       is_internal_user: { Args: never; Returns: boolean }
       is_self_employee: { Args: { p_employee_id: string }; Returns: boolean }
+      submit_nte_response: {
+        Args: { p_nte_case_id: string; p_response_text: string }
+        Returns: string
+      }
       user_permission_codes: { Args: never; Returns: string[] }
     }
     Enums: {

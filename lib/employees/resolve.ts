@@ -3,7 +3,7 @@ import type { Tables } from "@/types/database";
 
 export type EmployeeRow = Pick<
   Tables<"employees">,
-  "id" | "organization_id" | "job_title" | "employee_number" | "profile_id"
+  "id" | "organization_id" | "job_title" | "employee_number" | "profile_id" | "default_timezone"
 >;
 
 export async function resolveEmployeeForUser(
@@ -12,7 +12,7 @@ export async function resolveEmployeeForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("employees")
-    .select("id, organization_id, job_title, employee_number, profile_id")
+    .select("id, organization_id, job_title, employee_number, profile_id, default_timezone")
     .eq("profile_id", userId)
     .eq("employment_status", "active")
     .maybeSingle();

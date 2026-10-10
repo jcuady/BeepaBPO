@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { createClient } from "@/lib/supabase/server";
+import { DEFAULT_TIMEZONE, formatZonedDate } from "@/lib/attendance/zoned-time";
 
 export const metadata: Metadata = { title: "My NTE" };
 
@@ -90,7 +91,7 @@ export default async function MyNtePage() {
                     Incident{" "}
                     {format(new Date(row.incident_date), "MMM d, yyyy")}
                     {row.response_due_at
-                      ? ` · Due ${format(new Date(row.response_due_at), "MMM d, yyyy")}`
+                      ? ` · Due ${formatZonedDate(row.response_due_at, employee.default_timezone || DEFAULT_TIMEZONE)}`
                       : ""}
                   </p>
                   {responses.map((resp) => (

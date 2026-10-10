@@ -512,6 +512,77 @@ The added control for the new `LATE` assertion initially shipped wrong: it mutat
 never touches — so it failed while telling us nothing about the guard. Split into two
 independent mutations, one per pinned fact.
 
+### P0 — An employee's Notice to Explain was accepted and silently thrown away. Fixed.
+
+`submitNteResponse` inserts into `nte_responses`, then runs
+`update nte_cases set status = 'under_review'`. The insert always worked — the
+employee holds `nte.self`. **The update never did.**
+
+`nte_cases` carries exactly two policies (`20260906001000_hr_payroll.sql:343,351`):
+a SELECT policy, and an `for all` policy gated on `nte.manage`. An employee holds
+`nte.self`, not `nte.manage`, so RLS rejected the update. The action never read the
+error, so it returned **"Response submitted."** anyway.
+
+Measured on the demo tenant: the response text was stored, the case stayed at
+`issued`, and the employee was told it had been filed. The employee believes they
+have answered; HR's list shows a case that reads as unanswered while carrying a
+response nobody is told to look for. Nothing anywhere reported an error, because
+there was nowhere for one to surface.
+
+**The obvious fix is worse than the bug.** A `for update` policy scoped to
+`is_self_employee(employee_id)` would let any employee update their own case — and
+RLS cannot restrict *columns*, so they could set `resolution_type`, `resolved_by`,
+`resolved_at` and `resolution_notes` on their own Notice to Explain. That turns a
+status bug into an employee being able to mark their own case cleared, or record a
+dismissal against themselves.
+
+Fixed instead by moving the whole write into one narrow `SECURITY DEFINER` function
+(`20261010120000_nte_response_submission.sql`, applied): it resolves the caller's own
+employee row from `auth.uid()`, checks ownership and that the case is open, inserts
+the response and flips the status, and returns the new status. It **cannot resolve a
+case** — no resolution columns are in scope at all. The employee keeps no direct
+UPDATE on `nte_cases`. The action now reads the error and distinguishes the three
+failure modes, so a refusal is a refusal rather than a silent success.
+
+### P1 — An HR response deadline reached the employee a day late. Fixed.
+
+`createNteCase` stored `response_due_at` straight from a `datetime-local` input —
+`lib/hr/nte-actions.ts:48` — exactly the write that was a user-visible bug in the
+attendance correction path one module over. Postgres casts a bare timestamp as UTC.
+
+HR set a deadline of **17:00 on 9 March**. The row stored `2026-03-09T17:00Z`, and
+`/app/my/nte` rendered **"Due Mar 10, 2026"** — the employee is told they have a day
+longer than HR granted, or, with an early-morning deadline, a day less.
+
+**My first reading of this was wrong, and the assertion caught it.** Reasoning from
+the code alone, `my/nte` renders the *date only* and the date component round-trips
+through a UTC cast unchanged, so I expected no user-visible effect and wrote the
+offset down as a latent note. Measuring what the employee actually sees showed
+otherwise: the render happens in Asia/Manila (UTC+8), so a 17:00 instant lands on the
+next calendar day there. The note would have shipped a real defect described as
+harmless.
+
+Fixed on both halves, because either alone is only half a fix: the write now converts
+through `naiveDateTimeToZoned` in the employee's own timezone (mirroring
+`reviewAttendanceCorrection`), and the render uses a new `formatZonedDate` instead of
+`format(new Date(...))`, so the deadline is not read in whatever zone the host happens
+to run in. After the fix the stored instant matches the wall clock HR typed exactly,
+and the employee sees "Due Mar 9, 2026".
+
+### P2 — The HR NTE search box did nothing. Fixed.
+
+`/app/hr/nte` renders `FilterBar placeholder="Search subject or case number…"`, reads
+`q` with `stringParam`, echoes it back as `defaultValue`, and passes it to the pager.
+It never applied it: the Supabase query had no `.or()` and no `.ilike()`. Typing a
+case number returned the entire unfiltered list, with nothing indicating the search
+had been ignored.
+
+This is worth naming as a class, because the release gate has a "Page wiring (no dead
+controls)" step and it passed. That audit can see a control that renders and submits;
+it cannot see a control that submits correctly and is then ignored by the query it was
+meant to reach. Fixed with the same `ilikePattern` + `.or()` the tickets and audit-log
+pages already use.
+
 ---
 
 ## 3. Data population
@@ -1034,6 +1105,60 @@ One guard is unreachable from the UI: after applying, the form is replaced, so t
 click. It is asserted at the data level instead — exactly one application exists
 for the role.
 
+### NTE workflow — `qa-exercise-nte-workflow.mjs`, 24/24
+
+The most sensitive workflow in the product: HR issues a Notice to Explain, the named
+employee answers, HR resolves it with a disciplinary outcome. Three actors, so the
+assertions that matter are about **who may act**, not about whether a form saves.
+
+| # | Assertion | Result |
+|---|---|---|
+| 1 | HR reaches `/app/hr/nte` with the case form | PASS |
+| 2 | `incident_type` is a free-text field, not an enum select | PASS |
+| 3 | `createNteCase` writes a case | PASS |
+| 4 | New case starts in status `issued` | PASS |
+| 5 | Case is issued by the HR user | PASS |
+| 6 | Incident date stored as typed | PASS |
+| 7 | Employee sees their own case on `/app/my/nte` | PASS |
+| 8 | **Deadline shown to the employee is the date HR typed** | PASS *(failed first: showed Mar 10 for a Mar 9 deadline)* |
+| 9 | Employee gets a response form for their case | PASS |
+| 10 | `submitNteResponse` writes a response | PASS |
+| 11 | **Responding moves the case to `under_review`** | PASS *(failed first: stayed `issued`)* |
+| 12 | Second case created for another employee | PASS |
+| 13 | **Another employee's NTE case is not visible to this employee** | PASS |
+| 14 | The HR search filter narrows the list to the case under test | PASS *(failed first: 2 of 3 cases)* |
+| 15 | Resolve form is shown while the case is open | PASS |
+| 16 | Resolve confirmation dialog opens | PASS |
+| 17 | `resolveNteCase` sets status `resolved` | PASS |
+| 18 | `resolveNteCase` stores the resolution type | PASS |
+| 19 | A non-cleared resolution writes a disciplinary action | PASS |
+| 20 | **A stale tab is refused: cannot be resolved from status `resolved`** | PASS |
+| 21 | The refused attempt wrote no second disciplinary action | PASS |
+| 22 | The refusal left the resolution untouched | PASS |
+| 23 | No unexpected console errors | PASS |
+| 24 | No page errors | PASS |
+
+Three assertions failed on the first run and each turned out to be a real product
+defect, not a harness problem: 8, 11 and 14 are written up in §2.
+
+**The stale-tab case is the interesting one.** `/app/hr/nte/page.tsx:136` renders the
+resolve form only while a case is open, so the UI already stops you resolving twice —
+which also means the guard inside `resolveNteCase` cannot be reached by clicking twice.
+It is reachable the way it actually matters: two HR tabs. The run opens a second tab
+in the same browser context *before* the first resolves, then submits the stale form,
+so the guard is watched refusing rather than merely observed to exist. It refused with
+`cannot be resolved from status "resolved"`, wrote no second disciplinary action, and
+left the resolution untouched.
+
+That required getting the harness right first. The second tab is created with
+`hrContext.newPage()`, not `browser.newPage()`: `browser.newPage()` opens a **fresh
+browser context with its own cookie jar**, so the "stale HR tab" landed on `/login` and
+rendered no resolve form at all. The run then reported the guard as missing while
+actually testing an anonymous visitor. Both tabs are also narrowed with the page's own
+`?q=` search filter, because two open cases each render an identically labelled
+"Resolve NTE" button and `.first()` would fill one case's notes and submit the
+other's.
+
 ### Traps this pass hit in its own tooling
 
 Recorded because each produced a report full of defects that did not exist:
@@ -1132,15 +1257,15 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/payroll` | 5 | **5** |
 | `lib/documents` | 3 | 0 |
 | `lib/notifications` | 3 | 0 |
-| `lib/hr/nte-actions` | 3 | 0 |
+| `lib/hr/nte-actions` | 3 | **3** |
 | `lib/attendance/*` (4 modules) | 8 | **6** (client-timesheet pair not driven) |
 | `lib/billing` | 2 | 0 |
 | `lib/cash-advance` | 2 | 0 |
 | `lib/clients` (1) | 1 | 0 |
 | `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | 0 |
-| **Total** | **83** | **57** |
+| **Total** | **83** | **60** |
 
-**57 of 83 actions are exercised end to end.** The other 26 render correctly and
+**60 of 83 actions are exercised end to end.** The other 23 render correctly and
 are covered by unit tests and typecheck, but no committed script has yet driven
 them through a browser and asserted the resulting rows. That gap is stated
 plainly rather than papered over by counting the page sweep as proof — a button
@@ -1229,6 +1354,7 @@ node scripts/audit/qa-exercise-auth-workflow.mjs    # 35 assertions (signup repo
 node scripts/audit/qa-exercise-attendance-workflow.mjs # 31 assertions
 node scripts/audit/qa-exercise-cms-workflow.mjs        # 42 assertions
 node scripts/audit/qa-exercise-recruitment-workflow.mjs # 23 assertions
+node scripts/audit/qa-exercise-nte-workflow.mjs      # 24 assertions
 
 # recovery, if a run was killed before its cleanup
 node scripts/audit/qa-repair-applicant-membership.mjs   # --apply

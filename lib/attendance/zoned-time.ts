@@ -110,6 +110,23 @@ export function formatZonedTime(
   }).format(date);
 }
 
+/** Same, for a date only, e.g. an NTE response deadline. */
+export function formatZonedDate(
+  iso: string | null | undefined,
+  timeZone: string = DEFAULT_TIMEZONE,
+): string {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
 /** Same, for a full date+time, e.g. a payslip coverage line. */
 export function formatZonedDateTime(
   iso: string | null | undefined,

@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveWorkspace, requirePermission, requireInternal } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
-import { enumParam, pageParam, stringParam } from "@/lib/app/search-params";
+import { enumParam, ilikePattern, pageParam, stringParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "NTE Cases" };
 
@@ -46,15 +46,27 @@ export default async function HrNtePage({
 
   const supabase = await createClient();
   const canManage = can(workspace.permissions, "nte.manage");
+  const pattern = q ? ilikePattern(q) : undefined;
+
+  // The search box was rendered, submitted and carried through the pager, but `q`
+  // never reached the query -- so typing a case number returned the whole
+  // unfiltered list with no indication the search had been ignored. Same shape as
+  // /app/tickets.
+  let caseQuery = supabase
+    .from("nte_cases")
+    .select(
+      "id, case_number, subject, description, incident_date, status, resolution_type, resolution_notes, resolved_at, created_at, employees(employee_number, profiles(display_name)), nte_responses(id, response_text, submitted_at)",
+    )
+    .order("created_at", { ascending: false });
+  if (pattern) {
+    caseQuery = caseQuery.or(`subject.ilike.${pattern},case_number.ilike.${pattern}`);
+  }
+  if (status) {
+    caseQuery = caseQuery.eq("status", status);
+  }
 
   const [{ data: cases }, { data: employees }] = await Promise.all([
-    supabase
-      .from("nte_cases")
-      .select(
-        "id, case_number, subject, description, incident_date, status, resolution_type, resolution_notes, resolved_at, created_at, employees(employee_number, profiles(display_name)), nte_responses(id, response_text, submitted_at)",
-      )
-      .order("created_at", { ascending: false })
-      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
+    caseQuery.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
     canManage
       ? supabase
           .from("employees")
