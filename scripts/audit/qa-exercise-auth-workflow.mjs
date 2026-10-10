@@ -1,0 +1,532 @@
+// Exercise the auth surface end to end: login rejection, forgot-password
+// enumeration, email verification, signup, the employee portal's
+// internal-vs-client gate, password change, and session lifecycle.
+//
+// WHY: ten auth actions. Every other exercise signs in implicitly, so the sign-in
+// path was covered; nothing else was. Driving the real UI found two security
+// defects, both now fixed and both asserted here:
+//
+//   1. CWE-620. `changePasswordAction` validated only the NEW password and called
+//      `supabase.auth.updateUser({ password })` with no current-password check,
+//      and the form had no current-password field. Any live session could change
+//      the password and lock the owner out permanently. Fixed by re-authenticating
+//      before the rotation; this script now ATTEMPTS the takeover first and fails
+//      it, because a guard never seen refusing anything is not a guard.
+//
+//   2. `logoutAllAction` — the only path that revokes refresh tokens on other
+//      devices — was referenced by nothing outside its own definition, so a user
+//      who suspected a compromised session had no way to kill it. The changelog
+//      claimed the global path was "reachable only on purpose"; it was reachable
+//      never. Now wired into the account menu.
+//
+// SAFETY: the password change runs on a demo account and is restored through the
+// UI inside the same block, then the restore is PROVED by signing back in with the
+// original password. A `finally` also restores via the service-role admin API, so
+// a crashed run cannot leave the demo tenant locked out. Signup creates a real auth
+// user and an applicant membership; both are deleted in a `finally` and the deletion
+// is asserted.
+//
+// Usage: node scripts/audit/qa-exercise-auth-workflow.mjs [--no-cleanup]
+
+import { readFileSync } from "node:fs";
+import { chromium } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
+
+const env = {};
+for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
+  if (!line || line.trim().startsWith("#")) continue;
+  const i = line.indexOf("=");
+  if (i < 0) continue;
+  let v = line.slice(i + 1).trim();
+  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
+  env[line.slice(0, i).trim()] = v;
+}
+
+const BASE = process.env.QA_BASE_URL ?? "http://localhost:3100";
+const APPLY_CLEANUP = !process.argv.includes("--no-cleanup");
+const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false },
+});
+
+const results = [];
+const notes = [];
+const blocked = [];
+const check = (name, pass, detail = "") => {
+  results.push({ name, pass });
+  console.log(`${pass ? "PASS" : "FAIL"}  ${name}${detail ? `  — ${detail}` : ""}`);
+};
+const note = (msg) => { notes.push(msg); console.log(`NOTE  ${msg}`); };
+const markBlocked = (what, why) => { blocked.push(what); console.log(`BLOCKED  ${what}  — ${why}`); };
+async function must(p, what) {
+  const { data, error } = await p;
+  if (error) throw new Error(`${what}: ${error.message}`);
+  return data ?? [];
+}
+/**
+ * Row count via the `count` field, NOT via `data.length`.
+ *
+ * `select("id", { count: "exact", head: true })` returns `data: null`, so a
+ * `must(...)` of it yields `[]` and `.length` is 0 on BOTH sides of a before /
+ * after comparison — a check that cannot fail. Read `count` instead.
+ */
+async function countRows(table) {
+  const { count, error } = await db.from(table).select("id", { count: "exact", head: true });
+  if (error) throw new Error(`count ${table}: ${error.message}`);
+  if (count === null) throw new Error(`count ${table}: server returned no count`);
+  return count;
+}
+
+/**
+ * `auth.admin.listUsers()` returns `{ data: { users: [...] }, error }` — the data
+ * is an OBJECT, not an array. Running it through `must` and calling `.find` on the
+ * result throws, and running it through a naive `{ data }` destructure yields an
+ * object that merely *looks* empty. One place that knows the shape.
+ */
+async function listAuthUsers() {
+  const { data, error } = await db.auth.admin.listUsers({ page: 1, perPage: 200 });
+  if (error) throw new Error(`auth users: ${error.message}`);
+  if (!data || !Array.isArray(data.users)) throw new Error("auth users: unexpected response shape");
+  return data.users;
+}
+
+const TARGET_EMAIL = "marketing@demo.beepabpo.com";
+const CLIENT_EMAIL = "clientadmin@demo.beepabpo.com";
+const TEMP_PASSWORD = "QaTemp#2026x";
+const SIGNUP_EMAIL = `qa.signup.${Date.now()}@nowhere.example`;
+
+// `must` returns the DATA, not `{ data }`. Destructuring it as `{ data }` yields
+// undefined and every downstream check silently sees an empty world.
+const authUsers = await listAuthUsers();
+const targetUser = authUsers.find((u) => u.email === TARGET_EMAIL);
+const targetUserId = targetUser?.id ?? null;
+console.log(`target account: ${TARGET_EMAIL} (${targetUserId ? "found" : "NOT FOUND"})`);
+console.log(`signup throwaway: ${SIGNUP_EMAIL}\n`);
+
+// Snapshot what must not change.
+const beforeCounts = {
+  notifications: await countRows("notifications"),
+  memberships: await countRows("organization_memberships"),
+  authUsers: authUsers.length,
+};
+
+const browser = await chromium.launch();
+const pageErrors = [];
+const consoleErrors = [];
+function watch(page) {
+  page.on("pageerror", (e) => pageErrors.push(e.message));
+  page.on("console", (m) => { if (m.type() === "error") consoleErrors.push(m.text()); });
+}
+
+async function forceRestorePassword() {
+  if (!targetUserId || !APPLY_CLEANUP) return;
+  const { error } = await db.auth.admin.updateUserById(targetUserId, { password: env.DEMO_PASSWORD });
+  if (error) console.error(`  password restore FAILED: ${error.message}`);
+  else console.log("  (safety net) password restored via admin API");
+}
+
+async function deleteThrowawayAuthUsers() {
+  if (!APPLY_CLEANUP) return;
+  const live = await listAuthUsers();
+  const junk = live.filter((u) => u.email === SIGNUP_EMAIL || u.email.startsWith("qa.nobody."));
+  for (const u of junk) {
+    const { data: ms } = await db.from("organization_memberships").select("id").eq("user_id", u.id);
+    for (const m of ms ?? []) {
+      await db.from("membership_roles").delete().eq("membership_id", m.id);
+      await db.from("organization_memberships").delete().eq("id", m.id);
+    }
+    const { error } = await db.auth.admin.deleteUser(u.id);
+    if (error) console.error(`  cleanup FAILED for ${u.email}: ${error.message}`);
+    else console.log(`  (cleanup) removed throwaway auth user ${u.email}`);
+  }
+  if (!junk.length) console.log("  (cleanup) no throwaway auth users to remove");
+}
+
+async function signIn(page, email, password, path = "/login") {
+  await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded" });
+  // The employee portal deliberately renders `type="text"` (it accepts an
+  // employee ID as well as an address), so `input[type=email]` does not match
+  // there. Key off the name, which every login form shares.
+  const field = page.locator('input[name=email], input[type=email]').first();
+  await field.waitFor({ state: "visible", timeout: 20000 });
+  await field.fill(email);
+  await page.locator('input[type=password], input[name=password]').first().fill(password);
+  await page.click('button[type=submit]');
+  await page.waitForLoadState("domcontentloaded");
+  await page.waitForTimeout(3500);
+}
+
+try {
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  watch(page);
+
+  // ---- 1. a wrong password is rejected, and says so ----
+  await signIn(page, TARGET_EMAIL, "definitely-not-the-password");
+  const stillOnLogin = page.url().includes("/login");
+  const body1 = (await page.locator("body").innerText()).replace(/\s+/g, " ");
+  check("a wrong password does not sign you in", stillOnLogin, page.url().replace(BASE, ""));
+  const errLine = (body1.match(/[^.]*(invalid|incorrect|wrong|error|failed|credentials|check)[^.]*\./i)?.[0] ?? "").trim();
+  check("the rejection tells the user what happened", !!errLine && /invalid|incorrect|wrong|credentials|check the form/i.test(errLine),
+    errLine.slice(0, 100) || "(no error text found)");
+
+  // ---- 2. forgot-password must not reveal whether an account exists ----
+  const responseFor = async (email) => {
+    await page.goto(`${BASE}/forgot-password`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector('input[type=email]', { timeout: 20000 });
+    await page.fill('input[type=email]', email);
+    await page.click('button[type=submit]');
+    await page.waitForTimeout(4500);
+    const text = (await page.locator("body").innerText()).replace(/\s+/g, " ");
+    return (text.match(/If an account exists[^.]*\./i)?.[0] ?? text.slice(0, 200)).trim();
+  };
+  const known = await responseFor(TARGET_EMAIL);
+  const unknown = await responseFor("nobody.definitely@nowhere.example");
+  check("forgot-password answers identically for a real and a fake address",
+    known.toLowerCase() === unknown.toLowerCase(),
+    `real="${known.slice(0, 62)}" | fake="${unknown.slice(0, 62)}"`);
+  check("forgot-password does not confirm that an account exists",
+    !/\bwe sent\b|reset (link|instructions) (was|were) sent|account exists for that email\b(?!\s*,\s*if)/i.test(unknown) || /if an account exists/i.test(unknown),
+    unknown.slice(0, 90));
+
+  // ---- 3. verify-email with a token that cannot be valid ----
+  await page.goto(`${BASE}/verify-email?token=qa-not-a-real-token`, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(2000);
+  const verifyText = (await page.locator("body").innerText()).replace(/\s+/g, " ");
+  check("a bad verification link is refused with a usable message",
+    /invalid or has expired/i.test(verifyText),
+    (verifyText.match(/[^.]*(invalid|expired|verification)[^.]*\./i)?.[0] ?? "").trim().slice(0, 90));
+
+  // ---- 4. signup creates a real account; it is deleted afterwards ----
+  let signupSucceeded = false;
+  try {
+    await page.goto(`${BASE}/signup`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector('input[type=email]', { timeout: 20000 });
+    await page.fill('input[name=fullName]', "QA Throwaway");
+    await page.fill('input[type=email]', SIGNUP_EMAIL);
+    const pwInputs = page.locator('input[type=password]');
+    const pwCount = await pwInputs.count();
+    for (let i = 0; i < pwCount; i += 1) await pwInputs.nth(i).fill("QaSignup#2026x");
+    const terms = page.locator('input[type=checkbox]').first();
+    if (await terms.count()) await terms.check();
+    await page.click('button[type=submit]');
+    await page.waitForTimeout(6000);
+    const signupText = (await page.locator("body").innerText()).replace(/\s+/g, " ");
+    signupSucceeded = /account created|check your email/i.test(signupText);
+    // Supabase answers every signUp in this environment with 429 "email rate
+    // limit exceeded". That is an environment ceiling, not a product defect, so
+    // it is reported as BLOCKED rather than failed — but only because the app
+    // now says so. Before the fix it said "Unable to create account with that
+    // email", which blamed the address for an infrastructure condition.
+    if (!signupSucceeded && /too many sign-up attempts/i.test(signupText)) {
+      markBlocked("signup account creation", "Supabase 429 email rate limit (environment)");
+      check("a rate limit is reported as a rate limit, not as a bad address",
+        !/that email/i.test(signupText),
+        (signupText.match(/[^.]*too many sign-up attempts[^.]*\./i)?.[0] ?? "").trim().slice(0, 90));
+    } else {
+      check("signup creates an account and asks for email verification", signupSucceeded,
+        (signupText.match(/[^.]*(account created|unable to create|already registered)[^.]*\./i)?.[0] ?? signupText.slice(0, 120)).trim().slice(0, 100));
+    }
+  } catch (e) {
+    markBlocked("signup", e.message);
+  }
+
+  // The applicant membership the signup path assigns.
+  let signupMembership = null;
+  if (signupSucceeded) {
+    const su = (await listAuthUsers()).find((u) => u.email === SIGNUP_EMAIL);
+    if (su) {
+      signupMembership = (await must(
+        db.from("organization_memberships").select("id, membership_type, status")
+          .eq("user_id", su.id).eq("organization_id", "11111111-1111-1111-1111-111111111111"),
+        "signup membership",
+      ))[0] ?? null;
+      const roles = signupMembership
+        ? await must(db.from("membership_roles").select("role_id").eq("membership_id", signupMembership.id), "signup roles")
+        : [];
+      const roleCodes = roles.length
+        ? await must(db.from("roles").select("code").in("id", roles.map((r) => r.role_id)), "role codes")
+        : [];
+      check("a new signup lands in the applicant membership with the applicant role",
+        signupMembership?.membership_type === "applicant" && roleCodes.some((r) => r.code === "applicant"),
+        `type=${signupMembership?.membership_type ?? "(none)"} roles=[${roleCodes.map((r) => r.code).join(",")}]`);
+    } else {
+      check("the signup auth user actually exists", false, `no auth user for ${SIGNUP_EMAIL}`);
+    }
+  }
+
+  // ---- 5. the employee portal refuses non-internal users, without killing their session ----
+  // Establish a real client session first, then try the same creds at /employee/login.
+  const clientCtx = await browser.newContext();
+  const clientPage = await clientCtx.newPage();
+  watch(clientPage);
+  await signIn(clientPage, CLIENT_EMAIL, env.DEMO_PASSWORD);
+  const clientSignedIn = !clientPage.url().includes("/login");
+  check("a client user can sign in at /login", clientSignedIn, clientPage.url().replace(BASE, ""));
+
+  if (clientSignedIn) {
+    const empPage = await (await browser.newContext()).newPage();
+    watch(empPage);
+    await signIn(empPage, CLIENT_EMAIL, env.DEMO_PASSWORD, "/employee/login");
+    const empText = (await empPage.locator("body").innerText()).replace(/\s+/g, " ");
+    const refused = empPage.url().includes("/employee/login") || /use the client or applicant sign-in/i.test(empText);
+    check("the employee portal refuses a non-internal account", refused,
+      refused ? (empText.match(/[^.]*use the client or applicant sign-in[^.]*\./i)?.[0] ?? "refused").slice(0, 80) : empPage.url().replace(BASE, ""));
+
+    // The refusal must not have signed the client out everywhere (scope: "local").
+    await clientPage.goto(`${BASE}/app/client/settings`, { waitUntil: "domcontentloaded" });
+    await clientPage.waitForTimeout(2500);
+    check("that refusal did NOT sign the client out of their real portal",
+      !clientPage.url().includes("/login"), clientPage.url().replace(BASE, ""));
+    await empPage.context().close();
+  }
+
+  // An internal user gets through the employee portal.
+  const empInternal = await (await browser.newContext()).newPage();
+  watch(empInternal);
+  await signIn(empInternal, TARGET_EMAIL, env.DEMO_PASSWORD, "/employee/login");
+  check("an internal user gets through the employee portal", !empInternal.url().includes("/employee/login"),
+    empInternal.url().replace(BASE, ""));
+  await empInternal.context().close();
+
+  // ---- 6. password change ----
+  await signIn(page, TARGET_EMAIL, env.DEMO_PASSWORD);
+  check("signed in with the current password", !page.url().includes("/login"), page.url().replace(BASE, ""));
+
+  await page.goto(`${BASE}/app/my/settings`, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(2500);
+  check("the settings page rendered", !page.url().includes("404") && !page.url().includes("/login"), page.url().replace(BASE, ""));
+
+  const currentFields = await page.locator(
+    '#current-password, [name=currentPassword], #settings-current, input[autocomplete=current-password]',
+  ).count();
+  check("SECURITY: change-password asks for the CURRENT password", currentFields > 0,
+    currentFields === 0
+      ? "*** CWE-620: no current-password field. Any live session can change the password and lock the owner out permanently. ***"
+      : "current-password field present");
+
+  const current = page.locator("#settings-current");
+  const pw = page.locator("#settings-password");
+  const confirm = page.locator("#settings-confirm");
+  check("the change-password form rendered",
+    (await current.count()) > 0 && (await pw.count()) > 0 && (await confirm.count()) > 0);
+
+  /** Fill all three fields, submit, and return the settings page's visible text. */
+  async function attemptChange(currentPw, newPw) {
+    await page.goto(`${BASE}/app/my/settings`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2500);
+    await page.locator("#settings-current").fill(currentPw);
+    await page.locator("#settings-password").fill(newPw);
+    await page.locator("#settings-confirm").fill(newPw);
+    await page.getByRole("button", { name: /update password/i }).click();
+    await page.waitForTimeout(6000);
+    return (await page.locator("body").innerText()).replace(/\s+/g, " ");
+  }
+
+  /** Independent proof of the stored credential, not the form's own message. */
+  async function passwordWorks(candidate) {
+    const probe = await (await browser.newContext()).newPage();
+    await signIn(probe, TARGET_EMAIL, candidate);
+    const ok = !probe.url().includes("/login");
+    await probe.context().close();
+    return ok;
+  }
+
+  if ((await pw.count()) > 0) {
+    // NEGATIVE FIRST. A guard that has never been seen to refuse anything has not
+    // been shown to work — the happy path alone would pass with the old, broken
+    // code too. Try to take the account over with a password we do NOT know.
+    const attackText = await attemptChange("not-my-current-password-at-all", TEMP_PASSWORD);
+    check("a password change with a WRONG current password is refused",
+      !/password updated/i.test(attackText) && /current password is not correct|not your current password/i.test(attackText),
+      (attackText.match(/[^.]*current password[^.]*\./i)?.[0] ?? attackText.slice(0, 120)).trim().slice(0, 100));
+    check("...and the new password really did NOT take effect", !(await passwordWorks(TEMP_PASSWORD)),
+      "the takeover password is not active — the credential is unchanged");
+    check("...and the real password still works", await passwordWorks(env.DEMO_PASSWORD),
+      "the owner can still sign in");
+
+    // Now the legitimate path.
+    const okText = await attemptChange(env.DEMO_PASSWORD, TEMP_PASSWORD);
+    check("a password change with the CORRECT current password succeeds", /password updated/i.test(okText),
+      (okText.match(/[^.]*password[^.]*\./i)?.[0] ?? "").trim().slice(0, 90));
+    check("the NEW password works for sign-in", await passwordWorks(TEMP_PASSWORD));
+
+    // Restore through the UI, with TEMP as the now-correct current password.
+    const restoreText = await attemptChange(TEMP_PASSWORD, env.DEMO_PASSWORD);
+    check("the change can be undone from the UI", /password updated/i.test(restoreText),
+      (restoreText.match(/[^.]*password[^.]*\./i)?.[0] ?? "").trim().slice(0, 90));
+    const restored = await passwordWorks(env.DEMO_PASSWORD);
+    check("the ORIGINAL password works again after the restore", restored,
+      restored ? "accepted — the demo login is intact" : "*** DEMO LOGIN IS BROKEN ***");
+  }
+
+  // ---- 7. session lifecycle ----
+  const otherCtx = await browser.newContext();
+  const otherPage = await otherCtx.newPage();
+  await signIn(otherPage, TARGET_EMAIL, env.DEMO_PASSWORD);
+  check("a second session was established for the logout check", !otherPage.url().includes("/login"));
+
+  await page.goto(`${BASE}/app/my/notifications`, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(2500);
+
+  const menuTrigger = page.locator('button[aria-label="Account menu"]').first();
+  check("the account menu is reachable", (await menuTrigger.count()) > 0);
+
+  // Read the menu BEFORE signing out. After a sign-out this page is redirected to
+  // /login and there is no account menu to inspect, so a check written after the
+  // sign-out can only ever time out and report a missing control that is present.
+  const EVERYWHERE_RE = /sign out everywhere|sign out of all|all devices|everywhere/i;
+  let menuText = "";
+  let signedOut = false;
+  if (await menuTrigger.count()) {
+    await menuTrigger.click();
+    await page.waitForTimeout(1500);
+    menuText = (await page.locator('[role=menu]').first().innerText().catch(() => "")).replace(/\s+/g, " ");
+    note(`account menu items: ${menuText.slice(0, 200)}`);
+    check("there is a 'sign out everywhere' control for a compromised session",
+      EVERYWHERE_RE.test(menuText),
+      EVERYWHERE_RE.test(menuText)
+        ? "found in the account menu"
+        : "*** logoutAllAction is dead code — a user who suspects a stolen session cannot revoke it ***");
+
+    // Base-UI renders DropdownMenuItem as `role="menuitem"`, not as a
+    // <button>/<a>, so a button/a-scoped locator reports a working control as
+    // missing. That is a harness bug masquerading as a product defect.
+    const signOutBtn = page.locator('[role=menuitem], [role=menu] button, [role=menu] a')
+      .filter({ hasText: /^\s*Sign out\s*$/i }).last();
+    if (await signOutBtn.count()) {
+      await signOutBtn.click();
+      await page.waitForTimeout(4500);
+      signedOut = !page.url().includes("/app/my");
+    } else {
+      note("no exact 'Sign out' item found in the menu");
+    }
+  }
+  check("Sign out from the account menu ends THIS browser's session", signedOut,
+    signedOut ? page.url().replace(BASE, "") : "no 'Sign out' item found in the menu");
+
+  // A local sign-out must NOT kill the other device — that is the documented intent.
+  await otherPage.goto(`${BASE}/app/my/notifications`, { waitUntil: "domcontentloaded" });
+  await otherPage.waitForTimeout(3000);
+  const otherSurvived = !otherPage.url().includes("/login");
+  check("a normal sign-out leaves the other device signed in (local scope)", otherSurvived,
+    otherSurvived ? "still signed in — correct, matches the documented intent" : "*** other device was killed by a local sign-out ***");
+
+  // Now prove the global control actually revokes that other device. Reaching the
+  // label is not the same as the button working.
+  await signIn(page, TARGET_EMAIL, env.DEMO_PASSWORD);
+  await page.goto(`${BASE}/app/my/notifications`, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(2500);
+  let everywhereWorked = false;
+  let everywhereDetail = "the control was not reachable, so it could not be tried";
+  if (await page.locator('button[aria-label="Account menu"]').count()) {
+    await page.locator('button[aria-label="Account menu"]').first().click();
+    await page.waitForTimeout(1500);
+    const item = page.locator('[role=menuitem], [role=menu] button, [role=menu] a')
+      .filter({ hasText: /sign out everywhere|sign out of all/i }).last();
+    if (await item.count()) {
+      await item.click();
+      await page.waitForTimeout(5000);
+      await otherPage.goto(`${BASE}/app/my/notifications`, { waitUntil: "domcontentloaded" });
+      await otherPage.waitForTimeout(3500);
+      everywhereWorked = otherPage.url().includes("/login");
+      everywhereDetail = everywhereWorked
+        ? "the other device was signed out"
+        : "*** the other device SURVIVED a 'sign out everywhere' ***";
+    }
+  }
+  check("'sign out everywhere' really does revoke the other device", everywhereWorked, everywhereDetail);
+
+  // ---- 8. a signed-in user with no workspace membership ----
+  // `switchAccountAction` lives only on /app/access-denied, which renders for a
+  // user who is authenticated but holds no membership. That is a real situation
+  // (membership revoked, or an account from another tenant) and the page is the
+  // only escape hatch from it.
+  //
+  // The account is made with the ADMIN API, not through the signup form, because
+  // the form is rate-limited (429) in this environment. `email_confirm: true`
+  // skips the confirmation mail entirely, so this path is not blocked by that.
+  const NOBODY_EMAIL = `qa.nobody.${Date.now()}@nowhere.example`;
+  let nobodyId = null;
+  try {
+    const created = await db.auth.admin.createUser({
+      email: NOBODY_EMAIL,
+      password: "QaNobody#2026x",
+      email_confirm: true,
+    });
+    if (created.error) {
+      markBlocked("switchAccountAction", `could not create a membership-less user: ${created.error.message}`);
+    } else {
+      nobodyId = created.data.user.id;
+      const np = await (await browser.newContext()).newPage();
+      watch(np);
+      await signIn(np, NOBODY_EMAIL, "QaNobody#2026x");
+      await np.waitForTimeout(2000);
+      const denied = np.url().includes("/access-denied");
+      check("a signed-in user with no membership lands on the access-denied page", denied,
+        np.url().replace(BASE, ""));
+      if (denied) {
+        const switchBtn = np.getByRole("button", { name: /sign out.*switch account/i }).first();
+        check("the access-denied page offers 'Sign out & switch account'", (await switchBtn.count()) > 0);
+        if (await switchBtn.count()) {
+          await switchBtn.click();
+          await np.waitForTimeout(4500);
+          check("'Sign out & switch account' signs the user out and lands on /login",
+            np.url().includes("/login") && !np.url().includes("/access-denied"),
+            np.url().replace(BASE, ""));
+        }
+      }
+      await np.context().close();
+    }
+  } catch (e) {
+    markBlocked("switchAccountAction", e.message);
+  }
+
+  await otherCtx.close();
+  await clientCtx.close();
+  await ctx.close();
+
+  check("no uncaught page errors during the auth run", pageErrors.length === 0, pageErrors.slice(0, 3).join(" | "));
+  if (consoleErrors.length) note(`${consoleErrors.length} console error(s) seen (informational): ${consoleErrors.slice(0, 2).join(" | ").slice(0, 200)}`);
+} catch (e) {
+  // Without this the `finally` cleanup runs and the original failure is never
+  // printed — a cleanup bug in the harness silently masquerades as the product
+  // crashing.
+  console.error(`\nRUN ERROR: ${e.message}`);
+  console.error(e.stack?.split("\n").slice(1, 4).join("\n"));
+  process.exitCode = 1;
+} finally {
+  await deleteThrowawayAuthUsers().catch((e) => console.error("throwaway cleanup failed:", e.message));
+  await forceRestorePassword().catch((e) => console.error("restore failed:", e.message));
+  await browser.close().catch(() => {});
+
+  // Nothing may leak. Read the rows back — printing "restored" is not the same
+  // as proving it (the hire restore bug was caught exactly this way).
+  if (APPLY_CLEANUP) {
+    const afterCounts = {
+      notifications: await countRows("notifications"),
+      memberships: await countRows("organization_memberships"),
+    };
+    const afterUsers = await listAuthUsers();
+    const leftovers = afterUsers.filter(
+      (u) => u.email === SIGNUP_EMAIL || u.email.startsWith("qa.nobody."),
+    );
+    console.log("");
+    check("no throwaway auth account leaked", leftovers.length === 0,
+      leftovers.length === 0 ? "all cleaned up" : `left behind: ${leftovers.map((u) => u.email).join(", ")}`);
+    check("no membership rows leaked", afterCounts.memberships === beforeCounts.memberships,
+      `${beforeCounts.memberships} -> ${afterCounts.memberships}`);
+    check("no notification rows leaked", afterCounts.notifications === beforeCounts.notifications,
+      `${beforeCounts.notifications} -> ${afterCounts.notifications}`);
+    check("no auth users leaked", (afterUsers ?? []).length === beforeCounts.authUsers,
+      `${beforeCounts.authUsers} -> ${(afterUsers ?? []).length}`);
+  }
+
+  const failed = results.filter((r) => !r.pass);
+  console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
+  if (blocked.length) console.log(`${blocked.length} path(s) BLOCKED by the environment: ${blocked.join(", ")}`);
+  if (failed.length) {
+    console.log("\nFAILURES:");
+    for (const f of failed) console.log(`  - ${f.name}`);
+    process.exitCode = 1;
+  }
+}

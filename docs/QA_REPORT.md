@@ -17,13 +17,18 @@ user anything real?**
 |---|---|---|
 | Typecheck | `npx tsc --noEmit` | whole repo — **exit 0** |
 | Lint | `npx eslint . --max-warnings=0` | whole repo — **exit 0** |
-| Unit/contract | `npx vitest run` | **525 passed, 86 files** |
+| Unit/contract | `npx vitest run` | **552 passed, 88 files** |
 | Production build | `npx next build` | **exit 0** |
 | Release gate | `node scripts/verify-all.mjs` | **18/18 — "All checks passed. Ship it." — exit 0** |
 | **Per-role page sweep** | `scripts/audit/audit-role-sweep.mjs` | **13 roles × nav-reachable pages + 10 marketing pages = 471 visits** |
 | **Data population** | `scripts/audit/audit-data-population.mjs` | **every table the app queries** |
-| **Live workflow exercise** | `qa-exercise-leave-workflow.mjs` | **employee → team lead → HR, 12 assertions** |
-| **Ticket workflow exercise** | `qa-exercise-ticket-workflow.mjs` | **client admin → operations, 9 assertions** |
+| **Live workflow exercise** | `qa-exercise-leave-workflow.mjs` | **employee → team lead → HR, 13 assertions** |
+| **Ticket workflow exercise** | `qa-exercise-ticket-workflow.mjs` | **client admin → operations, 10 assertions** |
+| **Admin workflow exercise** | `qa-exercise-admin-workflow.mjs` | **18 assertions** |
+| **Hire workflow exercise** | `qa-exercise-hire-workflow.mjs` | **18 assertions** |
+| **CRM workflow exercise** | `qa-exercise-crm-workflow.mjs` | **21 assertions** |
+| **Payroll workflow exercise** | `qa-exercise-payroll-workflow.mjs` | **19 assertions** |
+| **Auth workflow exercise** | `qa-exercise-auth-workflow.mjs` | **35 assertions** |
 | Interactive | Playwright MCP | login, headings, live workflow |
 
 ### Heading spot-check (Playwright MCP, owner, production build)
@@ -253,6 +258,77 @@ carry it.
 Hiring now replaces the role rather than sitting beside it. Same lesson as the
 role-change defect above, from the other direction: one destroyed a role it
 should have kept, this one kept one it should have replaced.
+
+### P0 — Any session could change the account password. Fixed.
+
+`changePasswordAction` validated **only the new password** and then called
+`supabase.auth.updateUser({ password })`. supabase-js treats a live session as
+sufficient authority to rotate a credential, so the sole thing being checked was
+"is somebody signed in" — and the answer to that is yes, for whoever holds the
+browser. `components/app/settings/change-password-form.tsx` had no current-password
+field either, so there was nothing to check even in principle.
+
+This is **CWE-620, Unverified Password Change**. The blast radius is total: reset
+the password from a borrowed or hijacked session and the real owner is locked out of
+their own account, with no current password to appeal to and no second factor.
+
+**Fix:** `changePasswordAction` re-authenticates with
+`signInWithPassword({ email, currentPassword })` and returns before touching
+`updateUser` if it fails. Three settings surfaces — internal settings, client
+settings, applicant profile — share the form, so all three now collect the field.
+
+The failure message is deliberately one string for every cause. Supabase's raw text
+distinguishes a wrong password from a disabled or unknown account, which would turn
+this form into an account-status oracle. A phone-only account has no `email` to
+verify against and is refused rather than falling back to trusting the session,
+which is the exact hole the check exists to close.
+
+**Proof, in the browser** (§4): the exercise now *attempts the takeover first* — a
+change with a wrong current password is refused, the new password is then confirmed
+**not** to work for sign-in, and the real password is confirmed still working. A
+happy-path test alone would have passed against the old code too.
+
+### P0 — "Sign out everywhere" existed as code and nowhere else. Fixed.
+
+`logoutAllAction` — the only path that revokes refresh tokens on the user's *other*
+devices — was referenced by nothing outside its own definition. The account menu
+offered a single "Sign out", which calls `logoutAction`, which signs out **locally**.
+
+So a user who suspected a compromised session had no recourse at all. Signing out
+ends the browser in front of them, which is the one browser they no longer trust.
+
+`tests/auth-signout-scope.test.ts` had a guard for exactly this file and it passed,
+because it asserted the function *exists*:
+
+```ts
+expect(actions).toContain('signOut({ scope: "global" })');
+expect(actions).toContain("logoutAllAction");
+```
+
+The changelog went further and claimed the global path was now "reachable only on
+purpose". It was reachable never.
+
+**Fix:** "Sign out everywhere" is now in the account menu, and the exercise proves
+it *works* rather than merely that the label exists — it establishes a second
+session, clicks the control, and asserts the second session is gone.
+
+### P2 — Signup blamed the user's address for a rate limit. Fixed.
+
+Measured in this environment: Supabase answers **every** `signUp` with
+`429 email rate limit exceeded`. `signupAction` reported all of them as
+"Unable to create account with that email." A prospective client at the very top of
+the funnel was told their address was bad when nothing was wrong with it — so they
+retype the same address, fail identically, and leave.
+
+`lib/auth/error-messages.ts` already argued this exact case for sign-in: *"a message
+that cannot distinguish the two causes sends every investigation down the wrong
+path."* `signupErrorMessage` is now its counterpart, with the same shape and the
+same three cases.
+
+Note what is **not** claimed: the signup success path is still unproven, because
+this environment cannot execute it. Account creation reports BLOCKED, and the
+exercise asserts only that the rate limit is *reported as a rate limit* rather than
+as a bad address.
 
 ### P2 — "Super Admin" cannot do most of what an admin does. Documented, not changed.
 
@@ -614,6 +690,54 @@ payslips "just in case" for whichever employee had been edited. The exercise
 never creates payslips, and that line would have destroyed real payslip rows.
 **Cleanup must only ever remove rows the run demonstrably created.**
 
+### Auth workflow — `qa-exercise-auth-workflow.mjs`, 35/35
+
+`lib/auth` held **10 actions and none of them had been driven end to end.** Every
+other exercise signs in implicitly, so `loginAction` was covered by accident; the
+other nine were not. Two were security defects (§2).
+
+| Surface | What was proven |
+|---|---|
+| `loginAction` | A wrong password is refused and says so |
+| `forgotPasswordAction` | Byte-identical reply for a real and a fabricated address — **no account enumeration** |
+| `verifyEmailAction` | A bogus token is refused with "invalid or has expired" |
+| `employeeLoginAction` | An internal user passes; a client user is refused *and their real client session survives* |
+| `changePasswordAction` | Takeover refused, credential verified unchanged, legitimate change succeeds, restored through the UI |
+| `logoutAction` | Ends this browser's session; the other device stays signed in |
+| `logoutAllAction` | **Revokes the other device** |
+| `switchAccountAction` | A membership-less user reaches access-denied and can escape it |
+| `signupAction` | Reached; **account creation BLOCKED** by the environment's 429 |
+| `resetPasswordAction` | **Not driven** — needs a real recovery token from an inbox |
+
+The account-menu run prints its own inventory, which is how the missing control was
+seen rather than inferred:
+
+```
+NOTE  account menu items: Demo Marketing Marketing · Beepa BPO Profile Settings
+      Notifications Sign out Sign out everywhere
+```
+
+Three assertions in this pass are worth more than the rest, and each one exists
+because the naive version would have passed against the broken code:
+
+- **The takeover is attempted, not the happy path.** A change with a wrong current
+  password must be refused, *and* the attacker's new password must then be shown not
+  to work for sign-in. Asserting only that the correct change succeeds would have
+  been green before the fix.
+- **"Sign out everywhere" is proved to work, not to exist.** The second session is
+  established, the control is clicked, and the second session is asserted dead.
+  Finding the label in the menu proves the wiring, not the behaviour.
+- **Cleanup is verified by reading the rows back** — 13 → 13 memberships, 13 → 13
+  auth users, 58 → 58 notifications — because printing "cleaned up" is the same
+  unverified claim as a write without a read.
+
+`BLOCKED` is a distinct outcome from pass and fail, and it is used honestly here:
+Supabase answers **every** `signUp` in this environment with 429, so signup account
+creation cannot be executed at all. The script does not fold that into the pass
+count, and does not leave it permanently red either — it proves the one thing that
+*is* provable under a 429, which is that the app now says "Too many sign-up attempts
+from this network" instead of blaming the address.
+
 ### Self-cleaning — the fix the verifier caught
 
 Both exercises swept leftovers from *previous* runs at the start and **nothing at the
@@ -691,6 +815,23 @@ Recorded because each produced a report full of defects that did not exist:
   applicant with no roles at all. Its final "left everything as it found it"
   assertion is what caught it — which is the argument for that assertion existing
   rather than a print statement saying "cleaned up".
+- **`head: true` returns `data: null`, so counting rows through `.length` compares
+  `0` to `0`.** The auth exercise's "nothing leaked" check ran
+  `select("id", { count: "exact", head: true })` on both sides of a before/after
+  comparison. With `head: true` the `data` is `null`, so both sides measured `[]`
+  and the check passed **no matter what the run destroyed**. It now reads the
+  `count` field, which is the only thing that can distinguish the two cases.
+- **Base-UI renders a menu item as `role="menuitem"`, not as a `<button>` or `<a>`.**
+  A locator scoped to `[role=menu] button, [role=menu] a` reported "no 'Sign out'
+  item found in the menu" while the menu plainly contained it — a working control
+  reported as missing. The harness was wrong and the product was right; the run
+  prints the menu's own text so that a selector mistake cannot masquerade as a
+  defect a second time.
+- **A helper that returns data must not be destructured as if it returned an
+  envelope — and an admin API can return an *object* where you expect an array.**
+  `auth.admin.listUsers()` resolves to `{ data: { users: [...] } }`. Running that
+  through a `must()` helper and calling `.find` on the result throws, while
+  destructuring `{ data }` yields an object that merely *looks* empty.
 
 ---
 
@@ -711,7 +852,7 @@ button works" needs a distinction between *rendered* and *exercised*:
 | `lib/admin` | 5 | **5** |
 | `lib/recruitment` | 7 | **2** (stage change, hire) |
 | `lib/tickets` | 6 | **2** (create, assign) |
-| `lib/auth` | 10 | 0 |
+| `lib/auth` | 10 | **8** (signup reached but 429-blocked; `resetPasswordAction` not driven) |
 | `lib/cms` | 14 | 0 |
 | `lib/crm` | 8 | **7** (all but `createLeadFromContact`) |
 | `lib/recruitment` (remainder) | 5 | 0 |
@@ -723,13 +864,13 @@ button works" needs a distinction between *rendered* and *exercised*:
 | `lib/billing` | 2 | 0 |
 | `lib/cash-advance` | 2 | 0 |
 | `lib/clients`, `lib/employees`, `lib/profile`, `lib/contact` | 4 | 0 |
-| **Total** | **81** | **24** |
+| **Total** | **81** | **32** |
 
-**24 of 81 actions are exercised end to end.** The other 57 render correctly and
+**32 of 81 actions are exercised end to end.** The other 49 render correctly and
 are covered by unit tests and typecheck, but no committed script has yet driven
 them through a browser and asserted the resulting rows. That gap is stated
 plainly rather than papered over by counting the page sweep as proof — a button
-can render perfectly and do nothing, which is exactly how all four defects in
+can render perfectly and do nothing, which is exactly how all nine defects in
 this report were found.
 
 Earlier sessions did leave evidence in `audit_logs` for a few more
@@ -748,14 +889,15 @@ somewhere above 12. It is not 81.
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
 | 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
 | 3 | **Hire pipeline** | **Now exercised** — 18/18, see §4. One defect found and fixed |
-| 4 | **57 of 81 server actions not yet driven end to end** | See §5 for the per-domain breakdown. Auth (10), attendance (8) and cms (14) are the largest blocks left. This remains the biggest gap |
-| 5 | Invite *account creation* | Blocked by Supabase email rate limiting (HTTP 429) in this environment |
+| 4 | **49 of 81 server actions not yet driven end to end** | See §5 for the per-domain breakdown. cms (14), attendance (8) and recruitment remainder (5) are the largest blocks left. This remains the biggest gap |
+| 5 | Invite *account creation*, and **signup account creation** | Blocked by Supabase email rate limiting (HTTP 429) in this environment. The signup *error path* is now proven to report the rate limit correctly rather than blaming the address; the success path is not |
 | 6 | `super_admin` holds 21 of 50 permissions | Deliberate platform-vs-business split, or a gap — a product call. See §2 |
 | 7 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
 | 8 | Playwright e2e not running in CI | Needs `RUN_E2E=true` plus secrets |
 | 9 | Nothing is pushed to `origin` | `origin/main` is 10 commits and ~371 files behind this branch |
 | 10 | Demo tenant decays; gate needs `refresh-demo-timeline.mjs --apply` first | See below — this is an operational landmine, not a code defect |
 | 11 | `payslip_items` / `payslip_components` | **Resolved, not open.** They do not exist — an earlier audit of mine guessed them. The app uses `payroll_components` |
+| 12 | `resetPasswordAction` | Needs a real recovery token from an inbox; no mail provider in this environment. The invalid-token path on `verifyEmailAction` *is* proven |
 
 **The demo tenant is a clock bomb, and it is worth knowing about before you trust
 a red gate.** Several seed scripts wrote relative deadlines with `Date.now()`
@@ -809,9 +951,11 @@ node scripts/audit/qa-exercise-admin-workflow.mjs   # 18 assertions (1 path may 
 node scripts/audit/qa-exercise-hire-workflow.mjs    # 18 assertions
 node scripts/audit/qa-exercise-crm-workflow.mjs     # 21 assertions
 node scripts/audit/qa-exercise-payroll-workflow.mjs # 19 assertions
+node scripts/audit/qa-exercise-auth-workflow.mjs    # 35 assertions (signup reports BLOCKED under 429)
 
 # recovery, if a run was killed before its cleanup
 node scripts/audit/qa-repair-applicant-membership.mjs   # --apply
+node scripts/audit/qa-probe-signup-error.mjs            # read-only: what Supabase says back per domain
 
 # writers — all dry run by default, all refuse to write without an explicit flag
 node scripts/seed-qa-fixtures.mjs            # --apply

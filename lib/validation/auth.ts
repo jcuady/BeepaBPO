@@ -51,6 +51,23 @@ export const resetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
+/**
+ * Changing a password while signed in needs the CURRENT one as well as the new
+ * pair. `resetPasswordSchema` cannot be reused here: it has no `currentPassword`
+ * field, so validating the new pair alone is what let a bare session rotate the
+ * credential (CWE-620).
+ */
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Enter your current password."),
+    password: z.string().min(8, "Password must be at least 8 characters."),
+    confirmPassword: z.string().min(8, "Confirm your password."),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
 export const contactSchema = z.object({
   name: z.string().min(1, "Name is required.").max(120),
   email: z.string().email("Enter a valid work email."),

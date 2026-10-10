@@ -17,6 +17,19 @@ export function ChangePasswordForm() {
   return (
     <form action={action} className="space-y-4" noValidate>
       <div className="space-y-2">
+        <Label htmlFor="settings-current">Current password</Label>
+        <PasswordField
+          id="settings-current"
+          name="currentPassword"
+          autoComplete="current-password"
+        />
+        {state.fieldErrors?.currentPassword ? (
+          <p className="text-sm text-destructive">
+            {state.fieldErrors.currentPassword[0]}
+          </p>
+        ) : null}
+      </div>
+      <div className="space-y-2">
         <Label htmlFor="settings-password">New password</Label>
         <PasswordField
           id="settings-password"

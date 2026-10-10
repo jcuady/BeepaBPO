@@ -31,3 +31,27 @@ export function authErrorMessage(error: { status?: number } | null): string {
   }
   return "Invalid email or password.";
 }
+
+/**
+ * The signup counterpart to `authErrorMessage`.
+ *
+ * `signupAction` reported every failure as "Unable to create account with that
+ * email." — including a 429. Measured in this environment: Supabase answers
+ * EVERY signUp with 429 "email rate limit exceeded", so a prospective client was
+ * told their address was bad when nothing was wrong with it. They retype the same
+ * address, fail the same way, and leave. Signup is the top of the funnel; a
+ * transient infrastructure condition must not read as a verdict on the address.
+ *
+ * Same reasoning as `authErrorMessage` above, one layer up: a message that cannot
+ * distinguish the causes sends every investigation down the wrong path.
+ */
+export function signupErrorMessage(error: { status?: number } | null): string {
+  const status = error?.status ?? 0;
+  if (status === 429) {
+    return "Too many sign-up attempts from this network. Wait a minute, then try again.";
+  }
+  if (status === 0 || status >= 500) {
+    return "We couldn't reach the sign-up service. Try again in a moment.";
+  }
+  return "Unable to create account with that email.";
+}

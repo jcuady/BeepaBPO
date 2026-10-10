@@ -23,7 +23,7 @@ import {
   IconUser,
 } from "@tabler/icons-react";
 import type { SerializedWorkspace } from "@/lib/app/serialize-workspace";
-import { logoutAction } from "@/lib/auth/actions";
+import { logoutAction, logoutAllAction } from "@/lib/auth/actions";
 
 type AppHeaderProps = {
   workspace: SerializedWorkspace;
@@ -69,11 +69,26 @@ export function AppHeader({
 }: AppHeaderProps) {
   const { profile, roleLabel, organizationName } = workspace;
   const [pending, startTransition] = useTransition();
+  const [pendingEverywhere, startEverywhereTransition] = useTransition();
   const links = accountLinks(workspace);
 
   function handleSignOut() {
     startTransition(async () => {
       await logoutAction();
+    });
+  }
+
+  /**
+   * Revoke every session, not just this browser's.
+   *
+   * `logoutAllAction` existed but nothing could reach it, so a user who suspected
+   * a stolen session had no recourse: signing out only ends the browser in front of
+   * them, which is the one browser they no longer trust. This makes the global
+   * path reachable on purpose.
+   */
+  function handleSignOutEverywhere() {
+    startEverywhereTransition(async () => {
+      await logoutAllAction();
     });
   }
 
@@ -187,6 +202,14 @@ export function AppHeader({
             >
               <IconLogout stroke={1.75} className="size-4" />
               {pending ? "Signing out…" : "Sign out"}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={pendingEverywhere}
+              className="cursor-pointer gap-2"
+              onClick={handleSignOutEverywhere}
+            >
+              <IconLogout stroke={1.75} className="size-4" />
+              {pendingEverywhere ? "Signing out everywhere…" : "Sign out everywhere"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

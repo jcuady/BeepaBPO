@@ -7,8 +7,9 @@ import { createClient } from "@/lib/supabase/server";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { getEnv } from "@/lib/env";
 import { safeNext } from "@/lib/auth/safe-next";
-import { authErrorMessage } from "@/lib/auth/error-messages";
+import { authErrorMessage, signupErrorMessage } from "@/lib/auth/error-messages";
 import {
+  changePasswordSchema,
   employeeLoginSchema,
   forgotPasswordSchema,
   loginSchema,
@@ -214,7 +215,7 @@ export async function signupAction(
   if (error) {
     return {
       ok: false,
-      error: "Unable to create account with that email.",
+      error: signupErrorMessage(error),
     };
   }
 
@@ -303,7 +304,7 @@ export async function changePasswordAction(
   formData: FormData,
 ): Promise<ActionState> {
   const raw = formDataToObject(formData);
-  const parsed = resetPasswordSchema.safeParse(raw);
+  const parsed = changePasswordSchema.safeParse(raw);
   if (!parsed.success) {
     return {
       ok: false,
@@ -324,13 +325,50 @@ export async function changePasswordAction(
     return { ok: false, error: "You must be signed in to change your password." };
   }
 
+  // Re-authenticate BEFORE rotating the credential.
+  //
+  // This used to call `updateUser({ password })` on the strength of the session
+  // alone. supabase-js treats a live session as sufficient authority to change
+  // the password, so any session — including one in a borrowed, shared or
+  // hijacked browser — could reset the account password and lock the real owner
+  // out permanently. That is CWE-620, and the Settings form had no
+  // current-password field to collect the proof even if this had wanted it.
+  //
+  // A phone-only account has no `email`, and the password grant cannot be used to
+  // prove anything about it. Refuse rather than fall back to trusting the session,
+  // which is the exact hole this check exists to close.
+  if (!user.email) {
+    return {
+      ok: false,
+      error: "We couldn't verify your current password. Contact support to change it.",
+    };
+  }
+
+  const { error: authError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: parsed.data.currentPassword,
+  });
+  if (authError) {
+    // Deliberately NOT `authError` / `error.message`: Supabase's raw text
+    // distinguishes a wrong password from a disabled or unknown account, which
+    // would turn this form into an account-status oracle. One message for every
+    // reason the check could not be satisfied.
+    return {
+      ok: false,
+      fieldErrors: {
+        currentPassword: ["That is not your current password."],
+      },
+      error: "Your current password is not correct.",
+    };
+  }
+
   const { error } = await supabase.auth.updateUser({
     password: parsed.data.password,
   });
   if (error) {
     return {
       ok: false,
-      error: error.message || "Unable to update password.",
+      error: "We couldn't update your password. Try again in a moment.",
     };
   }
 
