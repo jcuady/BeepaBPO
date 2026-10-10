@@ -1159,6 +1159,87 @@ actually testing an anonymous visitor. Both tabs are also narrowed with the page
 "Resolve NTE" button and `.first()` would fill one case's notes and submit the
 other's.
 
+### Notifications workflow — `qa-exercise-notifications-workflow.mjs`, 16/16
+
+Mark one read, mark them all read, change a delivery preference. No product defect.
+
+The hazard this run is built around is that **`markAllRead` updates every notification
+the signed-in user owns**. A QA script that clicks it and afterwards deletes only its
+own rows has still silently marked every other notification in the demo account read,
+and nothing reports it. So the run snapshots `read_at` for all 17 of the subject user's
+notifications *before* touching anything and restores each value afterwards, comparing
+against the snapshot rather than against a remembered id list.
+
+| Assertion | Result |
+|---|---|
+| The other user's notification starts unread | PASS |
+| The page renders the QA notifications | PASS |
+| **Another user's notification is not shown** | PASS |
+| Unread rows are marked `Unread` | PASS |
+| `markNotificationRead` sets `read_at` | PASS |
+| `markNotificationRead` leaves other notifications alone | PASS |
+| The *Mark all read* button appears while something is unread | PASS |
+| `markAllRead` marks every one of the user's notifications read | PASS |
+| **`markAllRead` does not touch another user's notification** | PASS |
+| The page shows no unread rows afterwards | PASS |
+| The email digest preference toggle is present | PASS |
+| `updateNotificationPreferences` persists a row | PASS |
+| The persisted value matches the toggle the user left | PASS |
+| Toggling back writes the original value | PASS |
+| No unexpected console errors | PASS |
+| No page errors | PASS |
+
+Restoration verified by read-back: 17 `read_at` values restored, **0** mismatching the
+snapshot, 0 notifications left carrying the marker, total row count back to 58.
+
+One assertion failed first for a reason worth recording. `aria-checked` hands back the
+**string** `"true"` while the column holds a **boolean**, so `"true" === true` fails
+while printing two identical values on either side of the message — a failure that
+reads exactly like a product defect and is not one.
+
+### Profile / employee / contact workflow — `qa-exercise-profile-workflow.mjs`, 19/19
+
+Four actions in three modules, plus the last unexercised CRM action.
+`createLeadFromContact` is reachable in production *only* through the public contact
+form, so driving `/contact` closes both at once. No product defect.
+
+| Assertion | Result |
+|---|---|
+| HR sees the employee edit form | PASS |
+| `updateEmployee` persists the new job title | PASS |
+| `updateEmployee` writes an audit row | PASS |
+| Owner sees the profile form | PASS |
+| **The profile form is pre-filled from the database** | PASS |
+| `updateProfile` persists the display name | PASS |
+| `updateProfile` persists the phone | PASS |
+| `updateProfile` writes an audit row | PASS |
+| **Clearing the phone stores null, not an empty string** | PASS |
+| The contact form confirms receipt to the enquirer | PASS |
+| `contactAction` creates exactly one lead | PASS |
+| The lead is sourced from the website form | PASS |
+| The lead lands in the sales queue as `new` | PASS |
+| A honeypot submission is told it succeeded | PASS |
+| **A honeypot submission writes no lead** | PASS |
+| An invalid email is refused at step 1 | PASS |
+| No lead is written for invalid input | PASS |
+| No unexpected console errors | PASS |
+| No page errors | PASS |
+
+The contact form is a three-step wizard, and the honeypot (`website`) returns a success
+message **without writing anything** — correct anti-spam behaviour, and very easy to
+mistake for "the form works" if a run submits the happy path and stops. So all three
+paths are submitted and asserted separately: one real enquiry (one lead), one
+honeypot-filled (told it succeeded, zero leads), one invalid (refused, zero leads).
+
+**What that invalid-email assertion does and does not prove.** It proves *client-side*
+validation: the input is `type="email"` with `required`, so the browser blocks the
+submit and `contactAction` is never called. The server-side `contactSchema` rejection
+path is **not** exercised, because the UI cannot reach it. Recorded as a note rather
+than quietly counted as coverage.
+
+Restoration verified: employee record and owner profile both restored field by field,
+`crm_leads` back to 4, 0 leads carrying the marker.
+
 ### Traps this pass hit in its own tooling
 
 Recorded because each produced a report full of defects that did not exist:
@@ -1253,19 +1334,19 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/tickets` | 6 | **2** (create, assign) |
 | `lib/auth` | 10 | **8** (signup reached but 429-blocked; `resetPasswordAction` not driven) |
 | `lib/cms` | 14 | **14** |
-| `lib/crm` | 8 | **7** (all but `createLeadFromContact`) |
+| `lib/crm` | 8 | **8** (`createLeadFromContact` via the public contact form) |
 | `lib/payroll` | 5 | **5** |
 | `lib/documents` | 3 | 0 |
-| `lib/notifications` | 3 | 0 |
+| `lib/notifications` | 3 | **3** |
 | `lib/hr/nte-actions` | 3 | **3** |
 | `lib/attendance/*` (4 modules) | 8 | **6** (client-timesheet pair not driven) |
 | `lib/billing` | 2 | 0 |
 | `lib/cash-advance` | 2 | 0 |
 | `lib/clients` (1) | 1 | 0 |
-| `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | 0 |
-| **Total** | **83** | **60** |
+| `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | **3** |
+| **Total** | **83** | **67** |
 
-**60 of 83 actions are exercised end to end.** The other 23 render correctly and
+**67 of 83 actions are exercised end to end.** The other 16 render correctly and
 are covered by unit tests and typecheck, but no committed script has yet driven
 them through a browser and asserted the resulting rows. That gap is stated
 plainly rather than papered over by counting the page sweep as proof — a button
@@ -1355,6 +1436,8 @@ node scripts/audit/qa-exercise-attendance-workflow.mjs # 31 assertions
 node scripts/audit/qa-exercise-cms-workflow.mjs        # 42 assertions
 node scripts/audit/qa-exercise-recruitment-workflow.mjs # 23 assertions
 node scripts/audit/qa-exercise-nte-workflow.mjs      # 24 assertions
+node scripts/audit/qa-exercise-notifications-workflow.mjs # 16 assertions
+node scripts/audit/qa-exercise-profile-workflow.mjs      # 19 assertions
 
 # recovery, if a run was killed before its cleanup
 node scripts/audit/qa-repair-applicant-membership.mjs   # --apply
