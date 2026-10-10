@@ -13,6 +13,41 @@
  * Pure and dependency-free so the arithmetic can be tested directly.
  */
 
+import { zonedWorkDateTime } from "@/lib/attendance/zoned-time";
+
+/**
+ * Turn the naive `datetime-local` value a correction form submits into a real
+ * instant in the employee's own timezone.
+ *
+ * This is the bug this file existed to prevent, reintroduced one module over.
+ * `upsertAttendanceRecord` builds its timestamps with `zonedWorkDateTime`, so
+ * manual entry was fixed when `zoned-time.ts` was written. The correction path
+ * kept passing the browser's naive string straight through, and Postgres casts a
+ * bare timestamp as UTC regardless of where the app runs. Measured on the demo
+ * tenant: an employee asked for a corrected shift of 08:00-17:00 Manila, and the
+ * row was written as `08:00Z` / `17:00Z`, which display as 4:00 PM and 1:00 AM.
+ *
+ * `worked_minutes` still came out at 540 because both endpoints moved together,
+ * so payroll hours looked correct while every displayed time was wrong. Rules
+ * anchored to a wall clock — overtime after 18:00, a night differential — read
+ * the wrong hours.
+ *
+ * The date is taken from the submitted value rather than the record's `work_date`,
+ * so a correction that also moves the day still lands on the day asked for.
+ *
+ * Returns null when the string is not a recognisable `YYYY-MM-DDTHH:mm`, which
+ * leaves the caller to store it as-is rather than inventing an instant.
+ */
+export function naiveDateTimeToZoned(
+  naive: string | null | undefined,
+  timeZone: string,
+): string | null {
+  if (!naive) return null;
+  const match = /^(\d{4}-\d{2}-\d{2})[T ](\d{1,2}:\d{2})/.exec(naive.trim());
+  if (!match) return null;
+  return zonedWorkDateTime(match[1], match[2], timeZone);
+}
+
 export function workedMinutesBetween(
   clockInAt: string | null,
   clockOutAt: string | null,

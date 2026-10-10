@@ -6,7 +6,8 @@ import {
   advanceApprovalRequest,
   createApprovalRequest,
 } from "@/lib/approvals/engine";
-import { resolveCorrectedClockTimes } from "@/lib/attendance/corrected-times";
+import { resolveCorrectedClockTimes, naiveDateTimeToZoned } from "@/lib/attendance/corrected-times";
+import { DEFAULT_TIMEZONE } from "@/lib/attendance/zoned-time";
 import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can, canAny } from "@/lib/permissions/can";
@@ -176,9 +177,29 @@ export async function reviewAttendanceCorrection(
       .eq("id", correction.attendance_record_id)
       .maybeSingle();
 
+    // The requested values arrive as naive `datetime-local` strings. Postgres
+    // casts those as UTC, so storing one unchanged puts an Asia/Manila shift
+    // 8 hours out. Convert them to real instants in the employee's timezone
+    // first — the same rule the manual-entry path already uses.
+    const { data: employeeRow } = await supabase
+      .from("employees")
+      .select("default_timezone")
+      .eq("id", correction.employee_id)
+      .maybeSingle();
+    const timeZone = employeeRow?.default_timezone || DEFAULT_TIMEZONE;
+
+    const requestedIn = naiveDateTimeToZoned(correction.requested_clock_in_at, timeZone);
+    const requestedOut = naiveDateTimeToZoned(correction.requested_clock_out_at, timeZone);
+
+    // A value the converter could not read is kept verbatim rather than dropped,
+    // so a malformed request surfaces as the value the employee actually sent.
     const resolved = resolveCorrectedClockTimes(current, {
-      clock_in_at: correction.requested_clock_in_at,
-      clock_out_at: correction.requested_clock_out_at,
+      clock_in_at: correction.requested_clock_in_at
+        ? (requestedIn ?? correction.requested_clock_in_at)
+        : null,
+      clock_out_at: correction.requested_clock_out_at
+        ? (requestedOut ?? correction.requested_clock_out_at)
+        : null,
     });
 
     if (!resolved.ok) {

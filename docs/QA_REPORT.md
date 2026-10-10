@@ -17,7 +17,7 @@ user anything real?**
 |---|---|---|
 | Typecheck | `npx tsc --noEmit` | whole repo — **exit 0** |
 | Lint | `npx eslint . --max-warnings=0` | whole repo — **exit 0** |
-| Unit/contract | `npx vitest run` | **552 passed, 88 files** |
+| Unit/contract | `npx vitest run` | **558 passed, 89 files** |
 | Production build | `npx next build` | **exit 0** |
 | Release gate | `node scripts/verify-all.mjs` | **18/18 — "All checks passed. Ship it." — exit 0** |
 | **Per-role page sweep** | `scripts/audit/audit-role-sweep.mjs` | **13 roles × nav-reachable pages + 10 marketing pages = 471 visits** |
@@ -29,6 +29,7 @@ user anything real?**
 | **CRM workflow exercise** | `qa-exercise-crm-workflow.mjs` | **21 assertions** |
 | **Payroll workflow exercise** | `qa-exercise-payroll-workflow.mjs` | **19 assertions** |
 | **Auth workflow exercise** | `qa-exercise-auth-workflow.mjs` | **35 assertions** |
+| **Attendance workflow exercise** | `qa-exercise-attendance-workflow.mjs` | **31 assertions** |
 | Interactive | Playwright MCP | login, headings, live workflow |
 
 ### Heading spot-check (Playwright MCP, owner, production build)
@@ -329,6 +330,41 @@ Note what is **not** claimed: the signup success path is still unproven, because
 this environment cannot execute it. Account creation reports BLOCKED, and the
 exercise asserts only that the rate limit is *reported as a rate limit* rather than
 as a bad address.
+
+### P1 — An approved attendance correction stored times 8 hours out. Fixed.
+
+`lib/attendance/zoned-time.ts` exists because manual attendance entry used to store
+timestamps 8 hours out of step with clocked ones, and `upsertAttendanceRecord` was
+routed through `zonedWorkDateTime` to fix it. The **correction path was never
+converted.** `resolveCorrectedClockTimes` is pure string arithmetic, and the value
+it receives comes from an `datetime-local` input — a naive `2026-10-10T08:00` that
+Postgres casts as `08:00Z`, which is 16:00 in Asia/Manila.
+
+Measured on the live demo tenant, driving the real UI:
+
+```
+employee requested a corrected shift of 08:00 - 17:00 Manila
+the record stored  2026-10-10T08:00:00Z  and  2026-10-10T17:00:00Z
+which DISPLAY as   4:00 PM              and  1:00 AM
+```
+
+**What makes this dangerous rather than merely wrong is that `worked_minutes` still
+came out at 540.** Both endpoints moved by the same amount, so the duration
+survived and payroll hours looked right. Everything anchored to a wall clock —
+overtime after 18:00, a night differential, the times a supervisor reads on the
+heatmap — was reading eight hours of nothing. A payslip showing 540 minutes is
+indistinguishable from a correct one; only the displayed times give it away.
+
+**Fix:** `reviewAttendanceCorrection` resolves the requested values through the
+employee's `default_timezone` before merging, via a new `naiveDateTimeToZoned` in
+`corrected-times.ts` — kept next to `resolveCorrectedClockTimes` so the two halves
+of the correction path cannot drift apart again. A value the converter cannot read
+is stored verbatim rather than dropped, so a malformed request surfaces as what the
+employee actually sent.
+
+The exercise now proves this the only way that counts: after approval, **the time
+the record shows in the employee's own timezone must equal the time they asked
+for.** Asserting that "some timestamp was written" would have passed either way.
 
 ### P2 — "Super Admin" cannot do most of what an admin does. Documented, not changed.
 
@@ -766,6 +802,48 @@ FAIL  this run left no ticket behind  — 0 residual before -> 1 after
 The residue the mutant left was then removed by the unmodified script's start-sweep,
 which is the third independent confirmation that the sweep works.
 
+### Attendance workflow — `qa-exercise-attendance-workflow.mjs`, 31/31
+
+Eight actions across four `"use server"` modules in `lib/attendance`, none previously
+driven. Six are exercised here; the client timesheet pair is not.
+
+| Action | What was proven |
+|---|---|
+| `clockIn` | Creates today's record with `clock_in_at`, no `clock_out_at` |
+| `clockOut` | Sets `clock_out_at`; `worked_minutes` matches the actual gap |
+| `createAttendanceCorrection` | Creates a pending request **and** an approval request on the `attendance_correction` workflow |
+| `reviewAttendanceCorrection` | HR approves; times applied, `worked_minutes` recomputed, record finalized |
+| `upsertAttendanceRecord` | HR manual entry stores times in the employee's timezone |
+| `deleteAttendanceRecord` | Removes a draft record through the dialog |
+
+The run is built around one question — **does a correction land on the times the
+employee actually asked for?** — and answers it the only way that discriminates:
+
+```
+requested 08:00 - 17:00 Manila
+before:  stored 08:00:00Z / 17:00:00Z   ->  displays 4:00 PM - 1:00 AM   FAIL
+after:   stored 00:00:00Z / 09:00:00Z   ->  displays 8:00 AM - 5:00 PM   PASS
+```
+
+It also runs a **control**: HR manual entry goes through the already-correct
+`zonedWorkDateTime` path, and the run asserts it reads back right. Without that,
+a failure on the correction path could not be told apart from "the timezone is
+wrong" rather than "the correction path is wrong". Same employee, same timezone,
+same kind of wall-clock reading, two code paths.
+
+Two guards deliberately not exercised, both recorded rather than quietly skipped:
+
+- The **finalized-record guard** is never tested by deleting a live row through the
+  service role. That bypasses RLS, so it would prove nothing about the action's
+  guard while risking real demo data, and a faithful restore would have to
+  reconstruct the original `employee_id` and `work_date`. An earlier draft of this
+  script did exactly that. **Proving a guard must not require destroying what it
+  guards.**
+- `worked_minutes` is asserted as *consistent with the stored pair*, not as
+  greater than zero. Clock in and clock out happen seconds apart in a test run, so
+  the honest value is 0 — and a `> 0` assertion reports a correct record as broken
+  purely because the test was fast.
+
 ### Traps this pass hit in its own tooling
 
 Recorded because each produced a report full of defects that did not exist:
@@ -837,8 +915,14 @@ Recorded because each produced a report full of defects that did not exist:
 
 ## 5. Action coverage — what is and is not proven
 
-There are **81 exported server actions across 21 `"use server"` modules**. "Every
-button works" needs a distinction between *rendered* and *exercised*:
+There are **83 exported server actions across 21 `"use server"` modules**, counted
+by `scripts/audit/qa-action-inventory.mjs` rather than maintained by hand — the
+figure was previously given as 81, and attendance's 8 actions were listed as though
+they lived in one file when they are spread across four
+(`actions.ts`, `client-timesheet.ts`, `corrections.ts`, `manage.ts`). A hand-kept
+table is a claim, and this report is specifically about refusing claims in place of
+evidence. "Every button works" needs a distinction between *rendered* and
+*exercised*:
 
 - **Rendered** — the control appears on a page a role can reach. Proven by the
   role sweep: 471 page visits, 0 console errors, 0 page errors.
@@ -855,22 +939,22 @@ button works" needs a distinction between *rendered* and *exercised*:
 | `lib/auth` | 10 | **8** (signup reached but 429-blocked; `resetPasswordAction` not driven) |
 | `lib/cms` | 14 | 0 |
 | `lib/crm` | 8 | **7** (all but `createLeadFromContact`) |
-| `lib/recruitment` (remainder) | 5 | 0 |
 | `lib/payroll` | 5 | **5** |
 | `lib/documents` | 3 | 0 |
 | `lib/notifications` | 3 | 0 |
 | `lib/hr/nte-actions` | 3 | 0 |
-| `lib/attendance/*` | 8 | 0 |
+| `lib/attendance/*` (4 modules) | 8 | **6** (client-timesheet pair not driven) |
 | `lib/billing` | 2 | 0 |
 | `lib/cash-advance` | 2 | 0 |
-| `lib/clients`, `lib/employees`, `lib/profile`, `lib/contact` | 4 | 0 |
-| **Total** | **81** | **32** |
+| `lib/clients` (1) | 1 | 0 |
+| `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | 0 |
+| **Total** | **83** | **38** |
 
-**32 of 81 actions are exercised end to end.** The other 49 render correctly and
+**38 of 83 actions are exercised end to end.** The other 45 render correctly and
 are covered by unit tests and typecheck, but no committed script has yet driven
 them through a browser and asserted the resulting rows. That gap is stated
 plainly rather than papered over by counting the page sweep as proof — a button
-can render perfectly and do nothing, which is exactly how all nine defects in
+can render perfectly and do nothing, which is exactly how all ten defects in
 this report were found.
 
 Earlier sessions did leave evidence in `audit_logs` for a few more
@@ -889,7 +973,7 @@ somewhere above 12. It is not 81.
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
 | 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
 | 3 | **Hire pipeline** | **Now exercised** — 18/18, see §4. One defect found and fixed |
-| 4 | **49 of 81 server actions not yet driven end to end** | See §5 for the per-domain breakdown. cms (14), attendance (8) and recruitment remainder (5) are the largest blocks left. This remains the biggest gap |
+| 4 | **45 of 83 server actions not yet driven end to end** | See §5 for the per-domain breakdown. cms (14), the recruitment remainder (5) and the client timesheet pair are the largest blocks left. This remains the biggest gap |
 | 5 | Invite *account creation*, and **signup account creation** | Blocked by Supabase email rate limiting (HTTP 429) in this environment. The signup *error path* is now proven to report the rate limit correctly rather than blaming the address; the success path is not |
 | 6 | `super_admin` holds 21 of 50 permissions | Deliberate platform-vs-business split, or a gap — a product call. See §2 |
 | 7 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
@@ -952,10 +1036,17 @@ node scripts/audit/qa-exercise-hire-workflow.mjs    # 18 assertions
 node scripts/audit/qa-exercise-crm-workflow.mjs     # 21 assertions
 node scripts/audit/qa-exercise-payroll-workflow.mjs # 19 assertions
 node scripts/audit/qa-exercise-auth-workflow.mjs    # 35 assertions (signup reports BLOCKED under 429)
+node scripts/audit/qa-exercise-attendance-workflow.mjs # 31 assertions
 
 # recovery, if a run was killed before its cleanup
 node scripts/audit/qa-repair-applicant-membership.mjs   # --apply
 node scripts/audit/qa-probe-signup-error.mjs            # read-only: what Supabase says back per domain
+node scripts/audit/qa-inspect-attendance-identities.mjs # read-only: which user owns which employee record
+node scripts/audit/qa-cleanup-orphan-correction-approvals.mjs # --apply
+node scripts/audit/qa-cleanup-leaked-attendance.mjs     # --apply
+
+# coverage, counted rather than maintained by hand
+node scripts/audit/qa-action-inventory.mjs              # 21 "use server" modules, 83 actions
 
 # writers — all dry run by default, all refuse to write without an explicit flag
 node scripts/seed-qa-fixtures.mjs            # --apply
