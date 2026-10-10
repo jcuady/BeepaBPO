@@ -506,6 +506,52 @@ roles the run *added* but never re-inserted one the run *removed*, so a failed
 run left the account with no roles at all. `qa-repair-applicant-membership.mjs`
 exists for the case where a killed process never runs its `finally` at all.
 
+### CRM workflow — `qa-exercise-crm-workflow.mjs`, 21/21
+
+```
+lead -> qualified -> deal -> proposal -> sent -> accepted -> deal WON -> client organization
+```
+
+Eight CRM actions, and `convertWonDealToClient` has the largest blast radius in
+the sales module: it creates an organization, client settings, a billing
+account, links the deal and writes an audit entry, with a rollback on each
+failure branch. None of that had ever run against live data, so none of the
+rollback had ever been exercised.
+
+| Assertion | Result |
+|---|---|
+| Lead created, starts `new` | PASS |
+| Lead status advanced to `qualified` | PASS (confirmed dialog) |
+| Deal created and linked to the lead | PASS — `PHP 250000`, stage `new_lead` |
+| Proposal created (`draft`) | PASS |
+| Proposal marked `sent` from the **deal** page | PASS |
+| A `sent` proposal gains a status control on the **list** | PASS |
+| Proposal accepted | PASS |
+| Deal marked `won` | PASS |
+| Convert control appears only on a won, unlinked deal | PASS |
+| Client organization created, `type=client`, active | PASS — slug `qa-crm-…-org` |
+| `client_settings` row created | PASS |
+| Deal linked to the new organization | PASS |
+| Conversion noted on the deal timeline | PASS |
+| Audit-logged | PASS — `crm_deal.convert_client` |
+| 0 console errors | PASS |
+| CRM left exactly as found | PASS — leads 4→4, deals 7→7, proposals 7→7, orgs 2→2 |
+
+**Owner is the only role that can do this.** `convertWonDealToClient` needs
+`crm.manage` **and** `clients.manage`, and neither HR nor Sales holds both — HR
+has neither, Sales has `crm.manage` but not `clients.manage`. The whole flow
+therefore runs as Owner. Asserted, so a permission change that quietly widens it
+gets noticed.
+
+**A workflow with two screens, which cost this script two runs.** A proposal
+created through the UI starts as `draft`, and the `/app/crm/proposals` list only
+renders a status select for `sent` proposals. The `draft → sent` transition —
+"Mark sent" — lives on the **deal detail page**. So the natural attempt to accept
+a proposal you just created fails with "did not find some options", which looks
+exactly like a broken control. It is not a defect; the transition is on a
+different screen. Recorded because "the button is missing" and "the button is on
+another page" produce identical evidence.
+
 ### Self-cleaning — the fix the verifier caught
 
 Both exercises swept leftovers from *previous* runs at the start and **nothing at the
@@ -605,7 +651,7 @@ button works" needs a distinction between *rendered* and *exercised*:
 | `lib/tickets` | 6 | **2** (create, assign) |
 | `lib/auth` | 10 | 0 |
 | `lib/cms` | 14 | 0 |
-| `lib/crm` | 8 | 0 |
+| `lib/crm` | 8 | **7** (all but `createLeadFromContact`) |
 | `lib/recruitment` (remainder) | 5 | 0 |
 | `lib/payroll` | 5 | 0 |
 | `lib/documents` | 3 | 0 |
@@ -615,9 +661,9 @@ button works" needs a distinction between *rendered* and *exercised*:
 | `lib/billing` | 2 | 0 |
 | `lib/cash-advance` | 2 | 0 |
 | `lib/clients`, `lib/employees`, `lib/profile`, `lib/contact` | 4 | 0 |
-| **Total** | **81** | **12** |
+| **Total** | **81** | **19** |
 
-**12 of 81 actions are exercised end to end.** The other 69 render correctly and
+**19 of 81 actions are exercised end to end.** The other 62 render correctly and
 are covered by unit tests and typecheck, but no committed script has yet driven
 them through a browser and asserted the resulting rows. That gap is stated
 plainly rather than papered over by counting the page sweep as proof — a button
