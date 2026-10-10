@@ -30,6 +30,7 @@ user anything real?**
 | **Payroll workflow exercise** | `qa-exercise-payroll-workflow.mjs` | **19 assertions** |
 | **Auth workflow exercise** | `qa-exercise-auth-workflow.mjs` | **35 assertions** |
 | **Attendance workflow exercise** | `qa-exercise-attendance-workflow.mjs` | **31 assertions** |
+| **CMS workflow exercise** | `qa-exercise-cms-workflow.mjs` | **42 assertions** |
 | Interactive | Playwright MCP | login, headings, live workflow |
 
 ### Heading spot-check (Playwright MCP, owner, production build)
@@ -365,6 +366,22 @@ employee actually sent.
 The exercise now proves this the only way that counts: after approval, **the time
 the record shows in the employee's own timezone must equal the time they asked
 for.** Asserting that "some timestamp was written" would have passed either way.
+
+### P2 — CMS content can never be deleted. Documented, not changed.
+
+`lib/cms/actions.ts` exports create, update and status actions for six content
+types. It exports **no delete action at all**, and there is no `.delete()` call
+anywhere in the file. A draft created in error, a test row, a withdrawn
+case study — none can be removed by anyone, through any interface.
+
+Archive is a soft delete and may well be the intended model. It is recorded
+because it was not an obvious design decision from the UI: the CMS page shows
+Publish and Archive on every row and no delete control anywhere, so the
+constraint is invisible until someone needs it.
+
+Not changed. Adding a hard delete to a published marketing site is a product
+decision with retention implications. The absence is asserted by the exercise so
+that adding delete later is a deliberate act rather than an accident of drift.
 
 ### P2 — "Super Admin" cannot do most of what an admin does. Documented, not changed.
 
@@ -844,6 +861,47 @@ Two guards deliberately not exercised, both recorded rather than quietly skipped
   the honest value is 0 — and a `> 0` assertion reports a correct record as broken
   purely because the test was fast.
 
+### CMS workflow — `qa-exercise-cms-workflow.mjs`, 42/42
+
+All **14** actions in `lib/cms/actions.ts` — the largest single block in the app, and
+until now the least exercised. **No product defect.** Everything created, edited,
+published, archived, and cleaned up exactly as intended:
+
+| Content type | create | edit | publish | archive |
+|---|---|---|---|---|
+| blog post | ✅ | ✅ | ✅ (`published_at` set) | ✅ |
+| service | ✅ | ✅ | ✅ | ✅ |
+| FAQ | ✅ | ✅ | ✅ | ✅ |
+| industry | ✅ | ✅ | ✅ | ✅ |
+| testimonial | ✅ | ✅ | ✅ | ✅ |
+| case study | ✅ | ✅ | ✅ | ✅ |
+| About page | ✅ (`upsertAboutPage`) | — | — | — |
+
+`setCmsContentStatus` is exercised twice per content type — publish, then archive —
+so all six of its branches run rather than one.
+
+Two structural facts this pass established rather than assumed:
+
+- **There is no delete action anywhere in `lib/cms/actions.ts`.** Content can be
+  created, edited, published and archived — never removed. A CMS with no delete
+  means a mistaken or test row lives forever. That may be deliberate (Archive is a
+  soft delete), so it is documented rather than fixed, and the exercise deletes
+  its own rows through the service role, which is the only route a real user does
+  not have. Recorded as its own finding.
+- **`cms.manage` is held by exactly one role: `marketing`.** Not `owner`, not
+  `super_admin`, not `hr`. This extends the §2 `super_admin` finding: the account
+  the UI calls "Super Admin" cannot open the CMS at all. Measured by calling the
+  `user_permission_codes` RPC **signed in as each demo user** — joining
+  `role_permissions` gives the same answer, but the RPC is what the app actually
+  consults, and the two are not the same source of truth.
+
+The permission guard itself is proven negatively: a second browser context signed
+in as `owner` loads `/app/cms` and is asserted to receive **no CMS content and no
+creation forms**. Note that this is asserted on *content*, not on the URL —
+`requirePermission` calls Next's `forbidden()`, which does not reliably change the
+address, and a URL-only check reported "owner reached the CMS" for a page that had
+already refused them.
+
 ### Traps this pass hit in its own tooling
 
 Recorded because each produced a report full of defects that did not exist:
@@ -937,7 +995,7 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/recruitment` | 7 | **2** (stage change, hire) |
 | `lib/tickets` | 6 | **2** (create, assign) |
 | `lib/auth` | 10 | **8** (signup reached but 429-blocked; `resetPasswordAction` not driven) |
-| `lib/cms` | 14 | 0 |
+| `lib/cms` | 14 | **14** |
 | `lib/crm` | 8 | **7** (all but `createLeadFromContact`) |
 | `lib/payroll` | 5 | **5** |
 | `lib/documents` | 3 | 0 |
@@ -948,14 +1006,14 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/cash-advance` | 2 | 0 |
 | `lib/clients` (1) | 1 | 0 |
 | `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | 0 |
-| **Total** | **83** | **38** |
+| **Total** | **83** | **52** |
 
-**38 of 83 actions are exercised end to end.** The other 45 render correctly and
+**52 of 83 actions are exercised end to end.** The other 31 render correctly and
 are covered by unit tests and typecheck, but no committed script has yet driven
 them through a browser and asserted the resulting rows. That gap is stated
 plainly rather than papered over by counting the page sweep as proof — a button
-can render perfectly and do nothing, which is exactly how all ten defects in
-this report were found.
+can render perfectly and do nothing, which is exactly how every defect in
+this report was found.
 
 Earlier sessions did leave evidence in `audit_logs` for a few more
 (`payroll.period.create`, `applicant.stage_change`, `client.invite`) via ad-hoc
@@ -973,7 +1031,7 @@ somewhere above 12. It is not 81.
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
 | 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
 | 3 | **Hire pipeline** | **Now exercised** — 18/18, see §4. One defect found and fixed |
-| 4 | **45 of 83 server actions not yet driven end to end** | See §5 for the per-domain breakdown. cms (14), the recruitment remainder (5) and the client timesheet pair are the largest blocks left. This remains the biggest gap |
+| 4 | **31 of 83 server actions not yet driven end to end** | See §5. Recruitment remainder (5), NTE (3), documents (3), notifications (3), clients/employees/profile/contact (4), billing (2), cash-advance (2), client timesheet pair (2). Smaller and more fragmented than the blocks already closed — see §4 |
 | 5 | Invite *account creation*, and **signup account creation** | Blocked by Supabase email rate limiting (HTTP 429) in this environment. The signup *error path* is now proven to report the rate limit correctly rather than blaming the address; the success path is not |
 | 6 | `super_admin` holds 21 of 50 permissions | Deliberate platform-vs-business split, or a gap — a product call. See §2 |
 | 7 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
@@ -1037,6 +1095,7 @@ node scripts/audit/qa-exercise-crm-workflow.mjs     # 21 assertions
 node scripts/audit/qa-exercise-payroll-workflow.mjs # 19 assertions
 node scripts/audit/qa-exercise-auth-workflow.mjs    # 35 assertions (signup reports BLOCKED under 429)
 node scripts/audit/qa-exercise-attendance-workflow.mjs # 31 assertions
+node scripts/audit/qa-exercise-cms-workflow.mjs        # 42 assertions
 
 # recovery, if a run was killed before its cleanup
 node scripts/audit/qa-repair-applicant-membership.mjs   # --apply
