@@ -6,6 +6,8 @@ import { logAudit } from "@/lib/audit/log";
 import { inviteOrResolveAuthUser } from "@/lib/auth/invite-user";
 import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
 import { runCronJobs } from "@/lib/jobs/cron-jobs";
+import * as SELF_SERVICE_BASELINE from "@/lib/admin/role-assignment";
+import { planFunctionalRoleChange, planInternalInviteRoles } from "@/lib/admin/role-assignment";
 import { notifyUser } from "@/lib/notifications/notify";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -101,6 +103,34 @@ export async function inviteInternalUser(
     };
   }
 
+  // Give them the same self-service baseline every other staff member has.
+  //
+  // Without this, inviting somebody as, say, HR produced a membership holding
+  // `[hr]` alone — so the person they had just hired could not open their own
+  // leave, payslips, attendance or tickets, and would only discover it after
+  // signing in. The seeds grant this baseline; the invite path did not.
+  let baselinePreserved = false;
+  const wantedCodes = planInternalInviteRoles(role.code);
+  if (wantedCodes.length > 1) {
+    const { data: wantedRoles } = await admin
+      .from("roles")
+      .select("id, code")
+      .in("code", wantedCodes);
+    for (const r of wantedRoles ?? []) {
+      const { error: baselineError } = await admin.from("membership_roles").upsert(
+        { membership_id: membership.id, role_id: r.id },
+        { onConflict: "membership_id,role_id" },
+      );
+      if (baselineError) {
+        return {
+          ok: false,
+          error: baselineError.message ?? "Unable to grant self-service access.",
+        };
+      }
+      if (r.code === SELF_SERVICE_BASELINE_ROLE_CODE) baselinePreserved = true;
+    }
+  }
+
   await logAudit(admin, {
     actorUserId: workspace.user.id,
     organizationId: BEEPA_ORG_ID,
@@ -111,6 +141,7 @@ export async function inviteInternalUser(
       user_id: userId,
       email: parsed.data.email,
       role_code: role.code,
+      self_service_baseline: baselinePreserved,
       invited,
     },
   });
@@ -187,22 +218,32 @@ export async function sendAdminTestPush(): Promise<ActionResult> {
 
 const PROTECTED_ROLE_CODES = new Set(["owner", "super_admin"]);
 
+/**
+ * The self-service baseline — see `lib/admin/role-assignment.ts` for the rule
+ * and why replacing every role was destroying a person's access to their own
+ * leave, payslips, attendance and tickets.
+ */
+const { SELF_SERVICE_BASELINE_ROLE_CODE } = SELF_SERVICE_BASELINE;
+
 async function loadMembershipForAdmin(membershipId: string) {
   const admin = createAdminClient();
-  const { data } = await admin
+  const { data, error } = await admin
     .from("organization_memberships")
     .select(
-      "id, status, membership_type, organization_id, user_id, membership_roles(roles(code, name))",
+      "id, status, membership_type, organization_id, user_id, membership_roles(role_id, roles(code, name))",
     )
     .eq("id", membershipId)
     .maybeSingle();
+  if (error) {
+    throw new Error(error.message);
+  }
   return { admin, membership: data };
 }
 
 function membershipHasProtectedRole(
   membership: {
     membership_roles:
-      | { roles: { code: string; name: string } | null }[]
+      | { role_id?: string | null; roles: { code: string; name: string } | null }[]
       | null;
   } | null,
 ) {
@@ -266,15 +307,34 @@ export async function updateInternalMembershipRole(
       ?.map((mr) => mr.roles?.code)
       .filter(Boolean) ?? [];
 
-  await admin
-    .from("membership_roles")
-    .delete()
-    .eq("membership_id", membership.id);
+  // Replace the FUNCTIONAL role only. `planFunctionalRoleChange` holds the
+  // rule; see lib/admin/role-assignment.ts for why replacing every role was
+  // stripping a person's own leave, payslips, attendance and tickets.
+  const plan = planFunctionalRoleChange(beforeCodes, role.code);
 
-  const { error: roleError } = await admin.from("membership_roles").insert({
-    membership_id: membership.id,
-    role_id: role.id,
-  });
+  const preservedRoleIds = (membership.membership_roles ?? [])
+    .filter((mr) => plan.preserved.includes(mr.roles?.code ?? ""))
+    .map((mr) => mr.role_id)
+    .filter((id): id is string => Boolean(id));
+
+  const doomedRoleIds = (membership.membership_roles ?? [])
+    .map((mr) => mr.role_id)
+    .filter((id): id is string => Boolean(id) && !preservedRoleIds.includes(id as string));
+
+  if (doomedRoleIds.length) {
+    await admin
+      .from("membership_roles")
+      .delete()
+      .eq("membership_id", membership.id)
+      .in("role_id", doomedRoleIds);
+  }
+
+  // upsert rather than insert: changing to the role the member already holds
+  // would otherwise trip the unique constraint after the delete above.
+  const { error: roleError } = await admin.from("membership_roles").upsert(
+    { membership_id: membership.id, role_id: role.id },
+    { onConflict: "membership_id,role_id" },
+  );
   if (roleError) {
     return {
       ok: false,
@@ -289,11 +349,16 @@ export async function updateInternalMembershipRole(
     entityType: "organization_membership",
     entityId: membership.id,
     before: { role_codes: beforeCodes },
-    after: { role_code: role.code },
+    after: { role_codes: plan.result },
   });
 
   revalidatePath("/app/admin/users");
-  return { ok: true, message: `Role updated to ${role.code}.` };
+  return {
+    ok: true,
+    message: plan.preserved.length
+      ? `Role updated to ${role.code}. Self-service access kept.`
+      : `Role updated to ${role.code}.`,
+  };
 }
 
 export async function revokeMembership(

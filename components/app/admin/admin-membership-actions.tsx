@@ -119,7 +119,11 @@ export function AdminMembershipActions({
         open={roleOpen}
         onOpenChange={setRoleOpen}
         title="Change this member’s role?"
-        description={`They will switch to ${ROLE_OPTIONS.find((o) => o.value === roleCode)?.label ?? roleCode}. Access updates immediately.`}
+        // Says what actually happens. This used to read "They will switch to
+        // Finance. Access updates immediately." while the action replaced every
+        // role the person held — including `employee`, which carries their own
+        // leave, payslips, attendance and tickets.
+        description={`Their functional role becomes ${ROLE_OPTIONS.find((o) => o.value === roleCode)?.label ?? roleCode}. Their own leave, payslips, attendance and tickets stay available.`}
         confirmLabel="Update role"
         cancelLabel="Cancel"
         pending={pending}

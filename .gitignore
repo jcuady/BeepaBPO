@@ -67,3 +67,5 @@ next-env.d.ts
 # Keep the Beepa project entry skill in git
 !.claude/skills/seo-beepa/
 !.claude/skills/seo-beepa/**
+# local QA server log
+.qa-*.log
