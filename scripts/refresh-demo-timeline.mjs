@@ -80,8 +80,16 @@ const RULES = [
     // renders from both. This absorbs what `rearm-demo-ticket-sla.mjs` did, so
     // there is one place to declare relative demo timestamps rather than a new
     // repair script per symptom.
-    extraPatch: (r) => ({
-      status: r.status === "new" ? "open" : r.status,
+    //
+    // The status is deliberately left ALONE. This rule used to map
+    // `new` -> `open`, and `ticket_status` has no `open` — the enum is
+    // new | assigned | in_progress | waiting_for_client | resolved | closed.
+    // Postgres rejected the whole update with
+    // `invalid input value for enum ticket_status: "open"`, so every lapsed
+    // `new` ticket silently kept its dead deadline while the tool reported
+    // "re-based 7/9; 2 failed". Re-basing a timestamp is not a reason to move
+    // somebody's ticket between workflow states.
+    extraPatch: () => ({
       resolved_at: null,
       first_response_at: null,
     }),

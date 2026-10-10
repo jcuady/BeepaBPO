@@ -590,10 +590,31 @@ export async function convertApplicantToEmployee(
     };
   }
 
-  await admin.from("membership_roles").upsert(
-    { membership_id: membership.id, role_id: role.id },
-    { onConflict: "membership_id,role_id" },
-  );
+  // Hiring REPLACES the applicant role rather than sitting alongside it.
+//
+// This used to upsert `employee` and leave whatever the applicant already held,
+// so a fresh hire ended up as `[applicant, employee]`. The `applicant` role
+// grants nothing today, so there was no live access leak — but a person who is
+// now internal staff should not still be recorded as an applicant, and the
+// moment anyone grants that role a permission every hire would silently carry
+// it. Same lesson as `lib/admin/role-assignment.ts`, from the other direction:
+// that action destroyed a role it should have kept, this one kept one it should
+// have replaced.
+  await admin
+    .from("membership_roles")
+    .delete()
+    .eq("membership_id", membership.id);
+
+  const { error: roleError } = await admin.from("membership_roles").insert({
+    membership_id: membership.id,
+    role_id: role.id,
+  });
+  if (roleError) {
+    return {
+      ok: false,
+      error: roleError.message ?? "Unable to assign the employee role.",
+    };
+  }
 
   let employeeNumber = `BEE-${Date.now().toString().slice(-5)}`;
   const { data: generated } = await admin.rpc("generate_employee_number");

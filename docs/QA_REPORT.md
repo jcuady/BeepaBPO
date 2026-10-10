@@ -199,6 +199,93 @@ prints what it matched, and defaults to dry run. 0 remaining.
 
 ---
 
+### P0 — Changing a role silently deleted a person's own access. Fixed.
+
+`lib/admin/actions.ts` `updateInternalMembershipRole` deleted **every**
+`membership_roles` row for a membership and inserted one.
+
+`employee` is not a job title — it is the self-service baseline. Measured against
+the live `role_permissions`, it carries exactly eight permissions:
+
+```
+approvals.act  attendance.self  cash_advance.self  leave.self
+nte.self       payroll.self     performance.self  tickets.self
+```
+
+That is a person's own leave requests, payslips, attendance, tickets, expenses
+and approvals. Every internal membership in the system holds
+`[<functional role>, employee]` — all nine staff confirmed in the database — so
+promoting **Demo Marketing** to Finance via the admin UI left them holding
+`[finance]` and nothing else. Their leave, payslips, attendance and tickets all
+disappeared, silently, on an ordinary role change.
+
+The UI actively hid this: it offers a single-role `<select>`, so a second role
+was never visible, and the confirmation read *"They will switch to Finance.
+Access updates immediately."* — which was not what happened.
+
+**Fix:** the functional role is replaced; the baseline is preserved. The
+confirmation copy now says what actually happens. A membership that never had
+the baseline does not acquire one — the function preserves, it does not invent.
+
+### P0 — Inviting staff produced an account with no self-service access. Fixed.
+
+`inviteInternalUser` granted exactly one role. Somebody invited as HR ended up
+holding `[hr]` alone — so the person just hired could not open their own leave,
+payslips, attendance or tickets, and would only discover it after signing in.
+The seeds grant the baseline; the invite path did not.
+
+**Fix:** invite now grants the baseline alongside the chosen role. The rule
+lives in `lib/admin/role-assignment.ts` so it is unit-testable without a
+signed-in admin or a working SMTP provider.
+
+> Both defects lived in the one area §5 of the previous revision recorded as
+> "not exercised". They were not theoretical — they were live buttons.
+
+### P1 — Hiring left a stale `applicant` role. Fixed.
+
+`convertApplicantToEmployee` upserted `employee` and left whatever the applicant
+already held, so a fresh hire ended up `[applicant, employee]`. The `applicant`
+role grants **zero** permissions today, so there was no live access leak — but a
+person who is now internal staff should not still be recorded as an applicant,
+and the moment anyone grants that role a permission, every hire would silently
+carry it.
+
+Hiring now replaces the role rather than sitting beside it. Same lesson as the
+role-change defect above, from the other direction: one destroyed a role it
+should have kept, this one kept one it should have replaced.
+
+### P2 — "Super Admin" cannot do most of what an admin does. Documented, not changed.
+
+`super_admin` holds **21 of 50** permissions. Measured by driving the app:
+
+| Page | superadmin | hr | owner |
+|---|---|---|---|
+| `/app/payroll` | Access not allowed | Access not allowed | Payroll |
+| `/app/crm` | Access not allowed | Access not allowed | CRM |
+| `/app/recruitment` | Access not allowed | Recruitment | Recruitment |
+| `/app/clients` | Access not allowed | Access not allowed | Clients |
+| `/app/billing` | Access not allowed | Access not allowed | Billing |
+| `/app/tickets` | Access not allowed | Access not allowed | Tickets |
+| `/app/leave` | Access not allowed | Leave Approvals | Leave Approvals |
+| `/app/employees` | Employees | Employees | Employees |
+
+`lib/permissions/can.ts` is a plain set-membership check with **no super_admin
+special case**, so this is the role data talking, not the code. It reads as a
+deliberate split — `super_admin` holds the *platform* permissions
+(`system.manage`, `users.manage`, `roles.manage`, `system.audit.read`) while
+`owner` holds the *business* ones (47 of 50).
+
+**Not changed.** Granting 29 permissions to a role is a product decision, and
+the two-key model may well be intentional. Flagged because the UI labels the
+account "Super Admin", which does not prepare a user for being refused payroll
+and CRM. `owner` is the account that can actually administer the business.
+
+Two related oddities, also left alone: a role literally named `admin` grants **0
+of 50** permissions, and `owner` is missing `permissions.manage`,
+`attendance.correct` and `cms.manage`.
+
+---
+
 ## 3. Data population
 
 `audit-data-population.mjs` counts every table the app queries. It distinguishes
@@ -333,6 +420,92 @@ The assignment control lives on the ticket **detail** page, not the list, and th
 select opens a `ConfirmDialog`. Selecting an option and moving on changes nothing,
 which is exactly what the first run did — the same trap as the leave workflow.
 
+### Admin workflow — `qa-exercise-admin-workflow.mjs`, 18/18
+
+The previous revision listed admin role-assign and the cron job as
+"not exercised". They are the most privileged buttons in the product, so this
+runs all five admin actions through the real UI, asserting against the database
+and restoring what it touched.
+
+| Action | Result |
+|---|---|
+| `runCronDryRun` reports per-job counts | PASS — `missing clock-out: 0, overdue invoices: 1, digests: 6` |
+| Cron dry-run is audit-logged | PASS — `{invoice_overdue:1, missing_clock_out:0, notification_digest:6, …}` |
+| `sendAdminTestPush` writes a notification | PASS |
+| Invite is surfaced to the user when it fails | PASS — `email rate limit exceeded` |
+| Role `Update` disabled until a role is chosen | PASS |
+| Role change asks for confirmation | PASS |
+| **Role change keeps the self-service baseline** | **PASS — `[employee, finance]`** |
+| Role change audit-logged with before/after | PASS — `{before:["marketing","employee"], after:["employee","finance"]}` |
+| Revoke asks for confirmation | PASS |
+| Revoke sets the membership inactive | PASS |
+| Revoke is audit-logged | PASS |
+| 0 console errors | PASS |
+| Account restored exactly | PASS |
+
+**One path could not be exercised here, and is reported as BLOCKED rather than
+passing:** invite *account creation*. Supabase rate-limited outbound email
+(HTTP 429). That the button surfaces the reason is itself asserted and passes —
+so the failure mode is loud, not silent.
+
+Two things this exercise got wrong first, both worth recording:
+
+- **The first "cron is not audit-logged" failure was the test's fault.**
+  `audit_logs` stores its JSON in `before_data` / `after_data`, not `before` /
+  `after`. Selecting a column that does not exist returns `data: null` plus an
+  `error` and does not throw, so the assertion read as a product failure. Same
+  trap as §3's invented table names — a failed read and an empty result are
+  indistinguishable if you only look at `data`.
+- **The users table keys on `display_name`, not email.** `profiles` has no
+  `email` column at all, so a `tr:has-text("someone@example.com")` locator can
+  never match. Every read in this script now goes through a `must()` helper that
+  throws on `error` or `null`.
+
+### Hire workflow — `qa-exercise-hire-workflow.mjs`, 18/18
+
+```
+recruiter/HR  moves stage  ->  HR  hires  ->  employee record + membership + role
+```
+
+Uses the existing Demo Applicant, who already has a `profile_id`. That is
+deliberate: without one the action calls `inviteOrResolveAuthUser`, which sends
+an email and is rate-limited here, so the hire path could not be exercised at
+all.
+
+| Assertion | Result |
+|---|---|
+| Signed in as HR — the role that can actually hire | PASS |
+| Stage change asks for confirmation | PASS — `Move application stage?` |
+| Stage moved to `offer` | PASS |
+| `application_stage_history` recorded the move | PASS — `{screening → offer}` |
+| Hire button visible to HR | PASS |
+| Hire asks for confirmation | PASS |
+| Employee record created and active | PASS — `BEE-00023` |
+| Hired member has the `employee` role | PASS — `[employee]` |
+| **No stale `applicant` role left behind** | **PASS** |
+| Membership became `internal` and active | PASS |
+| Application is now `hired` | PASS |
+| Hire is audit-logged | PASS — `application.hire_convert` |
+| 0 console errors | PASS |
+| Recruitment left exactly as found | PASS |
+
+**Separation of duties, verified rather than assumed:** the Hire button needs
+BOTH `recruitment.manage` and `employees.manage`. Only `owner` and `hr` hold
+both, so **Recruiter cannot hire** — the button is absent, not merely failing.
+That is correct and intentional; it is asserted here so a future permission
+change that quietly widens it will be noticed.
+
+The stage `<select>` opens a `ConfirmDialog`. Choosing a stage and moving on
+changes nothing, and the open overlay then intercepts every later click — which
+is how the first two runs failed, once as "stage did not change" and once as a
+Playwright "element intercepts pointer events". The same ConfirmDialog rule that
+bit the leave and ticket exercises applies to recruitment too.
+
+The restore also had a real bug, caught by its own final assertion: it deleted
+roles the run *added* but never re-inserted one the run *removed*, so a failed
+run left the account with no roles at all. `qa-repair-applicant-membership.mjs`
+exists for the case where a killed process never runs its `finally` at all.
+
 ### Self-cleaning — the fix the verifier caught
 
 Both exercises swept leftovers from *previous* runs at the start and **nothing at the
@@ -398,25 +571,120 @@ Recorded because each produced a report full of defects that did not exist:
   left all 27 bad rows in place, and this report described that as "Fixed". It took
   a second look to notice the rows were still there — and that they were also dead
   links, which is why they could not simply be rewritten.
+- **A helper that returns data must not be destructured as if it returned an
+  envelope.** `must()` already unwraps `{ data, error }`, and the hire exercise
+  then did `const { data: moved } = await must(...)` — reading `.data` off the
+  row itself, so every assertion saw `undefined`. It reported "stage did not
+  change" against a query that worked perfectly when run alone. Three checks
+  failed for one stray pair of braces.
+- **An assertion set that only ever passes the happy path will not notice its own
+  restore breaking.** The hire exercise's cleanup deleted roles the run *added*
+  but never re-inserted one the run *removed*, so a failed run left the demo
+  applicant with no roles at all. Its final "left everything as it found it"
+  assertion is what caught it — which is the argument for that assertion existing
+  rather than a print statement saying "cleaned up".
 
 ---
 
-## 5. Still open
+## 5. Action coverage — what is and is not proven
+
+There are **81 exported server actions across 21 `"use server"` modules**. "Every
+button works" needs a distinction between *rendered* and *exercised*:
+
+- **Rendered** — the control appears on a page a role can reach. Proven by the
+  role sweep: 471 page visits, 0 console errors, 0 page errors.
+- **Exercised** — driven through the real UI in a browser, with assertions
+  against the database, and with the state restored afterwards. This is the
+  only evidence that a button *works*.
+
+| Domain | Actions | Exercised end to end |
+|---|---|---|
+| `lib/leave` | 3 | **3** |
+| `lib/admin` | 5 | **5** |
+| `lib/recruitment` | 7 | **2** (stage change, hire) |
+| `lib/tickets` | 6 | **2** (create, assign) |
+| `lib/auth` | 10 | 0 |
+| `lib/cms` | 14 | 0 |
+| `lib/crm` | 8 | 0 |
+| `lib/recruitment` (remainder) | 5 | 0 |
+| `lib/payroll` | 5 | 0 |
+| `lib/documents` | 3 | 0 |
+| `lib/notifications` | 3 | 0 |
+| `lib/hr/nte-actions` | 3 | 0 |
+| `lib/attendance/*` | 8 | 0 |
+| `lib/billing` | 2 | 0 |
+| `lib/cash-advance` | 2 | 0 |
+| `lib/clients`, `lib/employees`, `lib/profile`, `lib/contact` | 4 | 0 |
+| **Total** | **81** | **12** |
+
+**12 of 81 actions are exercised end to end.** The other 69 render correctly and
+are covered by unit tests and typecheck, but no committed script has yet driven
+them through a browser and asserted the resulting rows. That gap is stated
+plainly rather than papered over by counting the page sweep as proof — a button
+can render perfectly and do nothing, which is exactly how all four defects in
+this report were found.
+
+Earlier sessions did leave evidence in `audit_logs` for a few more
+(`payroll.period.create`, `applicant.stage_change`, `client.invite`) via ad-hoc
+scripts that were not committed as reusable exercises, so the true figure is
+somewhere above 12. It is not 81.
+
+`docs/REMAINING_WORK.md` and the table below track what is left.
+
+---
+
+## 6. Still open
 
 | # | Item | Why |
 |---|---|---|
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
-| 2 | Admin role-assign and cron notification paths | Not exercised; only the leave and ticket paths were proven end to end |
-| 3 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
-| 4 | Playwright e2e not running in CI | Needs `RUN_E2E=true` plus secrets |
-| 5 | `payslip_items` / `payslip_components` | **Resolved, not open.** They do not exist — an earlier audit of mine guessed them. The app uses `payroll_components`; the population audit reports both as MISSING rather than EMPTY |
+| 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
+| 3 | **Hire pipeline** | **Now exercised** — 18/18, see §4. One defect found and fixed |
+| 4 | **69 of 81 server actions not yet driven end to end** | See §5 for the per-domain breakdown. This is the largest remaining gap |
+| 5 | Invite *account creation* | Blocked by Supabase email rate limiting (HTTP 429) in this environment |
+| 6 | `super_admin` holds 21 of 50 permissions | Deliberate platform-vs-business split, or a gap — a product call. See §2 |
+| 7 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
+| 8 | Playwright e2e not running in CI | Needs `RUN_E2E=true` plus secrets |
+| 9 | Nothing is pushed to `origin` | `origin/main` is 10 commits and ~371 files behind this branch |
+| 10 | Demo tenant decays; gate needs `refresh-demo-timeline.mjs --apply` first | See below — this is an operational landmine, not a code defect |
+| 11 | `payslip_items` / `payslip_components` | **Resolved, not open.** They do not exist — an earlier audit of mine guessed them. The app uses `payroll_components` |
+
+**The demo tenant is a clock bomb, and it is worth knowing about before you trust
+a red gate.** Several seed scripts wrote relative deadlines with `Date.now()`
+offsets — "SLA due +72h", "response due +5d", "interview in +2d". Those are
+correct on the day they run and silently rot afterwards. Nothing fails when they
+lapse; the demo just decays until an assertion notices.
+
+That happened during this pass: `live-data-smoke` failed with
+`expected 1791612576307 to be greater than 1791632745248` — the "stuck ticket"
+`TKT-DEMO-0001` had simply slid past its SLA deadline, with no code change at
+all. `scripts/refresh-demo-timeline.mjs` re-bases them and is the documented
+remedy. Run it before the gate on a tenant that has been idle.
+
+Worse, running it exposed a bug **in the repair tool itself**, which had been
+silently failing on part of its own job:
+
+```
+re-based 7/9 row(s); 2 failed
+FAILED tickets/2ec3bf8e: invalid input value for enum ticket_status: "open"
+```
+
+The rule mapped `new` -> `"open"`, and `ticket_status` has no `open` — the enum
+is `new | assigned | in_progress | waiting_for_client | resolved | closed`. Every
+lapsed `new` ticket was rejected by Postgres and kept its dead deadline, while
+the tool reported a mostly-successful run. The status patch is now removed:
+re-basing a timestamp is not a reason to move somebody's ticket between workflow
+states. After the fix, `9 in flight, none lapsed`.
+
+The general lesson: **a tool that reports partial success needs its failures
+asserted, not merely printed.** "7/9" reads like an acceptable outcome.
 
 The 27 legacy notification rows are **no longer open** — see §2. They were deleted,
 and the inbox was reseeded from live records with correct bodies.
 
 ---
 
-## 6. Reproducing this
+## 7. Reproducing this
 
 ```bash
 npx next build && npx next start -p 3100     # in one shell
@@ -429,6 +697,11 @@ node scripts/audit/qa-verify-notifications.mjs      # distinctness, dead links, 
 # live workflow (need the server running); each leaves nothing behind
 node scripts/audit/qa-exercise-leave-workflow.mjs   # 13 assertions
 node scripts/audit/qa-exercise-ticket-workflow.mjs  # 10 assertions
+node scripts/audit/qa-exercise-admin-workflow.mjs   # 18 assertions (1 path may report BLOCKED)
+node scripts/audit/qa-exercise-hire-workflow.mjs    # 18 assertions
+
+# recovery, if a run was killed before its cleanup
+node scripts/audit/qa-repair-applicant-membership.mjs   # --apply
 
 # writers — all dry run by default, all refuse to write without an explicit flag
 node scripts/seed-qa-fixtures.mjs            # --apply
@@ -439,4 +712,6 @@ node scripts/cleanup-orphan-notifications.mjs# --apply   (dead-linked + legacy b
 
 The three read-only scripts touch nothing. Every writer prints exactly what it
 matched before changing anything, and both cleanup scripts re-read afterwards to
-confirm rather than trusting the delete's own count.
+confirm rather than trusting the delete's own count. Every workflow exercise
+restores what it changed and then **asserts the restoration**, so a failing run
+says so rather than leaving damage behind quietly.
