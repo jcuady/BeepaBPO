@@ -273,9 +273,20 @@ if (haveSupabase) {
     // acknowledged SUBSCRIBED. A wrong cause on a red gate is worse than no
     // cause: it points the reader at the database instead of at the tool.
     const marker =
+      out.includes("PROBE_RESULT=LATE") ? "LATE" :
       out.includes("PROBE_RESULT=DELIVERY_FAILED") ? "DELIVERY_FAILED" :
       out.includes("PROBE_RESULT=NOT_SUBSCRIBED") ? "NOT_SUBSCRIBED" :
       null;
+
+    if (marker === "LATE") {
+      // The event arrived, just over budget. Realtime works; delivery is slow.
+      // This is its own outcome so a latency regression is never reported as an
+      // outage, and never quietly folded into the pass count either.
+      throw new Error(
+        "realtime delivery is LATE — the event arrived, but outside the probe's budget.\n" +
+          out.trim().slice(-800),
+      );
+    }
 
     if (marker === "DELIVERY_FAILED" && SKIP_MIGRATION) {
       // Deliberately reported as skipped, not passed. `step()` does not count

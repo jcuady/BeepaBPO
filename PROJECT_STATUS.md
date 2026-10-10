@@ -22,7 +22,7 @@
 | **Data population** | **PASS** | `audit-data-population.mjs` — every table the app queries, distinguishing **missing** from **empty** (a `head:true` count returns `null` for a nonexistent table *or* a nonexistent column, with no error). **996 rows** across app tables |
 | **Live workflow exercises** | **PASS** | `qa-exercise-leave-workflow.mjs` — employee → team lead → HR, asserting against the database rather than the DOM: **13/13**. `qa-exercise-ticket-workflow.mjs` — client admin → assignee: **10/10**. `qa-exercise-admin-workflow.mjs` — cron, test push, role change, revoke: **18/18** (1 path BLOCKED by Supabase email rate limiting). `qa-exercise-hire-workflow.mjs` — stage → offer → hire: **18/18**. `qa-exercise-crm-workflow.mjs` — lead → deal → proposal → won → client org: **21/21**. `qa-exercise-payroll-workflow.mjs` — salary → run → recalc → 2-step approval → finalized: **19/19**. All restore what they change and assert the restoration |
 | **Admin role integrity** | **PASS** | `tests/admin-role-assignment.test.ts` — 12 cases. Changing a role used to delete every role a person held, silently stripping the `employee` self-service baseline (8 permissions: leave, payroll, attendance, tickets, approvals, cash advance, NTE, performance). Inviting staff granted no baseline at all. Both fixed; guard is mutation-proved |
-| **Action coverage** | **PARTIAL** | **83** exported server actions across 21 modules, counted by `qa-action-inventory.mjs`. **52 exercised end to end** against the database (leave 3, admin 5, CRM 7, payroll 5, auth 8, attendance 6, CMS 14, recruitment 2, ticket 2); the rest render (471 page visits, 0 console errors) and are unit-covered, but have not been driven through the UI. Per-domain breakdown in `docs/QA_REPORT.md` §5 |
+| **Action coverage** | **PARTIAL** | **83** exported server actions across 21 modules, counted by `qa-action-inventory.mjs`. **57 exercised end to end** against the database (leave 3, admin 5, CRM 7, payroll 5, auth 8, attendance 6, CMS 14, recruitment 7, ticket 2); the rest render (471 page visits, 0 console errors) and are unit-covered, but have not been driven through the UI. Per-domain breakdown in `docs/QA_REPORT.md` §5 |
 | **Notification integrity** | **PASS** | `qa-verify-notifications.mjs` — 58 rows, **58 distinct bodies**, 0 legacy generic strings, **0 dead links**. The 27 orphaned rows carrying the old body were deleted via `cleanup-orphan-notifications.mjs` and reseeded from live records |
 | **Page headings** | **PASS** | `page-heading-contract.test.ts` — 79 `<PageHeader>` call sites across `app/` **and** `lib/`; **76 now carry a `title`**, 2 are documented exceptions. Before the fix, 78 of 79 rendered the greeting `Good morning, Demo.` — byte-identical, because every seeded profile is named "Demo" |
 | Authorization (routes) | **PASS** | `audit-rbac.mjs` **75/78 (96%)** + 3 structural exemptions, exit 0 |
@@ -109,6 +109,15 @@ subscribed with the **anon** key while `notifications` RLS is
 could never receive. The publication already listed all 12 tables. The probe now
 signs in as the notification's owner and refuses to run if that user is not the
 row owner; the event arrives.
+
+**…and the probe still could not tell "late" from "never".** It polled to a flat
+15s deadline and, on expiry, printed `DELIVERY_FAILED` and failed step 16 — whether
+the event was never coming or merely arriving late. Running inside the gate, straight
+after a full vitest suite and the DB row counts, one run produced exactly that red on a
+system that delivered the same event in **267–496ms** when the probe was run on its own.
+The probe now keeps polling to a 60s ceiling and reports the **measured latency**, and
+`LATE` is its own outcome with its own exit code — a delivery-latency regression is
+never reported as an outage, and is never folded into the pass count either.
 
 **Applying the 7 pending migrations required two fixes first**, and an 8th
 (`20261009120000_lead_attribution_insert_policy.sql`) followed from the database
@@ -248,6 +257,15 @@ be created, edited, published and archived, never removed — Archive may be the
 intended soft delete, so this is documented, not changed), and `cms.manage` is held
 by **exactly one role, `marketing`** — not `owner`, not `super_admin`, not `hr`,
 which extends the `super_admin` finding below.
+
+**Recruitment: the five remaining actions driven, no defect (2026-10-10).**
+`qa-exercise-recruitment-workflow.mjs`, 23/23 — createJobPost, updateJobPost,
+publishJobPost, closeJobPost, submitJobApplication. All 7 actions in
+`lib/recruitment` are now covered. A closed role is not offered to applicants and can
+be re-published; closing preserves the original `published_at`. Worth noting:
+`submitJobApplication` does not create a fresh applicant — it looks the caller up by
+`profile_id` and **updates** that row, so applying rewrites a real demo record. The
+exercise snapshots and restores it field for field.
 
 **E2E: 100 passed, 4 skipped, 0 failed** against a production build on port 3100, from a
 cold `.auth`. Reaching that required fixing four separate harness faults that each presented

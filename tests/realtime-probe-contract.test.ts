@@ -78,6 +78,20 @@ describe("realtime probe — subscription is confirmed before the insert", () =>
     expect(probeCode).toContain("DELIVERY_TIMEOUT_MS");
   });
 
+  it("measures delivery latency instead of only reporting a deadline", () => {
+    // A budget that expires cannot say whether the event was late or never coming, and
+    // the probe used to print the same "DELIVERY FAILED" for both. It now records when
+    // the event actually fired and keeps polling past the budget to a ceiling.
+    expect(probeCode).toContain("firedAt");
+    expect(probeCode).toContain("HARD_CEILING_MS");
+    expect(probeCode).toMatch(/latencyMs\s*=\s*fired\s*\?\s*firedAt\s*-\s*insertedAt/);
+  });
+
+  it("reports a late delivery distinctly from an outage", () => {
+    expect(probeCode).toContain("PROBE_RESULT=LATE");
+    expect(probeCode).toMatch(/process\.exit\(fired && !late \? 0 : late \? 4 : 1\)/);
+  });
+
   it("still subscribes as an authenticated user, not anon", () => {
     // `notifications` is RLS-scoped `user_id = auth.uid()`, so an anon subscriber
     // can never see the row. This was the previous generation of the same bug.
@@ -102,6 +116,14 @@ describe("verify-all surfaces the probe's real diagnosis", () => {
     expect(verifyCode).toContain("PROBE_RESULT=DELIVERY_FAILED");
   });
 
+  it("surfaces LATE as its own outcome, not as an outage", () => {
+    // The whole point of measuring latency is that "late" and "never" reach the reader
+    // as different facts. If LATE folded into DELIVERY_FAILED, the gate would be back
+    // to naming a cause it has not established.
+    expect(verifyCode).toContain("PROBE_RESULT=LATE");
+    expect(verifyCode).toMatch(/marker === "LATE"/);
+  });
+
   it("still refuses to pass a broken realtime delivery when skipping migrations", () => {
     // A skipped step must not be counted toward the total, or the run can print
     // "Ship it" while notifications are silently broken.
@@ -114,7 +136,11 @@ describe("negative controls", () => {
   const broken = probeCode
     // Reinstate the timer race and the single sample.
     .replace('status === "SUBSCRIBED"', 'status === "NEVER_HAPPENS"')
-    .replace("while (!fired && Date.now() < deadline) {", "if (false) {");
+    // `replaceAll`, not `replace`. The probe has two polling loops — one to the
+    // delivery budget, one to the hard ceiling — and the control is meant to prove the
+    // assertion bites when *no* polling remains. Mutating only the first left the
+    // second in place, so the control reported a failure against a correct probe.
+    .replaceAll("while (!fired && Date.now() < deadline) {", "if (false) {");
 
   it("catches the timer race", () => {
     // If the assertions were reading the wrong thing, this control would pass.
@@ -123,6 +149,20 @@ describe("negative controls", () => {
 
   it("catches a single-sample delivery wait", () => {
     expect(broken).not.toMatch(/while\s*\(\s*!fired\s*&&/);
+  });
+
+  it("catches the LATE outcome collapsing back into a pass", () => {
+    // Two independent mutations, because the positive assertions pin two different
+    // things. Checking only the marker would pass even if the probe reported lateness
+    // as a success on exit 0.
+    const noMarker = probeCode.replace("PROBE_RESULT=LATE", "PROBE_RESULT=OK");
+    expect(noMarker).not.toContain("PROBE_RESULT=LATE");
+
+    const noDistinctExit = probeCode.replace(
+      "process.exit(fired && !late ? 0 : late ? 4 : 1)",
+      "process.exit(fired ? 0 : 1)",
+    );
+    expect(noDistinctExit).not.toMatch(/late \? 4 : 1/);
   });
 
   it("catches the canned explanation returning to verify-all", () => {

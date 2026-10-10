@@ -99,6 +99,7 @@ if (signedIn.user.id !== userId) {
 }
 
 let fired = false;
+let firedAt = null;
 const channel = sbAnon
   .channel(`probe-events:${Date.now()}`)
   .on(
@@ -106,6 +107,7 @@ const channel = sbAnon
     { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
     (payload) => {
       fired = true;
+      firedAt = Date.now();
       console.log("[REALTIME] notification received:", JSON.stringify(payload, null, 2).slice(0, 200));
     },
   );
@@ -170,19 +172,49 @@ console.log(`Inserted: ${ins.id}`);
 // insert -> WAL -> realtime server -> websocket -> client; none of those legs are
 // synchronous, and their latency is load-dependent.
 const DELIVERY_TIMEOUT_MS = 15000;
-const deadline = Date.now() + DELIVERY_TIMEOUT_MS;
+// A budget that expires is not the same thing as a system that is broken, and this
+// probe could not tell them apart: it polled to a deadline and, on expiry, printed
+// "DELIVERY FAILED" whether the event was never going to arrive or merely arrived
+// late. Under the release gate — which runs this immediately after a full vitest
+// suite and the DB row counts on a loaded box — one such run went red on a system
+// that delivered the same event immediately when the probe was run on its own.
+//
+// So keep polling past the budget to a hard ceiling and report the measured latency.
+// "Late" and "never" are different faults with different owners: one is a delivery
+// latency regression worth blocking on, the other is realtime not working at all.
+const HARD_CEILING_MS = 60000;
+const insertedAt = Date.now();
+let deadline = insertedAt + DELIVERY_TIMEOUT_MS;
+let late = false;
 while (!fired && Date.now() < deadline) {
   await new Promise((r) => setTimeout(r, 250));
 }
+if (!fired) {
+  deadline = insertedAt + HARD_CEILING_MS;
+  while (!fired && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  late = fired;
+}
+const latencyMs = fired ? firedAt - insertedAt : null;
 
-if (fired) {
-  console.log(`\nResult: ✓ realtime WORKS (event arrived within ${DELIVERY_TIMEOUT_MS}ms budget)`);
+if (fired && !late) {
+  console.log(`\nResult: ✓ realtime WORKS (event delivered in ${latencyMs}ms, budget ${DELIVERY_TIMEOUT_MS}ms)`);
   console.log("PROBE_RESULT=OK");
+} else if (late) {
+  console.log(
+    `\nResult: ⚠ realtime LATE — event delivered in ${latencyMs}ms, over the ${DELIVERY_TIMEOUT_MS}ms budget ` +
+      `(waited up to ${HARD_CEILING_MS}ms). Realtime is working; the delivery is slow. ` +
+      `This is a latency result, not an outage.`,
+  );
+  console.log("PROBE_RESULT=LATE");
 } else {
-  console.log(`\nResult: ✗ realtime DELIVERY FAILED — subscribed, row inserted, no event within ${DELIVERY_TIMEOUT_MS}ms`);
+  console.log(
+    `\nResult: ✗ realtime DELIVERY FAILED — subscribed, row inserted, and no event in ${HARD_CEILING_MS}ms`,
+  );
   console.log("PROBE_RESULT=DELIVERY_FAILED");
 }
 
 await sbAdmin.from("notifications").delete().eq("id", ins.id);
 sbAnon.removeChannel(channel);
-process.exit(fired ? 0 : 1);
+process.exit(fired && !late ? 0 : late ? 4 : 1);

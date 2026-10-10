@@ -31,6 +31,7 @@ user anything real?**
 | **Auth workflow exercise** | `qa-exercise-auth-workflow.mjs` | **35 assertions** |
 | **Attendance workflow exercise** | `qa-exercise-attendance-workflow.mjs` | **31 assertions** |
 | **CMS workflow exercise** | `qa-exercise-cms-workflow.mjs` | **42 assertions** |
+| **Recruitment jobs exercise** | `qa-exercise-recruitment-workflow.mjs` | **23 assertions** |
 | Interactive | Playwright MCP | login, headings, live workflow |
 
 ### Heading spot-check (Playwright MCP, owner, production build)
@@ -412,6 +413,104 @@ and CRM. `owner` is the account that can actually administer the business.
 Two related oddities, also left alone: a role literally named `admin` grants **0
 of 50** permissions, and `owner` is missing `permissions.manage`,
 `attendance.correct` and `cms.manage`.
+
+### P1 — A release gate depended on demo rows nothing guaranteed. Fixed.
+
+The gate went red at 16/18. Two steps failed — *Vitest (full suite)* and *Live data
+smoke (DB state)* — for **one** cause: `live-data-smoke.test.ts` runs inside the full
+suite, so a single bad assertion takes down both steps.
+
+```
+tests/live-data-smoke.test.ts:143  expect(interviews).toBeGreaterThanOrEqual(1)   received 0
+tests/live-data-smoke.test.ts:144  expect(assessments).toBeGreaterThanOrEqual(1) received 0
+```
+
+Both tables were empty while the surrounding data was perfectly healthy: 6
+`job_applications`, 6 `applicants`, 15 `application_stage_history`, 5 `job_posts`, and
+no orphaned applications. The last verified green gate was 18/18 at `a4977c5`.
+
+**Ruling out the obvious cause.** Cascade is the obvious suspect and it is wrong here.
+Both FKs are `on delete cascade` from `job_applications`
+(`supabase/migrations/20260906001100_ats_crm_cms.sql:115,136`), so deleting an
+application *would* take its interviews and its assessments with it — but it would
+equally take its `application_stage_history` rows. History survived at 15. An
+application was never deleted, so cascade never fired. `qa-inspect-ats-provenance.mjs`
+confirms this directly: all 6 applications still carry their original ids and their
+original September–October `created_at` values. Nothing was recreated either.
+
+Nor was the recruitment exercise the culprit, despite being the last thing that ran.
+Its cleanup deletes applications only for job posts whose slug carries the run marker,
+and deletes applicants only by `profile_id` — and all 6 applicants have
+`profile_id = null`, so that delete matches nothing. Its 6 applications and 5 job
+posts are its own, and it left the originals untouched.
+
+No script in the repo and **no product code at all** deletes from either table.
+
+**The real defect.** Those rows were only ever created by
+`scripts/audit/batch3-workflows.mjs:214-241` — an ad-hoc audit script. The canonical
+seed, `scripts/audit/apply-data-seed.mjs`, never creates them; its only "interview"
+occurrences are prose inside marketing copy. So a release gate was asserting on state
+that no reproducible process was responsible for producing. Whether the rows were
+dropped by something outside the repo or never survived a data reset, the guarantee
+was missing either way, and a gate that depends on an undeclared side effect is a gate
+that will go red again for reasons that have nothing to do with the code.
+
+Fixed by `scripts/audit/qa-seed-ats-interviews.mjs`, which creates one interview and
+one assessment per application, only where missing, never touching a row that exists.
+It is idempotent (a second run creates 0) and it reads the counts back rather than
+trusting its own insert payload. Result: 6 interviews, 6 assessments, verified by
+read, and `live-data-smoke` back to 12/12.
+
+### P2 — The pipeline has interview and assessment stages with nothing to record them in. Documented, not changed.
+
+A consequence of the investigation above, and worth stating on its own: the ATS lets a
+recruiter move an application to **Initial interview** or **Assessment**
+(`lib/recruitment/application-stage.ts:26,27`), and the schema has `interviews` and
+`assessments` tables sitting behind those stages. **Nothing in the product reads or
+writes either table.** A search across `lib/`, `app/` and `components/` returns one
+hit, and it is the word "interviews" in a FAQ answer about sourcing.
+
+So the stages are real and reachable, but they are a dead end: an application can be
+marked as having reached an interview with no way to record *who* interviewed, *when*,
+*where*, or *how it went*. The three demo applications sitting at `initial_interview`
+and `assessment` display a pipeline position the product cannot substantiate.
+
+**Not changed.** Building interview scheduling and assessment capture is a feature,
+not a fix, and it needs product decisions this QA pass is not entitled to make. Flagged
+so the pipeline is not read as more complete than it is.
+
+### P2 — The realtime probe could not tell "late" from "never". Fixed.
+
+The gate went red again on step 16: `subscribed OK`, row inserted, and
+`PROBE_RESULT=DELIVERY_FAILED` — no event within 15000ms. Run on its own, immediately
+afterwards, the same probe passed twice.
+
+The probe polled to a flat 15s deadline and, on expiry, printed the same
+`DELIVERY_FAILED` whether the event was never going to arrive or merely arrived late.
+Those are different faults with different owners, and it had no way to tell them apart
+— so a red gate reported a cause it had not established.
+
+Measured, the delivery is fast: **496ms** and **267ms** across two standalone runs,
+against a 15000ms budget. A 30–50x margin is not a system drifting toward slow; the
+gate failure was not a genuine latency regression.
+
+Fixed by making the probe measure instead of assume. It records when the event
+actually fired, keeps polling past the budget to a 60s ceiling, and reports the
+measured latency on every run. `LATE` is now its own result with its own exit code, so
+`verify-all.mjs` surfaces a delivery-latency problem as exactly that — never as an
+outage, and never folded into the pass count either.
+
+**And a contract test caught the fix, correctly.** `tests/realtime-probe-contract.test.ts`
+went red on the new polling loop. Its negative control was
+`.replace("while (!fired && …) {", "if (false) {")` — `replace`, not `replaceAll`, so it
+neutralised only the *first* of the probe's two loops and then reported the correct
+probe as broken. The control's intent was sound; it just mutated one site of two. Now
+`replaceAll`, with a comment saying why.
+
+The added control for the new `LATE` assertion initially shipped wrong: it mutated the
+`PROBE_RESULT=LATE` marker and then asserted on the *exit code*, which that mutation
+never touches — so it failed while telling us nothing about the guard. Split into two
+independent mutations, one per pinned fact.
 
 ---
 
@@ -902,6 +1001,39 @@ creation forms**. Note that this is asserted on *content*, not on the URL —
 address, and a URL-only check reported "owner reached the CMS" for a page that had
 already refused them.
 
+### Recruitment jobs workflow — `qa-exercise-recruitment-workflow.mjs`, 23/23
+
+The five `lib/recruitment` actions not covered by the hire pass. **No product
+defect.**
+
+| Action | What was proven |
+|---|---|
+| `createJobPost` | Creates the post, leaves it `draft` |
+| `updateJobPost` | Persists an edit through the detail page's own form |
+| `publishJobPost` | Moves to `published` and stamps `published_at` |
+| `closeJobPost` | Moves to `closed` and **preserves** the original `published_at` |
+| `submitJobApplication` | Creates the application at stage `applied` |
+
+Two lifecycle facts proven rather than assumed: a **closed** role is not offered to
+an applicant at all, and a closed role **can be re-published**. Publishing an
+already-published post has no control left to click — the action's idempotent
+early-return is unreachable from this UI, so the check falls back to asserting the
+status is still `published`.
+
+The applicant path writes to shared state, and the exercise treats that as the
+danger it is: `submitJobApplication` does not create a fresh applicant. It looks
+the caller up by `profile_id` and **updates** the existing row's
+first_name / last_name / email / phone / linkedin_url. The demo applicant row is
+snapshotted before the run and restored field for field, and the restoration is
+asserted by comparing values — including the deliberate exclusion of `updated_at`,
+since any write bumps it and comparing it would report a false failure for a
+perfectly restored row.
+
+One guard is unreachable from the UI: after applying, the form is replaced, so the
+"you have already applied for this role" branch cannot be re-driven by a second
+click. It is asserted at the data level instead — exactly one application exists
+for the role.
+
 ### Traps this pass hit in its own tooling
 
 Recorded because each produced a report full of defects that did not exist:
@@ -992,7 +1124,7 @@ evidence. "Every button works" needs a distinction between *rendered* and
 |---|---|---|
 | `lib/leave` | 3 | **3** |
 | `lib/admin` | 5 | **5** |
-| `lib/recruitment` | 7 | **2** (stage change, hire) |
+| `lib/recruitment` | 7 | **7** (2 from the hire pass, 5 here) |
 | `lib/tickets` | 6 | **2** (create, assign) |
 | `lib/auth` | 10 | **8** (signup reached but 429-blocked; `resetPasswordAction` not driven) |
 | `lib/cms` | 14 | **14** |
@@ -1006,9 +1138,9 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/cash-advance` | 2 | 0 |
 | `lib/clients` (1) | 1 | 0 |
 | `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | 0 |
-| **Total** | **83** | **52** |
+| **Total** | **83** | **57** |
 
-**52 of 83 actions are exercised end to end.** The other 31 render correctly and
+**57 of 83 actions are exercised end to end.** The other 26 render correctly and
 are covered by unit tests and typecheck, but no committed script has yet driven
 them through a browser and asserted the resulting rows. That gap is stated
 plainly rather than papered over by counting the page sweep as proof — a button
@@ -1031,7 +1163,7 @@ somewhere above 12. It is not 81.
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
 | 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
 | 3 | **Hire pipeline** | **Now exercised** — 18/18, see §4. One defect found and fixed |
-| 4 | **31 of 83 server actions not yet driven end to end** | See §5. Recruitment remainder (5), NTE (3), documents (3), notifications (3), clients/employees/profile/contact (4), billing (2), cash-advance (2), client timesheet pair (2). Smaller and more fragmented than the blocks already closed — see §4 |
+| 4 | **26 of 83 server actions not yet driven end to end** | See §5. NTE (3), documents (3), notifications (3), clients/employees/profile/contact (4), billing (2), cash-advance (2), client timesheet pair (2). All single-digit blocks now — see §4 |
 | 5 | Invite *account creation*, and **signup account creation** | Blocked by Supabase email rate limiting (HTTP 429) in this environment. The signup *error path* is now proven to report the rate limit correctly rather than blaming the address; the success path is not |
 | 6 | `super_admin` holds 21 of 50 permissions | Deliberate platform-vs-business split, or a gap — a product call. See §2 |
 | 7 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
@@ -1096,13 +1228,18 @@ node scripts/audit/qa-exercise-payroll-workflow.mjs # 19 assertions
 node scripts/audit/qa-exercise-auth-workflow.mjs    # 35 assertions (signup reports BLOCKED under 429)
 node scripts/audit/qa-exercise-attendance-workflow.mjs # 31 assertions
 node scripts/audit/qa-exercise-cms-workflow.mjs        # 42 assertions
+node scripts/audit/qa-exercise-recruitment-workflow.mjs # 23 assertions
 
 # recovery, if a run was killed before its cleanup
 node scripts/audit/qa-repair-applicant-membership.mjs   # --apply
 node scripts/audit/qa-probe-signup-error.mjs            # read-only: what Supabase says back per domain
 node scripts/audit/qa-inspect-attendance-identities.mjs # read-only: which user owns which employee record
+node scripts/audit/qa-inspect-ats-provenance.mjs        # read-only: who owns each application, and what children survived
 node scripts/audit/qa-cleanup-orphan-correction-approvals.mjs # --apply
 node scripts/audit/qa-cleanup-leaked-attendance.mjs     # --apply
+
+# demo data a release gate asserts on, but that no seed produced (§2, P1)
+pnpm seed:demo:ats              # idempotent: one interview + one assessment per application
 
 # coverage, counted rather than maintained by hand
 node scripts/audit/qa-action-inventory.mjs              # 21 "use server" modules, 83 actions
