@@ -552,6 +552,68 @@ exactly like a broken control. It is not a defect; the transition is on a
 different screen. Recorded because "the button is missing" and "the button is on
 another page" produce identical evidence.
 
+### Payroll workflow — `qa-exercise-payroll-workflow.mjs`, 19/19
+
+```
+salary settings -> open a run -> seeded records -> recalculate
+               -> submit for approval -> finance approves -> owner approves -> FINALIZED
+```
+
+Payroll is the highest-consequence surface in the product and none of its five
+actions had ever been driven through the UI. `reviewPayrollPeriod` can
+**finalize** a period and flip every record in it to finalized — real money
+state — and none of its rollback branches had executed.
+
+Isolation mattered here more than anywhere else. Rather than touch the live
+`finalized` (Sept 1–15) or `draft` (Sept 16–30) periods, this opens **its own**
+period for the current frequency window, which does not overlap either. The one
+pre-existing value it edits — an employee's base salary — is snapshotted and
+restored exactly.
+
+| Assertion | Result |
+|---|---|
+| Salary settings form renders | PASS — 10 rows |
+| Salary change persisted | PASS — `120000 -> 120111` |
+| Wizard picks a frequency with no existing period | PASS — Monthly |
+| New period created, starts `draft` | PASS — `October 1–15, 2026` |
+| Records seeded for the period | PASS — 10 records |
+| Seeded records start `draft` | PASS — 10/10 |
+| Recalculate writes a `calculation_snapshot` | PASS |
+| Submit for approval moves it to `approval` | PASS |
+| An `approval_request` was created | PASS |
+| **Approval chain took two steps** | **PASS — 2 approvals** |
+| Period finalized after the chain | PASS |
+| Every record in the period finalized | PASS — 10/10 |
+| 0 console errors | PASS |
+| Payroll left exactly as found | PASS — periods 2→2, records 11→11, **payslips 1→1**, salary restored |
+
+**Payroll approval is two steps, not one.** `approval_steps` holds step 1 =
+`finance`, step 2 = `owner`. A single approval correctly leaves the period at
+`approval`; finalizing takes both. The first run clicked Approve once and
+reported "finalize broken" — it was not broken, it was halfway. Same shape as
+the leave workflow, and the reason `approval_actions` sat at 0 for so long.
+
+**No product defect surfaced in payroll.** Two defects did surface in *my own
+exercise*, both worth recording because both could have done real damage:
+
+- **An attribute selector does not see a DOM property default.** The salary
+  inputs render with no `type` attribute, so `input[type="text"]` matched **0**
+  elements on a page with ten inputs. It looks like the form is empty.
+- **The snapshot and the edit pointed at different employees.** The settings
+  page orders by employee number; `payroll_profiles` returns primary-key order.
+  Snapshotting "row 1" and editing "the first input" edited two different
+  people — and the run's own restore, keyed to the wrong id, failed with
+  `invalid input syntax for type uuid: "undefined"` and left a real salary
+  bumped. The script's verification assertion caught it; a script without that
+  assertion would have quietly altered someone's pay. The input id is
+  `salary-<employee_id>`, so the employee is now derived from the row actually
+  being edited.
+
+That second one also prompted deleting a line from the cleanup that deleted
+payslips "just in case" for whichever employee had been edited. The exercise
+never creates payslips, and that line would have destroyed real payslip rows.
+**Cleanup must only ever remove rows the run demonstrably created.**
+
 ### Self-cleaning — the fix the verifier caught
 
 Both exercises swept leftovers from *previous* runs at the start and **nothing at the
@@ -653,7 +715,7 @@ button works" needs a distinction between *rendered* and *exercised*:
 | `lib/cms` | 14 | 0 |
 | `lib/crm` | 8 | **7** (all but `createLeadFromContact`) |
 | `lib/recruitment` (remainder) | 5 | 0 |
-| `lib/payroll` | 5 | 0 |
+| `lib/payroll` | 5 | **5** |
 | `lib/documents` | 3 | 0 |
 | `lib/notifications` | 3 | 0 |
 | `lib/hr/nte-actions` | 3 | 0 |
@@ -661,9 +723,9 @@ button works" needs a distinction between *rendered* and *exercised*:
 | `lib/billing` | 2 | 0 |
 | `lib/cash-advance` | 2 | 0 |
 | `lib/clients`, `lib/employees`, `lib/profile`, `lib/contact` | 4 | 0 |
-| **Total** | **81** | **19** |
+| **Total** | **81** | **24** |
 
-**19 of 81 actions are exercised end to end.** The other 62 render correctly and
+**24 of 81 actions are exercised end to end.** The other 57 render correctly and
 are covered by unit tests and typecheck, but no committed script has yet driven
 them through a browser and asserted the resulting rows. That gap is stated
 plainly rather than papered over by counting the page sweep as proof — a button
@@ -686,7 +748,7 @@ somewhere above 12. It is not 81.
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
 | 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
 | 3 | **Hire pipeline** | **Now exercised** — 18/18, see §4. One defect found and fixed |
-| 4 | **69 of 81 server actions not yet driven end to end** | See §5 for the per-domain breakdown. This is the largest remaining gap |
+| 4 | **57 of 81 server actions not yet driven end to end** | See §5 for the per-domain breakdown. Auth (10), attendance (8) and cms (14) are the largest blocks left. This remains the biggest gap |
 | 5 | Invite *account creation* | Blocked by Supabase email rate limiting (HTTP 429) in this environment |
 | 6 | `super_admin` holds 21 of 50 permissions | Deliberate platform-vs-business split, or a gap — a product call. See §2 |
 | 7 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
@@ -745,6 +807,8 @@ node scripts/audit/qa-exercise-leave-workflow.mjs   # 13 assertions
 node scripts/audit/qa-exercise-ticket-workflow.mjs  # 10 assertions
 node scripts/audit/qa-exercise-admin-workflow.mjs   # 18 assertions (1 path may report BLOCKED)
 node scripts/audit/qa-exercise-hire-workflow.mjs    # 18 assertions
+node scripts/audit/qa-exercise-crm-workflow.mjs     # 21 assertions
+node scripts/audit/qa-exercise-payroll-workflow.mjs # 19 assertions
 
 # recovery, if a run was killed before its cleanup
 node scripts/audit/qa-repair-applicant-membership.mjs   # --apply
