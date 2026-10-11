@@ -1366,6 +1366,54 @@ detect the thing it is looking for.** Both times here, a positive control on a p
 already known to work — `/app/hr/nte` and `/app/tickets` — would have caught the
 instrument before it produced a list of fourteen defects that did not exist.
 
+### P2 — Every list offers "Next" on its last page when the page is exactly full. Documented, not changed.
+
+`components/app/list-pager.tsx:39` decides whether a next page exists from the number
+of rows on the page it is rendering:
+
+```tsx
+const showNext = rowCount >= pageSize;
+```
+
+`rowCount >= pageSize` cannot distinguish *"this page is full **and** there are more
+rows"* from *"this page is full **and these are all of them**"*. At an exact multiple
+of the page size the pager offers **Next**, the user clicks it, and lands on an empty
+list reading "Page 2" with nothing on it and no explanation. There is no error, no
+warning — the list simply ends one click too early.
+
+The inputs make it worse, not better. Of the **47 `ListPager` call sites**, 46 pass the
+current page's own row length:
+
+```tsx
+<ListPager page={page} pageSize={PAGE_SIZE} rowCount={notifications?.length ?? 0} />
+```
+
+which is only the shape needed to answer "is this page full?". One —
+`app/app/client/timesheets/page.tsx`, which runs `count: "exact"` — passes a true
+total (`rowCount={pendingReviewTotal}`) and is the correct shape everywhere else. It
+still fails on the same boundary, because a total of exactly `pageSize` satisfies
+`>=` too. So the off-by-one is not fixed by passing a better number; it is fixed by
+comparing `>` against a total, or by not using a total at all.
+
+No list in the seeded demo currently sits on a boundary — page sizes run 20 to 100 and
+the per-user lists hold fewer rows than that — so this is **latent, not live**. It will
+be reached by ordinary use: an employee accumulates exactly 20 leave requests, a
+client's team hits exactly 30 documents, `/app/admin/audit` reaches exactly 112. The
+`my/leave`, `my/cash-advances` and `client/timesheets` lists at `PAGE_SIZE = 20` are
+the most likely to get there.
+
+**Not changed, because the fix is 46 call sites and a judgement call about cost:**
+
+- Fetch `PAGE_SIZE + 1` rows per page, slice for display, and pass
+  `hasNext={rows.length > PAGE_SIZE}`. No extra query, one extra row per page, but
+  every page's `.range()` and display path changes.
+- Or add `count: "exact"` to each query and compare `total > pageSize`. Simplest per
+  page, but it is a second round trip on every list in the product.
+
+`ListPager` should also accept an explicit `hasNext` rather than inferring it, so this
+cannot be reintroduced by a page that passes the wrong number. The one call site
+already doing it right is the model.
+
 ### P2 — Every document in the demo was undownloadable. Two causes, both fixed.
 
 The documents module itself is the best-written in the codebase: it checks its errors,
@@ -1775,15 +1823,18 @@ somewhere above 12. It is not 81.
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
 | 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
 | 3 | **Hire pipeline** | **Now exercised** — 18/18, see §4. One defect found and fixed |
-| 4 | **26 of 83 server actions not yet driven end to end** | See §5. NTE (3), documents (3), notifications (3), clients/employees/profile/contact (4), billing (2), cash-advance (2), client timesheet pair (2). All single-digit blocks now — see §4 |
+| 4 | **3 of 83 server actions not yet driven end to end** | See §5. All three are the auth-email actions and all three are blocked by the same thing. Was 26; every block since has been closed |
 | 5 | Invite *account creation*, and **signup account creation** | Blocked by Supabase email rate limiting (HTTP 429) in this environment. The signup *error path* is now proven to report the rate limit correctly rather than blaming the address; the success path is not. Check the blocker with `node scripts/audit/check-auth-email-rate-limit.mjs` — it exits 0 the moment the limit clears, and deletes anything it creates |
 | 6 | `super_admin` holds 21 of 50 permissions | Deliberate platform-vs-business split, or a gap — a product call. See §2 |
-| 7 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
-| 8 | Playwright e2e not running in CI | Needs `RUN_E2E=true` plus secrets |
-| 9 | Nothing is pushed to `origin` | `origin/main` is 10 commits and ~371 files behind this branch |
-| 10 | Demo tenant decays; gate needs `refresh-demo-timeline.mjs --apply` first | See below — this is an operational landmine, not a code defect |
-| 11 | `payslip_items` / `payslip_components` | **Resolved, not open.** They do not exist — an earlier audit of mine guessed them. The app uses `payroll_components` |
-| 12 | `resetPasswordAction` | Needs a real recovery token from an inbox; no mail provider in this environment. The invalid-token path on `verifyEmailAction` *is* proven |
+| 7 | **Storage RLS casts with `::uuid`, which RAISES rather than denies** | `20260906000800_storage_buckets.sql:53`. A malformed `object_name` aborts the policy check with a Postgres error instead of a clean deny. Security-relevant and a migration decision — not changed unilaterally |
+| 8 | **Client timesheet P1: submit accepts a day the client view filters out** | `submitTimesheetForClientReview` does not date-check against the assignment window, so a timesheet can be handed to a client who will never see it. The two halves of the flow disagree; which one is authoritative is a product call. See §4 |
+| 9 | **List pager offers "Next" on the last page when it is exactly full** | `list-pager.tsx:39`, 47 call sites. Latent, not live in the demo. Fix is either `PAGE_SIZE + 1` fetch or a count query per list — a cost decision. See §2 |
+| 10 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
+| 11 | Playwright e2e not running in CI | Needs `RUN_E2E=true` plus secrets |
+| 12 | Nothing is pushed to `origin` | `origin/main` is 10 commits and ~371 files behind this branch |
+| 13 | Demo tenant decays; gate needs `refresh-demo-timeline.mjs --apply` first | See below — this is an operational landmine, not a code defect |
+| 14 | `payslip_items` / `payslip_components` | **Resolved, not open.** They do not exist — an earlier audit of mine guessed them. The app uses `payroll_components` |
+| 15 | `resetPasswordAction` | Needs a real recovery token from an inbox; no mail provider in this environment. Part of the 429 block in row 4. The invalid-token path on `verifyEmailAction` *is* proven |
 
 **The demo tenant is a clock bomb, and it is worth knowing about before you trust
 a red gate.** Several seed scripts wrote relative deadlines with `Date.now()`
