@@ -1426,11 +1426,40 @@ found 1 such row offered in the same week where the assignment was actually vali
 Every other list in the product pairs its action button with the same predicate the
 action enforces. This one does not.
 
-### Client timesheet workflow — `qa-exercise-client-timesheet-workflow.mjs`, 7 pass, 1 finding, 5 BLOCKED
+### P1 — Beepa can hand a timesheet to a client who will never see it. Documented, not changed.
 
-The only workflow that crosses the Beepa/client boundary with a status hand-off. One of
-its two actions is proven; the other is **BLOCKED**, and is reported as such rather than
-counted as covered.
+`submitTimesheetForClientReview` accepts a hand-off whenever the employee has an
+**active** `client` assignment whose `client_organization_id` is set
+(`lib/attendance/client-timesheet.ts:198-212`). It does **not** compare the timesheet's
+`work_date` against that assignment's window.
+
+`client_attendance_summary` — the view `/app/client/timesheets` reads — **does** apply
+that window. Measured, not assumed: with the assignment starting `2026-09-05`, a fixture
+dated `2026-06-15` was absent from the view while the *same record* dated `2026-09-06`,
+`2026-09-10` and `2026-11-02` appeared immediately, under the service role, which bypasses
+RLS entirely.
+
+So an internal user can hand over a timesheet day that predates the employee's client
+assignment. The action reports **"Timesheet submitted for client review."** The record is
+in `attendance_records` with `approval_status = client_review`. It is simply not in the
+client's queue, and there is nothing anywhere saying so — the client's queue is empty and
+Beepa's side shows it as submitted. A timesheet day silently disappears between two
+organisations.
+
+**Not changed.** Whether the correct fix is to date-check at submission, to widen the
+view, or to surface a warning is a product decision with payroll consequences either way.
+What is not a product decision is that the two components disagree today.
+
+This was found by the run reporting BLOCKED and someone going to look, rather than by a
+gate. **A blocked leg is worth the investigation** — this one turned out to be a real P1
+sitting behind an unexercised action.
+
+### Client timesheet workflow — `qa-exercise-client-timesheet-workflow.mjs`, 13/14
+
+The only workflow that crosses the Beepa/client boundary with a status hand-off. Both
+actions exercised, **both directions of the review** — Approve (`finalized`) and
+*Send back* (`supervisor_review`) — because only exercising Approve leaves the branch
+that returns work to Beepa completely untested.
 
 | Assertion | Result |
 |---|---|
@@ -1439,45 +1468,39 @@ counted as covered.
 | **`submitTimesheetForClientReview` moves the record to `client_review`** | PASS |
 | The timesheet hand-off writes an audit row | **FAIL — no `logAudit` in the module** |
 | The submitted day is no longer offered for submission | PASS |
-| The timesheet appears in the client review queue | **BLOCKED** |
-| The client is offered Approve | **BLOCKED** |
-| `reviewClientTimesheet` approve finalizes the record | **BLOCKED** |
-| The finalized day leaves the client review queue | **BLOCKED** |
-| `reviewClientTimesheet` "Send back" returns it to `supervisor_review` | **BLOCKED** |
+| The timesheet appears in the client review queue | PASS *(was BLOCKED)* |
+| The client is offered Approve | PASS |
+| **`reviewClientTimesheet` approve finalizes the record** | PASS *(was BLOCKED)* |
+| The finalized day leaves the client review queue | PASS |
+| The client is offered *Send back* | PASS |
+| **`reviewClientTimesheet` "Send back" returns it to `supervisor_review`** | PASS *(was BLOCKED)* |
 | **`Send to client` is offered for an employee with no client assignment** | PASS *(the mismatch is real)* |
 | The fixture rows are gone | PASS |
 | The attendance_records count is back to its starting size | PASS |
 
+**The BLOCKED outcome earned its keep.** The first run reached `client_review` and then
+could not see the record in the client's queue, even read as service role. Rather than
+round the number up, the leg was reported BLOCKED with its evidence — and chasing it
+produced the P1 above. The fixture was being dated `2026-06-15`, before the assignment's
+`2026-09-05` start, so the view excluded it; moving it inside the window made the whole
+client leg work on the next run.
+
+Chasing it also caught a flaw in my own probe: its first attempt to isolate the date
+moved the record onto a date the employee **already had a row for**, so the
+`(employee_id, work_date)` unique constraint rejected the update, the error was not read,
+and the "same employee, same date" test silently re-ran the previous one. The fixed
+version walks genuinely free dates and reads each update's error.
+
 **What the environment actually offered.** Probed before writing anything:
-`allow_timesheet_approval` is true for the one client org and there are 2 active client
-assignments — but **no** attendance record for a client-assigned employee that is not
-already `finalized` (199 of 201 finalized; the 2 drafts belong to employees with no client
-assignment). There was nothing to drive, so the run creates the timesheet day as a
-fixture and deletes it afterwards.
+`allow_timesheet_approval` is true and there are 2 active client assignments, but **no**
+attendance record for a client-assigned employee that is not already `finalized` (199 of
+201 finalized). Nothing to drive, so the run creates the timesheet day as a fixture and
+deletes it afterwards, asserting the count is back to 201.
 
-**Why the client leg is BLOCKED rather than failed.** The hand-off is real — the row is
-in `attendance_records` with `approval_status = client_review`, read back. But the record
-does not appear in `client_attendance_summary`, the view `/app/client/timesheets` reads,
-**even when queried with the service role**, which bypasses RLS entirely. Both employees
-holding an active client assignment *do* appear in that view for their pre-existing
-records, so the join itself is not broken. The candidate explanations — the deployed
-view's own status predicate, the fixture's date falling outside the demo window, or a
-column the deployed view does not expose — were not separated before this pass's context
-ran out.
-
-So `reviewClientTimesheet` remains **unexercised**, stated plainly rather than rounded
-up. Its own code looks correct on inspection: it checks authz, the client-settings flag,
-the employee's active assignment to *that* client, and the record's status.
-
-One hardening it would benefit from, noted for whoever picks it up: the final update is
-
-```ts
-.update({ approval_status: nextStatus }).eq("id", record.id).eq("approval_status", "client_review");
-```
-
-which checks `error` but **not the affected row count**. PostgREST returns no error when
-an update matches zero rows, so a concurrent hand-off would let this action report
-"Timesheet approved." while nothing changed — the same shape as the P0 in §2.
+One hardening noted for whoever picks it up: `reviewClientTimesheet`'s final update checks
+`error` but **not the affected row count**. PostgREST returns no error when an update
+matches zero rows, so a concurrent hand-off would let the action report "Timesheet
+approved." while nothing changed — the same shape as the P0 in §2.
 
 ### Traps this pass hit in its own tooling
 
@@ -1578,14 +1601,14 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/documents` | 3 | **3** |
 | `lib/notifications` | 3 | **3** |
 | `lib/hr/nte-actions` | 3 | **3** |
-| `lib/attendance/*` (4 modules) | 8 | **7** (`reviewClientTimesheet` BLOCKED, §4) |
+| `lib/attendance/*` (4 modules) | 8 | **8** |
 | `lib/billing` | 2 | **2** |
 | `lib/cash-advance` | 2 | **2** |
 | `lib/clients` (1) | 1 | 0 |
 | `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | **3** |
-| **Total** | **83** | **75** |
+| **Total** | **83** | **76** |
 
-**75 of 83 actions are exercised end to end.** The other 8 render correctly and
+**76 of 83 actions are exercised end to end.** The other 7 render correctly and
 are covered by unit tests and typecheck, but no committed script has yet driven
 them through a browser and asserted the resulting rows. That gap is stated
 plainly rather than papered over by counting the page sweep as proof — a button
@@ -1679,8 +1702,9 @@ node scripts/audit/qa-exercise-notifications-workflow.mjs # 16 assertions
 node scripts/audit/qa-exercise-profile-workflow.mjs      # 19 assertions
 node scripts/audit/qa-exercise-money-workflow.mjs        # 33 assertions
 node scripts/audit/qa-exercise-documents-workflow.mjs     # 31 assertions
-node scripts/audit/qa-exercise-client-timesheet-workflow.mjs # 7 pass, 1 finding, 5 BLOCKED
+node scripts/audit/qa-exercise-client-timesheet-workflow.mjs # 13/14, one real finding
 node scripts/audit/qa-probe-client-timesheet.mjs          # read-only: can this flow run here at all?
+node scripts/audit/qa-probe-summary-view-filter.mjs     # read-only: which predicate hides a record from the client view
 
 # demo repair, all dry run unless --apply
 node scripts/audit/qa-repoint-document-bucket.mjs   # --apply

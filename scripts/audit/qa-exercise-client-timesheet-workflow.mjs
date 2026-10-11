@@ -79,7 +79,12 @@ async function must(p, what) {
 const MARK = `qacts${Date.now().toString(36)}`;
 const HR_EMAIL = "hr@demo.beepabpo.com";
 const CLIENT_EMAIL = "clientadmin@demo.beepabpo.com";
-const WORK_DATE = "2026-06-15";
+// Overwritten below with a date inside the assignment window. `client_attendance_summary`
+// joins employee_assignments and only surfaces records whose work_date falls between
+// that assignment's start_date and end_date -- so a fixture dated before the assignment
+// begins is invisible to the client queue even though the hand-off itself worked.
+// Found by walking free dates across the window, not by reading the view.
+let WORK_DATE = "2026-06-15";
 
 const { data: authData, error: authErr } = await db.auth.admin.listUsers({ page: 1, perPage: 200 });
 if (authErr) throw new Error(`auth users: ${authErr.message}`);
@@ -95,7 +100,7 @@ const clientOrgId = settings[0].client_organization_id;
 
 const assignment = (
   await must(
-    db.from("employee_assignments").select("id, employee_id, client_organization_id")
+    db.from("employee_assignments").select("id, employee_id, client_organization_id, start_date, end_date")
       .eq("client_organization_id", clientOrgId).eq("assignment_type", "client").eq("status", "active").limit(1),
     "assignment",
   )
@@ -104,8 +109,35 @@ if (!assignment) {
   console.log("BLOCKED: no active client assignment to drive.");
   process.exit(2);
 }
+
+// Pick a work_date inside the assignment window that the employee does not already
+// have a record for -- the table is unique on (employee_id, work_date), so colliding
+// with an existing date would make every later assertion read the wrong row.
+const takenDates = new Set(
+  (
+    await must(
+      db.from("attendance_records").select("work_date").eq("employee_id", assignment.employee_id).limit(2000),
+      "existing work dates",
+    )
+  ).map((r) => r.work_date),
+);
+{
+  const start = new Date(`${assignment.start_date}T00:00:00Z`);
+  let chosen = null;
+  for (let i = 1; i <= 60 && !chosen; i += 1) {
+    const d = new Date(start.getTime() + i * 86400000).toISOString().slice(0, 10);
+    if (!takenDates.has(d)) chosen = d;
+  }
+  if (!chosen) {
+    console.log("BLOCKED: no free work_date inside the assignment window.");
+    process.exit(2);
+  }
+  WORK_DATE = chosen;
+}
+
 console.log(`client org: ${clientOrgId.slice(0, 8)} (approval enabled)`);
-console.log(`assigned employee: ${assignment.employee_id.slice(0, 8)}\n`);
+console.log(`assigned employee: ${assignment.employee_id.slice(0, 8)} (assignment from ${assignment.start_date})`);
+console.log(`fixture work_date: ${WORK_DATE} (inside the assignment window)\n`);
 
 const countOf = async (t) => (await db.from(t).select("id", { count: "exact", head: true })).count ?? 0;
 const beforeCount = await countOf("attendance_records");
@@ -263,27 +295,21 @@ try {
       .eq("attendance_record_id", fixtureId),
     "summary view lookup",
   );
-  // BLOCKED, not failing: the hand-off itself works (asserted above, client_review is
-  // real in the table), but the record does not surface in `client_attendance_summary`
-  // even when read with the SERVICE ROLE, which bypasses RLS entirely. Both employees
-  // holding an active client assignment do appear in that view for their pre-existing
-  // records, so the join itself is not broken -- something about this record is being
-  // filtered, and the candidate explanations (the view's own status predicate, the
-  // fixture's date falling outside the demo window, a column the deployed view does
-  // not expose) were not separated before the context budget for this pass ran out.
-  // `reviewClientTimesheet` therefore remains UNEXERCISED, and is reported as such
-  // rather than quietly counted as covered.
-  blocked(
-    "the timesheet appears in the client review queue",
-    `view returned ${viewRows.length} row(s) for the record under the service role; ${approveCount} Approve button(s) rendered`,
-  );
-  if ((await cliPage.getByRole("button", { name: "Approve" }).count()) === 0) {
-    blocked("the client is offered Approve", "no Approve control rendered — nothing was in the queue to approve");
-    blocked("reviewClientTimesheet approve finalizes the record", "could not be reached through the UI");
-    blocked("the finalized day leaves the client review queue", "could not be reached through the UI");
-    await cliCtx.close();
-    skippedClientLeg = true;
-  }
+  // The queue assertion that first blocked this leg, now that the fixture is dated inside
+// the assignment window. Kept as a real check rather than deleted, because it is what
+// will catch a regression if the fixture date or the view's window join ever drifts.
+check(
+  "the timesheet appears in the client review queue",
+  viewRows.length > 0,
+  `view: ${viewRows.length} row(s) [${viewRows.map((r) => r.approval_status).join(",") || "absent"}]; ${approveCount} Approve button(s) rendered`,
+);
+if ((await cliPage.getByRole("button", { name: "Approve" }).count()) === 0) {
+  blocked("the client is offered Approve", "no Approve control rendered — nothing was in the queue to approve");
+  blocked("reviewClientTimesheet approve finalizes the record", "could not be reached through the UI");
+  blocked("the finalized day leaves the client review queue", "could not be reached through the UI");
+  await cliCtx.close();
+  skippedClientLeg = true;
+}
 
   if (!skippedClientLeg) {
   const approveBtn = cliPage.getByRole("button", { name: "Approve" }).first();
