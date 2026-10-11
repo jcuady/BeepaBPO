@@ -1387,6 +1387,98 @@ Cleanup removes the metadata **and** the blobs, then asserts both: 3 rows, 3 obj
 cleanup — the next upload's random UUID will not collide with it, so an orphan just
 accumulates invisibly.
 
+### P2 — The client timesheet hand-off writes no audit trail at all. Documented, not changed.
+
+`lib/attendance/client-timesheet.ts` is the **only** module in this codebase whose
+actions change an approval status and contain **no `logAudit` call whatsoever**. Every
+other action audited during this pass writes a row.
+
+That matters more here than in most places, because this is the one workflow that crosses
+the Beepa/client boundary with money attached: `submitTimesheetForClientReview` moves a
+timesheet day into a client's queue, and `reviewClientTimesheet` is where the client
+finalizes it or sends it back. After the round trip there is **no record of who decided
+what, or when**. `reviewClientTimesheet` also has no approval trail in `approval_requests`
+— it is not driven through the `advanceApprovalRequest` engine that the cash-advance and
+leave workflows use, so it is the only cross-organisation approval in the product with no
+workflow record at all.
+
+**Not changed.** Adding an audit trail to an approval path is a compliance decision, and
+it is cheap to add once agreed; deciding *what* must be recorded and retained is not a QA
+pass's call.
+
+### P2 — `/app/attendance` offers "Send to client" to employees who have no client. Documented, not changed.
+
+`app/app/attendance/page.tsx` computes:
+
+```ts
+const canSend =
+  canSubmit &&
+  row.approval_status !== "client_review" &&
+  row.approval_status !== "finalized";
+```
+
+It never checks whether the employee has an active client assignment — which
+`submitTimesheetForClientReview` then *requires*, returning *"Employee has no active
+client assignment."* So an internal user is shown a control that is guaranteed to fail,
+for every employee on the team who is not assigned to a client. Measured: the exercise
+found 1 such row offered in the same week where the assignment was actually valid.
+
+Every other list in the product pairs its action button with the same predicate the
+action enforces. This one does not.
+
+### Client timesheet workflow — `qa-exercise-client-timesheet-workflow.mjs`, 7 pass, 1 finding, 5 BLOCKED
+
+The only workflow that crosses the Beepa/client boundary with a status hand-off. One of
+its two actions is proven; the other is **BLOCKED**, and is reported as such rather than
+counted as covered.
+
+| Assertion | Result |
+|---|---|
+| A draft timesheet exists for a client-assigned employee | PASS |
+| Internal user is offered *Send to client* for the day | PASS |
+| **`submitTimesheetForClientReview` moves the record to `client_review`** | PASS |
+| The timesheet hand-off writes an audit row | **FAIL — no `logAudit` in the module** |
+| The submitted day is no longer offered for submission | PASS |
+| The timesheet appears in the client review queue | **BLOCKED** |
+| The client is offered Approve | **BLOCKED** |
+| `reviewClientTimesheet` approve finalizes the record | **BLOCKED** |
+| The finalized day leaves the client review queue | **BLOCKED** |
+| `reviewClientTimesheet` "Send back" returns it to `supervisor_review` | **BLOCKED** |
+| **`Send to client` is offered for an employee with no client assignment** | PASS *(the mismatch is real)* |
+| The fixture rows are gone | PASS |
+| The attendance_records count is back to its starting size | PASS |
+
+**What the environment actually offered.** Probed before writing anything:
+`allow_timesheet_approval` is true for the one client org and there are 2 active client
+assignments — but **no** attendance record for a client-assigned employee that is not
+already `finalized` (199 of 201 finalized; the 2 drafts belong to employees with no client
+assignment). There was nothing to drive, so the run creates the timesheet day as a
+fixture and deletes it afterwards.
+
+**Why the client leg is BLOCKED rather than failed.** The hand-off is real — the row is
+in `attendance_records` with `approval_status = client_review`, read back. But the record
+does not appear in `client_attendance_summary`, the view `/app/client/timesheets` reads,
+**even when queried with the service role**, which bypasses RLS entirely. Both employees
+holding an active client assignment *do* appear in that view for their pre-existing
+records, so the join itself is not broken. The candidate explanations — the deployed
+view's own status predicate, the fixture's date falling outside the demo window, or a
+column the deployed view does not expose — were not separated before this pass's context
+ran out.
+
+So `reviewClientTimesheet` remains **unexercised**, stated plainly rather than rounded
+up. Its own code looks correct on inspection: it checks authz, the client-settings flag,
+the employee's active assignment to *that* client, and the record's status.
+
+One hardening it would benefit from, noted for whoever picks it up: the final update is
+
+```ts
+.update({ approval_status: nextStatus }).eq("id", record.id).eq("approval_status", "client_review");
+```
+
+which checks `error` but **not the affected row count**. PostgREST returns no error when
+an update matches zero rows, so a concurrent hand-off would let this action report
+"Timesheet approved." while nothing changed — the same shape as the P0 in §2.
+
 ### Traps this pass hit in its own tooling
 
 Recorded because each produced a report full of defects that did not exist:
@@ -1486,14 +1578,14 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/documents` | 3 | **3** |
 | `lib/notifications` | 3 | **3** |
 | `lib/hr/nte-actions` | 3 | **3** |
-| `lib/attendance/*` (4 modules) | 8 | **6** (client-timesheet pair not driven) |
+| `lib/attendance/*` (4 modules) | 8 | **7** (`reviewClientTimesheet` BLOCKED, §4) |
 | `lib/billing` | 2 | **2** |
 | `lib/cash-advance` | 2 | **2** |
 | `lib/clients` (1) | 1 | 0 |
 | `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | **3** |
-| **Total** | **83** | **74** |
+| **Total** | **83** | **75** |
 
-**74 of 83 actions are exercised end to end.** The other 9 render correctly and
+**75 of 83 actions are exercised end to end.** The other 8 render correctly and
 are covered by unit tests and typecheck, but no committed script has yet driven
 them through a browser and asserted the resulting rows. That gap is stated
 plainly rather than papered over by counting the page sweep as proof — a button
@@ -1587,6 +1679,8 @@ node scripts/audit/qa-exercise-notifications-workflow.mjs # 16 assertions
 node scripts/audit/qa-exercise-profile-workflow.mjs      # 19 assertions
 node scripts/audit/qa-exercise-money-workflow.mjs        # 33 assertions
 node scripts/audit/qa-exercise-documents-workflow.mjs     # 31 assertions
+node scripts/audit/qa-exercise-client-timesheet-workflow.mjs # 7 pass, 1 finding, 5 BLOCKED
+node scripts/audit/qa-probe-client-timesheet.mjs          # read-only: can this flow run here at all?
 
 # demo repair, all dry run unless --apply
 node scripts/audit/qa-repoint-document-bucket.mjs   # --apply
