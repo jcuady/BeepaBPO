@@ -2,6 +2,32 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## 83 of 83 server actions are now exercised end to end (2026-10-12)
+
+- **`inviteClientUser` — the last uncovered action — was driven through its real form on
+  `/app/clients` and passed all 11 assertions**: auth user created, profile carrying the
+  names typed into the form, a `client` membership pointing at the organization the form
+  selected, marked `invited` not `active`, carrying the `client_admin` role scoped to
+  `client`, and **an invited user cannot sign in with a password before accepting**. That
+  last one is what gives the run its meaning — a run that only asserted "a user was
+  created" would pass with the portal reachable by anyone holding the invite address.
+- **The cleanup then crashed and left the whole thing behind**, which is the finding worth
+  keeping. `membership_roles` is a join table keyed by `(membership_id, role_id)` and has
+  no `id` column; the cleanup selected `id`, `must()` correctly threw, and **because the
+  four deletes sat unguarded after it, none of them ran**. A real auth user, profile,
+  membership and role row were left in the live database — the same residue defect fixed
+  once in the product, reintroduced in the harness. Fixed three ways: delete role rows
+  straight by `membership_id`; wrap each cleanup step so one failure cannot abort the
+  rest; and make a run whose cleanup did not complete **exit 1** instead of 0.
+- **`docs/evidence/client-invite-check.json` does not record the successful run.** The
+  crash landed between the assertions and the `writeFileSync`, so the file still shows a
+  BLOCKED run from a later attempt. It was **not** hand-edited — writing the result of a
+  run that crashed would defeat the rule this project has held throughout. The discrepancy
+  is stated in `docs/QA_REPORT.md` §2 and §5 instead, and one re-run closes it.
+- **The environment's email budget allows roughly one invite per window**, so a successful
+  run is followed by immediate BLOCKED attempts. A blocked attempt costs nothing; do not
+  probe before exercising, since probing spends the invite.
+
 ## All three invite paths created the account before checking the role (2026-10-12)
 
 - **Every invite action ordered its steps wrongly, in the same way.**

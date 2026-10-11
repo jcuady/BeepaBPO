@@ -1003,6 +1003,66 @@ That is the same lesson as the four false positives above, arriving from the oth
 direction — this time the broken instrument manufactured five false *failures* instead of
 four false *passes*.
 
+### P1 — A cleanup failure that left a real account in the database. Fixed.
+
+The invite exercise reached Supabase inside the budget and passed all eleven assertions.
+Then its cleanup crashed and left the whole thing behind:
+
+```
+Error: read membership_roles: column membership_roles.id does not exist
+    at must (qa-exercise-client-invite.mjs:66)
+```
+
+`membership_roles` is a join table keyed by `(membership_id, role_id)` — it has no `id`
+column. `must()` did exactly its job and threw on the PostgREST error. The damage was
+what happened next:
+
+```js
+const roles = await must(db.from("membership_roles").select("id")…);   // throws here
+…
+const delMem   = await db.from("organization_memberships").delete()…    // never runs
+const delProf  = await db.from("profiles").delete()…                     // never runs
+const delUser  = await db.auth.admin.deleteUser(createdUserId);          // never runs
+```
+
+**One bad read aborted all four deletes.** A real auth user, profile, membership and role
+row were left in the live database — the same residue defect this report already fixed
+once in the product (§2, *"Test residue was visible to real users"*), reintroduced in the
+harness. The evidence file was never written either, because the crash landed between the
+assertions and the `writeFileSync`.
+
+Three things were wrong, and all three are fixed:
+
+- **Reading rows to collect ids before deleting them.** `membership_roles` is now deleted
+  straight by `membership_id`; the read existed only to build an `in(...)` list.
+- **No error isolation between cleanup steps.** Each step is now wrapped, so one failure
+  cannot prevent the rest. The difference is between "cleanup partially failed" and
+  "cleanup did nothing at all", and only the second one is dangerous.
+- **A failed cleanup still exited 0.** With every assertion green and four deletes never
+  executed, the run reported success. Cleanup failure is a RESULT: a run that cannot clean
+  up after itself has not passed, whatever its assertions said, and now exits 1.
+
+`scripts/audit/cleanup-invite-residue.mjs` removed the account this bug stranded, scoped
+to one user id, verifying each class of row by reading it back rather than by trusting the
+delete calls:
+
+```
+memberships found: 1
+membership_roles for d919c107-…: deleted
+memberships: deleted
+profile: deleted
+auth_user: deleted
+
+verify memberships: 0 row(s)
+verify profile:     0 row(s)
+verify auth user:   gone
+```
+
+**The general rule is older than this bug: a tool that cannot prove it cleaned up has not
+finished.** The repair-tool failure recorded in §6 — "re-based 7/9 row(s); 2 failed",
+reported as a mostly-successful run — is the same defect in a different script, and it is
+the reason §6 now insists that partial success assert its failures rather than print them.
+
 ### P1 — All three invite paths created the account before checking the role. Fixed.
 
 The last uncovered action, `inviteClientUser`, could not be driven end to end because
@@ -3244,30 +3304,43 @@ re-measured: `ok` 445 / redirected 27 / empty 2 / download 5, zero console noise
 shifting between `ok` and `redirected` against the run above is ordinary crawl variance,
 and the load-bearing number is still `errors = 0`.
 
-**82 of 83 actions are exercised end to end.** The one remaining is `inviteClientUser`,
-and it is worth being precise about why, because the reason changed.
+**83 of 83 actions are exercised end to end** — and the last one was reached, on a
+later window, with one caveat recorded rather than hidden.
 
-It was BLOCKED by the environment's outbound email budget — not by the codebase. That
-distinction is the whole point of re-probing instead of writing the blocker down once,
-and on this pass the window **opened**: `qa-probe-invite-domains.mjs` had the apex domain
-**accepted**, created a user, and cleaned up. So the action is demonstrably drivable and
-this is not a permanent gap.
+`inviteClientUser` drove its **real form on `/app/clients`** and every assertion passed:
 
-`qa-exercise-client-invite.mjs` exists and drives it **through the real form on
-`/app/clients`**, because driving the button is the assertion that matters — calling the
-server action from a test would prove the action works and prove nothing about the form
-being wired to it. Its first run reached the form, filled it, submitted, and was refused
-`"email rate limit exceeded"` — the budget allows roughly **one** invite per window, and
-the probe had just spent it.
+```
+PASS  invite succeeds  — auth user c07c2985-… — toast: Invite sent to qa-invite-mv4dnh1c@beepabpo.com for CloudPeak.
+PASS  an auth user was created for the invited address  — c07c2985-…
+PASS  the profile carries the names typed into the form  — {"display_name":"Qa Invitee",…,"status
+PASS  a membership was created  — 1 row(s)
+PASS  the membership points at the organization the form selected  — 1a91499c-… vs selected 1a91499c-…
+PASS  the membership belongs to the invited user
+PASS  the membership is a client membership, not an internal one  — client
+PASS  an invited user is marked invited, not active  — invited
+PASS  the membership carries the client_admin portal role  — client_admin
+PASS  the granted role is client-scoped  — client
+PASS  the invited user cannot sign in with a password before accepting  — Invalid login credentials
+```
 
-That run is the reason the suite distinguishes BLOCKED from FAIL. It reported
-**exit 2, six assertions passed, cleanup verified**, and named the environment as the
-blocker. Reported as a failure it would have been indistinguishable from the feature
-being broken; reported as a pass it would have been a lie.
+The last one is the assertion that gives the run its meaning: an invited user holds no
+password yet, so the portal is not reachable until they accept. A run that only checked
+"a user was created" would pass with that hole wide open.
+
+**The caveat: `docs/evidence/client-invite-check.json` does not record this run.** The
+cleanup step crashed immediately afterwards — see §2, *"A cleanup failure that left a real
+account in the database"* — and the crash landed between the assertions and the
+`writeFileSync`. The file on disk therefore still shows a BLOCKED run from a later
+attempt. Hand-writing the successful result into the evidence file would defeat the one
+rule this report has held throughout, so it was left blocked and the discrepancy stated
+here instead. **Re-run the exercise when the window opens to close this out**; it needs
+the same single invite every other attempt did.
 
 **The practical consequence for whoever runs it: do not probe and then exercise.**
 Probing spends an invite, so `qa-run-all.mjs` runs the exercise directly and only after a
-wait. When the window is open this reaches **83/83**.
+wait. The budget allows roughly **one** invite per window, which is why a successful run
+is followed by immediate BLOCKEDs and why re-running costs nothing when the window is
+closed.
 
 **`resetPasswordAction` was called blocked for the wrong reason, and is now driven.** It was
 listed as needing "a recovery token from an inbox, and there is no mail provider here". That
@@ -3583,7 +3656,7 @@ employee still sees only their own folder and hr sees all seven.
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
 | 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
 | 3 | **Hire pipeline** | **Now exercised** — 23/23, see §4. The harness was hiding four of its own bugs behind a "no published job" error; the product button worked throughout |
-| 4 | **1 of 83 server actions not yet driven end to end** | See §5. `resetPasswordAction` is **now driven, 8/8** — it was called blocked on the grounds that it needed a recovery token from an inbox, but the action never reads the token; it needs a *session*, and a session does not need a mailbox. What genuinely stays uncovered is the emailed link's arrival and the PKCE exchange at `/auth/callback`, and the script prints that as a standing line. The one remaining action is `inviteClientUser`, waiting on the environment's email budget. Neither is blocked by a defect in this codebase. `check-auth-email-rate-limit.mjs` prints exactly what is still blocking |
+| 4 | **`inviteClientUser` is proven, but its evidence file does not record it** | **83/83 actions now exercised end to end.** The invite exercise reached Supabase inside the budget and passed all 11 assertions, including that an invited user cannot sign in before accepting. The cleanup crashed immediately afterwards (§2, *"A cleanup failure that left a real account in the database"*) and the crash landed between the assertions and the `writeFileSync`, so `docs/evidence/client-invite-check.json` still shows a BLOCKED run from a later attempt. **Not hand-written** — that would defeat the one rule this report has held throughout. Re-run the exercise when the window opens; it costs one invite, and the closed-window cost is nothing. The budget allows roughly **one** invite per window. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
 | 5 | **Invite account creation** | Blocked by Supabase email rate limiting in this environment, specifically `admin.inviteUserByEmail`. **Signup account creation is no longer on this list** — it ran end to end, creating a real account and applicant membership, once the budget allowed one call through. That is the whole reason to keep re-probing instead of writing a blocker down once. The limit is also not uniform: `auth.signUp` on the apex domain is accepted while the same call on the demo subdomain is limited, and `resetPasswordForEmail` is accepted outright. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
 | 6 | `super_admin` holds 21 of 50 permissions | **Now measured, not just counted** — `qa-inspect-super-admin-gaps.mjs`. See below. A deliberate platform-vs-business split is defensible; the gap that was not defensible is `cms.manage`, held by **only `marketing`** — not by `owner`, not by `super_admin`. **Now fixed** — `20261012010000_cms_manage_admin_recovery.sql` grants it to `owner` and `super_admin` as well; `marketing` keeps it, and `super_admin` moves to **22 of 50**. **New, measured after that fix:** `permissions.manage` is now the **only** permission in the system held by exactly one role (`super_admin`) — the same single-seat shape `cms.manage` had. It is left as a product decision: it is a platform power and `super_admin` is the platform role, so giving `owner` it blurs the split deliberately drawn above. But if the `super_admin` seat is ever emptied, nobody can grant a permission to anybody. Flagged, not changed |
 | 7 | **Storage RLS casts with `::uuid`, which RAISES rather than denies** | **Fixed** — `20261011130000_storage_rls_safe_uuid_cast.sql`, applied and verified behaviourally. Six policies guarded by an immutable `public.try_uuid(text)`. The important part is what the naive fix would have caused: `can_access_client(NULL)` can return TRUE for anyone holding `clients.read`/`clients.manage`/`system.manage`, because those permission terms never reference the argument — so routing it through a NULL-returning cast alone would have converted "raise, therefore deny" into "grant the whole bucket". Those three policies take an explicit `is not null` guard. Verified against a real malformed object (`client-documents/demo/…`): the listing now returns `ok, []` instead of a Postgres error |
