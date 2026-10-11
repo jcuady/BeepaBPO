@@ -12,11 +12,23 @@
  */
 import { chromium } from "@playwright/test";
 
-// Same convention as `audit-app-responsive.mjs` and the rest of this directory:
-// `QA_BASE_URL` wins, a positional base URL still works, and the default is the
-// production port rather than the dev port.
-const BASE = process.env.QA_BASE_URL ?? process.argv[2] ?? "http://localhost:3100";
-const ROUTES = process.argv.slice(3);
+// Base URL resolution, in the order: `QA_BASE_URL` (matching every other probe
+// here), then a positional base URL, then the production port.
+//
+// The positional value is matched BY SHAPE, not by position. This script
+// documents its usage as `[baseUrl] [route ...]`, which quietly makes the first
+// route optional — and then `node audit-responsive.mjs /about` sets BASE to the
+// string "/about" and every navigation goes to a relative path that resolves
+// nowhere. The run then prints nothing and exits 1, which is indistinguishable
+// from the site being broken.
+//
+// `audit-app-responsive.mjs` hit exactly this with its email argument and fixed
+// it by detecting a value by shape (`includes("@")`) rather than by position.
+// Same rule, applied here to a URL.
+const argv = process.argv.slice(2);
+const POSITIONAL_BASE = argv[0] && /^https?:\/\//i.test(argv[0]) ? argv[0] : null;
+const BASE = process.env.QA_BASE_URL ?? POSITIONAL_BASE ?? "http://localhost:3100";
+const ROUTES = POSITIONAL_BASE ? argv.slice(1) : argv;
 const routes = ROUTES.length ? ROUTES : ["/"];
 
 const MATRIX = [
@@ -83,10 +95,22 @@ const probe = (opts) => {
       // Skip link is sr-only until focused — 1x1 by design.
       if (el.classList.contains("sr-only")) continue;
       // Inline links inside prose are exempt (they flow with text).
+      //
+      // This exemption used to add `&& !el.closest("nav, header, section > div > div")`,
+      // which made it wrong on exactly the pages that matter most. The legal
+      // pages nest as `section > Container(div) > content div > p > a`, so the
+      // link's OWN content div matches `section > div > div` and the exemption
+      // switched itself off — reporting the "contact form" link in a Privacy
+      // Policy paragraph as a 99x20 touch-target failure. The clause was meant
+      // to distinguish "not really prose" and distinguished nothing: prose in a
+      // marketing page lives inside a section like everything else.
+      //
+      // Exempt on what is actually observable — the link is `display: inline`
+      // and sits in a text-flowing ancestor. A standalone CTA like "Read case
+      // study" is `inline-block`, so it is still caught, which is correct.
       const inlineInProse =
         cs.display === "inline" &&
-        el.closest("p, li, dd, span.block") !== null &&
-        !el.closest("nav, header, section > div > div");
+        el.closest("p, li, dd, blockquote, figcaption, h1, h2, h3, h4, h5, h6") !== null;
       if (inlineInProse) continue;
       // Horizontal scroll containers are exempt (keyboard-scrollable regions).
       if (el.hasAttribute("data-marquee")) {

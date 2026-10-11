@@ -16,7 +16,8 @@ export default function TermsPage() {
     <section className="bg-white py-20 md:py-28">
       <Container className="max-w-3xl">
         <SectionHeading as="h1">Terms of Service</SectionHeading>
-        <p className="mt-6 text-sm text-slate">Last updated: September 5, 2026</p>
+        {/* 16px on phones, 14px from md up; see the note on the Privacy page. */}
+      <p className="mt-6 text-base text-slate md:text-sm">Last updated: September 5, 2026</p>
         <div className="mt-8 space-y-4 text-base leading-relaxed text-slate">
           <p>
             By using {SITE.legalName} websites and related services, you agree

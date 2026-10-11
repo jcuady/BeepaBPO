@@ -51,7 +51,7 @@ export default async function CaseStudiesPage() {
                     {study.title}
                   </Link>
                 </h2>
-                <p className="mt-1 text-sm text-slate">
+                <p className="mt-1 text-base text-slate md:text-sm">
                   {[study.client_name, study.industry].filter(Boolean).join(" · ")}
                 </p>
                 {study.summary ? (
@@ -61,7 +61,12 @@ export default async function CaseStudiesPage() {
                 ) : null}
                 <Link
                   href={`/case-studies/${study.slug}`}
-                  className="mt-3 inline-block text-sm font-medium text-green-strong hover:underline"
+                  // `inline-flex min-h-11` gives the card CTA a 44px touch
+                  // target. As a bare text link it measured 111x20 on every
+                  // phone and tablet viewport, which fails WCAG 2.5.5 — and this
+                  // is a standalone action, not a link flowing inside a
+                  // sentence, so the inline-prose exemption does not apply.
+                  className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-green-strong hover:underline"
                 >
                   Read case study
                 </Link>

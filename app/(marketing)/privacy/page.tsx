@@ -16,7 +16,11 @@ export default function PrivacyPage() {
     <section className="bg-white py-20 md:py-28">
       <Container className="prose-beepa max-w-3xl">
         <SectionHeading as="h1">Privacy Policy</SectionHeading>
-        <p className="mt-6 text-sm text-slate">Last updated: September 5, 2026</p>
+        {/* 16px on phones, back to 14px from md up. `md:` is a min-width breakpoint,
+          so the ORDER matters and must be base first: `text-sm md:text-base`
+          would give phones 14px and desktops 16px, which is exactly backwards
+          from what this comment says. */}
+      <p className="mt-6 text-base text-slate md:text-sm">Last updated: September 5, 2026</p>
         <div className="mt-8 space-y-4 text-base leading-relaxed text-slate">
           <p>
             {SITE.legalName} (&quot;Beepa&quot;, &quot;we&quot;, &quot;us&quot;)

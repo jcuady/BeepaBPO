@@ -892,6 +892,49 @@ copy, console errors, and boundary denials — is **224/224 across eight viewpor
 iPhone SE to wide desktop**. The only cost of the audit is that it has to be run in
 chunks; that is now documented in §7 rather than rediscovered by the next person.
 
+### The public surface had never been run at all, and running it found one real defect
+
+The marketing-side audit was the one this whole pass had skipped, because of the port
+defect above. Once aimed correctly it failed **15 of 40** combinations on three routes.
+
+**A fourth false positive, and this one was in the exemption logic.** The audit exempts
+links that flow inline inside prose. Its exemption read:
+
+```js
+const inlineInProse =
+  cs.display === "inline" &&
+  el.closest("p, li, dd, span.block") !== null &&
+  !el.closest("nav, header, section > div > div");
+```
+
+The last clause makes it wrong on exactly the pages that matter. Legal pages nest as
+`section > Container(div) > content div > p > a`, so the link's *own* content div
+matches `section > div > div` — the exemption switches itself off and reports the
+"contact form" link in the middle of a Privacy Policy paragraph as a 99×20 touch-target
+failure. The clause was meant to distinguish "not really prose" and distinguished
+nothing: prose in a marketing page lives inside a section like everything else. The
+exemption now keys on what is actually observable — `display: inline` inside a
+text-flowing ancestor.
+
+**The genuine defect: a standalone CTA with a 20px touch target.** `/case-studies`
+renders "Read case study" as a bare text link, `111x20` on every phone and tablet
+viewport, across all three cards. That is not a link flowing inside a sentence, so the
+inline-prose exemption does not apply and **WCAG 2.5.5** does. Now `inline-flex min-h-11`.
+
+**And 14px body-adjacent copy on phones.** "Last updated: September 5, 2026" and the
+case-study industry lines sat at `text-sm`. These are readable content, not labels —
+and they slipped past the audit's own 25-character "is this running body copy" threshold
+by two and five characters respectively. Bumped to 16px on phones, unchanged on desktop.
+
+Worth recording because it is the same mistake in a different place: the first attempt
+wrote `text-sm md:text-base`. `md:` is a **min-width** breakpoint, so that gives phones
+14px and desktops 16px — precisely backwards from what the comment beside it said. The
+re-run caught it immediately. `text-base md:text-sm` is the correct order, and the
+comment now says so, because the failure mode is a comment and a class list that
+contradict each other.
+
+Public surface after the fixes: **80/80 viewport-route combinations clean**.
+
 ---
 
 ## 3. Data population
@@ -3401,7 +3444,8 @@ node scripts/audit/qa-probe-notification-bell.mjs          # 10 assertions; acce
 node scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/dashboard /app/my /app/my/attendance /app/my/leave /app/my/payroll /app/my/requests /app/my/documents
 # ...run the remaining 21 default routes in three more chunks of seven.
 # `/app/cms` needs the marketing account: node scripts/audit-app-responsive.mjs marketing@demo.beepabpo.com /app/cms
-node scripts/audit-responsive.mjs                           # public surface; same QA_BASE_URL convention
+node scripts/audit-responsive.mjs / /about /services /why-beepa /contact          # public surface, 40/40 clean
+node scripts/audit-responsive.mjs /careers /resources /privacy /terms /case-studies  # public surface, 40/40 clean
 node scripts/audit/qa-probe-account-signin.mjs [email]        # read-only: can this demo account actually sign in, and is its membership active
 node scripts/audit/audit-role-sweep.mjs [role ...]           # 13 roles; exits non-zero on a failed sign-in, a broken page, or too little coverage
 
