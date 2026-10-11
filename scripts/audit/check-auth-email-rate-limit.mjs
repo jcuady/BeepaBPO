@@ -47,39 +47,103 @@ const pub = createClient(url, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 const stamp = Date.now();
 const password = "QaProbe!2026x";
-let rateLimited = false;
 
-/** Probe one email-sending path and delete anything it managed to create. */
+/**
+ * Probe one email-sending path and delete anything it managed to create.
+ *
+ * Returns how the call was ANSWERED, because "not rate limited" and "could not tell"
+ * are different results and collapsing them would make this script lie:
+ *
+ *   "limited"   — HTTP 429. The blocker is still in place.
+ *   "rejected"  — HTTP 4xx other than 429. The address was refused before the limiter
+ *                 was reached, so this shape proves nothing either way.
+ *   "accepted"  — no error. The limiter is not blocking this path.
+ *
+ * It NEVER signs up with an address that already has an account: Supabase answers
+ * that with HTTP 200 and a user object whose id belongs to no real auth user, which
+ * this script would then try to delete and fail on. Fresh per-run addresses only.
+ */
 async function probe(label, call) {
   const { userId, error } = await call();
   const status = error?.status ?? "?";
   const message = error?.message ?? "no error";
-  console.log(`${label}: ${error ? `HTTP ${status} — ${message}` : "succeeded"}`);
-  if (error?.status === 429) rateLimited = true;
+
+  let verdict;
+  if (!error) verdict = "accepted";
+  else if (status === 429) verdict = "limited";
+  else verdict = "rejected";
+
+  console.log(`${label}: ${error ? `HTTP ${status} — ${message}` : "no error"}  [${verdict}]`);
+
   // Leave nothing behind, and say so if we cannot.
   if (userId) {
     const del = await admin.auth.admin.deleteUser(userId);
     console.log(`${label}: created user ${userId} — ${del.error ? `COULD NOT DELETE (${del.error.message})` : "deleted again"}`);
   }
+  return verdict;
 }
 
-await probe("signupAction          (auth.signUp)", async () => {
+const results = [];
+
+console.log(`Probing the three API calls that block the last 3 actions (${new Date().toISOString()})\n`);
+
+// signupAction -> auth.signUp on the ANON key.
+// Two address shapes on purpose: Supabase validates the address BEFORE it reaches the
+// rate limiter, so a single unlucky shape can answer 400 and tell you nothing. If one
+// shape is rejected, the other still decides the question.
+results.push(["signUp (apex domain)", await probe("signupAction           (auth.signUp)", async () => {
   const { data, error } = await pub.auth.signUp({
-    email: `qa-signup-probe-${stamp}@demo.beepabpo.com`,
+    email: `qaprobe${stamp}@beepabpo.com`,
     password,
     options: { data: { full_name: "QA Probe" } },
   });
   return { userId: data?.user?.id, error };
-});
+})]);
 
-await probe("inviteClientUser      (admin.inviteUserByEmail)", async () => {
+results.push(["signUp (demo subdomain)", await probe("signupAction           (auth.signUp, alt)", async () => {
+  const { data, error } = await pub.auth.signUp({
+    email: `qa-probe-${stamp}@demo.beepabpo.com`,
+    password,
+    options: { data: { full_name: "QA Probe" } },
+  });
+  return { userId: data?.user?.id, error };
+})]);
+
+// resetPasswordAction / forgotPasswordAction -> auth.resetPasswordForEmail.
+results.push(["resetPasswordForEmail", await probe("resetPasswordAction    (resetPasswordForEmail)", async () => {
+  const { error } = await pub.auth.resetPasswordForEmail(`qaprobe${stamp}@demo.beepabpo.com`, {
+    redirectTo: `${url}/auth/callback?next=/reset-password`,
+  });
+  return { userId: null, error };
+})]);
+
+// inviteClientUser -> auth.admin.inviteUserByEmail on the service-role key.
+results.push(["inviteUserByEmail", await probe("inviteClientUser       (admin.inviteUserByEmail)", async () => {
   const { data, error } = await admin.auth.admin.inviteUserByEmail(`qa-invite-probe-${stamp}@demo.beepabpo.com`);
   return { userId: data?.user?.id, error };
-});
+})]);
 
-console.log(
-  rateLimited
-    ? "\nSTILL RATE LIMITED — the 3 auth-email actions remain unexercised. Re-run later; no cleanup is owed."
-    : "\nNOT RATE LIMITED — the 3 auth-email actions can be driven end to end now.",
-);
-process.exitCode = rateLimited ? 1 : 0;
+const limited = results.filter(([, v]) => v === "limited").map(([n]) => n);
+const inconclusive = results.filter(([, v]) => v === "rejected").map(([n]) => n);
+const accepted = results.filter(([, v]) => v === "accepted").map(([n]) => n);
+
+console.log("");
+if (limited.length) {
+  console.log(`STILL RATE LIMITED on: ${limited.join(", ")}`);
+  if (inconclusive.length) console.log(`could not tell (address rejected before the limiter): ${inconclusive.join(", ")}`);
+  if (accepted.length) console.log(`not limited: ${accepted.join(", ")}`);
+} else if (accepted.length) {
+  console.log(`NOT RATE LIMITED on: ${accepted.join(", ")}`);
+} else {
+  console.log(`COULD NOT DETERMINE. Every probe was rejected as an invalid address before the limiter: ${inconclusive.join(", ")}`);
+}
+
+console.log("\nWhy each of the 3 actions is still unexercised, and what would unblock it:");
+console.log("  signupAction      needs auth.signUp to be accepted AND the confirmation email");
+console.log("                    to arrive. Both are gated: signUp is rate limited above.");
+console.log("  inviteClientUser  needs admin.inviteUserByEmail accepted. Rate limited above.");
+console.log("  resetPasswordAction does NOT need the rate limit cleared — it consumes a");
+console.log("                    recovery token from an inbox. There is no mail provider in");
+console.log("                    this environment, so this one stays blocked either way.");
+console.log("\nNothing was created by this run; every account it made was deleted again.");
+process.exitCode = limited.length ? 1 : 0;

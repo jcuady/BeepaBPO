@@ -1482,6 +1482,73 @@ Giving applicants one is a product decision; until then the notification points 
 they actually are. The test now asserts this specific mistake directly, because a file
 existence check is not an access check.
 
+### P2 — Signing up with an address that already has an account reports "Account created". Documented, not changed.
+
+Found while probing the 429 blocker, not by driving the UI — which is itself the
+point: this is the one part of `signupAction` that does not need the rate limit
+cleared to observe.
+
+Supabase deliberately does not reveal whether an address is registered. Measured:
+
+```
+auth.signUp({ email: "owner@demo.beepabpo.com", ... })
+  -> NO ERROR, data.user.id = aeee9a93-4412-49e6-af34-2270c1c13d1c
+
+admin.deleteUser("aeee9a93-…")  ->  "User not found"
+auth.admin.listUsers()          ->  13 users, 0 duplicate addresses,
+                                    owner@demo.beepabpo.com still exactly one
+```
+
+**No account was created.** The returned id belongs to no real auth user — GoTrue hands
+back a placeholder rather than saying "already registered". Verified afterwards by
+listing every auth user: no duplicates, no leftover probe accounts, and the real owner
+account intact.
+
+`signupAction` cannot tell the difference:
+
+```ts
+const { data, error } = await supabase.auth.signUp({...});
+if (error) return { ok: false, error: signupErrorMessage(error) };
+if (data.user?.id) await assignApplicantMembership(data.user.id);
+return { ok: true, message: "Account created. Check your email to verify before signing in." };
+```
+
+No error, and `data.user.id` is set — so a returning user is told their account was
+created, when nothing was created and no email will arrive. The
+`assignApplicantMembership` call then tries to insert a membership for a profile id
+that does not exist; it is wrapped in `try { } catch { }`, so it fails quietly.
+
+**This is a genuine trade-off, not a bug to fix quietly.** Supabase's silence is
+correct — telling someone "that address already has an account" leaks account
+existence. The product's copy is what overclaims. The options are to send the neutral
+message already used by `forgotPasswordAction` ("If an account exists for that email,
+we sent reset instructions"), or to surface Supabase's own wording. Either is a
+product decision about how much account existence the signup form reveals, which is
+why it is documented rather than changed.
+
+It also means `signupAction`'s *success* path is only fully honest in the case where
+an account really was created — which is exactly the case the 429 currently prevents
+anyone here from reaching.
+
+### P2 — `forgotPasswordAction` discards its error, so a 429 is reported as success. Documented, not changed.
+
+`lib/auth/actions.ts:248`:
+
+```ts
+await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+  redirectTo: authCallbackUrl("/reset-password"),
+});
+
+return { ok: true, message: "If an account exists for that email, we sent reset instructions." };
+```
+
+The error is not destructured, so it cannot be read. During this session
+`resetPasswordForEmail` answered **429 on one call and no error on the next**, and the
+action reported success in both cases. While that copy is a correct anti-enumeration
+pattern, the *rate-limit* case is not enumeration — it is a delivery failure the user
+is told did not happen. Worth distinguishing from "this address is unknown"; not
+changed unilaterally, because the fix is a copy decision.
+
 ### Link crawl — `qa-exercise-internal-links.mjs`, 20/21
 
 Every control so far was proven by asserting on **rows it changed**: a filter that
@@ -1954,7 +2021,7 @@ somewhere above 12. It is not 81.
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
 | 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
 | 3 | **Hire pipeline** | **Now exercised** — 18/18, see §4. One defect found and fixed |
-| 4 | **3 of 83 server actions not yet driven end to end** | See §5. All three are the auth-email actions and all three are blocked by the same thing. Was 26; every block since has been closed |
+| 4 | **3 of 83 server actions not yet driven end to end** | See §5. All three are auth-email actions and none is blocked by a defect in this codebase. `check-auth-email-rate-limit.mjs` prints exactly what is still blocking each one — two are rate limited, and `resetPasswordAction` needs a recovery token from an inbox that does not exist here |
 | 5 | Invite *account creation*, and **signup account creation** | Blocked by Supabase email rate limiting (HTTP 429) in this environment. The signup *error path* is now proven to report the rate limit correctly rather than blaming the address; the success path is not. Check the blocker with `node scripts/audit/check-auth-email-rate-limit.mjs` — it exits 0 the moment the limit clears, and deletes anything it creates |
 | 6 | `super_admin` holds 21 of 50 permissions | Deliberate platform-vs-business split, or a gap — a product call. See §2 |
 | 7 | **Storage RLS casts with `::uuid`, which RAISES rather than denies** | `20260906000800_storage_buckets.sql:53`. A malformed `object_name` aborts the policy check with a Postgres error instead of a clean deny. Security-relevant and a migration decision — not changed unilaterally |
