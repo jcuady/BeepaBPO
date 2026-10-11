@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actions/types";
+import { logAudit } from "@/lib/audit/log";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { getClientOrganizationId } from "@/lib/organizations/client";
 import { can, canAny } from "@/lib/permissions/can";
+import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   clientTimesheetReviewSchema,
@@ -124,6 +126,23 @@ export async function reviewClientTimesheet(
   if (error) {
     return { ok: false, error: error.message ?? "Unable to update timesheet." };
   }
+
+  // The other half of the same gap. The client's decision is the one an attendance dispute
+  // is actually about -- "our client approved this day" -- so leaving it unrecorded is the
+  // worse half of the omission. `entityType` stays `attendance_record` so both sides of the
+  // hand-off are queryable from the one record.
+  await logAudit(admin, {
+    actorUserId: workspace.user.id,
+    organizationId: clientOrgId,
+    action:
+      parsed.data.action === "approve"
+        ? "attendance.client_review.approve"
+        : "attendance.client_review.send_back",
+    entityType: "attendance_record",
+    entityId: record.id,
+    before: { approval_status: "client_review" },
+    after: { approval_status: nextStatus },
+  });
 
   revalidateClientTimesheetPaths();
   return {
@@ -254,6 +273,21 @@ export async function submitTimesheetForClientReview(
   if (error) {
     return { ok: false, error: error.message ?? "Unable to submit for review." };
   }
+
+  // This hand-off and the client's decision on the far side are the two moments a
+  // timesheet day stops being Beepa's problem and becomes the client's — and neither
+  // wrote an audit row. So the repo could not answer "who sent this, and when" or "who
+  // approved this day", which is exactly the question an attendance dispute asks.
+  // Recorded as an open finding by the workflow exercise and left unfixed until now.
+  await logAudit(admin, {
+    actorUserId: workspace.user.id,
+    organizationId: BEEPA_ORG_ID,
+    action: "attendance.client_review.submit",
+    entityType: "attendance_record",
+    entityId: record.id,
+    before: { approval_status: record.approval_status },
+    after: { approval_status: "client_review" },
+  });
 
   revalidateClientTimesheetPaths();
   return { ok: true, message: "Timesheet submitted for client review." };

@@ -92,4 +92,48 @@ describe("client timesheet approval seam", () => {
     expect(updateAt, "status update not found").toBeGreaterThan(-1);
     expect(guardAt, "the guard must run before the record is submitted").toBeLessThan(updateAt);
   });
+
+  it("both halves of the hand-off write an audit row", () => {
+    // Found as an open finding by the workflow exercise, which scored 13/14 with
+    // "none - lib/attendance/client-timesheet.ts contains no logAudit call at all". This
+    // hand-off moves a timesheet day into a client's queue and the client's decision moves
+    // it out again; with neither recorded, an attendance dispute had no answer to "who sent
+    // this" or "who approved this day".
+    expect(actions, "the file must import logAudit").toContain('from "@/lib/audit/log"');
+
+    const submit = actions.slice(
+      actions.indexOf("export async function submitTimesheetForClientReview"),
+    );
+    expect(submit, "submit must log").toContain("logAudit(admin, {");
+    expect(submit).toContain('entityType: "attendance_record"');
+    expect(submit).toContain("entityId: record.id");
+    // before/after, so the row says what changed rather than only that something did.
+    expect(submit).toContain("before: { approval_status:");
+    expect(submit).toContain('after: { approval_status: "client_review" }');
+
+    const review = actions.slice(
+      actions.indexOf("export async function reviewClientTimesheet"),
+      actions.indexOf("export async function submitTimesheetForClientReview"),
+    );
+    expect(review, "the client's decision must log too").toContain("logAudit(admin, {");
+    expect(review).toContain('"attendance.client_review.approve"');
+    expect(review).toContain('"attendance.client_review.send_back"');
+  });
+
+  it("each audit row is written after its own update, never before", () => {
+    // An audit row that claims a transition which then failed is worse than no row.
+    const submit = actions.slice(
+      actions.indexOf("export async function submitTimesheetForClientReview"),
+    );
+    expect(submit.indexOf("logAudit(admin")).toBeGreaterThan(
+      submit.indexOf('update({ approval_status: "client_review" })'),
+    );
+    const review = actions.slice(
+      actions.indexOf("export async function reviewClientTimesheet"),
+      actions.indexOf("export async function submitTimesheetForClientReview"),
+    );
+    expect(review.indexOf("logAudit(admin")).toBeGreaterThan(
+      review.indexOf("update({ approval_status: nextStatus })"),
+    );
+  });
 });

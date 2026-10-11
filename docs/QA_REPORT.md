@@ -1945,24 +1945,44 @@ Cleanup removes the metadata **and** the blobs, then asserts both: 3 rows, 3 obj
 cleanup — the next upload's random UUID will not collide with it, so an orphan just
 accumulates invisibly.
 
-### P2 — The client timesheet hand-off writes no audit trail at all. Documented, not changed.
+### P2 — The client timesheet hand-off writes no audit trail at all. Fixed.
 
-`lib/attendance/client-timesheet.ts` is the **only** module in this codebase whose
-actions change an approval status and contain **no `logAudit` call whatsoever**. Every
-other action audited during this pass writes a row.
+`lib/attendance/client-timesheet.ts` was the **only** module in this codebase whose actions
+changed an approval status and contained **no `logAudit` call whatsoever**. Every other
+action audited during this pass writes a row.
 
 That matters more here than in most places, because this is the one workflow that crosses
 the Beepa/client boundary with money attached: `submitTimesheetForClientReview` moves a
 timesheet day into a client's queue, and `reviewClientTimesheet` is where the client
-finalizes it or sends it back. After the round trip there is **no record of who decided
-what, or when**. `reviewClientTimesheet` also has no approval trail in `approval_requests`
-— it is not driven through the `advanceApprovalRequest` engine that the cash-advance and
-leave workflows use, so it is the only cross-organisation approval in the product with no
-workflow record at all.
+finalizes it or sends it back. After the round trip there was **no record of who decided
+what, or when**.
 
-**Not changed.** Adding an audit trail to an approval path is a compliance decision, and
-it is cheap to add once agreed; deciding *what* must be recorded and retained is not a QA
-pass's call.
+It also has no approval trail in `approval_requests` — it is not driven through the
+`advanceApprovalRequest` engine that the cash-advance and leave workflows use, so it was the
+only cross-organisation approval in the product with no workflow record at all.
+
+**Fixed**, after the regression sweep below surfaced it as the standing 13/14 on
+`qa-exercise-client-timesheet-workflow`. The exercise had been asserting this rather than
+assuming it was fine, which is the only reason it was still visible. Both sides now write:
+
+- `attendance.client_review.submit` — before `supervisor_review`, after `client_review`
+- `attendance.client_review.approve` / `.send_back` — before `client_review`, after the new status
+
+Both record `entityType: "attendance_record"` and `entityId: record.id`, so both halves are
+queryable from the one record, and both carry `before`/`after` so the row says what *changed*
+rather than only that something did.
+
+**A deliberate choice worth naming:** each row is written **after** its own update succeeds,
+and the tests pin that ordering. An audit row claiming a transition that then failed is worse
+than no row — it is a false statement in the one table whose whole purpose is to be trusted
+when the facts are disputed.
+
+Verified end to end: **14/14**, with *"the timesheet hand-off writes an audit row — 1 row(s)"*.
+
+**Not fixed, and still open:** routing `reviewClientTimesheet` through the
+`advanceApprovalRequest` engine, so the client's decision appears in `approval_requests`
+alongside every other cross-organisation approval. That is a structural change to a flow that
+works, not a QA pass's call.
 
 ### P2 — `/app/attendance` offers "Send to client" to employees who have no client. Documented, not changed.
 
@@ -2453,6 +2473,44 @@ prose explaining the fix** — a comment saying "the previous `.limit(100)`" rea
 the pattern being proved absent. The tests now strip comments before asserting on source. An
 assertion about what code does must not be falsifiable by what a comment says about it.
 
+## 5b. Regression sweep after a batch of product changes
+
+Seven product changes landed in one stretch — the pager sweep across 32 pages, storage RLS,
+auth copy, the client-timesheet guard, the approvals pager, and two silent-cap fixes. None of
+them was verified against the others, which is how a fix quietly breaks the thing next to
+it. So every committed exercise was re-run against the build containing all of them.
+
+| Exercise | Result |
+|---|---|
+| `list-filters` | **35/35** — 27 pages, 3 roles. The pager change is the one most likely to break this |
+| `client-timesheet` | **14/14** after the audit fix (was 13/14 — found the gap above) |
+| `payroll-workflow` | 19/19 — after the `.limit(500)` paging rewrite |
+| `attendance-workflow` | 31/31 |
+| `cms-workflow` | 42/42 |
+| `money-workflow` | 33/33 |
+| `tickets-workflow` | 33/33 — after the assignee paging rewrite |
+| `documents-workflow` | 31/31 |
+| `notifications-workflow` | 16/16 |
+| `nte-workflow` | 24/24 |
+| `profile-workflow` | 19/19 |
+| `crm-workflow` | 21/21 |
+| `recruitment-workflow` | 23/23 |
+| `leave-workflow` | 13/13 |
+| `ticket-workflow` | 10/10 |
+| `auth-workflow` | all assertions PASS; 1 path BLOCKED by the 429 |
+| `admin-workflow` | all assertions PASS; invite path BLOCKED by the 429 |
+| `internal-links` | 28/29 — the known payroll audit-history link |
+| `hire-workflow` | **harness crash**, see below |
+
+Two results here are worth more than the green ticks: the sweep **found a real defect**
+(the audit gap, which had been a standing 13/14) and it **verified the one assertion that had
+been honestly reported as unverified** — the signup applicant-role check now passes 6/6 with
+*"that membership carries the applicant role — 1 role row(s)"*.
+
+`hire-workflow` died on `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` from
+`src\win\async.c` — a libuv abort in the harness process, not a product result. It is left
+unresolved rather than counted as a pass or as a defect.
+
 ### Storage RLS raised instead of denying on a malformed path. Fixed.
 
 Six policies in `20260906000800_storage_buckets.sql` cast the first folder segment of a
@@ -2580,6 +2638,8 @@ node scripts/audit/check-auth-email-rate-limit.mjs          # exits 0 the moment
 node scripts/audit/qa-exercise-signup-workflow.mjs          # signupAction e2e; exit 2 = BLOCKED, not failed
 node scripts/audit/qa-probe-client-timesheet-window.mjs     # does the view hide out-of-window days?
 node scripts/audit/qa-check-realtime-residue.mjs            # did the realtime probe leak a notification row?
+node scripts/audit/qa-repair-mojibake.mjs <file> [--check]   # deterministic mojibake repair; --check reports only
+node scripts/audit/qa-show-nonascii.mjs <file> [--strip-bom] # code points, not console rendering
 node scripts/audit/qa-exercise-sitemap-unpublish.mjs        # rebuilds the app; needs `rm -rf .next` first (see §2)
 node scripts/audit/qa-cleanup-sitemap-probe.mjs            # removes ONLY rows these sitemap probes created
 node scripts/audit/qa-probe-client-timesheet.mjs          # read-only: can this flow run here at all?
