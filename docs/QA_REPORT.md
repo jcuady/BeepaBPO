@@ -1240,6 +1240,54 @@ than quietly counted as coverage.
 Restoration verified: employee record and owner profile both restored field by field,
 `crm_leads` back to 4, 0 leads carrying the marker.
 
+### Money workflow — `qa-exercise-money-workflow.mjs`, 33/33
+
+The only two actions in the product that move money, plus the multi-step approval
+behind one of them. **No product defect.**
+
+**Invoice status machine.** `recordInvoicePayment` recomputes the invoice status from
+the **sum of its payment rows**, not from the amount just entered. A partial payment
+must land on `partially_paid`, and only the payment that takes the total over the
+invoice total may reach `paid`. Only exercising the full payment would pass with the
+partial branch broken, so the run pays ₱1,000 of ₱3,751.50 first:
+
+- invoice total is `3 × 1250.50 = 3751.50`, currency stored upper-cased as `PHP`
+- exactly one line item, whose amount equals the invoice total
+- partial payment → `partially_paid`, exactly one payment row
+- settling the balance → `paid`
+- **and the payment form is then hidden**, so a paid invoice cannot be paid again
+
+**`paid_at` is the NTE bug's near-miss, and the run checks it rather than assuming.**
+The field is `type="date"`, so the submitted value is a bare `YYYY-MM-DD` that
+JavaScript parses as UTC midnight. That stays on the same calendar day for any host
+between UTC−12 and UTC+11, so ₱5 March reads back as 5 March. Had it carried a time
+component — as the NTE deadline did — it would be eight hours out. Recorded as a note
+because the difference is the whole point: the same idiom is safe in one field and a
+defect in another, and only measuring tells them apart.
+
+**Cash advance is a two-step approval, not a boolean.** `createCashAdvanceRequest`
+opens the approval workflow itself (step 1, `pending`) *and* sets the entity to
+`hr_review`. `reviewCashAdvance` then advances it. The run asserts the status the
+workflow actually produced rather than assuming `approved`: it produced
+**`finance_review`**, with an `approval_actions` row recorded by the engine.
+
+**A false defect, caught.** The first run of this script reported that the cash advance
+did not move out of `hr_review` — one step from filing a P0. It was the harness. The
+review queue lists every open request and **every row carries an identically labelled
+"Approve" button**, so `getByRole("button", { name: "Approve" }).first()` approved
+whichever request sorted first — not the one just created. The click is now scoped to
+the `<tr>` carrying the run's marker, and the ConfirmDialog's confirm is scoped to the
+dialog rather than taking the page's last "Approve".
+
+Two related corrections came out of chasing it: the approval request is created by the
+**submit** step, so the run now captures its id at creation instead of inferring after
+the fact that "1 approval row exists" proved the review happened; and the refusal text
+is captured from the page rather than guessed, so an approval that genuinely cannot
+proceed reports *why*.
+
+Restoration verified by read-back: invoices 7→7, items 27→27, payments 4→4, advances
+2→2, and 1 approval request + its action row created by the run removed.
+
 ### Traps this pass hit in its own tooling
 
 Recorded because each produced a report full of defects that did not exist:
@@ -1340,13 +1388,13 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/notifications` | 3 | **3** |
 | `lib/hr/nte-actions` | 3 | **3** |
 | `lib/attendance/*` (4 modules) | 8 | **6** (client-timesheet pair not driven) |
-| `lib/billing` | 2 | 0 |
-| `lib/cash-advance` | 2 | 0 |
+| `lib/billing` | 2 | **2** |
+| `lib/cash-advance` | 2 | **2** |
 | `lib/clients` (1) | 1 | 0 |
 | `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | **3** |
-| **Total** | **83** | **67** |
+| **Total** | **83** | **71** |
 
-**67 of 83 actions are exercised end to end.** The other 16 render correctly and
+**71 of 83 actions are exercised end to end.** The other 12 render correctly and
 are covered by unit tests and typecheck, but no committed script has yet driven
 them through a browser and asserted the resulting rows. That gap is stated
 plainly rather than papered over by counting the page sweep as proof — a button
@@ -1438,6 +1486,7 @@ node scripts/audit/qa-exercise-recruitment-workflow.mjs # 23 assertions
 node scripts/audit/qa-exercise-nte-workflow.mjs      # 24 assertions
 node scripts/audit/qa-exercise-notifications-workflow.mjs # 16 assertions
 node scripts/audit/qa-exercise-profile-workflow.mjs      # 19 assertions
+node scripts/audit/qa-exercise-money-workflow.mjs        # 33 assertions
 
 # recovery, if a run was killed before its cleanup
 node scripts/audit/qa-repair-applicant-membership.mjs   # --apply
