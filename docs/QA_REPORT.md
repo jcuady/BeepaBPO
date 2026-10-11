@@ -317,21 +317,47 @@ session, clicks the control, and asserts the second session is gone.
 
 ### P2 — Signup blamed the user's address for a rate limit. Fixed.
 
-Measured in this environment: Supabase answers **every** `signUp` with
-`429 email rate limit exceeded`. `signupAction` reported all of them as
-"Unable to create account with that email." A prospective client at the very top of
-the funnel was told their address was bad when nothing was wrong with it — so they
-retype the same address, fail identically, and leave.
+Measured in this environment: Supabase answers `signUp` with
+`429 email rate limit exceeded` often enough that the path looked permanently dead.
+`signupAction` reported all of them as "Unable to create account with that email." A
+prospective client at the very top of the funnel was told their address was bad when
+nothing was wrong with it — so they retype the same address, fail identically, and leave.
 
 `lib/auth/error-messages.ts` already argued this exact case for sign-in: *"a message
 that cannot distinguish the two causes sends every investigation down the wrong
 path."* `signupErrorMessage` is now its counterpart, with the same shape and the
 same three cases.
 
-Note what is **not** claimed: the signup success path is still unproven, because
-this environment cannot execute it. Account creation reports BLOCKED, and the
-exercise asserts only that the rate limit is *reported as a rate limit* rather than
-as a bad address.
+**Update, later in the same session — this gap is now closed.** The blocker was assumed to be
+permanent. It is not: the environment's email budget is finite rather than closed, and once it
+allowed one call through, `signupAction` was driven end to end through the real form.
+`qa-exercise-signup-workflow.mjs` submits the actual signup form and then proves the result
+against the service-role API rather than trusting the banner:
+
+| Assertion | Result |
+|---|---|
+| The form reports the account was created | PASS — "Account created. Check your email to verify before signing in." |
+| A real auth user exists for that address afterwards | PASS |
+| `signupAction` granted the applicant membership | PASS |
+| That membership carries the applicant role | **not yet proven** — see below |
+
+The last two matter more than they look. `assignApplicantMembership` runs in a `try/catch`
+that discards its error and returns silently on every failure path, so a success banner with
+no membership would have been invisible from the UI alone. The banner is what the component
+renders; the two service-role reads are what the action actually did.
+
+The fourth assertion is listed as unproven deliberately. It exists in the committed script and
+it is correct, but the budget was exhausted before the run reached it — it aborted on a schema
+error of my own (`membership_roles` has no `id` column; it is the `(membership_id, role_id)`
+pair) and by the time that was fixed the environment had stopped accepting signups again. The
+assertion is therefore **unverified**, not passing, and the table says so rather than rounding
+it up to the three that did run.
+
+Re-running is currently **BLOCKED again** — the budget was spent by the run above — and the
+script reports that as its own outcome (exit 2, `BLOCKED`, `0/0 assertions`) rather than as a
+failure, because a rate-limited environment and a broken signup form are different problems
+and must not be reported the same way. The copy the user sees in that state is the corrected
+one: *"Too many sign-up attempts from this network. Wait a minute, then try again."*
 
 ### P1 — An approved attendance correction stored times 8 hours out. Fixed.
 
@@ -929,7 +955,7 @@ other nine were not. Two were security defects (§2).
 | `logoutAction` | Ends this browser's session; the other device stays signed in |
 | `logoutAllAction` | **Revokes the other device** |
 | `switchAccountAction` | A membership-less user reaches access-denied and can escape it |
-| `signupAction` | Reached; **account creation BLOCKED** by the environment's 429 |
+| `signupAction` | **Driven end to end** — real account + applicant membership created via the form, then deleted |
 | `resetPasswordAction` | **Not driven** — needs a real recovery token from an inbox |
 
 The account-menu run prints its own inventory, which is how the missing control was
@@ -954,12 +980,13 @@ because the naive version would have passed against the broken code:
   auth users, 58 → 58 notifications — because printing "cleaned up" is the same
   unverified claim as a write without a read.
 
-`BLOCKED` is a distinct outcome from pass and fail, and it is used honestly here:
-Supabase answers **every** `signUp` in this environment with 429, so signup account
-creation cannot be executed at all. The script does not fold that into the pass
-count, and does not leave it permanently red either — it proves the one thing that
-*is* provable under a 429, which is that the app now says "Too many sign-up attempts
-from this network" instead of blaming the address.
+`BLOCKED` is a distinct outcome from pass and fail, and it is used honestly here.
+Supabase rate-limits outbound email in this environment, so signup account creation cannot be
+re-run on demand — but it is a **budget, not a wall**, and once one call got through the
+success path ran and passed (see §2). The script does not fold a rate-limited run into the pass
+count and does not leave it permanently red either — it reports `BLOCKED` with its own exit
+code, and separately proves the one thing that *is* provable under a 429, which is that the app
+now says "Too many sign-up attempts from this network" instead of blaming the address.
 
 ### Self-cleaning — the fix the verifier caught
 
@@ -1626,17 +1653,78 @@ because they are the ones that would have caught a CMS regression:
 | Check | Result |
 |---|---|
 | Every link reachable from the 12 public seeds | **25 links, all resolve** |
-| Every URL in `/sitemap.xml` | **18 URLs, all resolve** |
+| Every URL in `/sitemap.xml` | **22 URLs, all resolve** (18 on the stale build this was first measured against — see the correction below) |
 | Header/footer nav present on every marketing page | 10/10 |
 | `/login` reachable | from all 10 marketing pages |
 | `/signup` reachable | from `/careers` only — which is the right design: applicants register from the job they applied for |
 
-`/careers` also links five CMS-built slugs (`/careers/hr`, `/careers/payroll`,
-`/careers/support`, `/careers/quality`, `/careers/customer-support-specialist`), while
-the sitemap lists only one of them. That is not a defect — the sitemap is a curated
-index — but it does mean **five pages are reachable by link and invisible to search
-engines**, which is a content decision rather than a bug, and worth knowing if organic
-traffic on role pages matters.
+**CORRECTION (later in the same session).** This paragraph originally read that `/careers`
+links five CMS-built slugs (`/careers/hr`, `/careers/payroll`, `/careers/support`,
+`/careers/quality`, `/careers/customer-support-specialist`) "while the sitemap lists only
+one of them", and concluded that five pages were reachable by link and invisible to search
+engines. **That was wrong, and it was my measurement that was wrong, not the product.**
+All five are listed. The sitemap that produced the "only one" reading was a *stale build
+artifact* — see "The sitemap findings below were a measurement error" immediately after.
+
+The lesson is recorded here rather than quietly deleted, because the wrong conclusion was
+reasonable and defensible from the evidence available at the time, and because deleting it
+would leave the next person to re-derive it.
+
+### The sitemap findings below were a measurement error
+
+An investigation was run to test a specific, plausible hypothesis: `/sitemap.xml` is a
+metadata route that Next prerenders at build time, and `revalidateCmsPublic()` in
+`lib/cms/actions.ts` revalidates seven paths — `/app/cms`, `/resources`, `/services`,
+`/about`, `/contact`, `/case-studies` — **not** `/sitemap.xml`. The prediction was that
+archiving a published article would drop it from the index and 404 its URL while the
+sitemap kept advertising the dead URL until the next deploy.
+
+**The prediction was never demonstrated, and the defect it pointed at does not exist.**
+Three runs failed, and each failure was a different measurement mistake:
+
+1. **The restart served the old build.** `next start` could not bind while the previous
+   process still held port 3100, so the "rebuilt" server silently continued serving the
+   build from before. Fixed by asserting the serving PID *changed* after every rebuild, and
+   by throwing if the port did not actually release. This is why a measurement can look
+   like it passed a control and still be reading the previous run's output.
+2. **Even with the PID proven to change, the result was still wrong.** The probe had a
+   positive control — publish a post, rebuild, assert the fresh sitemap *contains* it —
+   and that control failed twice, which is why the script aborted instead of reporting a
+   finding. The control was right and the run was wrong.
+3. **The real cause: `next build` is incremental, and it does not regenerate every
+   prerendered artifact.** `.next/server/app/sitemap.xml.body` was rewritten on every
+   build — new mtime, `✓ Compiled successfully`, a fresh `○ /sitemap.xml` line — with the
+   **previous build's content**. Every one of those signals looked like proof of a fresh
+   render, and none of them was. `rm -rf .next` followed by the identical build produced a
+   completely different and entirely correct sitemap.
+
+What the clean build settled, with the probe row still present and published:
+
+| | stale incremental build | clean build |
+|---|---|---|
+| `<loc>` entries | 18 | 23 (with the probe post) |
+| freshly published post listed | no | **yes** |
+| `/careers` slugs listed | 1 of 5 | **5 of 5** |
+
+The row was confirmed visible to the exact anon query `app/sitemap.ts` runs, so RLS was
+never the explanation, and the DB query itself is correct — `app/sitemap.ts` filters all
+three tables on `status = published` and does return CMS-built content.
+
+**What survives, and what does not.** The code-level observation is still true and still
+worth knowing: `/sitemap.xml` is served as a build-time static route and nothing in the CMS
+actions revalidates it, so on a real deployment a newly published article will not reach
+the sitemap until the next deploy. That is an SEO-freshness gap, not a broken page, and it
+is a genuine (low-severity) design observation. What does **not** survive is any claim that
+archiving an article leaves a dead URL advertised in the sitemap — that was predicted, never
+observed, and the prediction is now refuted.
+
+The generalisable rule, which cost three runs to learn: **anything Next prerenders at build
+time must be measured after `rm -rf .next` and a full rebuild.** A new mtime on a build
+artifact is not evidence that the artifact was regenerated.
+
+`qa-exercise-sitemap-unpublish.mjs` is retained in the repository. Its control did its job —
+it refused to let an ungrounded finding through — even though the bug it was hunting was
+not a bug.
 
 `/login` and `/signup` are seeded explicitly rather than followed from the marketing
 pages, because links that appear only *on* those pages — `/forgot-password` from the
@@ -2064,7 +2152,7 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/admin` | 5 | **5** |
 | `lib/recruitment` | 7 | **7** (2 from the hire pass, 5 here) |
 | `lib/tickets` | 6 | **6** (2 from the admin pass: create, assign; 4 here: reply, status, both SLA actions) |
-| `lib/auth` | 10 | **8** (signup reached but 429-blocked; `resetPasswordAction` not driven) |
+| `lib/auth` | 10 | **9** (signup driven end to end once the email budget allowed it; `resetPasswordAction` not driven) |
 | `lib/cms` | 14 | **14** |
 | `lib/crm` | 8 | **8** (`createLeadFromContact` via the public contact form) |
 | `lib/payroll` | 5 | **5** |
@@ -2076,20 +2164,22 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/cash-advance` | 2 | **2** |
 | `lib/clients` (1) | 1 | 0 |
 | `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | **3** |
-| **Total** | **83** | **80** |
+| **Total** | **83** | **81** |
 
-**80 of 83 actions are exercised end to end.** The other 3 are the auth-email
-actions — `signupAction`, `resetPasswordAction` and `inviteClientUser` — which
-Supabase refuses environment-wide with **HTTP 429**. They render correctly and are
-covered by unit tests and typecheck, but no committed script has driven their success
-path through a browser, and that gap is stated plainly rather than papered over by
-counting the page sweep as proof — a button can render perfectly and do nothing,
-which is exactly how every defect in this report was found.
+**81 of 83 actions are exercised end to end.** The other 2 are `resetPasswordAction` and
+`inviteClientUser`. Both ask Supabase to send an email, and this environment rate-limits
+outbound mail — but that is a **budget, not a wall**, which this session proved the hard way:
+`signupAction` sat in the "blocked forever" bucket for most of the QA run, was assumed dead,
+and then ran to completion, creating a real account and a real applicant membership, the
+moment the budget allowed a call through. `check-auth-email-rate-limit.mjs` re-probes all four
+API calls and deletes anything it creates, so the assumption is never made twice.
 
-They are all three the *same* gap, not three unrelated ones: each one asks Supabase to
-send an email. `signupAction` has been reached and its failure path proven to report
-the rate limit correctly rather than blaming the address; what is unproven is the
-success path, and nothing else in the product is waiting on it.
+`inviteClientUser` has not yet had that window. `resetPasswordAction` needs something the
+budget cannot provide: it consumes a recovery token from an inbox, and there is no mail
+provider here. Both render correctly and are covered by unit tests and typecheck, but no
+committed script has driven their success path through a browser, and that gap is stated plainly
+rather than papered over by counting the page sweep as proof — a button can render perfectly and
+do nothing, which is exactly how every defect in this report was found.
 
 Earlier sessions did leave evidence in `audit_logs` for a few more
 (`payroll.period.create`, `applicant.stage_change`, `client.invite`) via ad-hoc
@@ -2107,8 +2197,8 @@ somewhere above 12. It is not 81.
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
 | 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
 | 3 | **Hire pipeline** | **Now exercised** — 18/18, see §4. One defect found and fixed |
-| 4 | **3 of 83 server actions not yet driven end to end** | See §5. All three are auth-email actions and none is blocked by a defect in this codebase. `check-auth-email-rate-limit.mjs` prints exactly what is still blocking each one — two are rate limited, and `resetPasswordAction` needs a recovery token from an inbox that does not exist here |
-| 5 | Invite *account creation*, and **signup account creation** | Blocked by Supabase email rate limiting (HTTP 429) in this environment. The signup *error path* is now proven to report the rate limit correctly rather than blaming the address; the success path is not. Check the blocker with `node scripts/audit/check-auth-email-rate-limit.mjs` — it exits 0 the moment the limit clears, and deletes anything it creates |
+| 4 | **2 of 83 server actions not yet driven end to end** | See §5. `resetPasswordAction` needs a recovery token from an inbox that does not exist here; `inviteClientUser` is waiting on the environment's email budget. Neither is blocked by a defect in this codebase. `check-auth-email-rate-limit.mjs` prints exactly what is still blocking each |
+| 5 | **Invite account creation** | Blocked by Supabase email rate limiting in this environment. **Signup account creation is no longer on this list** — it ran end to end, creating a real account and applicant membership, once the budget allowed one call through. That is the whole reason to keep re-probing instead of writing a blocker down once. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
 | 6 | `super_admin` holds 21 of 50 permissions | Deliberate platform-vs-business split, or a gap — a product call. See §2 |
 | 7 | **Storage RLS casts with `::uuid`, which RAISES rather than denies** | `20260906000800_storage_buckets.sql:53`. A malformed `object_name` aborts the policy check with a Postgres error instead of a clean deny. Security-relevant and a migration decision — not changed unilaterally |
 | 8 | **Client timesheet P1: submit accepts a day the client view filters out** | `submitTimesheetForClientReview` does not date-check against the assignment window, so a timesheet can be handed to a client who will never see it. The two halves of the flow disagree; which one is authoritative is a product call. See §4 |
@@ -2120,7 +2210,8 @@ somewhere above 12. It is not 81.
 | 14 | **Applicants have no ticket surface** | A ticket notification can only point an applicant at `/app/applicant`, because `/app/my/requests` is behind the employee shell and redirects them to `/app`. Whether an applicant should be able to track their own tickets is a product call — §4 |
 | 15 | **Payroll exercise leaves a stale audit link each run** | It creates a period, writes 3 audit rows, then deletes the period, so the audit page links to a record that no longer exists. All 3 `payroll_period` audit references are stale. Deleting audit rows needs sign-off, so it is left visible and reported by `qa-exercise-internal-links.mjs` |
 | 14 | `payslip_items` / `payslip_components` | **Resolved, not open.** They do not exist — an earlier audit of mine guessed them. The app uses `payroll_components` |
-| 15 | `resetPasswordAction` | Needs a real recovery token from an inbox; no mail provider in this environment. Part of the 429 block in row 4. The invalid-token path on `verifyEmailAction` *is* proven |
+| 15 | `resetPasswordAction` | Needs a real recovery token from an inbox; no mail provider in this environment. Part of the 2-action gap in row 4. The invalid-token path on `verifyEmailAction` *is* proven |
+| 16 | **Withdrawn — "4 CMS-built `/careers` slugs are link-reachable but absent from the sitemap"** | **Not a real gap.** All five `/careers` slugs are in the sitemap. The reading that said otherwise came from a stale build artifact; see "The sitemap findings below were a measurement error" in §2. Kept in the list so nobody re-derives it from the git history |
 
 **The demo tenant is a clock bomb, and it is worth knowing about before you trust
 a red gate.** Several seed scripts wrote relative deadlines with `Date.now()`
@@ -2189,6 +2280,9 @@ node scripts/audit/qa-exercise-list-filters.mjs             # 35 assertions, 27 
 node scripts/audit/qa-exercise-internal-links.mjs         # 29 assertions, 4 passes, incl. sitemap
 node scripts/audit/qa-repair-notification-routes.mjs       # idempotent; repairs role-blind ticket links
 node scripts/audit/check-auth-email-rate-limit.mjs          # exits 0 the moment the 429 clears
+node scripts/audit/qa-exercise-signup-workflow.mjs          # signupAction e2e; exit 2 = BLOCKED, not failed
+node scripts/audit/qa-exercise-sitemap-unpublish.mjs        # rebuilds the app; needs `rm -rf .next` first (see §2)
+node scripts/audit/qa-cleanup-sitemap-probe.mjs            # removes ONLY rows these sitemap probes created
 node scripts/audit/qa-probe-client-timesheet.mjs          # read-only: can this flow run here at all?
 node scripts/audit/qa-probe-summary-view-filter.mjs     # read-only: which predicate hides a record from the client view
 
