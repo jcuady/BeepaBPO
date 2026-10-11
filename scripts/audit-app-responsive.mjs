@@ -31,7 +31,7 @@
  *   FULL=1 node scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/dashboard
  */
 import { chromium } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -428,4 +428,37 @@ for (const s of summary) {
 
 const pass = summary.filter((s) => s.verdict === "PASS").length;
 console.log(`\n${pass}/${summary.length} viewport-route combinations clean (${Math.round((Date.now() - t0) / 1000)}s)`);
+
+// Evidence, not a claim. Every other check in the suite writes a file, and the
+// runner treats "passed but wrote no evidence" as a finding. This one wrote
+// nothing, so a layout regression existed only as terminal scrollback.
+//
+// One file per chunk rather than one merged file, because this MUST be run in
+// chunks: a single process over all 28 routes reaches 2.4 GB. Merging would
+// reintroduce that as one long-lived accumulator, and a merged file would also
+// make a partial run indistinguishable from a complete one.
+const slug = routes.map((r) => r.replace(/^\//, "").replace(/[/?=&]/g, "_") || "root").join("_");
+mkdirSync("docs/evidence", { recursive: true });
+const evidencePath = `docs/evidence/responsive-app-${slug}.json`;
+writeFileSync(
+  evidencePath,
+  JSON.stringify(
+    {
+      check: "responsive-app",
+      generatedAt: new Date().toISOString(),
+      base: BASE,
+      account: EMAIL,
+      routes,
+      chunkOf: `${routes.length} route(s) — run in chunks, see QA_REPORT §7`,
+      total: summary.length,
+      passed: pass,
+      failures,
+      results: summary,
+    },
+    null,
+    2,
+  ) + "\n",
+);
+console.log(`wrote ${evidencePath}`);
+
 process.exit(failures ? 1 : 0);

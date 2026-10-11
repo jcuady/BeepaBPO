@@ -1,6 +1,6 @@
 {
   "base": "http://localhost:3100",
-  "startedAt": "2026-10-11T18:38:16.761Z",
+  "startedAt": "2026-10-11T23:22:34.962Z",
   "roles": {
     "owner": {
       "email": "owner@demo.beepabpo.com",
@@ -880,10 +880,12 @@
         },
         {
           "path": "/app",
-          "status": "ok",
-          "notes": [],
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
           "http": 200,
-          "landed": "/app",
+          "landed": "/app/my",
           "heading": "Good morning, Demo."
         },
         {
@@ -1280,8 +1282,8 @@
       ],
       "summary": {
         "total": 54,
-        "ok": 52,
-        "redirected": 1,
+        "ok": 51,
+        "redirected": 2,
         "empty": 0,
         "download": 1,
         "errors": 0,

@@ -3844,11 +3844,12 @@ node scripts/audit/qa-probe-notification-bell.mjs          # 10 assertions; acce
 node scripts/audit/qa-exercise-client-invite.mjs         # the last uncovered action, through its real form; exit 2 = BLOCKED
 # Responsive. MUST be chunked: one process over all 28 routes x 8 viewports reaches
 # 2.4 GB and takes the app server with it. Four chunks of ~7 routes, ~140s each.
+# Each chunk writes its own evidence file, so a partial run is never mistaken for a
+# complete one — and so the result survives the terminal.
 node scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/dashboard /app/my /app/my/attendance /app/my/leave /app/my/payroll /app/my/requests /app/my/documents
 # ...run the remaining 21 default routes in three more chunks of seven.
 # `/app/cms` needs the marketing account: node scripts/audit-app-responsive.mjs marketing@demo.beepabpo.com /app/cms
-node scripts/audit-responsive.mjs / /about /services /why-beepa /contact          # public surface, 40/40 clean
-node scripts/audit-responsive.mjs /careers /resources /privacy /terms /case-studies  # public surface, 40/40 clean
+node scripts/audit-responsive.mjs / /about /services /why-beepa /contact /privacy /terms /case-studies /careers /resources   # public surface, 80/80 clean
 node scripts/audit/qa-probe-account-signin.mjs [email]        # read-only: can this demo account actually sign in, and is its membership active
 node scripts/audit/audit-role-sweep.mjs [role ...]           # 13 roles; exits non-zero on a failed sign-in, a broken page, or too little coverage
 

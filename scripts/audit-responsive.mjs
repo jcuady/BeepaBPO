@@ -11,6 +11,7 @@
  * Usage: node scripts/audit-responsive.mjs [baseUrl] [route ...]
  */
 import { chromium } from "@playwright/test";
+import { mkdirSync, writeFileSync } from "node:fs";
 
 // Base URL resolution, in the order: `QA_BASE_URL` (matching every other probe
 // here), then a positional base URL, then the production port.
@@ -247,7 +248,31 @@ for (const s of summary) {
   }
 }
 
-console.log(
-  `\n${summary.filter((s) => s.verdict === "PASS").length}/${summary.length} viewport-route combinations clean`,
+const passed = summary.filter((s) => s.verdict === "PASS").length;
+console.log(`\n${passed}/${summary.length} viewport-route combinations clean`);
+
+// Evidence, not a claim — see the identical block in audit-app-responsive.mjs.
+// This check had no evidence file at all, so a public-surface layout regression
+// existed only as terminal scrollback while every other check in the suite
+// persisted a record.
+mkdirSync("docs/evidence", { recursive: true });
+writeFileSync(
+  "docs/evidence/responsive-public.json",
+  JSON.stringify(
+    {
+      check: "responsive-public",
+      generatedAt: new Date().toISOString(),
+      base: BASE,
+      routes,
+      total: summary.length,
+      passed,
+      failures,
+      results: summary,
+    },
+    null,
+    2,
+  ) + "\n",
 );
+console.log("wrote docs/evidence/responsive-public.json");
+
 process.exit(failures ? 1 : 0);
