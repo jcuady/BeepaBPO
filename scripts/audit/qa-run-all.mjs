@@ -57,7 +57,23 @@ const CHECKS = [
   // two. Run this DIRECTLY after a wait rather than probing first.
   { id: "client-invite",    tier: "fast",  cmd: ["scripts/audit/qa-exercise-client-invite.mjs"], evidence: "docs/evidence/client-invite-check.json", what: "the last uncovered action, driven through its real form (BLOCKED when mail is rate limited)" },
 
-  { id: "responsive-app",   tier: "slow",  cmd: ["scripts/audit-app-responsive.mjs", "owner@demo.beepabpo.com", "/app/dashboard", "/app/my", "/app/my/attendance", "/app/my/leave", "/app/my/payroll", "/app/my/requests", "/app/my/documents"], evidence: null, what: "authenticated app surface, 8 viewports (CHUNK 1 of 4 — see QA §7)" },
+  // The app layout sweep MUST be chunked: one process over all 28 routes
+  // reaches 2.4 GB and takes the app server with it. That constraint used to
+  // leak out of the runner as well — only chunk 1 was registered, so `--all`
+  // verified 7 of 28 routes and never ran the public surface at all, while the
+  // report described this file as "one command to answer is the system ready".
+  // All four chunks plus /app/cms and the public surface are registered now.
+  // Each is a separate process, so memory is released between them.
+  { id: "responsive-app-1", tier: "slow", env: { QA_CHUNK_LABEL: "chunk1" }, cmd: ["scripts/audit-app-responsive.mjs", "owner@demo.beepabpo.com", "/app/dashboard", "/app/my", "/app/my/attendance", "/app/my/leave", "/app/my/payroll", "/app/my/requests", "/app/my/documents"], evidence: "docs/evidence/responsive-app-chunk1.json", what: "app layout, 8 viewports (routes 1-7 of 28)" },
+  { id: "responsive-app-2", tier: "slow", env: { QA_CHUNK_LABEL: "chunk2" }, cmd: ["scripts/audit-app-responsive.mjs", "owner@demo.beepabpo.com", "/app/my/schedule", "/app/crm", "/app/crm/leads", "/app/crm/deals", "/app/crm/proposals", "/app/attendance", "/app/leave"], evidence: "docs/evidence/responsive-app-chunk2.json", what: "app layout, 8 viewports (routes 8-14 of 28)" },
+  { id: "responsive-app-3", tier: "slow", env: { QA_CHUNK_LABEL: "chunk3" }, cmd: ["scripts/audit-app-responsive.mjs", "owner@demo.beepabpo.com", "/app/employees", "/app/payroll", "/app/payroll/periods", "/app/billing", "/app/recruitment", "/app/recruitment/jobs", "/app/recruitment/applicants"], evidence: "docs/evidence/responsive-app-chunk3.json", what: "app layout, 8 viewports (routes 15-21 of 28)" },
+  { id: "responsive-app-4", tier: "slow", env: { QA_CHUNK_LABEL: "chunk4" }, cmd: ["scripts/audit-app-responsive.mjs", "owner@demo.beepabpo.com", "/app/tickets", "/app/approvals", "/app/reports", "/app/hr", "/app/admin", "/app/admin/users", "/app/clients"], evidence: "docs/evidence/responsive-app-chunk4.json", what: "app layout, 8 viewports (routes 22-28 of 28)" },
+  // `/app/cms` needs the marketing account: `cms.manage` is held only by
+  // marketing, so asking owner asks a question with a guaranteed "denied"
+  // answer and buries real layout findings under a permanent red.
+  { id: "responsive-app-cms", tier: "slow", env: { QA_CHUNK_LABEL: "cms" }, cmd: ["scripts/audit-app-responsive.mjs", "marketing@demo.beepabpo.com", "/app/cms"], evidence: "docs/evidence/responsive-app-cms.json", what: "CMS layout under the account that can actually reach it" },
+  { id: "responsive-public", tier: "slow", cmd: ["scripts/audit-responsive.mjs", "/", "/about", "/services", "/why-beepa", "/contact", "/privacy", "/terms", "/case-studies", "/careers", "/resources"], evidence: "docs/evidence/responsive-public.json", what: "public surface, 10 routes x 8 viewports" },
+
   { id: "role-sweep",       tier: "slow",  cmd: ["scripts/audit/audit-role-sweep.mjs"],         evidence: "docs/evidence/role-sweep.json",             what: "13 roles across their reachable pages" },
 
   { id: "gate",             tier: "gate",  cmd: ["__GATE__"],                                   evidence: null, what: "vitest + tsc --noEmit" },
@@ -132,7 +148,14 @@ function runCheck(check) {
     const command = isScript
       ? `"${process.execPath}" ${check.cmd.join(" ")}`
       : check.cmd.join(" ");
-    const child = spawn(command, { shell: true, stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(command, {
+      shell: true,
+      stdio: ["ignore", "pipe", "pipe"],
+      // Per-check environment (e.g. QA_CHUNK_LABEL, which gives each responsive
+      // chunk a short evidence filename the registry can name in advance).
+      // Spread process.env first so the child keeps PATH and friends.
+      env: { ...process.env, ...(check.env ?? {}) },
+    });
     let out = "";
     child.stdout.on("data", (d) => { out += d; });
     child.stderr.on("data", (d) => { out += d; });

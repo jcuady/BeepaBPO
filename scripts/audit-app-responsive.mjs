@@ -437,7 +437,15 @@ console.log(`\n${pass}/${summary.length} viewport-route combinations clean (${Ma
 // chunks: a single process over all 28 routes reaches 2.4 GB. Merging would
 // reintroduce that as one long-lived accumulator, and a merged file would also
 // make a partial run indistinguishable from a complete one.
-const slug = routes.map((r) => r.replace(/^\//, "").replace(/[/?=&]/g, "_") || "root").join("_");
+//
+// QA_CHUNK_LABEL gives the file a short, stable name that the runner can name
+// in advance. Without it the name is derived from the routes, which is
+// self-describing but produces filenames like
+// `responsive-app-app_dashboard_app_my_app_my_attendance_….json` — unwieldy, and
+// easy for a registry entry to get subtly wrong.
+const slug =
+  process.env.QA_CHUNK_LABEL ??
+  routes.map((r) => r.replace(/^\//, "").replace(/[/?=&]/g, "_") || "root").join("_");
 mkdirSync("docs/evidence", { recursive: true });
 const evidencePath = `docs/evidence/responsive-app-${slug}.json`;
 writeFileSync(

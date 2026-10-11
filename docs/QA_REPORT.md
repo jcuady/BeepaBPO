@@ -935,6 +935,35 @@ contradict each other.
 
 ### One command, because seven commands is not an answer
 
+**This claim was half true when it was written, and the half that was false was the
+layout coverage.** `--all` registered `responsive-app` as a *single* entry carrying chunk
+1 of 4, so the "one command" verified **7 of 28 app routes and none of the 10 public
+routes** — while this section described the file as the answer to *is the system ready*.
+The other 21 routes, `/app/cms` and the entire public surface were only reachable by
+copying commands out of §7 by hand.
+
+The same memory constraint that forces chunking had leaked into the registry as a
+half-registered check: the chunking was documented in §7 and enforced by whoever ran it,
+but the runner itself did not know there were four chunks.
+
+All of them are registered now — four app chunks, `/app/cms` under the account that can
+actually reach it, and the public surface — each with its own evidence file:
+
+```
+node scripts/audit/qa-run-all.mjs --list
+fast   not-found / dialog-keyboard / command-palette / notification-bell
+       internal-links / client-invite
+slow   responsive-app-1 … responsive-app-4     routes 1-28 of 28
+       responsive-app-cms                      the account that can reach it
+       responsive-public                       10 routes x 8 viewports
+       role-sweep                              13 roles
+gate   gate                                     vitest + tsc --noEmit
+```
+
+Each chunk is still a separate process, so the 2.4 GB ceiling is unchanged; only the
+runner now knows the full set. `QA_CHUNK_LABEL` gives each one a short evidence filename
+the registry can name in advance, instead of the unwieldy route-derived slug.
+
 This pass added six probes, each with its own command, its own evidence file and its own
 idea of what failure means. That is correct locally and useless globally: "is the system
 ready" had come to mean *can you remember seven commands and their arguments*.
@@ -943,8 +972,8 @@ ready" had come to mean *can you remember seven commands and their arguments*.
 registry, one verdict, one evidence file.
 
 ```
-node scripts/audit/qa-run-all.mjs            # fast tier + gate
-node scripts/audit/qa-run-all.mjs --all      # + slow tier (role sweep, ~20 min)
+node scripts/audit/qa-run-all.mjs            # fast tier + gate  (~6 min)
+node scripts/audit/qa-run-all.mjs --all      # + slow tier      (~30 min, all 14 checks)
 node scripts/audit/qa-run-all.mjs --list     # the registry, no execution
 ```
 
