@@ -88,12 +88,20 @@ export async function createTicket(input: unknown): Promise<ActionResult> {
 
   const { notifyUser } = await import("@/lib/notifications/notify");
   if (workspace.user.id) {
+    // The recipient is the person who raised the ticket, who is a client or an
+    // applicant far more often than staff. `/app/tickets` is guarded by
+    // requireInternal, so linking there sent them to "Access not allowed".
+    const { ticketRouteFor } = await import("@/lib/notifications/ticket-route");
     await notifyUser({
       userId: workspace.user.id,
       type: "ticket.created",
       title: "Ticket submitted",
       body: `We received your request: ${parsed.data.subject}`,
-      actionUrl: `/app/tickets`,
+      actionUrl: ticketRouteFor(workspace.primaryMembership?.membership_type as
+        | "internal"
+        | "client"
+        | "applicant"
+        | null),
       entityType: "ticket",
       entityId: ticket.id,
     });
@@ -331,12 +339,28 @@ export async function assignTicket(input: unknown): Promise<ActionResult> {
 
   if (assigneeId && assigneeId !== workspace.user.id) {
     const { notifyUser } = await import("@/lib/notifications/notify");
+    // A ticket can be assigned to a client-side user, and the staff route is closed
+    // to them — the same dead-end, one call site over. Look the assignee's membership
+    // up rather than assuming, and fall back to the staff route if the lookup fails.
+    const { ticketRouteFor } = await import("@/lib/notifications/ticket-route");
+    const { data: assigneeMembership } = await supabase
+      .from("organization_memberships")
+      .select("membership_type")
+      .eq("user_id", assigneeId)
+      .limit(1);
     await notifyUser({
       userId: assigneeId,
       type: "ticket.assigned",
       title: "Ticket assigned to you",
       body: `${before.ticket_number}: ${before.subject}`,
-      actionUrl: `/app/tickets/${parsed.data.ticket_id}`,
+      actionUrl: ticketRouteFor(
+        assigneeMembership?.[0]?.membership_type as
+          | "internal"
+          | "client"
+          | "applicant"
+          | undefined,
+        parsed.data.ticket_id,
+      ),
       entityType: "ticket",
       entityId: parsed.data.ticket_id,
     });

@@ -1430,6 +1430,121 @@ the most likely to get there.
 cannot be reintroduced by a page that passes the wrong number. The one call site
 already doing it right is the model.
 
+### P1 — Every ticket notification sent clients and applicants to a page they cannot open. Fixed.
+
+`createTicket` and `assignTicket` both hardcoded the **staff** queue route on the
+notification they sent:
+
+```ts
+// lib/tickets/actions.ts — createTicket
+actionUrl: `/app/tickets`,
+// lib/tickets/actions.ts — assignTicket
+actionUrl: `/app/tickets/${parsed.data.ticket_id}`,
+```
+
+Both routes are guarded by `requireInternal`. The recipients, however, are almost
+never staff: `createTicket` notifies **the person who raised the ticket**, and
+`assignTicket` notifies **the assignee**, which can be a client-side user. So the
+notification inbox's one link led to a perfectly laid out page whose entire content is
+"Access not allowed".
+
+Measured in the demo data before the fix — **6 notifications held by a non-internal
+recipient pointed at a route they cannot open**:
+
+| type | action_url | recipient |
+|---|---|---|
+| `ticket.created` ×3 | `/app/tickets` | 2 clients, 1 applicant |
+| `ticket.assigned` ×3 | `/app/tickets/{id}` | 3 client-side assignees |
+
+**Fix:** `lib/notifications/ticket-route.ts` resolves the route from the recipient's
+`membership_type` (`internal | client | applicant`) — internal → `/app/tickets`,
+client → `/app/client/tickets`, applicant → `/app/applicant`. `assignTicket` looks the
+assignee's membership up rather than assuming it. The rule is pure string work over an
+enum, so it is unit-tested without a signed-in actor or a working SMTP provider — the
+same reason the admin invite fix lives in `lib/admin/role-assignment.ts`. The six rows
+the old code had already written are data, not behaviour, and a code fix cannot reach
+them; `qa-repair-notification-routes.mjs` repoints them and is idempotent.
+
+**Applicants get `/app/applicant`, not a ticket list — and that is the honest answer.**
+The first version of this fix sent applicants to `/app/my/requests`, which *exists* and
+lists a user's own tickets by `requester_user_id`. The unit test passed, because it
+checked the file was there. The link crawl then caught it:
+
+```
+requested /app/my/requests -> landed /app   (renders "My Applications")
+```
+
+The whole `/app/my/*` tree is behind the employee shell, so an applicant is redirected
+to `/app` — their home, which shows applications, not tickets. The fix would have
+traded a dead end for a redirect that *implies* they can track the ticket and then
+does not show it. **There is no applicant-facing ticket surface in this product.**
+Giving applicants one is a product decision; until then the notification points where
+they actually are. The test now asserts this specific mistake directly, because a file
+existence check is not an access check.
+
+### Link crawl — `qa-exercise-internal-links.mjs`, 20/21
+
+Every control so far was proven by asserting on **rows it changed**: a filter that
+narrows a list, an action that writes. Nothing had ever checked the other half of a
+link — that it **resolves**. A link to a renamed route, a deleted record, or a page
+behind a permission the current role does not hold all render perfectly and then take
+the user somewhere they did not ask to go. The notification bug above is exactly that,
+and it had survived the notifications pass, because that pass asserted on the
+notification's **body** and never followed its **link**.
+
+The run walks each role's reachable links from a seed set that includes list pages —
+not just the nav, because the id-rot risk lives in the detail links inside rows, and a
+nav-only crawl would find the sidebar and call it a day. **140 links across three
+roles: 102 internal, 32 client, 6 applicant.**
+
+Four things are judged, all by where the link **lands**, never by whether it has an
+href:
+
+1. **No 404.** A Next.js 404 renders "This page could not be found".
+2. **No dead end on "Access not allowed".** Next's `forbidden()` renders *at* the
+   requested URL rather than redirecting, so the obvious test — "did this bounce to
+   /login?" — cannot see it at all. A 403 page is laid out cleanly, so it looks like
+   success. This repo already solved that: `forbidden.tsx` carries
+   `data-page-status="forbidden"` for exactly this reason (`docs/CHANGELOG.md`,
+   "The responsive auditor scored a 403 as a perfect page"), and this run reads the
+   marker rather than sniffing for the words. That single change is what turned the
+   notification defect from invisible into a FAIL.
+3. **No redirect somewhere else**, and no page error.
+4. **No link to a record that no longer exists** — reported as its own class, because a
+   404 on a *route* is a product defect while a 404 on a *record id* is a reference to
+   something since deleted, and conflating them lets the first hide behind the second.
+
+**Positive control, or the crawl proves nothing.** A crawler that matches zero anchors
+reports a clean sheet. The run asserts it discovered a plausible number of links per
+role (40 / 15 / 2) and a shortfall is a hard failure, not a note. Before trusting the
+detector at all, it was driven against three known cases: a bogus route (flagged 404,
+`h1` = "404"), a known-good dashboard and a known-good ticket detail (neither flagged),
+and a client opening an internal-only route (correctly landed on the forbidden page
+rather than `/login`, which is what taught the run to read `data-page-status`).
+
+**Result after the fix: 20/21**, with the client and applicant legs fully clean. The
+one remaining failure is honest and is **this report's own residue**, not a product
+defect:
+
+> `internal — no link points at a record that no longer exists`:
+> `/app/payroll/periods/42df33d5…`
+
+All three `payroll_period` ids referenced by `audit_logs` are stale: the payroll
+exercise creates a period, writes three audit rows, then deletes it. The audit page
+faithfully renders history for a record that no longer exists, which is what an audit
+trail is for. Deleting audit rows to turn a check green would be the wrong trade, so
+it is left visible and reported, and **every run of the payroll exercise adds one** —
+a cleanup gap in that harness worth closing separately.
+
+This is also why the failure is reported as its own class rather than lumped in with
+404s: had it been folded into "broken links", the one genuine product defect in this
+whole pass would have been filed next to three rows of my own mess.
+
+A download endpoint (`/app/reports/export`) is not a page — Playwright aborts the
+navigation with "Download is starting" — and is skipped and named, rather than counted
+as a broken link. An earlier version counted it, which would have been a fourth
+invented defect from the same script that produced three others.
+
 ### P2 — Every document in the demo was undownloadable. Two causes, both fixed.
 
 The documents module itself is the best-written in the codebase: it checks its errors,
@@ -1849,6 +1964,8 @@ somewhere above 12. It is not 81.
 | 11 | Playwright e2e not running in CI | Needs `RUN_E2E=true` plus secrets |
 | 12 | Nothing is pushed to `origin` | `origin/main` is 10 commits and ~371 files behind this branch |
 | 13 | Demo tenant decays; gate needs `refresh-demo-timeline.mjs --apply` first | See below — this is an operational landmine, not a code defect |
+| 14 | **Applicants have no ticket surface** | A ticket notification can only point an applicant at `/app/applicant`, because `/app/my/requests` is behind the employee shell and redirects them to `/app`. Whether an applicant should be able to track their own tickets is a product call — §4 |
+| 15 | **Payroll exercise leaves a stale audit link each run** | It creates a period, writes 3 audit rows, then deletes the period, so the audit page links to a record that no longer exists. All 3 `payroll_period` audit references are stale. Deleting audit rows needs sign-off, so it is left visible and reported by `qa-exercise-internal-links.mjs` |
 | 14 | `payslip_items` / `payslip_components` | **Resolved, not open.** They do not exist — an earlier audit of mine guessed them. The app uses `payroll_components` |
 | 15 | `resetPasswordAction` | Needs a real recovery token from an inbox; no mail provider in this environment. Part of the 429 block in row 4. The invalid-token path on `verifyEmailAction` *is* proven |
 
@@ -1916,6 +2033,8 @@ node scripts/audit/qa-exercise-documents-workflow.mjs     # 31 assertions
 node scripts/audit/qa-exercise-client-timesheet-workflow.mjs # 13/14, one real finding
 node scripts/audit/qa-exercise-tickets-workflow.mjs          # 33 assertions
 node scripts/audit/qa-exercise-list-filters.mjs             # 35 assertions, 27 pages, 3 roles
+node scripts/audit/qa-exercise-internal-links.mjs         # 21 assertions, 140 links, 3 roles
+node scripts/audit/qa-repair-notification-routes.mjs       # idempotent; repairs role-blind ticket links
 node scripts/audit/check-auth-email-rate-limit.mjs          # exits 0 the moment the 429 clears
 node scripts/audit/qa-probe-client-timesheet.mjs          # read-only: can this flow run here at all?
 node scripts/audit/qa-probe-summary-view-filter.mjs     # read-only: which predicate hides a record from the client view
