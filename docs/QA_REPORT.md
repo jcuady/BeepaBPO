@@ -1288,6 +1288,105 @@ proceed reports *why*.
 Restoration verified by read-back: invoices 7→7, items 27→27, payments 4→4, advances
 2→2, and 1 approval request + its action row created by the run removed.
 
+### P2 — Every document in the demo was undownloadable. Two causes, both fixed.
+
+The documents module itself is the best-written in the codebase: it checks its errors,
+rolls back the storage object when the metadata write fails, validates MIME and size,
+and derives visibility from the caller's permission. **No product defect found.** The
+three actions pass 31/31.
+
+What the run found instead is that **the demo data under it was dead**: all 8 seeded
+document rows resolved to a storage object that did not exist, so the documents page
+rendered a full, plausible list in which **every Download button failed**. The employee
+could not open their own employment contract, handbook or certificate of employment.
+
+Three separate faults stacked up:
+
+1. **The rows pointed at a bucket that does not exist.** `scripts/seed-qa-fixtures.mjs:451`
+   hardcoded `storage_bucket: "documents"`. No such bucket, and no product code ever
+   writes to one — the product uses `employee-documents` and `client-documents`. The
+   script inserted metadata only, never uploading a byte, and reported the fixtures as
+   seeded. Fixed at the source and repaired in place by
+   `qa-repoint-document-bucket.mjs`.
+
+2. **No bytes were ever uploaded**, for any of them. Repointing the bucket would have
+   produced 8 rows that look seeded and still fail. `qa-seed-document-blobs.mjs` writes
+   a labelled placeholder PDF at each missing path — honest about being a demo rather
+   than inventing contracts nobody produced — and verifies by minting a signed URL and
+   fetching it, because "I wrote 8 objects" proves nothing about what lands.
+
+3. **The paths could not have worked even with a bucket.** `storage_employee_docs_select`
+   (`20260906000800_storage_buckets.sql:53`) evaluates
+   `public.is_self_employee(((storage.foldername(name))[1])::uuid)` — it casts the
+   **first path segment** to uuid. The seeded paths were `demo/<employee_id>/…`, so the
+   cast was applied to the literal string `demo` and Postgres raised:
+
+   ```
+   invalid input syntax for type uuid: "demo"
+   ```
+
+   `qa-repair-document-paths.mjs` moves each object to `<employee_id>/<file>`, the layout
+   the policy and `uploadEmployeeDocument` actually use.
+
+**The policy itself is still wrong, and is not changed here.** A hard `::uuid` cast makes
+a malformed path *raise* rather than *deny*. An RLS predicate should refuse quietly and
+let the application return "you do not have access to this file"; this one turns an
+unlucky path into a database type error surfaced to the user, and it does so for **every**
+user who touches the bucket, not only the owner. Widening a predicate is a security
+decision, so it is documented rather than taken — but it is a live footgun, and the next
+writer who invents a path layout will hit it.
+
+After the repair: 8 of 8 rows serve bytes, and the exercise asserts it end to end — the
+employee opens a *pre-existing seeded* document, not just the file the run uploaded,
+because "the file I just uploaded downloads" says nothing about the seven that were
+already broken.
+
+### Documents workflow — `qa-exercise-documents-workflow.mjs`, 31/31
+
+| Assertion | Result |
+|---|---|
+| Employee sees the upload form | PASS |
+| `uploadEmployeeDocument` writes a document row | PASS |
+| The document is attached to the uploading employee's record | PASS |
+| **A self-upload is `private`** | PASS |
+| The recorded size matches the uploaded bytes | PASS |
+| The upload writes an audit row | PASS |
+| **A Download control is offered for the document** | PASS |
+| Clicking Download opens a signed URL | PASS |
+| The signed URL is served successfully | PASS |
+| **The signed URL returns exactly the bytes that were uploaded** | PASS |
+| A pre-existing seeded document is listed to this employee | PASS *(added after the repair)* |
+| **A pre-existing seeded document can also be downloaded** | PASS *(was: `invalid input syntax for type uuid: "demo"`)* |
+| The seeded document serves real bytes | PASS *(HTTP 200, 704 bytes)* |
+| A disallowed MIME type is refused and writes nothing | PASS |
+| An upload with no file is refused and writes nothing | PASS |
+| HR sees an upload form on another employee's record | PASS |
+| The admin upload writes a document | PASS |
+| It is attached to the employee HR chose, not to HR | PASS |
+| **An upload made on someone's behalf is `employee_visible`, not `private`** | PASS |
+| Another employee's document is not listed to this employee | PASS |
+| The employee still sees their own document | PASS |
+| Client admin sees the upload form | PASS |
+| `uploadClientDocument` writes a document | PASS |
+| The client document is tied to a client organization | PASS |
+| **A client upload is `client_visible`** | PASS |
+| The client upload writes an audit row | PASS |
+| No unexpected console errors | PASS |
+| No page errors | PASS |
+| No document row is left carrying the marker | PASS |
+| **No storage object is orphaned** | PASS |
+| The documents table is back to its starting size | PASS |
+
+Visibility is the load-bearing assertion here: `private` for self-upload,
+`employee_visible` for an admin uploading on someone's behalf, `client_visible` for a
+client upload. That is derived from the caller's permission, so it is asserted three
+ways rather than once.
+
+Cleanup removes the metadata **and** the blobs, then asserts both: 3 rows, 3 objects,
+0 orphans, table back to 8. A row deleted while its blob is left behind is worse than no
+cleanup — the next upload's random UUID will not collide with it, so an orphan just
+accumulates invisibly.
+
 ### Traps this pass hit in its own tooling
 
 Recorded because each produced a report full of defects that did not exist:
@@ -1384,7 +1483,7 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/cms` | 14 | **14** |
 | `lib/crm` | 8 | **8** (`createLeadFromContact` via the public contact form) |
 | `lib/payroll` | 5 | **5** |
-| `lib/documents` | 3 | 0 |
+| `lib/documents` | 3 | **3** |
 | `lib/notifications` | 3 | **3** |
 | `lib/hr/nte-actions` | 3 | **3** |
 | `lib/attendance/*` (4 modules) | 8 | **6** (client-timesheet pair not driven) |
@@ -1392,9 +1491,9 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/cash-advance` | 2 | **2** |
 | `lib/clients` (1) | 1 | 0 |
 | `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | **3** |
-| **Total** | **83** | **71** |
+| **Total** | **83** | **74** |
 
-**71 of 83 actions are exercised end to end.** The other 12 render correctly and
+**74 of 83 actions are exercised end to end.** The other 9 render correctly and
 are covered by unit tests and typecheck, but no committed script has yet driven
 them through a browser and asserted the resulting rows. That gap is stated
 plainly rather than papered over by counting the page sweep as proof — a button
@@ -1487,6 +1586,12 @@ node scripts/audit/qa-exercise-nte-workflow.mjs      # 24 assertions
 node scripts/audit/qa-exercise-notifications-workflow.mjs # 16 assertions
 node scripts/audit/qa-exercise-profile-workflow.mjs      # 19 assertions
 node scripts/audit/qa-exercise-money-workflow.mjs        # 33 assertions
+node scripts/audit/qa-exercise-documents-workflow.mjs     # 31 assertions
+
+# demo repair, all dry run unless --apply
+node scripts/audit/qa-repoint-document-bucket.mjs   # --apply
+node scripts/audit/qa-repair-document-paths.mjs      # --apply
+pnpm seed:demo:documents                            # writes the missing placeholder PDFs
 
 # recovery, if a run was killed before its cleanup
 node scripts/audit/qa-repair-applicant-membership.mjs   # --apply

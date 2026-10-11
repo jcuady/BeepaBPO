@@ -22,6 +22,7 @@
     "seed:demo:extended": "node --experimental-strip-types scripts/seed-demo-extended.mts",
     "seed:demo:leave": "node scripts/seed-demo-leave.mjs",
     "seed:demo:ats": "node scripts/audit/qa-seed-ats-interviews.mjs",
+    "seed:demo:documents": "node scripts/audit/qa-seed-document-blobs.mjs --apply",
     "seed:payroll:window": "node scripts/seed-payroll-window.mjs",
     "smoke:cron": "node --env-file=.env.local scripts/smoke-cron.mjs",
     "brand:icons": "node scripts/generate-google-brand-assets.cjs",

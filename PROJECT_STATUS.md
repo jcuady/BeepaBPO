@@ -22,7 +22,7 @@
 | **Data population** | **PASS** | `audit-data-population.mjs` — every table the app queries, distinguishing **missing** from **empty** (a `head:true` count returns `null` for a nonexistent table *or* a nonexistent column, with no error). **996 rows** across app tables |
 | **Live workflow exercises** | **PASS** | `qa-exercise-leave-workflow.mjs` — employee → team lead → HR, asserting against the database rather than the DOM: **13/13**. `qa-exercise-ticket-workflow.mjs` — client admin → assignee: **10/10**. `qa-exercise-admin-workflow.mjs` — cron, test push, role change, revoke: **18/18** (1 path BLOCKED by Supabase email rate limiting). `qa-exercise-hire-workflow.mjs` — stage → offer → hire: **18/18**. `qa-exercise-crm-workflow.mjs` — lead → deal → proposal → won → client org: **21/21**. `qa-exercise-payroll-workflow.mjs` — salary → run → recalc → 2-step approval → finalized: **19/19**. All restore what they change and assert the restoration |
 | **Admin role integrity** | **PASS** | `tests/admin-role-assignment.test.ts` — 12 cases. Changing a role used to delete every role a person held, silently stripping the `employee` self-service baseline (8 permissions: leave, payroll, attendance, tickets, approvals, cash advance, NTE, performance). Inviting staff granted no baseline at all. Both fixed; guard is mutation-proved |
-| **Action coverage** | **PARTIAL** | **83** exported server actions across 21 modules, counted by `qa-action-inventory.mjs`. **71 exercised end to end** against the database (leave 3, admin 5, CRM 8, payroll 5, auth 8, attendance 6, CMS 14, recruitment 7, NTE 3, notifications 3, employee/profile/contact 3, billing 2, cash advance 2, ticket 2); the rest render (471 page visits, 0 console errors) and are unit-covered, but have not been driven through the UI. Per-domain breakdown in `docs/QA_REPORT.md` §5 |
+| **Action coverage** | **PARTIAL** | **83** exported server actions across 21 modules, counted by `qa-action-inventory.mjs`. **74 exercised end to end** against the database (leave 3, admin 5, CRM 8, payroll 5, auth 8, attendance 6, CMS 14, recruitment 7, NTE 3, notifications 3, employee/profile/contact 3, billing 2, cash advance 2, documents 3, ticket 2); the rest render (471 page visits, 0 console errors) and are unit-covered, but have not been driven through the UI. Per-domain breakdown in `docs/QA_REPORT.md` §5 |
 | **Notification integrity** | **PASS** | `qa-verify-notifications.mjs` — 58 rows, **58 distinct bodies**, 0 legacy generic strings, **0 dead links**. The 27 orphaned rows carrying the old body were deleted via `cleanup-orphan-notifications.mjs` and reseeded from live records |
 | **Page headings** | **PASS** | `page-heading-contract.test.ts` — 79 `<PageHeader>` call sites across `app/` **and** `lib/`; **76 now carry a `title`**, 2 are documented exceptions. Before the fix, 78 of 79 rendered the greeting `Good morning, Demo.` — byte-identical, because every seeded profile is named "Demo" |
 | Authorization (routes) | **PASS** | `audit-rbac.mjs` **75/78 (96%)** + 3 structural exemptions, exit 0 |
@@ -257,6 +257,35 @@ be created, edited, published and archived, never removed — Archive may be the
 intended soft delete, so this is documented, not changed), and `cms.manage` is held
 by **exactly one role, `marketing`** — not `owner`, not `super_admin`, not `hr`,
 which extends the `super_admin` finding below.
+
+**Documents: all 3 actions driven, and every seeded document was dead (2026-10-11).**
+`qa-exercise-documents-workflow.mjs`, 31/31 — the module itself is the best-written in
+the codebase (checks its errors, rolls back the storage object when the metadata write
+fails, validates MIME and size, derives visibility from permission). No product defect.
+
+What the run found is that all 8 seeded rows were undownloadable, so the documents page
+rendered a full, plausible list in which every Download failed. Three faults stacked:
+
+1. `scripts/seed-qa-fixtures.mjs:451` hardcoded `storage_bucket: "documents"` — a bucket
+   that does not exist and that no product code writes to. Metadata only, no bytes, and
+   the script reported the fixtures as seeded.
+2. No bytes had ever been uploaded for any of them, so repointing the bucket alone would
+   still have left 8 dead rows.
+3. The paths could not have worked even with a bucket: the storage RLS casts the first
+   path segment to uuid, and the seeded paths began with a literal `demo/`, so Postgres
+   raised `invalid input syntax for type uuid: "demo"` — to the user.
+
+Fixed at the source (`seed-qa-fixtures.mjs` now targets `employee-documents`), repaired in
+place (`qa-repoint-document-bucket.mjs`, `qa-repair-document-paths.mjs`) and the bytes
+written (`qa-seed-document-blobs.mjs`, `pnpm seed:demo:documents`). 8/8 rows now serve
+bytes, verified through the UI by downloading a **pre-existing** document — 704 bytes of
+real PDF — because "the file I just uploaded downloads" says nothing about the seven that
+were already broken.
+
+**The policy itself is still wrong and is documented, not changed:** a hard `::uuid` cast
+makes a malformed path *raise* instead of *deny*, turning an unlucky path into a database
+type error shown to the user, for every user who touches the bucket. Widening a predicate
+is a security decision, so it is flagged instead of taken.
 
 **NTE: three actions driven, and two of them were broken (2026-10-10).**
 `qa-exercise-nte-workflow.mjs`, 24/24 — HR issues, the named employee answers, HR

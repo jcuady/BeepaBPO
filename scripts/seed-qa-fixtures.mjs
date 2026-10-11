@@ -448,7 +448,14 @@ if (want("documents")) {
       client_organization_id: visibility === "client_visible" ? clientOrgs[i % Math.max(clientOrgs.length, 1)]?.id ?? null : null,
       category,
       title,
-      storage_bucket: "documents",
+      // Was `documents`, a bucket that does not exist in this project and that no
+      // product code ever writes to. Every one of these rows therefore pointed at an
+      // unresolvable path: the page rendered a populated documents list whose every
+      // Download button failed with "Bucket not found", while this script cheerfully
+      // reported the fixtures as seeded. `employee-documents` is a bucket that exists
+      // and that the product itself uses; the accompanying bytes are written by
+      // `scripts/audit/qa-seed-document-blobs.mjs`, which is the step that was missing.
+      storage_bucket: "employee-documents",
       storage_path: `qa-fixtures/${slugify(title)}.pdf`,
       mime_type: "application/pdf",
       size_bytes: between(80_000, 900_000),
