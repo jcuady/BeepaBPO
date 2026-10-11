@@ -933,7 +933,64 @@ re-run caught it immediately. `text-base md:text-sm` is the correct order, and t
 comment now says so, because the failure mode is a comment and a class list that
 contradict each other.
 
-Public surface after the fixes: **80/80 viewport-route combinations clean**.
+### One command, because seven commands is not an answer
+
+This pass added six probes, each with its own command, its own evidence file and its own
+idea of what failure means. That is correct locally and useless globally: "is the system
+ready" had come to mean *can you remember seven commands and their arguments*.
+
+`scripts/audit/qa-run-all.mjs` is the answer the brief actually asked for — one
+registry, one verdict, one evidence file.
+
+```
+node scripts/audit/qa-run-all.mjs            # fast tier + gate
+node scripts/audit/qa-run-all.mjs --all      # + slow tier (role sweep, ~20 min)
+node scripts/audit/qa-run-all.mjs --list     # the registry, no execution
+```
+
+Current state, one run:
+
+```
+OK    not-found             8s  every 404 has a working way out
+OK    dialog-keyboard       6s  confirm dialogs: focus in, focus back, Escape and Cancel
+OK    command-palette      12s  cmd-K opens, filters, navigates, returns focus
+OK    notification-bell     4s  bell accessible name, AA contrast, keyboard exit
+OK    internal-links      307s  no internal link lands on an error page
+OK    gate                 20s  vitest 634 tests / 93 files, tsc clean
+6/6 passed
+```
+
+Three decisions in the runner are deliberate:
+
+- **BLOCKED is not FAIL.** `qa-probe-signup-workflow.mjs` exits 2 for "the environment's
+  email budget stopped me", which is not the same outcome as a broken assertion. Flattening
+  the two would leave the suite permanently red for a reason no code change can fix.
+- **The memory-hungry sweeps are a separate tier.** `audit-app-responsive` in one process
+  reaches 2.4 GB and takes the app server down; the role sweep takes ~20 minutes. Neither
+  belongs silently in a default run. They run with `--all`, deliberately.
+- **A check that passes without writing its evidence file is reported as a finding.**
+  "A check result printed to a terminal is a claim" has been this report's standing rule
+  since §5; the runner is where it gets enforced rather than merely written down.
+
+**The runner was wrong three times before it was right, and every failure had the same
+shape: five checks returning FAIL in 0 s with no output**, which reads exactly like five
+broken probes. They were one broken runner:
+
+1. `spawn` with `shell: true` and a separate argv array — Node does not escape argv on
+   Windows (DEP0190), so nothing ran.
+2. No interpreter. The registry lists `scripts/audit/foo.mjs` the way a human reads it,
+   and cmd.exe cannot execute a `.mjs` file directly.
+3. `process.execPath` unquoted. It is normally `C:\Program Files\nodejs\node.exe`, and an
+   unquoted path containing a space is rejected by cmd — producing the *same* 0 s,
+   empty-output symptom as the missing interpreter.
+
+Two different causes, one indistinguishable symptom, which is why the runner now records
+the exact command and the raw output on any failure. Filtering a check's output down to a
+one-line summary is fine when it is passing and actively harmful when it is not: it
+removes the only evidence that the failure is in the harness rather than the product.
+That is the same lesson as the four false positives above, arriving from the other
+direction — this time the broken instrument manufactured five false *failures* instead of
+four false *passes*.
 
 ---
 
@@ -3397,6 +3454,11 @@ and the inbox was reseeded from live records with correct bodies.
 
 ```bash
 npx next build && npx next start -p 3100     # in one shell
+
+# THE ANSWER — run this first. One registry, one verdict, one evidence file.
+node scripts/audit/qa-run-all.mjs            # fast suite + gate (~6 min)
+node scripts/audit/qa-run-all.mjs --list     # what it would run, without running it
+node scripts/audit/qa-run-all.mjs --all      # + slow tier (role sweep ~20 min)
 
 # read-only
 node scripts/audit/audit-data-population.mjs        # what data exists

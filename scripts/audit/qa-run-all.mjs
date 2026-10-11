@@ -1,0 +1,240 @@
+// Run every QA probe in this directory and write one aggregate verdict.
+//
+// WHY: this pass added six probes, each with its own command, its own evidence
+// file and its own idea of what a failure looks like. That is correct locally and
+// useless globally — "is the system ready" came to mean "can you remember seven
+// commands and their arguments". The brief for this project asks for documentation
+// good enough that you would know whether every page, user and workflow is
+// functional. That requires one answer, not seven.
+//
+// Three things this runner is careful about, each learned from a bug in this
+// directory rather than from theory:
+//
+//   - It distinguishes BLOCKED from FAIL. `qa-probe-signup-workflow.mjs` exits 2
+//     for "the environment's email budget stopped me", which is not the same
+//     outcome as a broken assertion, and flattening the two would make the
+//     suite permanently red for a reason no code change can fix.
+//   - It does not run the memory-hungry sweeps by default. `audit-app-responsive`
+//     in one process reaches 2.4 GB and takes the app server down with it; the
+//     role sweep takes ~20 minutes. Both belong in a "slow" tier, run
+//     deliberately, never silently alongside everything else.
+//   - Every entry must declare its own evidence file, so a green summary always
+//     has a file behind it. A check result printed to a terminal is a claim.
+//
+// Usage:
+//   node scripts/audit/qa-run-all.mjs              # fast tier (default)
+//   node scripts/audit/qa-run-all.mjs --all        # + slow tier
+//   node scripts/audit/qa-run-all.mjs --list       # print the registry and exit
+//
+// Requires the app running (QA_BASE_URL, default http://localhost:3100).
+
+import { spawn } from "node:child_process";
+import { writeFileSync, mkdirSync, existsSync } from "node:fs";
+
+const BASE = process.env.QA_BASE_URL ?? "http://localhost:3100";
+const args = process.argv.slice(2);
+const listOnly = args.includes("--list");
+const wantAll = args.includes("--all");
+
+/**
+ * tier:    "fast"  — seconds, safe to run any time the server is up
+ *          "gate"  — the release gate itself (unit tests + typecheck)
+ *          "slow"  — minutes and/or memory-hungry; only with --all
+ * evidence: file this check is expected to have written. A green check with no
+ *           evidence file is a finding, not a pass.
+ * skipIfMissing: the file this check needs to exist before it can run at all
+ */
+const CHECKS = [
+  { id: "not-found",        tier: "fast",  cmd: ["scripts/audit/qa-probe-not-found.mjs"],        evidence: "docs/evidence/not-found-check.json",      what: "every 404 has a working way out" },
+  { id: "dialog-keyboard",  tier: "fast",  cmd: ["scripts/audit/qa-probe-dialog-keyboard.mjs"],  evidence: "docs/evidence/dialog-keyboard-check.json", what: "confirm dialogs: focus in, focus back, Escape and Cancel" },
+  { id: "command-palette",  tier: "fast",  cmd: ["scripts/audit/qa-probe-command-palette.mjs"],  evidence: "docs/evidence/command-palette-check.json", what: "cmd-K opens, filters, navigates, returns focus" },
+  { id: "notification-bell",tier: "fast",  cmd: ["scripts/audit/qa-probe-notification-bell.mjs"],evidence: "docs/evidence/notification-bell-check.json",what: "bell accessible name, AA contrast, keyboard exit" },
+  { id: "internal-links",   tier: "fast",  cmd: ["scripts/audit/qa-exercise-internal-links.mjs"],evidence: null, what: "no internal link lands on an error page" },
+
+  { id: "responsive-app",   tier: "slow",  cmd: ["scripts/audit-app-responsive.mjs", "owner@demo.beepabpo.com", "/app/dashboard", "/app/my", "/app/my/attendance", "/app/my/leave", "/app/my/payroll", "/app/my/requests", "/app/my/documents"], evidence: null, what: "authenticated app surface, 8 viewports (CHUNK 1 of 4 — see QA §7)" },
+  { id: "role-sweep",       tier: "slow",  cmd: ["scripts/audit/audit-role-sweep.mjs"],         evidence: "docs/evidence/role-sweep.json",             what: "13 roles across their reachable pages" },
+
+  { id: "gate",             tier: "gate",  cmd: ["__GATE__"],                                   evidence: null, what: "vitest + tsc --noEmit" },
+];
+
+// Exit code 2 from a probe means BLOCKED, not FAIL. See qa-probe-signup-workflow.mjs.
+const EXIT_MEANING = {
+  0: "PASS",
+  1: "FAIL",
+  2: "BLOCKED",
+};
+
+function runGates() {
+  // Two gates, run as one logical check, because "634 tests" without "tsc clean"
+  // is not a release state.
+  return new Promise((resolve) => {
+    const results = [];
+    let i = 0;
+    const steps = [
+      { name: "vitest", cmd: "npx vitest run" },
+      { name: "tsc", cmd: "npx tsc --noEmit" },
+    ];
+    const next = () => {
+      if (i >= steps.length) return resolve(results);
+      const step = steps[i++];
+      const started = Date.now();
+      const child = spawn(step.cmd, { shell: true, stdio: ["ignore", "pipe", "pipe"] });
+      let out = "";
+      child.stdout.on("data", (d) => { out += d; });
+      child.stderr.on("data", (d) => { out += d; });
+      child.on("close", (code) => {
+        // Two separate counts. One regex over both lines reported "634 tests /
+        // 634 files", because the tests line is `Tests  634 passed (93)` and the
+        // files count was being pulled from the wrong capture group.
+        const files = out.match(/Test Files\s+(\d+) passed/);
+        const tests = out.match(/Tests\s+(\d+) passed/);
+        results.push({
+          name: step.name,
+          code,
+          seconds: Math.round((Date.now() - started) / 1000),
+          summary:
+            code !== 0
+              ? out.split("\n").map((l) => l.trim()).filter(Boolean).slice(-2).join(" ").slice(0, 120)
+              : step.name === "vitest"
+                ? `${tests ? tests[1] : "?"} tests / ${files ? files[1] : "?"} files`
+                : "clean",
+        });
+        next();
+      });
+    };
+    next();
+  });
+}
+
+function runCheck(check) {
+  return new Promise((resolve) => {
+    const started = Date.now();
+    // One command STRING, not a string plus an argv array. With `shell: true`
+    // on Windows, Node does not escape a separate argv (DEP0190).
+    //
+    // The registry lists `scripts/audit/foo.mjs` without an interpreter, which
+    // is how a human reads it — but cmd.exe cannot execute a `.mjs` file
+    // directly, so every probe returned FAIL in 0s with no output.
+    //
+    // `process.execPath` MUST be quoted: on Windows it is normally
+    // `C:\Program Files\nodejs\node.exe`, and an unquoted path containing a
+    // space is rejected by cmd.exe — which produces exactly the same 0s,
+    // empty-output failure as the missing interpreter did. Two different causes,
+    // one indistinguishable symptom; that is why the raw output is surfaced
+    // below instead of being filtered down to a summary line.
+    const isScript = check.cmd[0].endsWith(".mjs");
+    const command = isScript
+      ? `"${process.execPath}" ${check.cmd.join(" ")}`
+      : check.cmd.join(" ");
+    const child = spawn(command, { shell: true, stdio: ["ignore", "pipe", "pipe"] });
+    let out = "";
+    child.stdout.on("data", (d) => { out += d; });
+    child.stderr.on("data", (d) => { out += d; });
+    child.on("close", (code) => {
+      const tail = out
+        .split("\n")
+        .map((l) => l.trim())
+        .filter((l) => /passed|clean|failures|FAIL|OPEN|BLOCKED|error/i.test(l))
+        .slice(-3)
+        .join(" | ")
+        .slice(0, 160);
+      resolve({
+        id: check.id,
+        what: check.what,
+        tier: check.tier,
+        status: EXIT_MEANING[code] ?? `EXIT ${code}`,
+        code,
+        seconds: Math.round((Date.now() - started) / 1000),
+        evidence: check.evidence,
+        // A check that says PASS but wrote no evidence file is a finding of its
+        // own: the number would be unreproducible, which is the exact failure
+      // this QA pass was built to stop.
+        evidenceWritten: check.evidence ? existsSync(check.evidence) : null,
+        tail,
+        command,
+        // When a check fails with NO output, `tail` is empty and the only thing
+        // left to go on is the command that was run. Recording both means the
+        // next failure of this shape is diagnosable in seconds instead of by
+        // bisecting spawn options.
+        rawOutput: code === 0 ? undefined : out.trim().slice(-600) || "(no output at all)",
+      });
+    });
+  });
+}
+
+if (listOnly) {
+  for (const c of CHECKS) {
+    console.log(`${c.tier.padEnd(5)}  ${c.id.padEnd(18)}  ${c.what}`);
+  }
+  console.log(`\nbase: ${BASE}`);
+  process.exit(0);
+}
+
+const selected = CHECKS.filter((c) => (wantAll ? true : c.tier !== "slow"));
+console.log(`QA suite — ${selected.length} check(s) against ${BASE}`);
+console.log(wantAll ? "tiers: fast + gate + slow\n" : "tiers: fast + gate (slow excluded; pass --all to include)\n");
+
+const outcomes = [];
+for (const check of selected) {
+  process.stdout.write(`  ${check.id.padEnd(18)} … `);
+  if (check.id === "gate") {
+    const parts = await runGates();
+    const bad = parts.find((p) => p.code !== 0);
+    outcomes.push({
+      id: "gate",
+      what: check.what,
+      tier: "gate",
+      status: bad ? "FAIL" : "PASS",
+      code: bad ? bad.code : 0,
+      seconds: parts.reduce((n, p) => n + p.seconds, 0),
+      evidence: null,
+      evidenceWritten: null,
+      tail: parts.map((p) => `${p.name}: ${p.summary}`).join(" | "),
+    });
+    console.log(`${bad ? "FAIL" : "PASS"}  (${parts.map((p) => `${p.name} ${p.summary}`).join(", ")})`);
+    continue;
+  }
+  const outcome = await runCheck(check);
+  outcomes.push(outcome);
+  console.log(`${outcome.status}  (${outcome.seconds}s)  ${outcome.tail}`);
+}
+
+const failed = outcomes.filter((o) => o.status === "FAIL");
+const blocked = outcomes.filter((o) => o.status === "BLOCKED");
+const missingEvidence = outcomes.filter((o) => o.evidence && o.evidenceWritten === false);
+
+const summary = {
+  check: "qa-suite",
+  generatedAt: new Date().toISOString(),
+  base: BASE,
+  tiersRun: wantAll ? ["fast", "gate", "slow"] : ["fast", "gate"],
+  total: outcomes.length,
+  passed: outcomes.filter((o) => o.status === "PASS").length,
+  failures: failed.length,
+  blocked: blocked.length,
+  // A check that passes without leaving evidence is reported, not counted green.
+  missingEvidence: missingEvidence.map((o) => o.id),
+  results: outcomes,
+};
+
+mkdirSync("docs/evidence", { recursive: true });
+writeFileSync("docs/evidence/qa-suite.json", JSON.stringify(summary, null, 2) + "\n");
+
+console.log("\n" + "=".repeat(72));
+for (const o of outcomes) {
+  const mark = o.status === "PASS" ? "OK  " : o.status === "BLOCKED" ? "SKIP" : "FAIL";
+  console.log(`${mark}  ${o.id.padEnd(18)} ${String(o.seconds).padStart(4)}s  ${o.what}`);
+}
+console.log("=".repeat(72));
+console.log(`${summary.passed}/${summary.total} passed` + (blocked.length ? `, ${blocked.length} blocked by the environment` : ""));
+if (missingEvidence.length) {
+  console.log(`\nWARNING — passed but wrote no evidence file: ${missingEvidence.map((o) => o.id).join(", ")}`);
+  console.log("A check result printed to a terminal is a claim, not evidence.");
+}
+if (failed.length) {
+  console.log(`\n${failed.length} check(s) FAILED:`);
+  for (const f of failed) console.log(`  - ${f.id}: ${f.tail}`);
+}
+console.log("\nwrote docs/evidence/qa-suite.json");
+if (!wantAll) console.log("note: slow tier not run. --all includes it (role sweep ~20min).");
+process.exit(failed.length ? 1 : 0);
