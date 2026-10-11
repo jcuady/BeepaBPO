@@ -1692,6 +1692,58 @@ product cannot produce, and turned a stale or hand-edited link into a dead end.
 
 The exercise now asserts the corrected behaviour, so re-widening the gate turns it red.
 
+### `cms.manage` was held by exactly one role, and that role could edit the website alone. Fixed.
+
+The permission sweep found that `cms.manage` — which gates every write to `services`,
+`industries`, `testimonials`, `case_studies`, `blog_posts`, `faqs`, `site_settings` and the
+`marketing-media` bucket — was granted to `marketing` and **nothing else**. Not `owner`. Not
+`super_admin`.
+
+That is not least privilege, it is a **single point of failure with no recovery path**. If the
+marketing seat is vacant — resigned, disabled, or never filled — then nobody can correct the
+public website. Not the owner, and not via `system.manage`, because `has_permission()`
+resolves through role grants and no such grant exists. The outage would be silent until
+somebody tried to publish a correction.
+
+`20261012010000_cms_manage_admin_recovery.sql` grants it to `owner` and `super_admin`.
+**`marketing` keeps it** — this is redundancy for the administrator, not a reallocation, and
+the grant matches what `owner` already holds for every other business domain. Verified after
+applying: `cms.manage` is held by `marketing, owner, super_admin`, and `super_admin` moves
+from 21 to 22 permissions.
+
+The migration carries a `DO` block that **raises** if either role code or the permission is
+absent. Without it the insert would match nothing and report success — a quiet no-op, and the
+same shape as `hire-workflow` reporting "no published job" for a table that never existed.
+
+### The payroll exercise was not self-cleaning, and its own green sheet could not tell
+
+Three runs left **15** dangling `audit_logs` rows behind — not the 3 this report previously
+carried, because that count had only ever included `payroll.recalculate`. The others were
+`payroll.period.create`, `payroll.period.submit_approval` and `payroll.period.approve`, all
+pointing at a `payroll_periods` row the exercise created and then deleted.
+
+The reason nobody noticed is the important part. The exercise's final assertion compares
+three counts — periods, records, payslips — and **not one of them moves when an audit row
+leaks**, because the leaked row is a new row in a table nobody was counting. A tally cannot
+fail on a value it does not measure.
+
+The first fix deleted audit rows by entity type, looking up the run's `payroll_records` to
+find `payroll_record` audit ids. That lookup returned **nothing**, though records for that
+very period existed and were deleted correctly two lines later — and one `payroll.recalculate`
+row leaked anyway, which is how the failure was caught. Reasoning about which entity types a
+run *can* write is a guess; the set of rows that existed before the run started is a fact.
+
+So cleanup is now scoped by **snapshot**: `AUDIT_IDS_BEFORE` is captured at module load, and
+cleanup removes exactly the audit rows not in that set. No entity-type allow-list, no date
+heuristic, and no way to touch seed or pre-existing history. The run's own check gained an
+`audit` count so the leak would be visible even if cleanup broke. Last run:
+`cleanup: 6 audit row(s) this run created, deleted`, `audit 1->1`, **19/19**.
+
+`qa-cleanup-payroll-audit.mjs` cleared the historical 14. One dangling row is **kept**: it
+predates the audit effort (2026-09-22) and is seed provenance recording that a period was
+created during seeding. A cleanup rule written to remove test residue does not get to delete
+real history.
+
 ### Link crawl — `qa-exercise-internal-links.mjs`, 28/29 across four passes
 
 Every control so far was proven by asserting on **rows it changed**: a filter that
@@ -2748,7 +2800,7 @@ employee still sees only their own folder and hr sees all seven.
 | 3 | **Hire pipeline** | **Now exercised** — 23/23, see §4. The harness was hiding four of its own bugs behind a "no published job" error; the product button worked throughout |
 | 4 | **1 of 83 server actions not yet driven end to end** | See §5. `resetPasswordAction` is **now driven, 8/8** — it was called blocked on the grounds that it needed a recovery token from an inbox, but the action never reads the token; it needs a *session*, and a session does not need a mailbox. What genuinely stays uncovered is the emailed link's arrival and the PKCE exchange at `/auth/callback`, and the script prints that as a standing line. The one remaining action is `inviteClientUser`, waiting on the environment's email budget. Neither is blocked by a defect in this codebase. `check-auth-email-rate-limit.mjs` prints exactly what is still blocking |
 | 5 | **Invite account creation** | Blocked by Supabase email rate limiting in this environment, specifically `admin.inviteUserByEmail`. **Signup account creation is no longer on this list** — it ran end to end, creating a real account and applicant membership, once the budget allowed one call through. That is the whole reason to keep re-probing instead of writing a blocker down once. The limit is also not uniform: `auth.signUp` on the apex domain is accepted while the same call on the demo subdomain is limited, and `resetPasswordForEmail` is accepted outright. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
-| 6 | `super_admin` holds 21 of 50 permissions | **Now measured, not just counted** — `qa-inspect-super-admin-gaps.mjs`. See below. A deliberate platform-vs-business split is defensible; the gap that is not defensible is `cms.manage`, held by **only `marketing`** — not by `owner`, not by `super_admin` |
+| 6 | `super_admin` holds 21 of 50 permissions | **Now measured, not just counted** — `qa-inspect-super-admin-gaps.mjs`. See below. A deliberate platform-vs-business split is defensible; the gap that was not defensible is `cms.manage`, held by **only `marketing`** — not by `owner`, not by `super_admin`. **Now fixed** — `20261012010000_cms_manage_admin_recovery.sql` grants it to `owner` and `super_admin` as well; `marketing` keeps it |
 | 7 | **Storage RLS casts with `::uuid`, which RAISES rather than denies** | **Fixed** — `20261011130000_storage_rls_safe_uuid_cast.sql`, applied and verified behaviourally. Six policies guarded by an immutable `public.try_uuid(text)`. The important part is what the naive fix would have caused: `can_access_client(NULL)` can return TRUE for anyone holding `clients.read`/`clients.manage`/`system.manage`, because those permission terms never reference the argument — so routing it through a NULL-returning cast alone would have converted "raise, therefore deny" into "grant the whole bucket". Those three policies take an explicit `is not null` guard. Verified against a real malformed object (`client-documents/demo/…`): the listing now returns `ok, []` instead of a Postgres error |
 | 8 | **Client timesheet P1: submit accepts a day the client view filters out** | **Fixed and driven through the UI** — `submitTimesheetForClientReview` refuses a day outside the employee's client assignment window before writing `client_review`. `qa-probe-timesheet-window-guard.mjs` seeds one in-window day and one out-of-window day, clicks the real "Send to client" button, and asserts 4/4 — including that the refused record's `approval_status` is **unchanged**, which is the ordering claim a source assertion cannot prove. **This finding was nearly withdrawn on bad evidence — the near-miss is recorded below** |
 | 9 | **List pager offers "Next" on the last page when it is exactly full** | **Fixed** — 36 pager instances across 32 pages now fetch `PAGE_SIZE + 1` and drop the sentinel row before rendering. `components/app/list-pager.tsx` needed **no change**: once the extra row is gone, `rowCount >= pageSize` is exactly the right test. The residual risk is that the invariant now lives in 32 call sites rather than one place, so the test discovers pages by walking `app/**/*.tsx` for `ListPager` rather than keeping a hand-written list |

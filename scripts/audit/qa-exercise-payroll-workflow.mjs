@@ -45,10 +45,16 @@ async function must(p, what) {
   return data ?? [];
 }
 
+// Captured at module load, before any action in this script runs. See `restore()` for why
+// this snapshot is the cleanup's scope rather than an entity-type allow-list.
+const AUDIT_IDS_BEFORE = (await must(db.from("audit_logs").select("id"), "audit baseline"))
+  .map((r) => r.id);
+
 const base = {
   periods: (await must(db.from("payroll_periods").select("id"), "periods")).length,
   records: (await must(db.from("payroll_records").select("id"), "records")).length,
   payslips: (await must(db.from("payslips").select("id"), "payslips")).length,
+  audit: AUDIT_IDS_BEFORE.length,
 };
 
 let periodId = null;
@@ -65,6 +71,38 @@ async function restore() {
       await db.from("approval_actions").delete().in("request_id", reqIds);
       await db.from("approval_requests").delete().in("id", reqIds);
     }
+
+    // Audit rows. This block did not exist, so every run left behind `payroll.period.create`,
+    // `payroll.period.submit_approval`, `payroll.period.approve` and `payroll.recalculate`
+    // rows pointing at a period this run then deleted -- an audit trail for a subject that no
+    // longer exists. `qa-probe-payroll-audit-residue.mjs` found 15 such dangling rows across
+    // three runs.
+    //
+    // Scoped by SNAPSHOT, not by entity type. The first attempt at this deleted
+    // `payroll_record` audit rows by looking up `payroll_records` for the fixture period --
+    // and the lookup returned nothing, even though `payroll_records` rows for that very
+    // period existed moments earlier and were deleted correctly two lines below. So one
+    // `payroll.recalculate` row still leaked. Reasoning about which entity types a run can
+    // write is a guess; the set of rows that existed before the run started is a fact.
+    //
+    // `AUDIT_IDS_BEFORE` is captured at module load, before any action runs. Cleanup then
+    // removes exactly the audit rows that are NOT in that set: everything this run created,
+    // and provably nothing else. No entity-type allow-list, no date heuristics, and no way
+    // to touch seed or pre-existing history.
+    const { data: auditNow, error: auditNowErr } = await db.from("audit_logs").select("id");
+    if (auditNowErr) {
+      console.log(`cleanup: audit snapshot FAILED ${auditNowErr.message}`);
+    } else {
+      const before = new Set(AUDIT_IDS_BEFORE);
+      const added = (auditNow ?? []).map((r) => r.id).filter((id) => !before.has(id));
+      if (added.length) {
+        const { error: delErr } = await db.from("audit_logs").delete().in("id", added);
+        console.log(`cleanup: ${delErr ? `audit rows FAILED ${delErr.message}` : `${added.length} audit row(s) this run created, deleted`}`);
+      } else {
+        console.log("cleanup: this run created 0 audit rows");
+      }
+    }
+
     // Deliberately NO payslip cleanup. This exercise never creates payslips, and
     // an earlier draft deleted payslips "just in case" for whichever employee it
     // had edited — which would have destroyed real payslip rows. Cleanup must
@@ -82,6 +120,10 @@ async function restore() {
     periods: (await must(db.from("payroll_periods").select("id"), "periods")).length,
     records: (await must(db.from("payroll_records").select("id"), "records")).length,
     payslips: (await must(db.from("payslips").select("id"), "payslips")).length,
+    // The row counts above cannot catch leaked AUDIT history: the row that leaks is a new
+    // one, so the count is simply higher, and nothing about periods/records/payslips moves.
+    // That is how three runs left 15 dangling audit rows behind a green sheet.
+    audit: (await must(db.from("audit_logs").select("id"), "audit after")).length,
   };
   const salaryNow = salaryBackup
     ? await must(db.from("payroll_profiles").select("base_salary, pay_frequency").eq("employee_id", salaryBackup.employee_id).maybeSingle(), "salary now")
@@ -92,7 +134,7 @@ async function restore() {
   check(
     "this run left payroll exactly as it found it",
     ok,
-    `periods ${base.periods}->${now.periods}, records ${base.records}->${now.records}, payslips ${base.payslips}->${now.payslips}, salary restored=${salaryOk}`,
+    `periods ${base.periods}->${now.periods}, records ${base.records}->${now.records}, payslips ${base.payslips}->${now.payslips}, audit ${base.audit}->${now.audit}, salary restored=${salaryOk}`,
   );
 }
 
