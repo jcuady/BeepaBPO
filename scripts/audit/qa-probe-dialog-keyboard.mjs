@@ -76,6 +76,22 @@ if (!ticketHref) {
 await page.goto(`${BASE}${ticketHref}`, { waitUntil: "domcontentloaded" });
 await page.waitForURL(/\/app\/tickets\/[0-9a-f-]{36}/, { timeout: 25000 });
 
+// Let hydration and effects settle BEFORE the first focus interaction.
+//
+// This is load-bearing and was learned the expensive way. `ConfirmDialog`
+// registers the listener that remembers the element to return focus to in a
+// `useEffect`. If the probe moves focus into the control before React has run
+// that effect, the first `focusin` is missed and the dialog has nothing to
+// restore focus to.
+//
+// The symptom was deeply misleading: Escape then failed while Cancel passed,
+// on the same page, in the same run — which reads as a keyboard-specific
+// upstream limitation. It also self-propagated, because a failed Escape left
+// focus on <body>, so the later Cancel case was inheriting a warm page rather
+// than proving anything on its own. Re-running each close path in a FRESH
+// browser context with this settle passes both.
+await page.waitForTimeout(1200);
+
 const select = page.locator('select[id^="ticket-status-"]').first();
 if ((await select.count()) === 0) {
   note("ticket page has no status select for owner");
@@ -139,29 +155,10 @@ await closeWithEscape();
 check("Escape closes the dialog", (await page.locator(DIALOG).count()) === 0);
 
 // ---- 3. focus is restored ----------------------------------------------------
-//
-// KNOWN OPEN, and reported as a FAIL rather than waived. Escape closes the
-// dialog and leaves focus on <body>. Root cause is upstream and was traced,
-// not guessed: a focus transition log around the close reads
-//
-//   focusout from Cancel -> BODY   (t+378ms)
-//   dialog REMOVED                 (t+381ms)
-//   ...no focusin, ever
-//
-// Escape routes through Base UI's `closeOnFocusOut` branch, which sets
-// `preventReturnFocusRef.current = true` and suppresses return focus outright
-// (FloatingFocusManager.js:591). No caller-side restore fires: three were tried
-// and measured. The Cancel path below DOES work, via `finalFocus`.
-//
-// It is marked known-open so the suite can still pass and gate on regressions,
-// but it stays visible in the output and in the evidence file. Deleting the
-// assertion would hide a real keyboard-navigation defect across 21 confirm
-// dialogs. See QA report §6.
 await closeWithEscape();
 const afterEscape = await activeInfo();
 check("Escape close restores focus to the trigger", afterEscape.id === statusId,
-  `activeElement ${afterEscape.tag}#${afterEscape.id || "(none)"} — Base UI closeOnFocusOut suppresses return focus`,
-  { knownOpen: "Base UI suppresses return focus on the Escape/closeOnFocusOut path; upstream, affects all 21 confirm dialogs" });
+  `activeElement ${afterEscape.tag}#${afterEscape.id || "(none)"}`);
 
 // ---- 4. the select is rolled back, so cancelling changes nothing --------------
 const afterEscapeValue = await select.inputValue();

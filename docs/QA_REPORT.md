@@ -702,7 +702,7 @@ so no crawler is affected; and the page a user sees is correct. Only monitoring 
 read a soft-404 as a success. The probe records it in an `observations` array rather
 than dropping the check, and §6 tracks it.
 
-### P2 — Confirm dialogs dumped keyboard focus onto `<body>` when they closed. Partly fixed, Escape path still open.
+### P2 — Confirm dialogs dumped keyboard focus onto `<body>` when they closed. Fixed.
 
 `ConfirmDialog` guards **21 mutations** — ticket status, payroll approval, CRM stage,
 leave approval, hiring conversion, CMS status, attendance corrections. It opens with
@@ -719,41 +719,60 @@ they came from.
 it is opened by React state from a `<select>`, a table-row button, a menu item — so
 there was nothing registered and it fell back to `<body>`.
 
-**Fixed on the Cancel path** by passing a *function* to `finalFocus`. The function form
-matters and is not a stylistic choice: reading `FloatingFocusManager`, a plain boolean
-resolves the target from the library's own "previously focused" stack, which by close
-time holds the **Cancel button** (focus moves into the popup immediately), and that
-element is unmounted by the time the restore runs. Passing a function sets
-`hasExplicitReturnFocus`, which skips that lookup entirely.
+**Fix.** Pass a *function* to `finalFocus`, returning the element to return to. The
+function form is the load-bearing part, not a stylistic choice: reading
+`FloatingFocusManager`, a plain boolean resolves the target from the library's own
+"previously focused" stack, which by close time holds the **Cancel button** (focus
+moves into the popup immediately), and that element is unmounted by the time the
+restore runs. A function sets `hasExplicitReturnFocus`, which skips that lookup.
 
-**Escape is still broken, and that is recorded as open rather than papered over.**
-A focus-transition trace around an Escape close reads:
+The trigger is captured by listening for `focusin` **and** `pointerdown` while the
+dialog is closed. The second listener is not belt-and-braces: Safari does not focus a
+`<button>` on click, so without it every mouse user on Safari loses their place, and a
+Chromium-only test run would never show it.
 
-```
-focusout from Cancel -> BODY   (t+378ms)
-dialog REMOVED                 (t+381ms)
-...no focusin, ever.  final activeElement: BODY
-```
+`qa-probe-dialog-keyboard.mjs`, **16/16**, evidence at
+`docs/evidence/dialog-keyboard-check.json`. Strictly read-only — it never clicks
+Confirm, and asserts the ticket status is unchanged at the end.
 
-Escape routes through Base UI's `closeOnFocusOut` branch, which sets
-`preventReturnFocusRef.current = true` and suppresses return focus outright
-(`FloatingFocusManager.js:591`). Four caller-side fixes were written, built and
-measured — an effect on `open`, a `requestAnimationFrame`, `onOpenChangeComplete`
-with a double frame, and the `finalFocus` function — and none fires on that path,
-because the library has already decided not to return focus before any of them run.
-All four were removed except the one that demonstrably works. Shipping the dead
-machinery would have been three plausible-looking mechanisms that never fire.
+#### The first four rounds of this were wrong, and the wrongness is the useful part
 
-`qa-probe-dialog-keyboard.mjs`, **15/16 with 1 known-open**, evidence at
-`docs/evidence/dialog-keyboard-check.json`. The probe prints it as `OPEN` and writes it
-to `knownOpenItems` in the evidence file, so the number that matters stays non-zero
-while the defect exists. Deleting the assertion would hide a real keyboard-navigation
-problem across 21 dialogs; reporting it as a plain failure would make the suite
-permanently red and stop it gating on regressions. The probe is strictly read-only —
-it never clicks Confirm, and asserts the ticket status is unchanged at the end.
+This defect was reported as **half-fixed** and written up with a specific upstream root
+cause: that Base UI's `closeOnFocusOut` branch sets `preventReturnFocusRef.current =
+true` and suppresses return focus on the Escape path (`FloatingFocusManager.js:591`).
+Escape failed; Cancel passed; every caller-side restore was tried and none fired. That
+is a coherent story and **none of it was true.**
 
-**Three of this probe's own checks were wrong before any of this was true**, and each
-is worth naming because each produced a confident false finding:
+Two separate mistakes, both worth naming:
+
+**1. The diagnosis was read out of the wrong branch.** Line 591 sits inside
+`else if (portalContext?.portalNode)`, which is only reached when `modal` is **false**.
+`DialogRoot`'s `modal` defaults to true, so a modal confirm dialog never executes that
+line. I had the mechanism right and the branch wrong, and stated it with a file and
+line number — which is exactly what makes a wrong diagnosis expensive: it sends the
+next person to the wrong line *with confidence*.
+
+**2. The instrument was broken, and it looked like a keyboard-specific library limit.**
+Instrumenting `finalFocus` showed it was called on **both** paths with the correct
+`closeType` (`"keyboard"` for Escape, `"mouse"` for Cancel) — and that the callback
+returned `null` on Escape because `returnFocusTo.current` was null. The probe was
+moving focus to the `<select>` **before React had run the effect** that registers the
+capture listener, so the very first `focusin` was missed.
+
+That also self-propagated. The failed Escape left focus on `<body>`, so the later Cancel
+case ran on a warm page and inherited the earlier capture — it was never proving
+anything on its own. Re-running each close path in a **fresh browser context** with a
+short settle before the first interaction passes both.
+
+The general lesson is the same one recorded twice already in this report, and it keeps
+earning its place: **a check whose selector or timing is wrong produces a confident,
+specific, entirely fabricated finding.** This one produced a fabricated *root cause*,
+which is a more durable error than a fabricated bug because it survives being correct
+about the symptom. Before blaming a library, confirm the callback you are instrumenting
+actually receives what you expect.
+
+Three of the probe's own checks were also wrong before any of this was true, and each
+produced a confident false finding:
 
 - *"`aria-modal` is missing"* — Base UI hides the page behind the dialog with
   `aria-hidden` on the app container rather than `aria-modal` on the dialog. The
@@ -768,8 +787,7 @@ is worth naming because each produced a confident false finding:
 
 A fourth one is worth keeping too: the probe initially asserted "inside the app shell"
 by counting `nav a[href]` and passed with 17, while reading the *marketing* header. See
-the 404 section above for that one, and note it is now the second time this project has
-produced it.
+the 404 section above, and note it is now the second time this project has produced it.
 
 ---
 
@@ -3192,7 +3210,7 @@ employee still sees only their own folder and hr sees all seven.
 | 15 | `resetPasswordAction` | Needs a real recovery token from an inbox; no mail provider in this environment. Part of the 2-action gap in row 4. The invalid-token path on `verifyEmailAction` *is* proven |
 | 16 | **Withdrawn — "4 CMS-built `/careers` slugs are link-reachable but absent from the sitemap"** | **Not a real gap.** All five `/careers` slugs are in the sitemap. The reading that said otherwise came from a stale build artifact; see "The sitemap findings below were a measurement error" in §2. Kept in the list so nobody re-derives it from the git history |
 | 17 | **`/app` not-found pages are served with HTTP 200, not 404** | **Pre-existing, documented, deliberately not fixed.** `app/app/loading.tsx` puts a Suspense boundary above every app page, so the response starts streaming, the status is committed as 200, and the later `notFound()` cannot change it. Proven by controlled comparison: `(marketing)` has no `loading.tsx` and `/resources/<bad-slug>` calls the same `notFound()` and correctly returns 404. **Left alone on purpose** — removing `loading.tsx` would trade a correct status code for the slow-TLS hang those files prevent; `/app` is `noindex, nofollow` so no crawler is affected; the page the user sees is correct. Only monitoring would read a soft-404 as a success. `qa-probe-not-found.mjs` records it in an `observations` array rather than dropping the assertion |
-| 18 | **Confirm dialogs lose keyboard focus on Escape** | **Partly fixed; the Escape path is still open.** `ConfirmDialog` has no Base UI `Trigger` (it is opened by state from a `<select>`, a row button, a menu item — 21 callers), so focus fell back to `<body>` on close. **Fixed on the Cancel path** with a function-form `finalFocus`, verified in the browser. **Escape still drops focus to `<body>`**: it routes through Base UI's `closeOnFocusOut` branch, which sets `preventReturnFocusRef.current = true` and suppresses return focus (`FloatingFocusManager.js:591`). A focus trace shows `focusout → BODY` at t+378ms, dialog removed at t+381ms, and **no `focusin` ever**. Four caller-side fixes were built and measured; none fires on that path and all but the working one were removed. Affects all 21 confirm dialogs, keyboard users only. `qa-probe-dialog-keyboard.mjs` reports it as `OPEN` and writes it to `knownOpenItems`, so it stays visible while the suite still gates on regressions. Needs an upstream fix or a Base UI version bump — see §2 |
+| 18 | ~~**Confirm dialogs lose keyboard focus on Escape**~~ | **WITHDRAWN — the defect was real, the diagnosis and the "still open" status were not.** This row was written after a fix that restored focus on Cancel but still not on Escape, blaming Base UI's `closeOnFocusOut` branch (`FloatingFocusManager.js:591`). That branch is inside `else if (portalContext?.portalNode)` and a modal dialog never reaches it. Instrumenting `finalFocus` showed it was called on **both** paths and returned `null` on Escape because the probe had focused the control *before React registered the capture listener* — a broken instrument, not a library limit. With a fresh context and a settle before the first interaction, **both paths pass: 16/16**. See §2 for the full correction. Kept so nobody re-derives the wrong root cause from the git history |
 
 **The demo tenant is a clock bomb, and it is worth knowing about before you trust
 a red gate.** Several seed scripts wrote relative deadlines with `Date.now()`
@@ -3272,7 +3290,7 @@ node scripts/audit/qa-cleanup-sitemap-probe.mjs            # removes ONLY rows t
 node scripts/audit/qa-probe-client-timesheet.mjs          # read-only: can this flow run here at all?
 node scripts/audit/qa-probe-summary-view-filter.mjs     # read-only: which predicate hides a record from the client view
 node scripts/audit/qa-probe-not-found.mjs                    # 18 assertions; proves every 404 has a way out that works
-node scripts/audit/qa-probe-dialog-keyboard.mjs                # 16 assertions, read-only; 1 known-open (Escape focus), see §6 row 18
+node scripts/audit/qa-probe-dialog-keyboard.mjs                # 16 assertions, read-only; Escape + Cancel both restore focus
 node scripts/audit/qa-probe-account-signin.mjs [email]        # read-only: can this demo account actually sign in, and is its membership active
 node scripts/audit/audit-role-sweep.mjs [role ...]           # 13 roles; exits non-zero on a failed sign-in, a broken page, or too little coverage
 

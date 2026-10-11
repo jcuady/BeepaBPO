@@ -57,34 +57,55 @@ export function ConfirmDialog({
   // `hasExplicitReturnFocus` true, which skips that lookup and focuses exactly
   // what we name.
   //
-  // KNOWN LIMIT, documented rather than hidden: this restores focus on the
-  // Cancel / close-button path but NOT on Escape. A traced Escape close reads:
+  // BOTH close paths are verified working — Escape (closeType "keyboard") and
+  // Cancel (closeType "mouse") both return focus to the trigger. That was NOT
+  // true on the first measurement, and why is worth keeping: the probe reported
+  // Escape failing for several rounds while Cancel passed, which reads exactly
+  // like an upstream library limitation. It was not. `finalFocus` was being
+  // called on both paths with the right `closeType`; the callback simply had
+  // nothing to return, because the probe moved focus to the <select> before
+  // React had run the effect that registers the capture listener, so the very
+  // first `focusin` was missed. A fresh browser context with a short settle
+  // before the first interaction passes both.
   //
-  //   focusout from Cancel -> BODY   (t+378ms)
-  //   dialog REMOVED                 (t+381ms)
-  //   ...no focusin, ever. final activeElement BODY.
-  //
-  // Escape reaches Base UI's `closeOnFocusOut` branch, which sets
-  // `preventReturnFocusRef.current = true` and suppresses return focus
-  // outright. Three separate manual restores (an effect on `open`, a
-  // `requestAnimationFrame`, and `onOpenChangeComplete` with a double frame)
-  // were tried against it and none fired, because by the time they would run
-  // the library has already decided not to return focus. See QA report §6.
+  // The version of this comment that was committed blamed Base UI's
+  // `closeOnFocusOut` branch for suppressing return focus. That was WRONG: that
+  // branch sits inside `else if (portalContext?.portalNode)`, which a modal
+  // dialog never reaches. A diagnosis read out of the wrong branch of someone
+  // else's source is worse than no diagnosis, because it sends the next person
+  // to the wrong line with confidence.
   const returnFocusTo = useRef<HTMLElement | null>(null);
 
-  // Capture while the dialog is still CLOSED. An effect keyed on `open` runs
-  // after Base UI has already moved focus into the popup, so it would capture
-  // the Cancel button — an element that is about to unmount.
+  // Capture the element to return to, while the dialog is still CLOSED.
+  //
+  // Two events are watched, not one, and the second is not belt-and-braces:
+  //
+  // - `focusin` covers keyboard and most mouse users.
+  // - `pointerdown` covers Safari, where clicking a <button> does NOT focus it.
+  //   Without this, every mouse user on Safari loses their place on close, and
+  //   it would never show up in a Chromium-only test run.
+  //
+  // Both handlers ignore anything inside the popup, since this listener can
+  // still be attached during the render that opens the dialog.
   useEffect(() => {
     if (open) return;
-    const onFocusIn = (event: FocusEvent) => {
-      const target = event.target as HTMLElement | null;
+    const remember = (raw: EventTarget | null) => {
+      const target = raw as HTMLElement | null;
       if (!target || target === document.body) return;
-      if (target.closest('[data-slot="dialog-content"]')) return;
-      returnFocusTo.current = target;
+      const focusable = target.closest<HTMLElement>(
+        'button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable || focusable.closest('[data-slot="dialog-content"]')) return;
+      returnFocusTo.current = focusable;
     };
+    const onFocusIn = (event: FocusEvent) => remember(event.target);
+    const onPointerDown = (event: Event) => remember(event.target);
     document.addEventListener("focusin", onFocusIn, true);
-    return () => document.removeEventListener("focusin", onFocusIn, true);
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn, true);
+      document.removeEventListener("pointerdown", onPointerDown, true);
+    };
   }, [open]);
 
   return (

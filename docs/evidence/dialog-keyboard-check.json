@@ -1,18 +1,12 @@
 {
   "check": "dialog-keyboard",
-  "generatedAt": "2026-10-11T19:24:08.876Z",
+  "generatedAt": "2026-10-11T19:32:08.520Z",
   "base": "http://localhost:3100",
   "total": 16,
-  "passed": 15,
+  "passed": 16,
   "failures": 0,
-  "knownOpen": 1,
-  "knownOpenItems": [
-    {
-      "name": "Escape close restores focus to the trigger",
-      "detail": "activeElement BODY#(none) — Base UI closeOnFocusOut suppresses return focus",
-      "why": "Base UI suppresses return focus on the Escape/closeOnFocusOut path; upstream, affects all 21 confirm dialogs"
-    }
-  ],
+  "knownOpen": 0,
+  "knownOpenItems": [],
   "warnings": 0,
   "results": [
     {
@@ -37,9 +31,8 @@
     },
     {
       "name": "Escape close restores focus to the trigger",
-      "pass": false,
-      "detail": "activeElement BODY#(none) — Base UI closeOnFocusOut suppresses return focus",
-      "knownOpen": "Base UI suppresses return focus on the Escape/closeOnFocusOut path; upstream, affects all 21 confirm dialogs"
+      "pass": true,
+      "detail": "activeElement SELECT#ticket-status-245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0"
     },
     {
       "name": "cancelling leaves the status unchanged",
