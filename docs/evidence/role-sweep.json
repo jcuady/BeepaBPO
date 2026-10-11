@@ -1,0 +1,4195 @@
+{
+  "base": "http://localhost:3100",
+  "startedAt": "2026-10-11T16:55:01.758Z",
+  "roles": {
+    "owner": {
+      "email": "owner@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/dashboard"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Overview"
+        },
+        {
+          "path": "/app/my",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Approvals"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "redirected",
+          "notes": [
+            "-> /app/dashboard"
+          ],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Overview"
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/dashboard"
+          ],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Overview"
+        },
+        {
+          "path": "/app/my/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/my/schedule",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/schedule",
+          "heading": "Schedule"
+        },
+        {
+          "path": "/app/my/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/leave",
+          "heading": "Leave"
+        },
+        {
+          "path": "/app/my/payroll",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/payroll",
+          "heading": "Payroll"
+        },
+        {
+          "path": "/app/my/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/my/nte",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/nte",
+          "heading": "My NTE"
+        },
+        {
+          "path": "/app/my/requests",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests",
+          "heading": "Requests"
+        },
+        {
+          "path": "/app/my/documents",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/documents",
+          "heading": "Documents"
+        },
+        {
+          "path": "/app/my/profile",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/profile",
+          "heading": "Profile"
+        },
+        {
+          "path": "/app/my/support",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/support",
+          "heading": "Support"
+        },
+        {
+          "path": "/app/hr",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/hr",
+          "heading": "HR"
+        },
+        {
+          "path": "/app/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/hr/nte",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/hr/nte",
+          "heading": "NTE Cases"
+        },
+        {
+          "path": "/app/payroll",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/payroll",
+          "heading": "Payroll"
+        },
+        {
+          "path": "/app/payroll/settings",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/payroll/settings",
+          "heading": "Payroll settings"
+        },
+        {
+          "path": "/app/billing",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing",
+          "heading": "Billing"
+        },
+        {
+          "path": "/app/recruitment",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment",
+          "heading": "Recruitment"
+        },
+        {
+          "path": "/app/crm",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm",
+          "heading": "CRM"
+        },
+        {
+          "path": "/app/crm/leads",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads",
+          "heading": "CRM Leads"
+        },
+        {
+          "path": "/app/crm/deals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals",
+          "heading": "CRM Deals"
+        },
+        {
+          "path": "/app/crm/proposals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/proposals",
+          "heading": "CRM Proposals"
+        },
+        {
+          "path": "/app/clients",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/clients",
+          "heading": "Clients"
+        },
+        {
+          "path": "/app/tickets",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets",
+          "heading": "Tickets"
+        },
+        {
+          "path": "/app/tickets/sla",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/sla",
+          "heading": "Ticket SLA"
+        },
+        {
+          "path": "/app/reports",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/reports",
+          "heading": "Reports"
+        },
+        {
+          "path": "/app/cms",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/cms",
+          "heading": "CMS"
+        },
+        {
+          "path": "/app/attendance/corrections",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/attendance/corrections",
+          "heading": "Attendance Corrections"
+        },
+        {
+          "path": "/app/admin",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/admin",
+          "heading": "Admin"
+        },
+        {
+          "path": "/app/admin/users",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/admin/users",
+          "heading": "Users"
+        },
+        {
+          "path": "/app/admin/organizations",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/admin/organizations",
+          "heading": "Organizations"
+        },
+        {
+          "path": "/app/admin/audit",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/admin/audit",
+          "heading": "Audit Log"
+        },
+        {
+          "path": "/app/admin/workflows",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/admin/workflows",
+          "heading": "Approval Workflows"
+        },
+        {
+          "path": "/app/payroll/periods",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/payroll/periods",
+          "heading": "Payroll Periods"
+        },
+        {
+          "path": "/app/employees",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees",
+          "heading": "Employees"
+        },
+        {
+          "path": "/app/my/notifications",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/notifications",
+          "heading": "Notifications"
+        },
+        {
+          "path": "/app/payroll/periods/42df33d5-f7b2-4194-8bc7-2ac75f4eead7",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/payroll/periods/42df33d5-f7b2-4194-8bc7-2ac75f4eead7",
+          "heading": "404"
+        },
+        {
+          "path": "/app/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/leave",
+          "heading": "Leave Approvals"
+        },
+        {
+          "path": "/app/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/my/requests/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "heading": "My Ticket"
+        },
+        {
+          "path": "/app/my/requests/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "heading": "My Ticket"
+        },
+        {
+          "path": "/app/billing/845a4e0a-765f-4883-8442-92f14067f56d",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/845a4e0a-765f-4883-8442-92f14067f56d",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/billing/55769788-afe1-424d-9272-9deb6a7e411a",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/55769788-afe1-424d-9272-9deb6a7e411a",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/billing/405d75d4-c481-4205-b7f9-a7398c2bac53",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/405d75d4-c481-4205-b7f9-a7398c2bac53",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/billing/a9902709-ea73-43ad-90df-4ea637fe2da3",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/a9902709-ea73-43ad-90df-4ea637fe2da3",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/billing/f21e5911-fcf5-4cfe-bca5-23f9cf263035",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/f21e5911-fcf5-4cfe-bca5-23f9cf263035",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/billing/1ae610fa-39f7-4c66-a305-b220a0050d84",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/1ae610fa-39f7-4c66-a305-b220a0050d84",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/billing/cd200c16-e000-4b23-85d7-bb5d27b04a8a",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/cd200c16-e000-4b23-85d7-bb5d27b04a8a",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/recruitment/jobs",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs",
+          "heading": "Job Posts"
+        },
+        {
+          "path": "/app/recruitment/applicants",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants",
+          "heading": "Applicants"
+        },
+        {
+          "path": "/app/crm/leads/432c95e8-91ee-483a-9d9f-4121a5d804e0",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads/432c95e8-91ee-483a-9d9f-4121a5d804e0",
+          "heading": "CRM Lead"
+        },
+        {
+          "path": "/app/crm/leads/1784e8ab-0033-489e-8674-9e95286e96a4",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads/1784e8ab-0033-489e-8674-9e95286e96a4",
+          "heading": "CRM Lead"
+        },
+        {
+          "path": "/app/crm/leads/7fca3da7-9ff1-4368-8db8-8ef937255d0a",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads/7fca3da7-9ff1-4368-8db8-8ef937255d0a",
+          "heading": "CRM Lead"
+        },
+        {
+          "path": "/app/crm/leads/65c75003-e5bc-4718-839c-cf3eb598b199",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads/65c75003-e5bc-4718-839c-cf3eb598b199",
+          "heading": "CRM Lead"
+        },
+        {
+          "path": "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
+          "heading": "CRM Deal"
+        }
+      ],
+      "summary": {
+        "total": 60,
+        "ok": 58,
+        "redirected": 2,
+        "empty": 0,
+        "download": 0,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    },
+    "superadmin": {
+      "email": "superadmin@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/dashboard"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Overview"
+        },
+        {
+          "path": "/app/my",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Approvals"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "redirected",
+          "notes": [
+            "-> /app/dashboard"
+          ],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Overview"
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/dashboard"
+          ],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Overview"
+        },
+        {
+          "path": "/app/my/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/my/schedule",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/schedule",
+          "heading": "Schedule"
+        },
+        {
+          "path": "/app/my/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/leave",
+          "heading": "Leave"
+        },
+        {
+          "path": "/app/my/payroll",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/payroll",
+          "heading": "Payroll"
+        },
+        {
+          "path": "/app/my/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/my/nte",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/nte",
+          "heading": "My NTE"
+        },
+        {
+          "path": "/app/my/requests",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests",
+          "heading": "Requests"
+        },
+        {
+          "path": "/app/my/documents",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/documents",
+          "heading": "Documents"
+        },
+        {
+          "path": "/app/my/profile",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/profile",
+          "heading": "Profile"
+        },
+        {
+          "path": "/app/my/support",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/support",
+          "heading": "Support"
+        },
+        {
+          "path": "/app/hr",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/hr",
+          "heading": "HR"
+        },
+        {
+          "path": "/app/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/reports",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/reports",
+          "heading": "Reports"
+        },
+        {
+          "path": "/app/cms",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/cms",
+          "heading": "CMS"
+        },
+        {
+          "path": "/app/attendance/corrections",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/attendance/corrections",
+          "heading": "Attendance Corrections"
+        },
+        {
+          "path": "/app/admin",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/admin",
+          "heading": "Admin"
+        },
+        {
+          "path": "/app/admin/users",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/admin/users",
+          "heading": "Users"
+        },
+        {
+          "path": "/app/admin/organizations",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/admin/organizations",
+          "heading": "Organizations"
+        },
+        {
+          "path": "/app/admin/audit",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/admin/audit",
+          "heading": "Audit Log"
+        },
+        {
+          "path": "/app/admin/workflows",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/admin/workflows",
+          "heading": "Approval Workflows"
+        },
+        {
+          "path": "/app/employees",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees",
+          "heading": "Employees"
+        },
+        {
+          "path": "/app/my/notifications",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/notifications",
+          "heading": "Notifications"
+        },
+        {
+          "path": "/app/reports/export",
+          "status": "download",
+          "notes": [
+            "navigation returned a file, not a document (expected for an export route)"
+          ]
+        },
+        {
+          "path": "/app/employees/717e51a9-f770-4b56-9ee9-72dd2e8e26c8",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/717e51a9-f770-4b56-9ee9-72dd2e8e26c8",
+          "heading": "Demo Owner"
+        },
+        {
+          "path": "/app/employees/c4dc9f09-32d4-4b91-ad84-38f5041071dd",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/c4dc9f09-32d4-4b91-ad84-38f5041071dd",
+          "heading": "Demo Super Admin"
+        },
+        {
+          "path": "/app/employees/6a3c313c-9895-458f-b09d-32bb1f016338",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/6a3c313c-9895-458f-b09d-32bb1f016338",
+          "heading": "Demo HR"
+        },
+        {
+          "path": "/app/employees/5754881d-cc9f-4d09-9e0c-271b08776491",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/5754881d-cc9f-4d09-9e0c-271b08776491",
+          "heading": "Demo Recruiter"
+        },
+        {
+          "path": "/app/employees/47badb71-715e-4773-8c2e-2bc494c8171c",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/47badb71-715e-4773-8c2e-2bc494c8171c",
+          "heading": "Demo Sales"
+        },
+        {
+          "path": "/app/employees/c6a9dd31-8b3d-4761-bb4d-7b1473bace2e",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/c6a9dd31-8b3d-4761-bb4d-7b1473bace2e",
+          "heading": "Demo Marketing"
+        },
+        {
+          "path": "/app/employees/66453427-cecc-4ad6-8bf2-372f2e83366d",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/66453427-cecc-4ad6-8bf2-372f2e83366d",
+          "heading": "Demo Operations"
+        },
+        {
+          "path": "/app/employees/9f0ef631-b8a0-4c11-9bf7-752b782b9b62",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/9f0ef631-b8a0-4c11-9bf7-752b782b9b62",
+          "heading": "Demo Team Lead"
+        },
+        {
+          "path": "/app/employees/3221b97a-37d7-4ce0-8e56-e518c9efb450",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/3221b97a-37d7-4ce0-8e56-e518c9efb450",
+          "heading": "Demo Finance"
+        },
+        {
+          "path": "/app/employees/108f95ff-e47f-414f-8ec2-0e49f075edb0",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/108f95ff-e47f-414f-8ec2-0e49f075edb0",
+          "heading": "Demo Employee"
+        },
+        {
+          "path": "/app/tickets/a00f891b-f771-41a9-9e8f-26e953942dbf",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/a00f891b-f771-41a9-9e8f-26e953942dbf",
+          "heading": "Access not allowed"
+        }
+      ],
+      "summary": {
+        "total": 39,
+        "ok": 36,
+        "redirected": 2,
+        "empty": 0,
+        "download": 1,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    },
+    "hr": {
+      "email": "hr@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/my"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/my",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Approvals"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/my/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/my/schedule",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/schedule",
+          "heading": "Schedule"
+        },
+        {
+          "path": "/app/my/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/leave",
+          "heading": "Leave"
+        },
+        {
+          "path": "/app/my/payroll",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/payroll",
+          "heading": "Payroll"
+        },
+        {
+          "path": "/app/my/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/my/nte",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/nte",
+          "heading": "My NTE"
+        },
+        {
+          "path": "/app/my/requests",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests",
+          "heading": "Requests"
+        },
+        {
+          "path": "/app/my/documents",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/documents",
+          "heading": "Documents"
+        },
+        {
+          "path": "/app/my/profile",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/profile",
+          "heading": "Profile"
+        },
+        {
+          "path": "/app/my/support",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/support",
+          "heading": "Support"
+        },
+        {
+          "path": "/app/hr",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/hr",
+          "heading": "HR"
+        },
+        {
+          "path": "/app/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/hr/nte",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/hr/nte",
+          "heading": "NTE Cases"
+        },
+        {
+          "path": "/app/recruitment",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment",
+          "heading": "Recruitment"
+        },
+        {
+          "path": "/app/reports",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/reports",
+          "heading": "Reports"
+        },
+        {
+          "path": "/app/attendance/corrections",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/attendance/corrections",
+          "heading": "Attendance Corrections"
+        },
+        {
+          "path": "/app/my/notifications",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/notifications",
+          "heading": "Notifications"
+        },
+        {
+          "path": "/app/my/requests/f5c7b8bb-8813-40f9-8185-b74a7baf67ab",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests/f5c7b8bb-8813-40f9-8185-b74a7baf67ab",
+          "heading": "My Ticket"
+        },
+        {
+          "path": "/app/my/requests/2ec3bf8e-c3a3-48fb-bfa7-b0d5284888f6",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests/2ec3bf8e-c3a3-48fb-bfa7-b0d5284888f6",
+          "heading": "My Ticket"
+        },
+        {
+          "path": "/app/employees",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees",
+          "heading": "Employees"
+        },
+        {
+          "path": "/app/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/leave",
+          "heading": "Leave Approvals"
+        },
+        {
+          "path": "/app/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/recruitment/jobs",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs",
+          "heading": "Job Posts"
+        },
+        {
+          "path": "/app/recruitment/applicants",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants",
+          "heading": "Applicants"
+        },
+        {
+          "path": "/app/reports/export",
+          "status": "download",
+          "notes": [
+            "navigation returned a file, not a document (expected for an export route)"
+          ]
+        },
+        {
+          "path": "/app/tickets",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/tickets/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/employees/717e51a9-f770-4b56-9ee9-72dd2e8e26c8",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/717e51a9-f770-4b56-9ee9-72dd2e8e26c8",
+          "heading": "Demo Owner"
+        },
+        {
+          "path": "/app/employees/c4dc9f09-32d4-4b91-ad84-38f5041071dd",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/c4dc9f09-32d4-4b91-ad84-38f5041071dd",
+          "heading": "Demo Super Admin"
+        },
+        {
+          "path": "/app/employees/6a3c313c-9895-458f-b09d-32bb1f016338",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/6a3c313c-9895-458f-b09d-32bb1f016338",
+          "heading": "Demo HR"
+        },
+        {
+          "path": "/app/employees/5754881d-cc9f-4d09-9e0c-271b08776491",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/5754881d-cc9f-4d09-9e0c-271b08776491",
+          "heading": "Demo Recruiter"
+        },
+        {
+          "path": "/app/employees/47badb71-715e-4773-8c2e-2bc494c8171c",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/47badb71-715e-4773-8c2e-2bc494c8171c",
+          "heading": "Demo Sales"
+        },
+        {
+          "path": "/app/employees/c6a9dd31-8b3d-4761-bb4d-7b1473bace2e",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/c6a9dd31-8b3d-4761-bb4d-7b1473bace2e",
+          "heading": "Demo Marketing"
+        },
+        {
+          "path": "/app/employees/66453427-cecc-4ad6-8bf2-372f2e83366d",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/66453427-cecc-4ad6-8bf2-372f2e83366d",
+          "heading": "Demo Operations"
+        },
+        {
+          "path": "/app/employees/9f0ef631-b8a0-4c11-9bf7-752b782b9b62",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/9f0ef631-b8a0-4c11-9bf7-752b782b9b62",
+          "heading": "Demo Team Lead"
+        },
+        {
+          "path": "/app/employees/3221b97a-37d7-4ce0-8e56-e518c9efb450",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/3221b97a-37d7-4ce0-8e56-e518c9efb450",
+          "heading": "Demo Finance"
+        },
+        {
+          "path": "/app/employees/108f95ff-e47f-414f-8ec2-0e49f075edb0",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/employees/108f95ff-e47f-414f-8ec2-0e49f075edb0",
+          "heading": "Demo Employee"
+        },
+        {
+          "path": "/app/recruitment/jobs/5cc13f10-835d-4079-9593-19c20f1c0dad",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs/5cc13f10-835d-4079-9593-19c20f1c0dad",
+          "heading": "Job post"
+        },
+        {
+          "path": "/app/recruitment/jobs/495b466e-d4ba-4156-a0a2-536e51390e1d",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs/495b466e-d4ba-4156-a0a2-536e51390e1d",
+          "heading": "Job post"
+        },
+        {
+          "path": "/app/recruitment/jobs/e15d778b-2a03-47b3-a4dd-37583207b9bb",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs/e15d778b-2a03-47b3-a4dd-37583207b9bb",
+          "heading": "Job post"
+        },
+        {
+          "path": "/app/recruitment/jobs/e5e781f4-f194-45a6-9479-eec27611a1b5",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs/e5e781f4-f194-45a6-9479-eec27611a1b5",
+          "heading": "Job post"
+        },
+        {
+          "path": "/app/recruitment/jobs/dc808e8c-d94e-484c-8c9c-c39268c99092",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs/dc808e8c-d94e-484c-8c9c-c39268c99092",
+          "heading": "Job post"
+        },
+        {
+          "path": "/app/recruitment/applicants/fc893c04-d9ee-404f-8fba-34de52da2fca",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants/fc893c04-d9ee-404f-8fba-34de52da2fca",
+          "heading": "Daniel Santos"
+        },
+        {
+          "path": "/app/recruitment/applicants/98a3ba75-592e-466f-8860-0d8ca00547e8",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants/98a3ba75-592e-466f-8860-0d8ca00547e8",
+          "heading": "Brian Ocampo"
+        },
+        {
+          "path": "/app/recruitment/applicants/9b7b2fde-3032-4c7d-92d9-0cd900ec2e6c",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants/9b7b2fde-3032-4c7d-92d9-0cd900ec2e6c",
+          "heading": "Cheryl Reyes"
+        },
+        {
+          "path": "/app/recruitment/applicants/e839f22c-8a7d-4019-9ca6-694d358223cd",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants/e839f22c-8a7d-4019-9ca6-694d358223cd",
+          "heading": "Elena Cruz"
+        },
+        {
+          "path": "/app/recruitment/applicants/5abe7d62-c2fd-4a6f-98e7-7a8aafd20e3f",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants/5abe7d62-c2fd-4a6f-98e7-7a8aafd20e3f",
+          "heading": "Francis Lim"
+        },
+        {
+          "path": "/app/recruitment/applicants/effcc4f9-82bb-4ad7-bb36-c1170ea757f9",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants/effcc4f9-82bb-4ad7-bb36-c1170ea757f9",
+          "heading": "Andrea Villanueva"
+        }
+      ],
+      "summary": {
+        "total": 54,
+        "ok": 51,
+        "redirected": 2,
+        "empty": 0,
+        "download": 1,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    },
+    "recruiter": {
+      "email": "recruiter@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/my"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/my",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/my/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/my/schedule",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/schedule",
+          "heading": "Schedule"
+        },
+        {
+          "path": "/app/my/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/leave",
+          "heading": "Leave"
+        },
+        {
+          "path": "/app/my/payroll",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/payroll",
+          "heading": "Payroll"
+        },
+        {
+          "path": "/app/my/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/my/nte",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/nte",
+          "heading": "My NTE"
+        },
+        {
+          "path": "/app/my/requests",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests",
+          "heading": "Requests"
+        },
+        {
+          "path": "/app/my/documents",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/documents",
+          "heading": "Documents"
+        },
+        {
+          "path": "/app/my/profile",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/profile",
+          "heading": "Profile"
+        },
+        {
+          "path": "/app/my/support",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/support",
+          "heading": "Support"
+        },
+        {
+          "path": "/app/recruitment",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment",
+          "heading": "Recruitment"
+        },
+        {
+          "path": "/app/reports",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/reports",
+          "heading": "Reports"
+        },
+        {
+          "path": "/app/my/notifications",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/notifications",
+          "heading": "Notifications"
+        },
+        {
+          "path": "/app/my/requests/dc922ab3-4b9c-41d4-999e-93e972196bd4",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests/dc922ab3-4b9c-41d4-999e-93e972196bd4",
+          "heading": "My Ticket"
+        },
+        {
+          "path": "/app/recruitment/jobs",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs",
+          "heading": "Job Posts"
+        },
+        {
+          "path": "/app/recruitment/applicants",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants",
+          "heading": "Applicants"
+        },
+        {
+          "path": "/app/tickets",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/tickets/d6ceef3a-5878-4e15-ad44-846ba005f055",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/d6ceef3a-5878-4e15-ad44-846ba005f055",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/recruitment/jobs/5cc13f10-835d-4079-9593-19c20f1c0dad",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs/5cc13f10-835d-4079-9593-19c20f1c0dad",
+          "heading": "Job post"
+        },
+        {
+          "path": "/app/recruitment/jobs/495b466e-d4ba-4156-a0a2-536e51390e1d",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs/495b466e-d4ba-4156-a0a2-536e51390e1d",
+          "heading": "Job post"
+        },
+        {
+          "path": "/app/recruitment/jobs/e15d778b-2a03-47b3-a4dd-37583207b9bb",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs/e15d778b-2a03-47b3-a4dd-37583207b9bb",
+          "heading": "Job post"
+        },
+        {
+          "path": "/app/recruitment/jobs/e5e781f4-f194-45a6-9479-eec27611a1b5",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs/e5e781f4-f194-45a6-9479-eec27611a1b5",
+          "heading": "Job post"
+        },
+        {
+          "path": "/app/recruitment/jobs/dc808e8c-d94e-484c-8c9c-c39268c99092",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/jobs/dc808e8c-d94e-484c-8c9c-c39268c99092",
+          "heading": "Job post"
+        },
+        {
+          "path": "/app/recruitment/applicants/fc893c04-d9ee-404f-8fba-34de52da2fca",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants/fc893c04-d9ee-404f-8fba-34de52da2fca",
+          "heading": "Daniel Santos"
+        },
+        {
+          "path": "/app/recruitment/applicants/98a3ba75-592e-466f-8860-0d8ca00547e8",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants/98a3ba75-592e-466f-8860-0d8ca00547e8",
+          "heading": "Brian Ocampo"
+        },
+        {
+          "path": "/app/recruitment/applicants/9b7b2fde-3032-4c7d-92d9-0cd900ec2e6c",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants/9b7b2fde-3032-4c7d-92d9-0cd900ec2e6c",
+          "heading": "Cheryl Reyes"
+        },
+        {
+          "path": "/app/recruitment/applicants/e839f22c-8a7d-4019-9ca6-694d358223cd",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants/e839f22c-8a7d-4019-9ca6-694d358223cd",
+          "heading": "Elena Cruz"
+        },
+        {
+          "path": "/app/recruitment/applicants/5abe7d62-c2fd-4a6f-98e7-7a8aafd20e3f",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants/5abe7d62-c2fd-4a6f-98e7-7a8aafd20e3f",
+          "heading": "Francis Lim"
+        },
+        {
+          "path": "/app/recruitment/applicants/effcc4f9-82bb-4ad7-bb36-c1170ea757f9",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/recruitment/applicants/effcc4f9-82bb-4ad7-bb36-c1170ea757f9",
+          "heading": "Andrea Villanueva"
+        }
+      ],
+      "summary": {
+        "total": 34,
+        "ok": 32,
+        "redirected": 2,
+        "empty": 0,
+        "download": 0,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    },
+    "sales": {
+      "email": "sales@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/crm"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/my",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "redirected",
+          "notes": [
+            "-> /app/crm"
+          ],
+          "http": 200,
+          "landed": "/app/crm",
+          "heading": "CRM"
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/crm"
+          ],
+          "http": 200,
+          "landed": "/app/crm",
+          "heading": "CRM"
+        },
+        {
+          "path": "/app/my/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/my/schedule",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/schedule",
+          "heading": "Schedule"
+        },
+        {
+          "path": "/app/my/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/leave",
+          "heading": "Leave"
+        },
+        {
+          "path": "/app/my/payroll",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/payroll",
+          "heading": "Payroll"
+        },
+        {
+          "path": "/app/my/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/my/nte",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/nte",
+          "heading": "My NTE"
+        },
+        {
+          "path": "/app/my/requests",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests",
+          "heading": "Requests"
+        },
+        {
+          "path": "/app/my/documents",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/documents",
+          "heading": "Documents"
+        },
+        {
+          "path": "/app/my/profile",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/profile",
+          "heading": "Profile"
+        },
+        {
+          "path": "/app/my/support",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/support",
+          "heading": "Support"
+        },
+        {
+          "path": "/app/crm",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm",
+          "heading": "CRM"
+        },
+        {
+          "path": "/app/crm/leads",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads",
+          "heading": "CRM Leads"
+        },
+        {
+          "path": "/app/crm/deals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals",
+          "heading": "CRM Deals"
+        },
+        {
+          "path": "/app/crm/proposals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/proposals",
+          "heading": "CRM Proposals"
+        },
+        {
+          "path": "/app/clients",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/clients",
+          "heading": "Clients"
+        },
+        {
+          "path": "/app/tickets",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets",
+          "heading": "Tickets"
+        },
+        {
+          "path": "/app/reports",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/reports",
+          "heading": "Reports"
+        },
+        {
+          "path": "/app/my/notifications",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/notifications",
+          "heading": "Notifications"
+        },
+        {
+          "path": "/app/crm/leads/432c95e8-91ee-483a-9d9f-4121a5d804e0",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads/432c95e8-91ee-483a-9d9f-4121a5d804e0",
+          "heading": "CRM Lead"
+        },
+        {
+          "path": "/app/crm/leads/1784e8ab-0033-489e-8674-9e95286e96a4",
+          "status": "empty-state",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads/1784e8ab-0033-489e-8674-9e95286e96a4",
+          "heading": "CRM Lead"
+        },
+        {
+          "path": "/app/crm/leads/7fca3da7-9ff1-4368-8db8-8ef937255d0a",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads/7fca3da7-9ff1-4368-8db8-8ef937255d0a",
+          "heading": "CRM Lead"
+        },
+        {
+          "path": "/app/crm/leads/65c75003-e5bc-4718-839c-cf3eb598b199",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads/65c75003-e5bc-4718-839c-cf3eb598b199",
+          "heading": "CRM Lead"
+        },
+        {
+          "path": "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/be37841c-9607-4816-b279-f5d7e3174d6f",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/be37841c-9607-4816-b279-f5d7e3174d6f",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/2e058f00-67d6-4e67-a934-cba4c1e302e3",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/2e058f00-67d6-4e67-a934-cba4c1e302e3",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/fc82177d-e8b2-4dc4-a462-3aac8e3a476d",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/fc82177d-e8b2-4dc4-a462-3aac8e3a476d",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/3c88b9b2-1cf5-41bf-88a8-03714a33c378",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/3c88b9b2-1cf5-41bf-88a8-03714a33c378",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/tickets/245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/f5c7b8bb-8813-40f9-8185-b74a7baf67ab",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/f5c7b8bb-8813-40f9-8185-b74a7baf67ab",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/dd296e04-234c-48d7-8a6c-9328191508cd",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/dd296e04-234c-48d7-8a6c-9328191508cd",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/2ec3bf8e-c3a3-48fb-bfa7-b0d5284888f6",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/2ec3bf8e-c3a3-48fb-bfa7-b0d5284888f6",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/2dcb38e5-aec4-4324-a4dc-7e7a0e5ae2ec",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/2dcb38e5-aec4-4324-a4dc-7e7a0e5ae2ec",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/d6ceef3a-5878-4e15-ad44-846ba005f055",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/d6ceef3a-5878-4e15-ad44-846ba005f055",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/1c16d7f6-8ed7-40e0-a261-0c8cd1403b44",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/1c16d7f6-8ed7-40e0-a261-0c8cd1403b44",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/50e55ef1-ed0c-4f89-aa05-b4050ae431e6",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/50e55ef1-ed0c-4f89-aa05-b4050ae431e6",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/a00f891b-f771-41a9-9e8f-26e953942dbf",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/a00f891b-f771-41a9-9e8f-26e953942dbf",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/dc922ab3-4b9c-41d4-999e-93e972196bd4",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/dc922ab3-4b9c-41d4-999e-93e972196bd4",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "heading": "Ticket"
+        }
+      ],
+      "summary": {
+        "total": 47,
+        "ok": 44,
+        "redirected": 2,
+        "empty": 1,
+        "download": 0,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    },
+    "marketing": {
+      "email": "marketing@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/cms"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/my",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "redirected",
+          "notes": [
+            "-> /app/cms"
+          ],
+          "http": 200,
+          "landed": "/app/cms",
+          "heading": "CMS"
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/cms"
+          ],
+          "http": 200,
+          "landed": "/app/cms",
+          "heading": "CMS"
+        },
+        {
+          "path": "/app/my/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/my/schedule",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/schedule",
+          "heading": "Schedule"
+        },
+        {
+          "path": "/app/my/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/leave",
+          "heading": "Leave"
+        },
+        {
+          "path": "/app/my/payroll",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/payroll",
+          "heading": "Payroll"
+        },
+        {
+          "path": "/app/my/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/my/nte",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/nte",
+          "heading": "My NTE"
+        },
+        {
+          "path": "/app/my/requests",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests",
+          "heading": "Requests"
+        },
+        {
+          "path": "/app/my/documents",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/documents",
+          "heading": "Documents"
+        },
+        {
+          "path": "/app/my/profile",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/profile",
+          "heading": "Profile"
+        },
+        {
+          "path": "/app/my/support",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/support",
+          "heading": "Support"
+        },
+        {
+          "path": "/app/crm",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm",
+          "heading": "CRM"
+        },
+        {
+          "path": "/app/crm/leads",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads",
+          "heading": "CRM Leads"
+        },
+        {
+          "path": "/app/crm/deals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals",
+          "heading": "CRM Deals"
+        },
+        {
+          "path": "/app/crm/proposals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/proposals",
+          "heading": "CRM Proposals"
+        },
+        {
+          "path": "/app/tickets",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets",
+          "heading": "Tickets"
+        },
+        {
+          "path": "/app/reports",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/reports",
+          "heading": "Reports"
+        },
+        {
+          "path": "/app/cms",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/cms",
+          "heading": "CMS"
+        },
+        {
+          "path": "/app/my/notifications",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/notifications",
+          "heading": "Notifications"
+        },
+        {
+          "path": "/app/my/requests/2dcb38e5-aec4-4324-a4dc-7e7a0e5ae2ec",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests/2dcb38e5-aec4-4324-a4dc-7e7a0e5ae2ec",
+          "heading": "My Ticket"
+        },
+        {
+          "path": "/app/crm/leads/432c95e8-91ee-483a-9d9f-4121a5d804e0",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads/432c95e8-91ee-483a-9d9f-4121a5d804e0",
+          "heading": "CRM Lead"
+        },
+        {
+          "path": "/app/crm/leads/1784e8ab-0033-489e-8674-9e95286e96a4",
+          "status": "empty-state",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads/1784e8ab-0033-489e-8674-9e95286e96a4",
+          "heading": "CRM Lead"
+        },
+        {
+          "path": "/app/crm/leads/7fca3da7-9ff1-4368-8db8-8ef937255d0a",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads/7fca3da7-9ff1-4368-8db8-8ef937255d0a",
+          "heading": "CRM Lead"
+        },
+        {
+          "path": "/app/crm/leads/65c75003-e5bc-4718-839c-cf3eb598b199",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/leads/65c75003-e5bc-4718-839c-cf3eb598b199",
+          "heading": "CRM Lead"
+        },
+        {
+          "path": "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/be37841c-9607-4816-b279-f5d7e3174d6f",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/be37841c-9607-4816-b279-f5d7e3174d6f",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/2e058f00-67d6-4e67-a934-cba4c1e302e3",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/2e058f00-67d6-4e67-a934-cba4c1e302e3",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/fc82177d-e8b2-4dc4-a462-3aac8e3a476d",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/fc82177d-e8b2-4dc4-a462-3aac8e3a476d",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/crm/deals/3c88b9b2-1cf5-41bf-88a8-03714a33c378",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/crm/deals/3c88b9b2-1cf5-41bf-88a8-03714a33c378",
+          "heading": "CRM Deal"
+        },
+        {
+          "path": "/app/tickets/245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/f5c7b8bb-8813-40f9-8185-b74a7baf67ab",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/f5c7b8bb-8813-40f9-8185-b74a7baf67ab",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/dd296e04-234c-48d7-8a6c-9328191508cd",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/dd296e04-234c-48d7-8a6c-9328191508cd",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/2ec3bf8e-c3a3-48fb-bfa7-b0d5284888f6",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/2ec3bf8e-c3a3-48fb-bfa7-b0d5284888f6",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/2dcb38e5-aec4-4324-a4dc-7e7a0e5ae2ec",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/2dcb38e5-aec4-4324-a4dc-7e7a0e5ae2ec",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/d6ceef3a-5878-4e15-ad44-846ba005f055",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/d6ceef3a-5878-4e15-ad44-846ba005f055",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/1c16d7f6-8ed7-40e0-a261-0c8cd1403b44",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/1c16d7f6-8ed7-40e0-a261-0c8cd1403b44",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/50e55ef1-ed0c-4f89-aa05-b4050ae431e6",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/50e55ef1-ed0c-4f89-aa05-b4050ae431e6",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/a00f891b-f771-41a9-9e8f-26e953942dbf",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/a00f891b-f771-41a9-9e8f-26e953942dbf",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/dc922ab3-4b9c-41d4-999e-93e972196bd4",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/dc922ab3-4b9c-41d4-999e-93e972196bd4",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/clients",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/clients",
+          "heading": "Access not allowed"
+        }
+      ],
+      "summary": {
+        "total": 49,
+        "ok": 46,
+        "redirected": 2,
+        "empty": 1,
+        "download": 0,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    },
+    "operations": {
+      "email": "operations@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/my"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/my",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/my/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/my/schedule",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/schedule",
+          "heading": "Schedule"
+        },
+        {
+          "path": "/app/my/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/leave",
+          "heading": "Leave"
+        },
+        {
+          "path": "/app/my/payroll",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/payroll",
+          "heading": "Payroll"
+        },
+        {
+          "path": "/app/my/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/my/nte",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/nte",
+          "heading": "My NTE"
+        },
+        {
+          "path": "/app/my/requests",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests",
+          "heading": "Requests"
+        },
+        {
+          "path": "/app/my/documents",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/documents",
+          "heading": "Documents"
+        },
+        {
+          "path": "/app/my/profile",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/profile",
+          "heading": "Profile"
+        },
+        {
+          "path": "/app/my/support",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/support",
+          "heading": "Support"
+        },
+        {
+          "path": "/app/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/clients",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/clients",
+          "heading": "Clients"
+        },
+        {
+          "path": "/app/tickets",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets",
+          "heading": "Tickets"
+        },
+        {
+          "path": "/app/tickets/sla",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/sla",
+          "heading": "Ticket SLA"
+        },
+        {
+          "path": "/app/reports",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/reports",
+          "heading": "Reports"
+        },
+        {
+          "path": "/app/my/notifications",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/notifications",
+          "heading": "Notifications"
+        },
+        {
+          "path": "/app/my/requests/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "heading": "My Ticket"
+        },
+        {
+          "path": "/app/tickets/245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/f5c7b8bb-8813-40f9-8185-b74a7baf67ab",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/f5c7b8bb-8813-40f9-8185-b74a7baf67ab",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/dd296e04-234c-48d7-8a6c-9328191508cd",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/dd296e04-234c-48d7-8a6c-9328191508cd",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/2ec3bf8e-c3a3-48fb-bfa7-b0d5284888f6",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/2ec3bf8e-c3a3-48fb-bfa7-b0d5284888f6",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/2dcb38e5-aec4-4324-a4dc-7e7a0e5ae2ec",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/2dcb38e5-aec4-4324-a4dc-7e7a0e5ae2ec",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/d6ceef3a-5878-4e15-ad44-846ba005f055",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/d6ceef3a-5878-4e15-ad44-846ba005f055",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/1c16d7f6-8ed7-40e0-a261-0c8cd1403b44",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/1c16d7f6-8ed7-40e0-a261-0c8cd1403b44",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/50e55ef1-ed0c-4f89-aa05-b4050ae431e6",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/50e55ef1-ed0c-4f89-aa05-b4050ae431e6",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/a00f891b-f771-41a9-9e8f-26e953942dbf",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/a00f891b-f771-41a9-9e8f-26e953942dbf",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/dc922ab3-4b9c-41d4-999e-93e972196bd4",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/dc922ab3-4b9c-41d4-999e-93e972196bd4",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/reports/export",
+          "status": "download",
+          "notes": [
+            "navigation returned a file, not a document (expected for an export route)"
+          ]
+        }
+      ],
+      "summary": {
+        "total": 36,
+        "ok": 33,
+        "redirected": 2,
+        "empty": 0,
+        "download": 1,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    },
+    "teamlead": {
+      "email": "teamlead@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/my"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/my",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Approvals"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/my/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/my/schedule",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/schedule",
+          "heading": "Schedule"
+        },
+        {
+          "path": "/app/my/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/leave",
+          "heading": "Leave"
+        },
+        {
+          "path": "/app/my/payroll",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/payroll",
+          "heading": "Payroll"
+        },
+        {
+          "path": "/app/my/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/my/nte",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/nte",
+          "heading": "My NTE"
+        },
+        {
+          "path": "/app/my/requests",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests",
+          "heading": "Requests"
+        },
+        {
+          "path": "/app/my/documents",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/documents",
+          "heading": "Documents"
+        },
+        {
+          "path": "/app/my/profile",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/profile",
+          "heading": "Profile"
+        },
+        {
+          "path": "/app/my/support",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/support",
+          "heading": "Support"
+        },
+        {
+          "path": "/app/hr",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/hr",
+          "heading": "HR"
+        },
+        {
+          "path": "/app/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/reports",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/reports",
+          "heading": "Reports"
+        },
+        {
+          "path": "/app/attendance/corrections",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/attendance/corrections",
+          "heading": "Attendance Corrections"
+        },
+        {
+          "path": "/app/my/notifications",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/notifications",
+          "heading": "Notifications"
+        },
+        {
+          "path": "/app/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/leave",
+          "heading": "Leave Approvals"
+        }
+      ],
+      "summary": {
+        "total": 21,
+        "ok": 19,
+        "redirected": 2,
+        "empty": 0,
+        "download": 0,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    },
+    "finance": {
+      "email": "finance@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/my"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/my",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Approvals"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/my/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/my/schedule",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/schedule",
+          "heading": "Schedule"
+        },
+        {
+          "path": "/app/my/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/leave",
+          "heading": "Leave"
+        },
+        {
+          "path": "/app/my/payroll",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/payroll",
+          "heading": "Payroll"
+        },
+        {
+          "path": "/app/my/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/my/nte",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/nte",
+          "heading": "My NTE"
+        },
+        {
+          "path": "/app/my/requests",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests",
+          "heading": "Requests"
+        },
+        {
+          "path": "/app/my/documents",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/documents",
+          "heading": "Documents"
+        },
+        {
+          "path": "/app/my/profile",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/profile",
+          "heading": "Profile"
+        },
+        {
+          "path": "/app/my/support",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/support",
+          "heading": "Support"
+        },
+        {
+          "path": "/app/payroll",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/payroll",
+          "heading": "Payroll"
+        },
+        {
+          "path": "/app/payroll/settings",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/payroll/settings",
+          "heading": "Payroll settings"
+        },
+        {
+          "path": "/app/billing",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing",
+          "heading": "Billing"
+        },
+        {
+          "path": "/app/reports",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/reports",
+          "heading": "Reports"
+        },
+        {
+          "path": "/app/my/notifications",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/notifications",
+          "heading": "Notifications"
+        },
+        {
+          "path": "/app/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/my/requests/245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests/245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0",
+          "heading": "My Ticket"
+        },
+        {
+          "path": "/app/my/requests/dd296e04-234c-48d7-8a6c-9328191508cd",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests/dd296e04-234c-48d7-8a6c-9328191508cd",
+          "heading": "My Ticket"
+        },
+        {
+          "path": "/app/my/requests/1c16d7f6-8ed7-40e0-a261-0c8cd1403b44",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests/1c16d7f6-8ed7-40e0-a261-0c8cd1403b44",
+          "heading": "My Ticket"
+        },
+        {
+          "path": "/app/payroll/periods",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/payroll/periods",
+          "heading": "Payroll Periods"
+        },
+        {
+          "path": "/app/billing/845a4e0a-765f-4883-8442-92f14067f56d",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/845a4e0a-765f-4883-8442-92f14067f56d",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/billing/55769788-afe1-424d-9272-9deb6a7e411a",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/55769788-afe1-424d-9272-9deb6a7e411a",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/billing/405d75d4-c481-4205-b7f9-a7398c2bac53",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/405d75d4-c481-4205-b7f9-a7398c2bac53",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/billing/a9902709-ea73-43ad-90df-4ea637fe2da3",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/a9902709-ea73-43ad-90df-4ea637fe2da3",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/billing/f21e5911-fcf5-4cfe-bca5-23f9cf263035",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/f21e5911-fcf5-4cfe-bca5-23f9cf263035",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/billing/1ae610fa-39f7-4c66-a305-b220a0050d84",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/1ae610fa-39f7-4c66-a305-b220a0050d84",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/billing/cd200c16-e000-4b23-85d7-bb5d27b04a8a",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/billing/cd200c16-e000-4b23-85d7-bb5d27b04a8a",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/reports/export",
+          "status": "download",
+          "notes": [
+            "navigation returned a file, not a document (expected for an export route)"
+          ]
+        },
+        {
+          "path": "/app/tickets",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/payroll/periods/5d765fec-a0b9-4a3f-90e1-7e090264479a",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/payroll/periods/5d765fec-a0b9-4a3f-90e1-7e090264479a",
+          "heading": "Payroll Period"
+        },
+        {
+          "path": "/app/payroll/periods/4fb757e0-d16e-4908-b596-4571a9bc3f42",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/payroll/periods/4fb757e0-d16e-4908-b596-4571a9bc3f42",
+          "heading": "Payroll Period"
+        }
+      ],
+      "summary": {
+        "total": 36,
+        "ok": 33,
+        "redirected": 2,
+        "empty": 0,
+        "download": 1,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    },
+    "employee": {
+      "email": "employee@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/my"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/my",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/my"
+          ],
+          "http": 200,
+          "landed": "/app/my",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/my/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/my/schedule",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/schedule",
+          "heading": "Schedule"
+        },
+        {
+          "path": "/app/my/leave",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/leave",
+          "heading": "Leave"
+        },
+        {
+          "path": "/app/my/payroll",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/payroll",
+          "heading": "Payroll"
+        },
+        {
+          "path": "/app/my/cash-advances",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/cash-advances",
+          "heading": "Cash Advances"
+        },
+        {
+          "path": "/app/my/nte",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/nte",
+          "heading": "My NTE"
+        },
+        {
+          "path": "/app/my/requests",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/requests",
+          "heading": "Requests"
+        },
+        {
+          "path": "/app/my/documents",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/documents",
+          "heading": "Documents"
+        },
+        {
+          "path": "/app/my/profile",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/profile",
+          "heading": "Profile"
+        },
+        {
+          "path": "/app/my/support",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/support",
+          "heading": "Support"
+        },
+        {
+          "path": "/app/my/notifications",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/my/notifications",
+          "heading": "Notifications"
+        },
+        {
+          "path": "/app/my/payroll/87b593eb-8e90-4d75-b29e-0a5713c44f8d/payslip",
+          "status": "download",
+          "notes": [
+            "navigation returned a file, not a document (expected for an export route)"
+          ]
+        },
+        {
+          "path": "/app/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "heading": "Access not allowed"
+        }
+      ],
+      "summary": {
+        "total": 18,
+        "ok": 15,
+        "redirected": 2,
+        "empty": 0,
+        "download": 1,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    },
+    "clientadmin": {
+      "email": "clientadmin@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/client"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/my",
+          "status": "redirected",
+          "notes": [
+            "-> /app/client"
+          ],
+          "http": 200,
+          "landed": "/app/client",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "redirected",
+          "notes": [
+            "-> /app/client"
+          ],
+          "http": 200,
+          "landed": "/app/client",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/client"
+          ],
+          "http": 200,
+          "landed": "/app/client",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/client",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/client/team",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/team",
+          "heading": "My Team"
+        },
+        {
+          "path": "/app/client/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/client/timesheets",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/timesheets",
+          "heading": "Timesheets"
+        },
+        {
+          "path": "/app/client/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/approvals",
+          "heading": "Approvals"
+        },
+        {
+          "path": "/app/client/performance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/performance",
+          "heading": "Performance"
+        },
+        {
+          "path": "/app/client/requests",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/requests",
+          "heading": "Requests"
+        },
+        {
+          "path": "/app/client/tickets",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets",
+          "heading": "Tickets"
+        },
+        {
+          "path": "/app/client/reports",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/reports",
+          "heading": "Reports"
+        },
+        {
+          "path": "/app/client/documents",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/documents",
+          "heading": "Documents"
+        },
+        {
+          "path": "/app/client/billing",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing",
+          "heading": "Billing"
+        },
+        {
+          "path": "/app/client/settings",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/settings",
+          "heading": "Settings"
+        },
+        {
+          "path": "/app/client/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/dd296e04-234c-48d7-8a6c-9328191508cd",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/dd296e04-234c-48d7-8a6c-9328191508cd",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/2ec3bf8e-c3a3-48fb-bfa7-b0d5284888f6",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/2ec3bf8e-c3a3-48fb-bfa7-b0d5284888f6",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/2dcb38e5-aec4-4324-a4dc-7e7a0e5ae2ec",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/2dcb38e5-aec4-4324-a4dc-7e7a0e5ae2ec",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/d6ceef3a-5878-4e15-ad44-846ba005f055",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/d6ceef3a-5878-4e15-ad44-846ba005f055",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/f5c7b8bb-8813-40f9-8185-b74a7baf67ab",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/f5c7b8bb-8813-40f9-8185-b74a7baf67ab",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/1c16d7f6-8ed7-40e0-a261-0c8cd1403b44",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/1c16d7f6-8ed7-40e0-a261-0c8cd1403b44",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/50e55ef1-ed0c-4f89-aa05-b4050ae431e6",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/50e55ef1-ed0c-4f89-aa05-b4050ae431e6",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/a00f891b-f771-41a9-9e8f-26e953942dbf",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/a00f891b-f771-41a9-9e8f-26e953942dbf",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/dc922ab3-4b9c-41d4-999e-93e972196bd4",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/dc922ab3-4b9c-41d4-999e-93e972196bd4",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/billing/55769788-afe1-424d-9272-9deb6a7e411a",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing/55769788-afe1-424d-9272-9deb6a7e411a",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/client/billing/405d75d4-c481-4205-b7f9-a7398c2bac53",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing/405d75d4-c481-4205-b7f9-a7398c2bac53",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/client/billing/a9902709-ea73-43ad-90df-4ea637fe2da3",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing/a9902709-ea73-43ad-90df-4ea637fe2da3",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/client/billing/f21e5911-fcf5-4cfe-bca5-23f9cf263035",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing/f21e5911-fcf5-4cfe-bca5-23f9cf263035",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/client/billing/1ae610fa-39f7-4c66-a305-b220a0050d84",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing/1ae610fa-39f7-4c66-a305-b220a0050d84",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/client/billing/cd200c16-e000-4b23-85d7-bb5d27b04a8a",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing/cd200c16-e000-4b23-85d7-bb5d27b04a8a",
+          "heading": "Invoice"
+        }
+      ],
+      "summary": {
+        "total": 36,
+        "ok": 33,
+        "redirected": 3,
+        "empty": 0,
+        "download": 0,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    },
+    "clientviewer": {
+      "email": "clientviewer@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/client"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/my",
+          "status": "redirected",
+          "notes": [
+            "-> /app/client"
+          ],
+          "http": 200,
+          "landed": "/app/client",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "redirected",
+          "notes": [
+            "-> /app/client"
+          ],
+          "http": 200,
+          "landed": "/app/client",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/client"
+          ],
+          "http": 200,
+          "landed": "/app/client",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/client",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client",
+          "heading": "Good morning, Demo."
+        },
+        {
+          "path": "/app/client/team",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/team",
+          "heading": "My Team"
+        },
+        {
+          "path": "/app/client/attendance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/attendance",
+          "heading": "Attendance"
+        },
+        {
+          "path": "/app/client/timesheets",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/timesheets",
+          "heading": "Timesheets"
+        },
+        {
+          "path": "/app/client/performance",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/performance",
+          "heading": "Performance"
+        },
+        {
+          "path": "/app/client/requests",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/requests",
+          "heading": "Requests"
+        },
+        {
+          "path": "/app/client/tickets",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets",
+          "heading": "Tickets"
+        },
+        {
+          "path": "/app/client/reports",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/reports",
+          "heading": "Reports"
+        },
+        {
+          "path": "/app/client/documents",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/documents",
+          "heading": "Documents"
+        },
+        {
+          "path": "/app/client/billing",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing",
+          "heading": "Billing"
+        },
+        {
+          "path": "/app/client/settings",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/settings",
+          "heading": "Settings"
+        },
+        {
+          "path": "/app/client/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/approvals",
+          "heading": "Approvals"
+        },
+        {
+          "path": "/app/client/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/dd296e04-234c-48d7-8a6c-9328191508cd",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/dd296e04-234c-48d7-8a6c-9328191508cd",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/2ec3bf8e-c3a3-48fb-bfa7-b0d5284888f6",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/2ec3bf8e-c3a3-48fb-bfa7-b0d5284888f6",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/2dcb38e5-aec4-4324-a4dc-7e7a0e5ae2ec",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/2dcb38e5-aec4-4324-a4dc-7e7a0e5ae2ec",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/d6ceef3a-5878-4e15-ad44-846ba005f055",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/d6ceef3a-5878-4e15-ad44-846ba005f055",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/245ef3e4-7ac6-45fc-8a20-7acdd0bc0dc0",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/f5c7b8bb-8813-40f9-8185-b74a7baf67ab",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/f5c7b8bb-8813-40f9-8185-b74a7baf67ab",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/1c16d7f6-8ed7-40e0-a261-0c8cd1403b44",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/1c16d7f6-8ed7-40e0-a261-0c8cd1403b44",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/50e55ef1-ed0c-4f89-aa05-b4050ae431e6",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/50e55ef1-ed0c-4f89-aa05-b4050ae431e6",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/a00f891b-f771-41a9-9e8f-26e953942dbf",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/a00f891b-f771-41a9-9e8f-26e953942dbf",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/32832cc9-070d-45e7-9ca5-0f4f9132e120",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/dc922ab3-4b9c-41d4-999e-93e972196bd4",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/dc922ab3-4b9c-41d4-999e-93e972196bd4",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
+          "heading": "Ticket"
+        },
+        {
+          "path": "/app/client/billing/55769788-afe1-424d-9272-9deb6a7e411a",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing/55769788-afe1-424d-9272-9deb6a7e411a",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/client/billing/405d75d4-c481-4205-b7f9-a7398c2bac53",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing/405d75d4-c481-4205-b7f9-a7398c2bac53",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/client/billing/a9902709-ea73-43ad-90df-4ea637fe2da3",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing/a9902709-ea73-43ad-90df-4ea637fe2da3",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/client/billing/f21e5911-fcf5-4cfe-bca5-23f9cf263035",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing/f21e5911-fcf5-4cfe-bca5-23f9cf263035",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/client/billing/1ae610fa-39f7-4c66-a305-b220a0050d84",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing/1ae610fa-39f7-4c66-a305-b220a0050d84",
+          "heading": "Invoice"
+        },
+        {
+          "path": "/app/client/billing/cd200c16-e000-4b23-85d7-bb5d27b04a8a",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/client/billing/cd200c16-e000-4b23-85d7-bb5d27b04a8a",
+          "heading": "Invoice"
+        }
+      ],
+      "summary": {
+        "total": 36,
+        "ok": 33,
+        "redirected": 3,
+        "empty": 0,
+        "download": 0,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    },
+    "applicant": {
+      "email": "applicant@demo.beepabpo.com",
+      "login": {
+        "ok": true,
+        "landed": "/app/applicant"
+      },
+      "pages": [
+        {
+          "path": "/app/dashboard",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/dashboard",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/my",
+          "status": "redirected",
+          "notes": [
+            "-> /app/applicant"
+          ],
+          "http": 200,
+          "landed": "/app/applicant",
+          "heading": "My Applications"
+        },
+        {
+          "path": "/app/approvals",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/approvals",
+          "heading": "Access not allowed"
+        },
+        {
+          "path": "/app/applicant",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/applicant",
+          "heading": "My Applications"
+        },
+        {
+          "path": "/app",
+          "status": "redirected",
+          "notes": [
+            "-> /app/applicant"
+          ],
+          "http": 200,
+          "landed": "/app/applicant",
+          "heading": "My Applications"
+        },
+        {
+          "path": "/app/applicant/jobs",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/applicant/jobs",
+          "heading": "Open roles"
+        },
+        {
+          "path": "/app/applicant/notifications",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/applicant/notifications",
+          "heading": "Notifications"
+        },
+        {
+          "path": "/app/applicant/profile",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/applicant/profile",
+          "heading": "Applicant Profile"
+        },
+        {
+          "path": "/app/applicant/jobs/dc808e8c-d94e-484c-8c9c-c39268c99092",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/applicant/jobs/dc808e8c-d94e-484c-8c9c-c39268c99092",
+          "heading": "HR Generalist"
+        },
+        {
+          "path": "/app/applicant/jobs/495b466e-d4ba-4156-a0a2-536e51390e1d",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/applicant/jobs/495b466e-d4ba-4156-a0a2-536e51390e1d",
+          "heading": "Customer Support Representative"
+        },
+        {
+          "path": "/app/applicant/jobs/e15d778b-2a03-47b3-a4dd-37583207b9bb",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/applicant/jobs/e15d778b-2a03-47b3-a4dd-37583207b9bb",
+          "heading": "Quality Assurance Analyst"
+        },
+        {
+          "path": "/app/applicant/jobs/e5e781f4-f194-45a6-9479-eec27611a1b5",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/applicant/jobs/e5e781f4-f194-45a6-9479-eec27611a1b5",
+          "heading": "Customer Support Specialist"
+        },
+        {
+          "path": "/app/applicant/jobs/5cc13f10-835d-4079-9593-19c20f1c0dad",
+          "status": "ok",
+          "notes": [],
+          "http": 200,
+          "landed": "/app/applicant/jobs/5cc13f10-835d-4079-9593-19c20f1c0dad",
+          "heading": "Payroll Officer"
+        }
+      ],
+      "summary": {
+        "total": 13,
+        "ok": 11,
+        "redirected": 2,
+        "empty": 0,
+        "download": 0,
+        "errors": 0,
+        "withConsoleNoise": 0
+      }
+    }
+  },
+  "marketing": [
+    {
+      "path": "/",
+      "status": "ok",
+      "notes": [],
+      "http": 200,
+      "heading": "People power,better business."
+    },
+    {
+      "path": "/about",
+      "status": "ok",
+      "notes": [],
+      "http": 200,
+      "heading": "Built on purpose. Growing together."
+    },
+    {
+      "path": "/why-beepa",
+      "status": "ok",
+      "notes": [],
+      "http": 200,
+      "heading": "A manpower partner invested in your team."
+    },
+    {
+      "path": "/services",
+      "status": "ok",
+      "notes": [],
+      "http": 200,
+      "heading": "Roles filled. Payroll handled."
+    },
+    {
+      "path": "/careers",
+      "status": "ok",
+      "notes": [],
+      "http": 200,
+      "heading": "Build your career with people who value your growth."
+    },
+    {
+      "path": "/case-studies",
+      "status": "ok",
+      "notes": [],
+      "http": 200,
+      "heading": "Case studies"
+    },
+    {
+      "path": "/resources",
+      "status": "ok",
+      "notes": [],
+      "http": 200,
+      "heading": "Practical notes for teams that need people."
+    },
+    {
+      "path": "/contact",
+      "status": "ok",
+      "notes": [],
+      "http": 200,
+      "heading": "Tell us what your team needs."
+    },
+    {
+      "path": "/privacy",
+      "status": "ok",
+      "notes": [],
+      "http": 200,
+      "heading": "Privacy Policy"
+    },
+    {
+      "path": "/terms",
+      "status": "ok",
+      "notes": [],
+      "http": 200,
+      "heading": "Terms of Service"
+    }
+  ]
+}

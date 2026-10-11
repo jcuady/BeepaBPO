@@ -52,7 +52,17 @@ async function must(p, what) {
 
 const MARK = `qa${Date.now().toString(36)}`;
 const CMS_EMAIL = "marketing@demo.beepabpo.com";
-const NON_CMS_EMAIL = "owner@demo.beepabpo.com";
+// The negative case was `owner@demo.beepabpo.com` precisely BECAUSE owner lacked
+// `cms.manage` -- a privileged internal user who should be refused. It stopped being a valid
+// negative case when `20261012010000_cms_manage_admin_recovery.sql` granted owner (and
+// super_admin) the permission, which is the intended effect, not a regression.
+//
+// `hr` is the stronger replacement anyway: still a heavily-privileged internal role, and
+// genuinely without `cms.manage`. Asserting that a senior internal user is refused tests the
+// permission boundary rather than just the bottom of the role list.
+const NON_CMS_EMAIL = "hr@demo.beepabpo.com";
+// Roles that now hold `cms.manage` for recovery reasons, checked positively below.
+const RECOVERY_ROLE_EMAIL = "owner@demo.beepabpo.com";
 
 /**
  * The six content types, with the form-field suffixes each one registers under.
@@ -208,6 +218,35 @@ try {
       note(`no explicit "access denied" banner was shown; the page body began: "${text.slice(0, 140)}"`);
     }
     await other.close();
+  }
+
+  // ---- the recovery grant, verified through the product rather than the database ----
+  //
+  // `qa-inspect-super-admin-gaps.mjs` proves `cms.manage` is granted to owner and super_admin
+  // by reading `role_permissions`. That is the data layer; this is the product actually
+  // honouring it. Without this the grant could be applied and still inert -- a page that
+  // checks a different code, or a nav that hides the link, would leave `cms.manage` held by
+  // three roles and still unreachable.
+  {
+    const rec = await browser.newContext();
+    const recPage = await rec.newPage();
+    await signIn(recPage, RECOVERY_ROLE_EMAIL);
+    await recPage.goto(`${BASE}/app/cms`, { waitUntil: "domcontentloaded" });
+    await recPage.waitForURL(/access-denied|\/app\/cms/, { timeout: 15000 }).catch(() => {});
+    await recPage.waitForTimeout(3000);
+    const recUrl = recPage.url();
+    const recText = (await recPage.locator("body").innerText()).replace(/\s+/g, " ");
+    const recForms = await recPage
+      .locator("#blog-title, #service-title, #faq-question, #industry-name, #testimonial-name, #case-title, #about-headline")
+      .count();
+    const recDenied = /access denied|no active workspace access/i.test(recText);
+    const allowed = !recDenied && recForms > 0;
+    check(
+      "owner can now reach the CMS (the cms.manage recovery grant works)",
+      allowed,
+      `url=${recUrl.replace(BASE, "")} creationForms=${recForms}${recDenied ? " (denied!)" : ""}`,
+    );
+    await rec.close();
   }
 
   // ---- one pass per content type ----

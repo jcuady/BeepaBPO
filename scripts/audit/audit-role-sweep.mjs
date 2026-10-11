@@ -22,7 +22,7 @@
 //   - Several pages render TWO <PageHeader> call sites (an early-return variant
 //     and the main one). A single-match regex sees only the first.
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
 const env = {};
@@ -200,7 +200,23 @@ for (const role of roles) {
       }
       if (errs.length) row.notes.push(...errs.slice(0, 3));
     } catch (e) {
-      row.status = "THREW"; row.notes.push(String(e).slice(0, 140));
+      // A route whose whole job is to return a file makes Playwright THROW "Download is
+      // starting" -- `page.goto` cannot resolve a navigation that is not a document. That is
+      // the route WORKING, and this catch was reporting it as `THREW`, i.e. a page error.
+      //
+      // `/app/reports/export` produced exactly that: `err=1` on every role holding
+      // `reports.export` (superadmin, hr, operations), while the endpoint was serving a CSV
+      // perfectly. A check that cannot tell a successful download from a broken page is worse
+      // than no check, because it manufactures findings that send you hunting for a defect
+      // that was never there.
+      const msg = String(e);
+      if (/Download is starting/i.test(msg)) {
+        row.status = "download";
+        row.notes.push("navigation returned a file, not a document (expected for an export route)");
+      } else {
+        row.status = "THREW";
+        row.notes.push(msg.slice(0, 140));
+      }
     }
     page.off("console", onConsole);
     page.off("pageerror", onPageErr);
@@ -212,15 +228,27 @@ for (const role of roles) {
     ok: entry.pages.filter((p) => p.status === "ok").length,
     redirected: entry.pages.filter((p) => p.status === "redirected").length,
     empty: entry.pages.filter((p) => p.status === "empty-state").length,
-    errors: entry.pages.filter((p) => !["ok", "empty-state", "redirected"].includes(p.status)).length,
+    download: entry.pages.filter((p) => p.status === "download").length,
+    // `download` counts as a clean outcome: the route returned a file, which is its job.
+    errors: entry.pages.filter((p) => !["ok", "empty-state", "redirected", "download"].includes(p.status)).length,
     withConsoleNoise: entry.pages.filter((p) => p.notes.some((n) => n.startsWith("["))).length,
   };
   report.roles[role] = entry;
   await ctx.close();
-  console.error(`${role.padEnd(13)} pages=${String(entry.summary.total).padStart(3)} ok=${entry.summary.ok} redir=${entry.summary.redirected} empty=${entry.summary.empty} err=${entry.summary.errors} noise=${entry.summary.withConsoleNoise}`);
+  console.error(`${role.padEnd(13)} pages=${String(entry.summary.total).padStart(3)} ok=${entry.summary.ok} redir=${entry.summary.redirected} empty=${entry.summary.empty} dl=${entry.summary.download} err=${entry.summary.errors} noise=${entry.summary.withConsoleNoise}`);
 }
 
 await browser.close();
 writeFileSync(".qa-sweep-report.json", JSON.stringify(report, null, 2));
 console.error(`\nmarketing problems: ${report.marketing.filter((r) => r.status !== "ok").length}/${report.marketing.length}`);
-console.error("wrote .qa-sweep-report.json");
+// Also written under docs/evidence/ so the numbers this report quotes have something behind
+// them. A check result printed to a terminal is a claim; the report said "0 page errors" with
+// nothing reproducible behind it, because the only artefact lived at the repo root and was
+// never tracked. Keep both -- the root file for the script's own contract, this one for review.
+try {
+  mkdirSync("docs/evidence", { recursive: true });
+  writeFileSync("docs/evidence/role-sweep.json", JSON.stringify(report, null, 2));
+  console.error("wrote docs/evidence/role-sweep.json");
+} catch (e) {
+  console.error(`could not write docs/evidence/role-sweep.json: ${e.message}`);
+}

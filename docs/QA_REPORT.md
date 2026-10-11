@@ -20,7 +20,7 @@ user anything real?**
 | Unit/contract | `npx vitest run` | **622 passed, 92 files** |
 | Production build | `npx next build` | **exit 0** |
 | Release gate | `node scripts/verify-all.mjs` | **18/18 — "All checks passed. Ship it." — exit 0** (re-verified on a clean `.next` after the four fixes below; an earlier run that day read 16/18, because I shipped a type error and the gate caught it) |
-| **Per-role page sweep** | `scripts/audit/audit-role-sweep.mjs` | **13 roles × nav-reachable pages + 10 marketing pages = 471 visits** |
+| **Per-role page sweep** | `scripts/audit/audit-role-sweep.mjs` | **489 visits, 13 roles + 10 marketing pages, 0 errors.** Evidence: `docs/evidence/role-sweep.json`. A working CSV download used to be counted as a page error — see §5 |
 | **Data population** | `scripts/audit/audit-data-population.mjs` | **every table the app queries** |
 | **Live workflow exercise** | `qa-exercise-leave-workflow.mjs` | **employee → team lead → HR, 13 assertions** |
 | **Ticket workflow exercise** | `qa-exercise-ticket-workflow.mjs` | **client admin → operations, 10 assertions** |
@@ -413,7 +413,7 @@ that adding delete later is a deliberate act rather than an accident of drift.
 
 ### P2 — "Super Admin" cannot do most of what an admin does. Documented, not changed.
 
-`super_admin` holds **21 of 50** permissions. Measured by driving the app:
+`super_admin` holds **22 of 50** permissions (21 before `cms.manage` was granted — see below). Measured by driving the app:
 
 | Page | superadmin | hr | owner |
 |---|---|---|---|
@@ -441,16 +441,16 @@ Two related oddities, also left alone: a role literally named `admin` grants **0
 of 50** permissions, and `owner` is missing `permissions.manage`,
 `attendance.correct` and `cms.manage`.
 
-**Measured, because "21 of 50" is not decidable — the set is.**
+**Measured, because "22 of 50" is not decidable — the set is.**
 `qa-inspect-super-admin-gaps.mjs` reads `role_permissions` directly and prints both sides.
 It changes how this should be read, in two directions that pull opposite ways:
 
 1. **The 29 are a least-privilege default, not an enforced boundary.** `super_admin` holds
    `roles.manage` *and* `permissions.manage`, so it can grant itself anything it is
-   missing. That makes "21 of 50" a starting posture rather than a wall, and means the
+   missing. That makes "22 of 50" a starting posture rather than a wall, and means the
    number should not be reported as a vulnerability. `lib/permissions/can.ts` has no
    super_admin special case precisely because the role data is expected to carry the policy.
-2. **`cms.manage` is the one item here that reads as a defect.** It is held by **exactly
+2. **`cms.manage` was the one item here that read as a defect.** It was held by **exactly
    one role, `marketing`** — not by `owner`, not by `super_admin`. Every other permission in
    the system is held by at least two roles. Practically, the ability to edit the website is
    a single marketing seat: if that person leaves, nobody who administers the system can
@@ -1111,7 +1111,7 @@ Two guards deliberately not exercised, both recorded rather than quietly skipped
   the honest value is 0 — and a `> 0` assertion reports a correct record as broken
   purely because the test was fast.
 
-### CMS workflow — `qa-exercise-cms-workflow.mjs`, 42/42
+### CMS workflow — `qa-exercise-cms-workflow.mjs`, 43/43
 
 All **14** actions in `lib/cms/actions.ts` — the largest single block in the app, and
 until now the least exercised. **No product defect.** Everything created, edited,
@@ -1714,6 +1714,36 @@ from 21 to 22 permissions.
 The migration carries a `DO` block that **raises** if either role code or the permission is
 absent. Without it the insert would match nothing and report success — a quiet no-op, and the
 same shape as `hire-workflow` reporting "no published job" for a table that never existed.
+
+**Verified in the product, not only in the database.** `qa-inspect-super-admin-gaps.mjs`
+proves the grant exists by reading `role_permissions`; that is the data layer. The CMS
+exercise now also signs in as **owner** and asserts it reaches `/app/cms` and is shown the
+seven creation forms — because a grant can be applied and still be inert, if the page checked
+a different code or the nav hid the link. It passes: `creationForms=7`.
+
+**The grant invalidated a test, which is how it was caught.** `qa-exercise-cms-workflow.mjs`
+had a negative case — "a user WITHOUT `cms.manage` sees no CMS content" — signed in as
+**`owner@demo.beepabpo.com`**, chosen for exactly that reason: owner was the most privileged
+role that *lacked* the permission. The re-run reported 41/42.
+
+That is not a regression. It is the change working, and the test was asserting a state that
+is deliberately no longer true. The negative case moved to **`hr`**, which is still heavily
+privileged and genuinely without `cms.manage` — a stronger test of the boundary than the
+bottom of the role list would be. Now **43/43**, and both directions are asserted:
+
+| Role | `cms.manage` | Expected | Result |
+|---|---|---|---|
+| `marketing` | yes | manages content | PASS |
+| `hr` | no | refused | PASS — `creationForms=0` |
+| `owner` | yes (new) | manages content | PASS — `creationForms=7` |
+
+**A note on the wider permission picture, measured after the fix.** `permissions.manage` is
+now the **only** permission in the system held by exactly one role (`super_admin`) — the same
+single-seat shape `cms.manage` had. It is left as a product decision and flagged, not changed:
+it is a platform power, `super_admin` is the platform role, and giving `owner` it would blur
+the platform/business split drawn on purpose above. But if that one seat is ever emptied,
+nobody can grant a permission to anybody. Every other permission is held by at least two
+roles, and 0 permissions are held by nobody.
 
 ### The payroll exercise was not self-cleaning, and its own green sheet could not tell
 
@@ -2457,7 +2487,9 @@ evidence. "Every button works" needs a distinction between *rendered* and
 *exercised*:
 
 - **Rendered** — the control appears on a page a role can reach. Proven by the
-  role sweep: 471 page visits, 0 console errors, 0 page errors.
+  role sweep: **489 page visits across 13 roles, 0 page errors, 0 console errors**, written
+  to `docs/evidence/role-sweep.json` so the number is reproducible rather than remembered.
+  Re-verified in full after the download mis-classification below was fixed.
 - **Exercised** — driven through the real UI in a browser, with assertions
   against the database, and with the state restored afterwards. This is the
   only evidence that a button *works*.
@@ -2481,6 +2513,57 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/clients` (1) | 1 | 0 |
 | `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | **3** |
 | **Total** | **83** | **82** |
+
+### The role sweep was reporting a working download as a page error
+
+Re-running `audit-role-sweep.mjs` after the `cms.manage` grant produced `err=1` on
+`superadmin`, `hr` and `operations` — three roles, all of which hold `reports.export`. The
+report's own claim above was "471 page visits, 0 console errors, 0 page errors", so either a
+regression had appeared or the claim was wrong. It was the claim.
+
+The erroring page was the same one every time: `/app/reports/export`, a route whose entire
+job is to return a CSV. `page.goto` **cannot resolve a navigation that is not a document** —
+Playwright throws `Download is starting`, the sweep's `catch` stamped the row `THREW`, and the
+summary counted it as a page error. The endpoint was working perfectly.
+
+```
+superadmin    pages= 39 ok=36 redir=2 empty=0 err=1 noise=0     <- "error"
+hr            pages= 54 ok=51 redir=2 empty=0 err=1 noise=0     <- same page
+operations    pages= 36 ok=33 redir=2 empty=0 err=1 noise=0     <- same page
+```
+
+Now classified as `download`, a clean outcome, and reported separately:
+
+```
+superadmin    pages= 39 ok=36 redir=2 empty=0 dl=1 err=0 noise=0
+hr            pages= 54 ok=51 redir=2 empty=0 dl=1 err=0 noise=0
+operations    pages= 36 ok=33 redir=2 empty=0 dl=1 err=0 noise=0
+```
+
+The full 13-role sweep was then re-run end to end with the corrected script, and the claim is
+re-established rather than merely repaired:
+
+| | visits |
+|---|---|
+| Role pages | 479 (13 roles) |
+| Marketing pages | 10 |
+| **Total** | **489** |
+| `ok` / redirected / empty / download | 444 / 28 / 2 / 5 |
+| **Page errors** | **0** |
+| **Console errors** | **0** |
+
+Two things are worth keeping from this. **A check that cannot tell a successful download from
+a broken page is worse than no check**, because it manufactures findings that send you hunting
+for a defect that was never there — and this one had been quietly reporting `err=1` on every
+role holding `reports.export` for as long as it existed. And **the sweep's evidence was not
+committed**: it wrote only `.qa-sweep-report.json` at the repo root, untracked, so "0 page
+errors" had nothing behind it but a terminal line. It now also writes
+`docs/evidence/role-sweep.json`, which is what makes the table above reproducible.
+
+The previous figure in this report was **471** visits. The corrected sweep measures **489**.
+The difference is crawl variance plus the extra page the `cms.manage` grant gives `owner` and
+`super_admin` — not a regression, and not worth treating as precise; the load-bearing claim is
+`errors = 0`, not the visit count.
 
 **82 of 83 actions are exercised end to end.** The one remaining is `inviteClientUser`.
 
@@ -2694,7 +2777,7 @@ it. So every committed exercise was re-run against the build containing all of t
 | `client-timesheet` | **14/14** after the audit fix (was 13/14 — found the gap above) |
 | `payroll-workflow` | 19/19 — after the `.limit(500)` paging rewrite |
 | `attendance-workflow` | 31/31 |
-| `cms-workflow` | 42/42 |
+| `cms-workflow` | 43/43 |
 | `money-workflow` | 33/33 |
 | `tickets-workflow` | 33/33 — after the assignee paging rewrite |
 | `documents-workflow` | 31/31 |
@@ -2800,7 +2883,7 @@ employee still sees only their own folder and hr sees all seven.
 | 3 | **Hire pipeline** | **Now exercised** — 23/23, see §4. The harness was hiding four of its own bugs behind a "no published job" error; the product button worked throughout |
 | 4 | **1 of 83 server actions not yet driven end to end** | See §5. `resetPasswordAction` is **now driven, 8/8** — it was called blocked on the grounds that it needed a recovery token from an inbox, but the action never reads the token; it needs a *session*, and a session does not need a mailbox. What genuinely stays uncovered is the emailed link's arrival and the PKCE exchange at `/auth/callback`, and the script prints that as a standing line. The one remaining action is `inviteClientUser`, waiting on the environment's email budget. Neither is blocked by a defect in this codebase. `check-auth-email-rate-limit.mjs` prints exactly what is still blocking |
 | 5 | **Invite account creation** | Blocked by Supabase email rate limiting in this environment, specifically `admin.inviteUserByEmail`. **Signup account creation is no longer on this list** — it ran end to end, creating a real account and applicant membership, once the budget allowed one call through. That is the whole reason to keep re-probing instead of writing a blocker down once. The limit is also not uniform: `auth.signUp` on the apex domain is accepted while the same call on the demo subdomain is limited, and `resetPasswordForEmail` is accepted outright. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
-| 6 | `super_admin` holds 21 of 50 permissions | **Now measured, not just counted** — `qa-inspect-super-admin-gaps.mjs`. See below. A deliberate platform-vs-business split is defensible; the gap that was not defensible is `cms.manage`, held by **only `marketing`** — not by `owner`, not by `super_admin`. **Now fixed** — `20261012010000_cms_manage_admin_recovery.sql` grants it to `owner` and `super_admin` as well; `marketing` keeps it |
+| 6 | `super_admin` holds 21 of 50 permissions | **Now measured, not just counted** — `qa-inspect-super-admin-gaps.mjs`. See below. A deliberate platform-vs-business split is defensible; the gap that was not defensible is `cms.manage`, held by **only `marketing`** — not by `owner`, not by `super_admin`. **Now fixed** — `20261012010000_cms_manage_admin_recovery.sql` grants it to `owner` and `super_admin` as well; `marketing` keeps it, and `super_admin` moves to **22 of 50**. **New, measured after that fix:** `permissions.manage` is now the **only** permission in the system held by exactly one role (`super_admin`) — the same single-seat shape `cms.manage` had. It is left as a product decision: it is a platform power and `super_admin` is the platform role, so giving `owner` it blurs the split deliberately drawn above. But if the `super_admin` seat is ever emptied, nobody can grant a permission to anybody. Flagged, not changed |
 | 7 | **Storage RLS casts with `::uuid`, which RAISES rather than denies** | **Fixed** — `20261011130000_storage_rls_safe_uuid_cast.sql`, applied and verified behaviourally. Six policies guarded by an immutable `public.try_uuid(text)`. The important part is what the naive fix would have caused: `can_access_client(NULL)` can return TRUE for anyone holding `clients.read`/`clients.manage`/`system.manage`, because those permission terms never reference the argument — so routing it through a NULL-returning cast alone would have converted "raise, therefore deny" into "grant the whole bucket". Those three policies take an explicit `is not null` guard. Verified against a real malformed object (`client-documents/demo/…`): the listing now returns `ok, []` instead of a Postgres error |
 | 8 | **Client timesheet P1: submit accepts a day the client view filters out** | **Fixed and driven through the UI** — `submitTimesheetForClientReview` refuses a day outside the employee's client assignment window before writing `client_review`. `qa-probe-timesheet-window-guard.mjs` seeds one in-window day and one out-of-window day, clicks the real "Send to client" button, and asserts 4/4 — including that the refused record's `approval_status` is **unchanged**, which is the ordering claim a source assertion cannot prove. **This finding was nearly withdrawn on bad evidence — the near-miss is recorded below** |
 | 9 | **List pager offers "Next" on the last page when it is exactly full** | **Fixed** — 36 pager instances across 32 pages now fetch `PAGE_SIZE + 1` and drop the sentinel row before rendering. `components/app/list-pager.tsx` needed **no change**: once the extra row is gone, `rowCount >= pageSize` is exactly the right test. The residual risk is that the invariant now lives in 32 call sites rather than one place, so the test discovers pages by walking `app/**/*.tsx` for `ListPager` rather than keeping a hand-written list |
