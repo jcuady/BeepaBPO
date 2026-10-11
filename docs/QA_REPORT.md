@@ -17,9 +17,9 @@ user anything real?**
 |---|---|---|
 | Typecheck | `npx tsc --noEmit` | whole repo — **exit 0** |
 | Lint | `npx eslint . --max-warnings=0` | whole repo — **exit 0** |
-| Unit/contract | `npx vitest run` | **558 passed, 89 files** |
+| Unit/contract | `npx vitest run` | **622 passed, 92 files** |
 | Production build | `npx next build` | **exit 0** |
-| Release gate | `node scripts/verify-all.mjs` | **18/18 — "All checks passed. Ship it." — exit 0** |
+| Release gate | `node scripts/verify-all.mjs` | **18/18 — "All checks passed. Ship it." — exit 0** (re-verified on a clean `.next` after the four fixes below; an earlier run that day read 16/18, because I shipped a type error and the gate caught it) |
 | **Per-role page sweep** | `scripts/audit/audit-role-sweep.mjs` | **13 roles × nav-reachable pages + 10 marketing pages = 471 visits** |
 | **Data population** | `scripts/audit/audit-data-population.mjs` | **every table the app queries** |
 | **Live workflow exercise** | `qa-exercise-leave-workflow.mjs` | **employee → team lead → HR, 13 assertions** |
@@ -1819,6 +1819,11 @@ delivery, not this repo's code: subscribed, inserted, silent. The probe cleans u
 own row either way — verified, 61 notifications before and after a failed run — so a
 miss costs nothing but a red gate.
 
+Confirmed again during this batch: the realtime step failed under the full sequential
+gate and passed in isolation at **290ms against a 15000ms budget**, then passed again on
+the re-run that went 18/18. Same step, same code, three outcomes. That is a load
+artefact, and it is the honest description of the gate's current state.
+
 The honest position after this: **the suite is green, and the gate is green, but the
 gate is not yet deterministic on a loaded machine.** Every earlier "18/18" in this
 report should be read as "18/18 on that run".
@@ -2022,6 +2027,14 @@ nothing currently falls outside it.
 Two rules, both the same rule as the sitemap one above: **a truncated context read is not
 evidence of absence**, and **a probe returning zero is not evidence that the condition is
 absent** until you have checked the condition is exercisable.
+
+And a third, from the same fix going the other way: the guard's own tests assert on source
+text, which catches a **missing** guard but not a **wrong** one. The first version
+destructured `{ start, end }` from a row whose columns are `start_date` / `end_date`. Every
+test passed — 622 of them — because the strings they look for were all present. `tsc` and
+`next build` failed, and the gate read 16/18 for that reason alone. The commit was amended
+rather than stacked, since nothing had been pushed. A source-shape assertion and a compiler
+catch different bugs, and this codebase needs both.
 
 ### Client timesheet workflow — `qa-exercise-client-timesheet-workflow.mjs`, 13/14
 
