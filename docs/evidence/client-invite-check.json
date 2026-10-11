@@ -1,0 +1,48 @@
+{
+  "check": "client-invite",
+  "generatedAt": "2026-10-11T20:54:40.783Z",
+  "base": "http://localhost:3100",
+  "marker": "qa-invite-mv4axa53",
+  "total": 7,
+  "passed": 6,
+  "failures": 1,
+  "blocked": true,
+  "cleanupVerified": true,
+  "results": [
+    {
+      "name": "the client invite form renders on /app/clients",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the form offers at least one active client organization",
+      "pass": true,
+      "detail": "CloudPeak"
+    },
+    {
+      "name": "an organization is selected by default",
+      "pass": true,
+      "detail": "org 1a91499c-56b5-4d60-ae9d-3835545b6ed5"
+    },
+    {
+      "name": "the form accepts the invite address",
+      "pass": true,
+      "detail": "qa-invite-mv4axa53@beepabpo.com"
+    },
+    {
+      "name": "invite succeeds",
+      "pass": false,
+      "detail": "toast: email rate limit exceeded"
+    },
+    {
+      "name": "cleanup left no membership behind",
+      "pass": true,
+      "detail": "0 row(s)"
+    },
+    {
+      "name": "cleanup removed the invited auth user",
+      "pass": true,
+      "detail": "gone"
+    }
+  ]
+}

@@ -3081,7 +3081,30 @@ re-measured: `ok` 445 / redirected 27 / empty 2 / download 5, zero console noise
 shifting between `ok` and `redirected` against the run above is ordinary crawl variance,
 and the load-bearing number is still `errors = 0`.
 
-**82 of 83 actions are exercised end to end.** The one remaining is `inviteClientUser`.
+**82 of 83 actions are exercised end to end.** The one remaining is `inviteClientUser`,
+and it is worth being precise about why, because the reason changed.
+
+It was BLOCKED by the environment's outbound email budget — not by the codebase. That
+distinction is the whole point of re-probing instead of writing the blocker down once,
+and on this pass the window **opened**: `qa-probe-invite-domains.mjs` had the apex domain
+**accepted**, created a user, and cleaned up. So the action is demonstrably drivable and
+this is not a permanent gap.
+
+`qa-exercise-client-invite.mjs` exists and drives it **through the real form on
+`/app/clients`**, because driving the button is the assertion that matters — calling the
+server action from a test would prove the action works and prove nothing about the form
+being wired to it. Its first run reached the form, filled it, submitted, and was refused
+`"email rate limit exceeded"` — the budget allows roughly **one** invite per window, and
+the probe had just spent it.
+
+That run is the reason the suite distinguishes BLOCKED from FAIL. It reported
+**exit 2, six assertions passed, cleanup verified**, and named the environment as the
+blocker. Reported as a failure it would have been indistinguishable from the feature
+being broken; reported as a pass it would have been a lie.
+
+**The practical consequence for whoever runs it: do not probe and then exercise.**
+Probing spends an invite, so `qa-run-all.mjs` runs the exercise directly and only after a
+wait. When the window is open this reaches **83/83**.
 
 **`resetPasswordAction` was called blocked for the wrong reason, and is now driven.** It was
 listed as needing "a recovery token from an inbox, and there is no mail provider here". That
@@ -3501,6 +3524,7 @@ node scripts/audit/qa-probe-not-found.mjs                    # 18 assertions; pr
 node scripts/audit/qa-probe-dialog-keyboard.mjs                # 16 assertions, read-only; Escape + Cancel both restore focus
 node scripts/audit/qa-probe-command-palette.mjs             # 11 assertions; opens, filters, navigates, and returns focus
 node scripts/audit/qa-probe-notification-bell.mjs          # 10 assertions; accessible name, AA contrast, keyboard exit
+node scripts/audit/qa-exercise-client-invite.mjs         # the last uncovered action, through its real form; exit 2 = BLOCKED
 # Responsive. MUST be chunked: one process over all 28 routes x 8 viewports reaches
 # 2.4 GB and takes the app server with it. Four chunks of ~7 routes, ~140s each.
 node scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/dashboard /app/my /app/my/attendance /app/my/leave /app/my/payroll /app/my/requests /app/my/documents

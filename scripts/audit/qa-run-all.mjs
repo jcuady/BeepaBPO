@@ -51,6 +51,12 @@ const CHECKS = [
   { id: "notification-bell",tier: "fast",  cmd: ["scripts/audit/qa-probe-notification-bell.mjs"],evidence: "docs/evidence/notification-bell-check.json",what: "bell accessible name, AA contrast, keyboard exit" },
   { id: "internal-links",   tier: "fast",  cmd: ["scripts/audit/qa-exercise-internal-links.mjs"],evidence: null, what: "no internal link lands on an error page" },
 
+  // May exit 2. The environment's outbound email budget allows roughly ONE
+  // invite per window, and `qa-probe-invite-domains.mjs` spends an invite to
+  // find out whether the window is open — so probing and then exercising burns
+  // two. Run this DIRECTLY after a wait rather than probing first.
+  { id: "client-invite",    tier: "fast",  cmd: ["scripts/audit/qa-exercise-client-invite.mjs"], evidence: "docs/evidence/client-invite-check.json", what: "the last uncovered action, driven through its real form (BLOCKED when mail is rate limited)" },
+
   { id: "responsive-app",   tier: "slow",  cmd: ["scripts/audit-app-responsive.mjs", "owner@demo.beepabpo.com", "/app/dashboard", "/app/my", "/app/my/attendance", "/app/my/leave", "/app/my/payroll", "/app/my/requests", "/app/my/documents"], evidence: null, what: "authenticated app surface, 8 viewports (CHUNK 1 of 4 — see QA §7)" },
   { id: "role-sweep",       tier: "slow",  cmd: ["scripts/audit/audit-role-sweep.mjs"],         evidence: "docs/evidence/role-sweep.json",             what: "13 roles across their reachable pages" },
 
@@ -234,6 +240,11 @@ if (missingEvidence.length) {
 if (failed.length) {
   console.log(`\n${failed.length} check(s) FAILED:`);
   for (const f of failed) console.log(`  - ${f.id}: ${f.tail}`);
+}
+if (blocked.length) {
+  console.log(`\n${blocked.length} check(s) BLOCKED by the environment, not by the code:`);
+  for (const b of blocked) console.log(`  - ${b.id}: ${b.tail || "see evidence file"}`);
+  console.log("These are not regressions. Re-run to pick them up when the window opens.");
 }
 console.log("\nwrote docs/evidence/qa-suite.json");
 if (!wantAll) console.log("note: slow tier not run. --all includes it (role sweep ~20min).");

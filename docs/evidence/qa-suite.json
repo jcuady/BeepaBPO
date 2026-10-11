@@ -1,15 +1,15 @@
 {
   "check": "qa-suite",
-  "generatedAt": "2026-10-11T20:32:35.926Z",
+  "generatedAt": "2026-10-11T20:54:57.137Z",
   "base": "http://localhost:3100",
   "tiersRun": [
     "fast",
     "gate"
   ],
-  "total": 6,
+  "total": 7,
   "passed": 6,
   "failures": 0,
-  "blocked": 0,
+  "blocked": 1,
   "missingEvidence": [],
   "results": [
     {
@@ -18,7 +18,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 8,
+      "seconds": 6,
       "evidence": "docs/evidence/not-found-check.json",
       "evidenceWritten": true,
       "tail": "18/18 passed",
@@ -30,7 +30,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 6,
+      "seconds": 5,
       "evidence": "docs/evidence/dialog-keyboard-check.json",
       "evidenceWritten": true,
       "tail": "PASS  changing status opens the confirm dialog | PASS  focus moves into the dialog on open  — activeElement BUTTON# \"Cancel\" | 16/16 passed",
@@ -66,11 +66,24 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 307,
+      "seconds": 312,
       "evidence": null,
       "evidenceWritten": null,
       "tail": "PASS  applicant — no internal link lands on a page error  [none] | PASS  public — no internal link lands on a page error  [none] | 29/29 assertions passed",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-internal-links.mjs"
+    },
+    {
+      "id": "client-invite",
+      "what": "the last uncovered action, driven through its real form (BLOCKED when mail is rate limited)",
+      "tier": "fast",
+      "status": "BLOCKED",
+      "code": 2,
+      "seconds": 5,
+      "evidence": "docs/evidence/client-invite-check.json",
+      "evidenceWritten": true,
+      "tail": "PASS  cleanup removed the invited auth user  — gone | 6/7 passed | BLOCKED: the environment's email budget closed again. Re-run later.",
+      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-client-invite.mjs",
+      "rawOutput": "invite form renders on /app/clients\nPASS  the form offers at least one active client organization  — CloudPeak\nPASS  an organization is selected by default  — org 1a91499c-56b5-4d60-ae9d-3835545b6ed5\nPASS  the form accepts the invite address  — qa-invite-mv4axa53@beepabpo.com\nBLOCKED  invite refused by the environment: \"email rate limit exceeded\"\nFAIL  invite succeeds  — toast: email rate limit exceeded\ncleanup: \nPASS  cleanup left no membership behind  — 0 row(s)\nPASS  cleanup removed the invited auth user  — gone\n\n6/7 passed\nBLOCKED: the environment's email budget closed again. Re-run later."
     },
     {
       "id": "gate",
@@ -78,7 +91,7 @@
       "tier": "gate",
       "status": "PASS",
       "code": 0,
-      "seconds": 20,
+      "seconds": 17,
       "evidence": null,
       "evidenceWritten": null,
       "tail": "vitest: 634 tests / 93 files | tsc: clean"
