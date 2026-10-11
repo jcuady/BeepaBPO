@@ -1,6 +1,6 @@
 {
   "check": "qa-suite",
-  "generatedAt": "2026-10-11T21:17:32.646Z",
+  "generatedAt": "2026-10-11T23:18:13.271Z",
   "base": "http://localhost:3100",
   "tiersRun": [
     "fast",
@@ -66,7 +66,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 307,
+      "seconds": 313,
       "evidence": null,
       "evidenceWritten": null,
       "tail": "PASS  applicant — no internal link lands on a page error  [none] | PASS  public — no internal link lands on a page error  [none] | 29/29 assertions passed",
@@ -78,12 +78,12 @@
       "tier": "fast",
       "status": "BLOCKED",
       "code": 2,
-      "seconds": 6,
+      "seconds": 5,
       "evidence": "docs/evidence/client-invite-check.json",
       "evidenceWritten": true,
       "tail": "PASS  cleanup removed the invited auth user  — gone | 6/7 passed | BLOCKED: the environment's email budget closed again. Re-run later.",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-client-invite.mjs",
-      "rawOutput": "ected by default  — org 1a91499c-56b5-4d60-ae9d-3835545b6ed5\nPASS  the form accepts the invite address  — qa-invite-mv4bqbet@beepabpo.com\nBLOCKED  invite refused by the environment: \"Too many invites have been sent from this network. Wait a moment, then try again.\"\nFAIL  invite succeeds  — no auth user was created — toast: Too many invites have been sent from this network. Wait a moment, then try again.\ncleanup: \nPASS  cleanup left no membership behind  — 0 row(s)\nPASS  cleanup removed the invited auth user  — gone\n\n6/7 passed\nBLOCKED: the environment's email budget closed again. Re-run later."
+      "rawOutput": "ected by default  — org 1a91499c-56b5-4d60-ae9d-3835545b6ed5\nPASS  the form accepts the invite address  — qa-invite-mv4g1fc2@beepabpo.com\nBLOCKED  invite refused by the environment: \"Too many invites have been sent from this network. Wait a moment, then try again.\"\nFAIL  invite succeeds  — no auth user was created — toast: Too many invites have been sent from this network. Wait a moment, then try again.\ncleanup: \nPASS  cleanup left no membership behind  — 0 row(s)\nPASS  cleanup removed the invited auth user  — gone\n\n6/7 passed\nBLOCKED: the environment's email budget closed again. Re-run later."
     },
     {
       "id": "gate",
@@ -91,7 +91,7 @@
       "tier": "gate",
       "status": "PASS",
       "code": 0,
-      "seconds": 17,
+      "seconds": 21,
       "evidence": null,
       "evidenceWritten": null,
       "tail": "vitest: 655 tests / 93 files | tsc: clean"

@@ -180,6 +180,18 @@ const selected = CHECKS.filter((c) => (wantAll ? true : c.tier !== "slow"));
 console.log(`QA suite — ${selected.length} check(s) against ${BASE}`);
 console.log(wantAll ? "tiers: fast + gate + slow\n" : "tiers: fast + gate (slow excluded; pass --all to include)\n");
 
+// The email budget is roughly one invite per window, and this run spends it.
+// Running the suite twice in quick succession therefore reports client-invite as
+// BLOCKED the second time even though nothing regressed — which is exactly what
+// happened after the 17/17 run. Say so before the output, not after.
+if (selected.some((c) => c.id === "client-invite")) {
+  console.log(
+    "note: this run spends the environment's ONE invite. A client-invite BLOCKED\n" +
+      "      straight after a passing one is the quota, not a regression. It no longer\n" +
+      "      overwrites docs/evidence/client-invite-check.json when that happens.\n",
+  );
+}
+
 const outcomes = [];
 for (const check of selected) {
   process.stdout.write(`  ${check.id.padEnd(18)} … `);

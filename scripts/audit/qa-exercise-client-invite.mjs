@@ -283,25 +283,51 @@ const passed = results.filter((r) => r.pass).length;
 const failures = results.filter((r) => !r.pass).length;
 
 mkdirSync("docs/evidence", { recursive: true });
-writeFileSync(
-  "docs/evidence/client-invite-check.json",
-  JSON.stringify(
-    {
-      check: "client-invite",
-      generatedAt: new Date().toISOString(),
-      base: BASE,
-      marker: MARKER,
-      total,
-      passed,
-      failures,
-      blocked: outcome === "blocked",
-      cleanupVerified: cleaned,
-      results,
-    },
-    null,
-    2,
-  ) + "\n",
-);
+
+const EVIDENCE = "docs/evidence/client-invite-check.json";
+const BLOCKED_EVIDENCE = "docs/evidence/client-invite-blocked.json";
+
+const evidence = {
+  check: "client-invite",
+  generatedAt: new Date().toISOString(),
+  base: BASE,
+  marker: MARKER,
+  total,
+  passed,
+  failures,
+  blocked: outcome === "blocked",
+  cleanupVerified: cleaned,
+  results,
+};
+
+// A BLOCKED run measures nothing, so it must not overwrite a run that did.
+//
+// This is not hypothetical. The 17/17 run at 07:11 was written to the evidence
+// file; `qa-run-all.mjs` then ran this same exercise seconds later, hit the
+// closed window, and replaced it with a 6/7 BLOCKED record — erasing the only
+// proof that the action works. The suite was, in that moment, destroying the
+// result it exists to report.
+//
+// The rule: evidence records the last run that actually exercised the action. A
+// run that could not is recorded separately so the attempt is not lost, but it
+// never displaces a measurement.
+let prior = null;
+try {
+  prior = JSON.parse(readFileSync(EVIDENCE, "utf8"));
+} catch {
+  prior = null;
+}
+
+if (outcome === "blocked" && prior && prior.blocked === false) {
+  writeFileSync(BLOCKED_EVIDENCE, JSON.stringify(evidence, null, 2) + "\n");
+  console.log(
+    `evidence: this attempt was BLOCKED and is recorded in ${BLOCKED_EVIDENCE}.\n` +
+      `          ${EVIDENCE} still holds the last run that measured the action (${prior.passed}/${prior.total}).`,
+  );
+} else {
+  writeFileSync(EVIDENCE, JSON.stringify(evidence, null, 2) + "\n");
+  console.log(`evidence: wrote ${EVIDENCE}`);
+}
 
 console.log(`\n${passed}/${total} passed`);
 if (outcome === "blocked") {

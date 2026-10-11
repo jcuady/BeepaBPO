@@ -955,9 +955,9 @@ OK    not-found             6s  every 404 has a working way out
 OK    dialog-keyboard       5s  confirm dialogs: focus in, focus back, Escape and Cancel
 OK    command-palette      12s  cmd-K opens, filters, navigates, returns focus
 OK    notification-bell     4s  bell accessible name, AA contrast, keyboard exit
-OK    internal-links      307s  no internal link lands on an error page
-SKIP  client-invite         6s  the last uncovered action, driven through its real form
-OK    gate                 17s  vitest + tsc --noEmit
+OK    internal-links      313s  no internal link lands on an error page
+SKIP  client-invite         5s  the last uncovered action, driven through its real form
+OK    gate                 21s  vitest + tsc --noEmit
 ========================================================================
 6/7 passed, 1 blocked by the environment
 
@@ -970,6 +970,13 @@ These are not regressions. Re-run to pick them up when the window opens.
 never ran its assertions is the same class of lie as a pass with no evidence file. The
 exit code is 0 either way: a closed email budget is not something a code change can fix,
 and a suite that is permanently red for that reason trains people to ignore it.
+
+**That run also exposed a defect of its own, and it is worth reading the two blocks below
+together.** The suite's own `client-invite` invocation ran seconds after the 17/17 run,
+hit the closed window, and overwrote `docs/evidence/client-invite-check.json` with a 6/7
+BLOCKED record — erasing the only proof the action works. Fixed by giving blocked runs
+their own evidence file; see §2, *"The suite deleted the evidence of the run that closed
+it"*.
 
 Three decisions in the runner are deliberate:
 
@@ -1002,6 +1009,43 @@ removes the only evidence that the failure is in the harness rather than the pro
 That is the same lesson as the four false positives above, arriving from the other
 direction — this time the broken instrument manufactured five false *failures* instead of
 four false *passes*.
+
+### P1 — The suite deleted the evidence of the run that closed it. Fixed.
+
+Minutes after the invite exercise recorded **17/17, `blocked: false, cleanupVerified: true`**,
+the aggregate runner ran the same exercise again, hit the closed window, and overwrote that
+file with a 6/7 BLOCKED record:
+
+```
+client-invite      … BLOCKED  (5s)  6/7 passed | BLOCKED: the environment's email budget closed again.
+```
+
+The suite destroyed the result it exists to report. `git checkout` restored the 17/17 file, but
+the cause was structural: **a blocked run writes the same evidence file as a passing one**, and
+the budget allows roughly one invite per window, so the second run is *always* blocked. Any
+full-suite run after a good one silently deletes the proof.
+
+The rule this breaks is the same one §5 has held throughout, approached from a new direction:
+
+> Evidence records the last run that **actually measured** the thing. A run that could not is
+> not a weaker measurement — it is no measurement, and it must never displace one.
+
+So a blocked attempt now writes `docs/evidence/client-invite-blocked.json` and leaves
+`client-invite-check.json` alone. A **FAIL** still overwrites normally, because a regression
+must be recorded the moment it appears — the distinction is between *blocked* and *failed*, not
+between *blocked* and *everything else*. The file itself now says which it is, so a reader
+cannot mistake a stale 17/17 for a fresh claim:
+
+```
+evidence: this attempt was BLOCKED and is recorded in docs/evidence/client-invite-blocked.json.
+          docs/evidence/client-invite-check.json still holds the last run that measured the action (17/17).
+```
+
+`qa-run-all.mjs` also now says, *before* its output, that the run spends the environment's one
+invite and that a BLOCKED straight after a pass is the quota rather than a regression. The
+cause was visible in a comment that had been there all along — the runner already documented
+the one-invite window — which is the uncomfortable part: the knowledge existed, and the code
+did not act on it.
 
 ### P1 — A cleanup failure that left a real account in the database. Fixed.
 
