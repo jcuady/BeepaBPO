@@ -73,26 +73,47 @@ let createdMembershipId = null;
 // ---- cleanup runs in a finally so a thrown assertion cannot leak -----------
 async function cleanup() {
   const steps = [];
+
+  // Each step is wrapped independently. The previous version let one failure
+  // abort the rest of the function, so a single bad read left ALL FOUR rows
+  // behind -- which is exactly what happened: this selected `id` from
+  // `membership_roles`, a column that does not exist, `must()` threw, and not
+  // one delete ran. The eleven assertions above it had all passed.
+  const step = async (label, fn) => {
+    try {
+      const res = await fn();
+      steps.push(`${label}:${res.error ? "ERR " + res.error.message : res.ok ?? "done"}`);
+      if (res.error) return false;
+    } catch (err) {
+      steps.push(`${label}:ERR ${String(err?.message ?? err).slice(0, 80)}`);
+      return false;
+    }
+    return true;
+  };
+
   if (createdMembershipId) {
-    const roles = await must(
-      db.from("membership_roles").select("id").eq("membership_id", createdMembershipId),
-      "read membership_roles",
-    );
-    if (roles.length) {
-      const del = await db.from("membership_roles").delete().in("id", roles.map((r) => r.id));
-      steps.push(`membership_roles:${del.error ? "ERR " + del.error.message : `deleted ${roles.length}`}`);
-    } else steps.push("membership_roles:none");
-    const delMem = await db.from("organization_memberships").delete().eq("id", createdMembershipId);
-    steps.push(`membership:${delMem.error ? "ERR " + delMem.error.message : "deleted"}`);
+    // `membership_roles` has no `id` column -- it is a join table keyed by
+    // (membership_id, role_id). Delete straight by membership_id; reading rows
+    // first is what introduced the crash.
+    await step("membership_roles", () =>
+      db.from("membership_roles").delete().eq("membership_id", createdMembershipId));
+    await step("membership", () =>
+      db.from("organization_memberships").delete().eq("id", createdMembershipId));
   }
   if (createdUserId) {
-    const delProfile = await db.from("profiles").delete().eq("id", createdUserId);
-    steps.push(`profile:${delProfile.error ? "ERR " + delProfile.error.message : "deleted"}`);
-    const delUser = await db.auth.admin.deleteUser(createdUserId);
-    steps.push(`auth_user:${delUser.error ? "ERR " + delUser.error.message : "deleted"}`);
+    await step("profile", () => db.from("profiles").delete().eq("id", createdUserId));
+    await step("auth_user", async () => {
+      const res = await db.auth.admin.deleteUser(createdUserId);
+      return res.error ? { error: res.error } : { ok: true };
+    });
   }
   console.log("cleanup: " + steps.join(" | "));
-  return steps.every((s) => !s.includes("ERR"));
+  const failed = steps.filter((s) => s.includes("ERR"));
+  // Cleanup failure is a RESULT, not a log line. Silently leaving a QA account
+  // and membership in the live database is the residue defect this report has
+  // already fixed once in the product.
+  if (failed.length) console.log(`cleanup reported ${failed.length} failed step(s)`);
+  return failed.length === 0;
 }
 
 const browser = await chromium.launch();
@@ -286,5 +307,13 @@ console.log(`\n${passed}/${total} passed`);
 if (outcome === "blocked") {
   console.log("BLOCKED: the environment's email budget closed again. Re-run later.");
   process.exit(2);
+}
+// A run that cannot clean up after itself has not passed, whatever its
+// assertions said. Before this check, a cleanup that errored was still reported
+// as a green run while leaving a real account and membership behind in the
+// live database.
+if (!cleaned) {
+  console.log("FAIL: cleanup did not complete — this run left rows behind.");
+  process.exit(1);
 }
 process.exit(failures > 0 ? 1 : 0);
