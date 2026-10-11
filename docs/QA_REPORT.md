@@ -1288,6 +1288,84 @@ proceed reports *why*.
 Restoration verified by read-back: invoices 7→7, items 27→27, payments 4→4, advances
 2→2, and 1 approval request + its action row created by the run removed.
 
+### P2 — Every filter on every internal list page is live — and two of them were proved so the harness itself could be trusted
+
+`qa-exercise-list-filters.mjs`, **27/27 on 20 pages**, 0 defects.
+
+The action coverage in §5 counts server actions. It does not cover the other half of
+a list page: the GET filter form. A filter can render, sit in a proper form, submit a
+correct query string and then be **ignored by the query it was meant to reach** — the
+page changes nothing and reports a confident, complete, wrong list. That is not
+hypothetical: it is exactly what the NTE search box was (§2, P2), and the release
+gate's "no dead controls" audit passed the whole time, because that audit can see a
+control that submits and cannot see a query that ignores it.
+
+Two invariants, chosen so neither has an escape hatch:
+
+- **A search must respond to a string that matches nothing.** The run types a per-run
+  marker that cannot occur in any seeded row and requires the result set to change.
+  A search that returns the unfiltered list for a no-match string is dead.
+- **A dropdown must be able to change something.** Selects have no no-match value and
+  an option can legitimately return the same rows as "all", so the invariant is
+  weaker but still falsifiable: *at least one* option value must produce a different
+  result set. A dropdown where no option does anything is inert.
+
+Plus two guards that keep the result honest: a page whose unfiltered list is empty is
+**skipped** for the dropdown leg (with no rows, no filter can change anything, and
+reporting that as inert would be the same mistake pointed the other way), and a
+dropdown with no effect is printed as a **candidate for confirmation against its
+table**, never concluded to be a defect from the DOM alone.
+
+`/app/approvals` has no filter form at all and is reported as such rather than
+skipped silently.
+
+#### The first run of this script reported 14 dead filters. All 14 were the script.
+
+That is worth recording in full, because the failure looked exactly like a product
+defect and two of the named pages had been fixed and proven earlier in this same
+session — `/app/hr/nte` above all, whose search box this report lists as **Fixed**.
+
+Three harness bugs, all of the same family — a locator that looks right and is not:
+
+1. **`.first()` filled the CREATE form, not the filter form.** Most of these pages
+   render a second form above the filter: "Create ticket", "Create NTE case",
+   "Upload". On `/app/hr/nte` the first text input on the page is `incident_type`;
+   on `/app/tickets` it is `subject`; on `/app/my/documents` it is `title`. The run
+   was filling those fields and then clicking "Create NTE case".
+2. **The submit button was the CREATE form's button.** `form button[type=submit]`
+   `.first()` matched "Create ticket" / "Upload", not "Apply". So the filter form was
+   rarely submitted at all.
+3. **The fingerprint removed every `<form>`.** On `/app/hr/nte` that stripped 435 of
+   928 characters, and on any list whose rows sit inside a form (the per-row status
+   and assign selects) it deletes the rows themselves — reducing the fingerprint to
+   page chrome and making every comparison equal.
+
+The fix is to identify the filter form **by its Apply button** and remove only that
+one form. Nothing about the product changed; the run went from 14 reported defects to
+zero, without touching a line of application code.
+
+#### Waiting for the URL is not waiting for the content
+
+The corrected run still reported one dead filter — `/app/recruitment/jobs`, where the
+query reached the URL and the list did not change. It was wrong again, for a fourth
+reason: the run waited for the URL to stop moving and then sampled. A Next.js
+client-side transition updates the address bar **immediately** and streams the RSC
+payload afterwards, so "the URL has settled" says nothing about whether the new
+markup is on screen. Measured directly, that search works correctly — 5 job posts
+unfiltered, 0 plus the `No job posts` empty state when filtered.
+
+The harness now samples the fingerprint until **two consecutive reads agree**. This
+one change also un-skipped four pages (`/app/employees`, `/app/billing`,
+`/app/admin/users`, and the NTE row) that the stability control had been rejecting
+for "content is not stable across two identical loads" — they were not unstable, they
+were being sampled mid-render.
+
+The rule this earns, which is the same one the source-contract guards in this repo
+keep re-learning: **before reporting a defect from a harness, prove the harness can
+detect the thing it is looking for.** Both times here, a positive control on a page
+already known to work — `/app/hr/nte` and `/app/tickets` — would have caught the
+instrument before it produced a list of fourteen defects that did not exist.
+
 ### P2 — Every document in the demo was undownloadable. Two causes, both fixed.
 
 The documents module itself is the best-written in the codebase: it checks its errors,
@@ -1769,6 +1847,9 @@ node scripts/audit/qa-exercise-profile-workflow.mjs      # 19 assertions
 node scripts/audit/qa-exercise-money-workflow.mjs        # 33 assertions
 node scripts/audit/qa-exercise-documents-workflow.mjs     # 31 assertions
 node scripts/audit/qa-exercise-client-timesheet-workflow.mjs # 13/14, one real finding
+node scripts/audit/qa-exercise-tickets-workflow.mjs          # 33 assertions
+node scripts/audit/qa-exercise-list-filters.mjs             # 27 assertions across 20 list pages
+node scripts/audit/check-auth-email-rate-limit.mjs          # exits 0 the moment the 429 clears
 node scripts/audit/qa-probe-client-timesheet.mjs          # read-only: can this flow run here at all?
 node scripts/audit/qa-probe-summary-view-filter.mjs     # read-only: which predicate hides a record from the client view
 
