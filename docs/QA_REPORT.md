@@ -1502,6 +1502,56 @@ One hardening noted for whoever picks it up: `reviewClientTimesheet`'s final upd
 matches zero rows, so a concurrent hand-off would let the action report "Timesheet
 approved." while nothing changed — the same shape as the P0 in §2.
 
+### Tickets workflow — `qa-exercise-tickets-workflow.mjs`, 33/33
+
+Covers the four actions the admin pass had not driven: `postTicketMessage`,
+`updateTicketStatus`, `createTicketSlaPolicy` and `updateTicketSlaPolicy`.
+
+| Leg | What it asserts |
+|---|---|
+| Reply | First staff reply stamps `first_response_at`; a **second** reply does not move that clock |
+| Reply | The message is stored `internal = false`, not as an internal note |
+| Status | Resolving stamps `resolved_at`; reopening **clears** it rather than leaving a stale resolution date; an audit row is written |
+| SLA create | A policy whose resolution target is shorter than its first-response target is refused, and no row is written |
+| SLA edit | The same cross-field rule holds on the update path, and a valid edit persists both targets and writes an audit row |
+
+**No product defect in this domain.** The reply-clock, status-transition and SLA
+validation behaviour is all correct, and the reopening-clears-`resolved_at` check is
+worth keeping precisely because it is the shape a status machine usually gets wrong.
+
+**One structural finding — the SLA create action is unreachable in a configured org.**
+`app/tickets/sla/page.tsx:36` builds `byPriority` from **every** policy of the org
+without consulting `active`, and renders a create form only for a priority with no
+policy row at all:
+
+```tsx
+const byPriority = new Map((policies ?? []).map((p) => [p.priority, p] as const));
+const missing = PRIORITIES.filter((p) => !byPriority.has(p));
+```
+
+All four priorities are configured here, so the form is never rendered, and there is
+no delete action for SLA policies anywhere in the product — so once an org has all
+four, `createTicketSlaPolicy` is **dead code** in that org, permanently. This is the
+same shape as the CMS delete gap in §2 and is documented, not changed: the fix is a
+product decision about whether an org should be able to remove a priority's policy.
+
+Rather than report the action untested, the run frees a priority and drives it for
+real. Two approaches were rejected first, and both rejections are instructive:
+
+- **Writing a sentinel `priority` does not work.** `priority` is
+  `public.ticket_priority`, an `enum ('low','normal','high','urgent')`, so
+  `'qa_parked'` is rejected by Postgres outright — and all four legitimate values are
+  already taken, which is the whole reason the slot is full.
+- **Deleting the policy row does not work either.** `tickets.sla_policy_id`
+  references it `on delete set null` (`20260906000900_client_tickets_billing.sql:119`),
+  so the delete would silently detach the SLA from real tickets, and re-inserting the
+  row afterwards would not put those links back. That is collateral damage to live
+  demo data in the name of a QA run.
+
+What works is moving the row to a **scratch organization**. `organization_id` is part
+of the unique index `(organization_id, priority)`, so moving it frees the slot while
+the row keeps its `id` — and therefore every FK that points at it.
+
 ### Traps this pass hit in its own tooling
 
 Recorded because each produced a report full of defects that did not exist:
@@ -1568,6 +1618,16 @@ Recorded because each produced a report full of defects that did not exist:
   `auth.admin.listUsers()` resolves to `{ data: { users: [...] } }`. Running that
   through a `must()` helper and calling `.find` on the result throws, while
   destructuring `{ data }` yields an object that merely *looks* empty.
+- **A restore that changes a row without changing the row count cannot be verified
+  by counting.** This pass's SLA leg parks a policy under a scratch org and moves it
+  back. The cleanup block checked five counts — tickets, messages, policies, and two
+  marker scans — and **every one of them passes identically whether or not the move
+  was rolled back**: a moved row is still a row, and it still carries the same name.
+  The `finally` also restored `name`, both targets and `active`, while omitting
+  `organization_id` entirely, so the one field that was actually changed was the one
+  field left behind. The fix is to read each pre-existing row back **by id, with no
+  org filter** (so a stranded row is found rather than reported as missing) and compare
+  **field by field**. A tally cannot fail on a value.
 
 ---
 
@@ -1593,7 +1653,7 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/leave` | 3 | **3** |
 | `lib/admin` | 5 | **5** |
 | `lib/recruitment` | 7 | **7** (2 from the hire pass, 5 here) |
-| `lib/tickets` | 6 | **2** (create, assign) |
+| `lib/tickets` | 6 | **6** (2 from the admin pass: create, assign; 4 here: reply, status, both SLA actions) |
 | `lib/auth` | 10 | **8** (signup reached but 429-blocked; `resetPasswordAction` not driven) |
 | `lib/cms` | 14 | **14** |
 | `lib/crm` | 8 | **8** (`createLeadFromContact` via the public contact form) |
@@ -1606,14 +1666,20 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/cash-advance` | 2 | **2** |
 | `lib/clients` (1) | 1 | 0 |
 | `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | **3** |
-| **Total** | **83** | **76** |
+| **Total** | **83** | **80** |
 
-**76 of 83 actions are exercised end to end.** The other 7 render correctly and
-are covered by unit tests and typecheck, but no committed script has yet driven
-them through a browser and asserted the resulting rows. That gap is stated
-plainly rather than papered over by counting the page sweep as proof — a button
-can render perfectly and do nothing, which is exactly how every defect in
-this report was found.
+**80 of 83 actions are exercised end to end.** The other 3 are the auth-email
+actions — `signupAction`, `resetPasswordAction` and `inviteClientUser` — which
+Supabase refuses environment-wide with **HTTP 429**. They render correctly and are
+covered by unit tests and typecheck, but no committed script has driven their success
+path through a browser, and that gap is stated plainly rather than papered over by
+counting the page sweep as proof — a button can render perfectly and do nothing,
+which is exactly how every defect in this report was found.
+
+They are all three the *same* gap, not three unrelated ones: each one asks Supabase to
+send an email. `signupAction` has been reached and its failure path proven to report
+the rate limit correctly rather than blaming the address; what is unproven is the
+success path, and nothing else in the product is waiting on it.
 
 Earlier sessions did leave evidence in `audit_logs` for a few more
 (`payroll.period.create`, `applicant.stage_change`, `client.invite`) via ad-hoc
@@ -1632,7 +1698,7 @@ somewhere above 12. It is not 81.
 | 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
 | 3 | **Hire pipeline** | **Now exercised** — 18/18, see §4. One defect found and fixed |
 | 4 | **26 of 83 server actions not yet driven end to end** | See §5. NTE (3), documents (3), notifications (3), clients/employees/profile/contact (4), billing (2), cash-advance (2), client timesheet pair (2). All single-digit blocks now — see §4 |
-| 5 | Invite *account creation*, and **signup account creation** | Blocked by Supabase email rate limiting (HTTP 429) in this environment. The signup *error path* is now proven to report the rate limit correctly rather than blaming the address; the success path is not |
+| 5 | Invite *account creation*, and **signup account creation** | Blocked by Supabase email rate limiting (HTTP 429) in this environment. The signup *error path* is now proven to report the rate limit correctly rather than blaming the address; the success path is not. Check the blocker with `node scripts/audit/check-auth-email-rate-limit.mjs` — it exits 0 the moment the limit clears, and deletes anything it creates |
 | 6 | `super_admin` holds 21 of 50 permissions | Deliberate platform-vs-business split, or a gap — a product call. See §2 |
 | 7 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
 | 8 | Playwright e2e not running in CI | Needs `RUN_E2E=true` plus secrets |
