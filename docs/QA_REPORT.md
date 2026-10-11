@@ -628,6 +628,80 @@ it cannot see a control that submits correctly and is then ignored by the query 
 meant to reach. Fixed with the same `ilikePattern` + `.or()` the tickets and audit-log
 pages already use.
 
+### P1 — Every "record not found" page in the app was a dead end with no navigation. Fixed.
+
+There was no `not-found.tsx` anywhere in this codebase — not at the root, not under
+`/app`. Next.js served its built-in not-found document, and that document contains
+**zero links**. Verified, not assumed: before the fix, `/app/no-such-page` rendered
+`404 / This page could not be found.` with `document.querySelectorAll('a').length === 0`
+— no header, no sidebar, no logo, and the marketing `<title>` on an internal-tool page.
+
+The blast radius is much wider than a mistyped URL. **12 app routes call `notFound()`**
+for a missing record:
+
+```
+app/app/tickets/[id]              app/app/crm/deals/[id]        app/app/recruitment/applicants/[id]
+app/app/employees/[id]            app/app/crm/leads/[id]        app/app/applicant/jobs/[id]
+app/app/billing/[id]              app/app/recruitment/jobs/[id] app/app/my/requests/[id]
+app/app/payroll/periods/[id]      app/app/client/tickets/[id]   app/app/client/billing/[id]
+```
+
+So opening a deleted ticket, employee, invoice, payroll period, deal, lead or job was
+a dead end. This is not hypothetical reach: §6 row 15 documents a payroll audit link to
+a period the payroll exercise deletes, and any stale `action_url` in a notification
+lands the same way. In a tool staff use all day, "the record I was sent to no longer
+exists" is a normal event, and it ended in a page with no way out.
+
+Three files fix it:
+
+- **`app/not-found.tsx`** (new) — public 404. Reuses `SiteHeader`/`SiteFooter`, so it
+  reads as part of the site. 32 links, was 0.
+- **`app/app/not-found.tsx`** (new) — renders **inside `AppShell`**, so a signed-in
+  user keeps the sidebar, the command palette and their session.
+- **`app/app/[...rest]/page.tsx`** (new) — catch-all that calls `notFound()`.
+
+The catch-all is the subtle one, and it was found by the probe failing rather than by
+reading. Adding `app/app/not-found.tsx` alone changed nothing for unmatched `/app/*`
+URLs: a URL matching no segment renders the **root** `not-found.tsx`, so a signed-in
+user who mistyped a deep link was ejected out of the app into the *public marketing
+shell*, offered only "Back to homepage" and a fresh login. The catch-all matches the
+segment, so `notFound()` resolves to the app's own boundary. Static and dynamic
+segments outrank a catch-all, so every real route still resolves to its own page.
+
+Both boundaries carry `data-page-status="not-found"`, matching the markers already used
+by `forbidden.tsx` and `error.tsx`. That matters: those markers exist because a page
+that renders *at* the requested URL instead of redirecting is otherwise scored as a
+clean page. A 404 with no navigation is exactly that shape.
+
+**The assertion that actually protects this is "the way out works", not "a 404 renders".**
+`qa-probe-not-found.mjs` clicks "Back to dashboard" and asserts it reaches a live page
+(200, lands `/app`, `h1` "Overview"). A 404 linking to another 404 is still a dead end,
+and a page-visit sweep scores both identically. 18/18 — evidence at
+`docs/evidence/not-found-check.json`.
+
+**This probe also caught itself passing a false positive, which is worth recording.**
+Its first version asserted the app 404 "renders inside the app shell" by counting
+`nav a[href]` — and got 17. It was reading the **marketing** `SiteHeader`, because that
+is also a nav full of links. The count was real and the conclusion was wrong: the app
+404 was not being used at all. The check now discriminates on content — the app's own
+`a[href="/app"]` recovery link present, **and** the marketing footer absent. Same lesson
+as the Tuko role sweep: an assertion whose selector also matches the wrong thing
+produces confident, plausible, wrong output rather than an error.
+
+**Side effect worth stating: everything under `/app` serves its not-found page with
+HTTP 200, not 404.** This is pre-existing and is *not* caused by the catch-all — the
+record-not-found path returned 200 before any of this. Cause is a controlled
+comparison, not a guess: `(marketing)` has no `loading.tsx`, and `/resources/<bad-slug>`
+calls the same `notFound()` and correctly returns **404**. `app/app/loading.tsx` puts a
+Suspense boundary above every app page, so the response starts streaming, the status is
+committed as 200, and the later `notFound()` cannot change it.
+
+Left as-is deliberately. Removing `loading.tsx` would buy a correct status code at the
+cost of the slow-TLS hang those files exist to prevent; `/app` is `noindex, nofollow`,
+so no crawler is affected; and the page a user sees is correct. Only monitoring would
+read a soft-404 as a success. The probe records it in an `observations` array rather
+than dropping the check, and §6 tracks it.
+
 ---
 
 ## 3. Data population
@@ -2635,7 +2709,7 @@ re-established rather than merely repaired:
 | Role pages | 479 (13 roles) |
 | Marketing pages | 10 |
 | **Total** | **489** |
-| `ok` / redirected / empty / download | 444 / 28 / 2 / 5 |
+| `ok` / redirected / empty / download | 445 / 27 / 2 / 5 |
 | **Page errors** | **0** |
 | **Console errors** | **0** |
 
@@ -2651,6 +2725,71 @@ The previous figure in this report was **471** visits. The corrected sweep measu
 The difference is crawl variance plus the extra page the `cms.manage` grant gives `owner` and
 `super_admin` — not a regression, and not worth treating as precise; the load-bearing claim is
 `errors = 0`, not the visit count.
+
+### The role sweep had no exit code, and lost a whole role without saying so
+
+Adding the 404 catch-all forced a re-sweep, and the re-sweep came back at **443 visits**
+where the committed evidence said 479. That is 36 pages missing — and the script printed
+`err=0`, wrote the evidence file, and **exited 0**. The gap was not a regression in the app.
+It was the sweep quietly dropping `operations`:
+
+```json
+"operations": { "email": "operations@demo.beepabpo.com",
+                "login": { "ok": false, "reason": "still on /login" }, "pages": 0 }
+```
+
+Three separate defects, found only because the visit count was compared against the
+committed run instead of being read as "0 errors":
+
+**1. A failed sign-in was a silent `continue`.** The role's whole page set — 36 visits —
+was skipped, recorded in JSON, printed nowhere, and the run still reported success. *Less
+coverage reads exactly like more coverage*, which is what makes this the dangerous shape of
+audit bug. Now a failed sign-in is counted and fails the run.
+
+**2. The script had no exit-code logic at all.** Not weak logic — none. `process.exit` was
+never called, so every number it printed was decoration and nothing could ever gate on it.
+"0 page errors" was a claim printed to a terminal, not a result. It now asserts three things:
+every role signed in, no page is in a broken state, and a full run covered at least 380
+visits.
+
+**3. The cause of the flake was a fixed `waitForTimeout(2500)` before asking "did it log
+in?".** Under load — 13 roles signing in back to back, each waiting on a live Supabase
+round trip — 2.5 s was sometimes not enough. Replaced with a `waitForFunction` on the
+condition being asserted. **A fixed sleep is a guess about a duration; the wait that matters
+is for the thing itself.**
+
+The account was never broken, and that was verified rather than assumed:
+`qa-probe-account-signin.mjs` confirms a confirmed, non-banned user, an **active**
+`organization_memberships` row, and a working password sign-in. (`resolveWorkspace` filters
+`status = 'active'`, so an inactive row signs a valid password straight back out to
+`/login` — worth knowing before blaming the account.)
+
+**And the canary that proved the new exit logic worked immediately broke the evidence
+file.** `audit-role-sweep.mjs definitely-not-a-role` exited 1 correctly — while replacing
+the 479-visit report with a 0-visit one. The artefact whose entire job is to be the
+reproducible record behind this section's numbers was destroyed by a debugging command,
+and it still looked plausible, because an empty report has the same shape as a real one.
+Only a full run may now write `docs/evidence/role-sweep.json`; partial runs leave it
+alone. Re-verified: the canary now exits 1 *and* leaves the file's mtime unchanged.
+
+The general lesson is the same one recorded for `refresh-demo-timeline.mjs` in §6, and it
+is worth stating twice because this is the second time this project has produced it: **a
+tool that reports partial success needs its failures asserted, not merely printed.** Here
+"443 visits, 0 errors" read like an acceptable outcome. It was a hole in the coverage.
+
+Re-run after the fixes, with every guard active:
+
+```
+total role-page visits: 479 across 13 roles
+page errors: 0
+VERDICT: PASS — every role signed in, no page in a broken state, coverage floor met
+```
+
+`operations` is back at its full 36 pages, which is what confirms defect 3 was the cause
+rather than a coincidence. The evidence file is restored to a full run and the status mix
+re-measured: `ok` 445 / redirected 27 / empty 2 / download 5, zero console noise — one page
+shifting between `ok` and `redirected` against the run above is ordinary crawl variance,
+and the load-bearing number is still `errors = 0`.
 
 **82 of 83 actions are exercised end to end.** The one remaining is `inviteClientUser`.
 
@@ -2983,6 +3122,7 @@ employee still sees only their own folder and hr sees all seven.
 | 14 | `payslip_items` / `payslip_components` | **Resolved, not open.** They do not exist — an earlier audit of mine guessed them. The app uses `payroll_components` |
 | 15 | `resetPasswordAction` | Needs a real recovery token from an inbox; no mail provider in this environment. Part of the 2-action gap in row 4. The invalid-token path on `verifyEmailAction` *is* proven |
 | 16 | **Withdrawn — "4 CMS-built `/careers` slugs are link-reachable but absent from the sitemap"** | **Not a real gap.** All five `/careers` slugs are in the sitemap. The reading that said otherwise came from a stale build artifact; see "The sitemap findings below were a measurement error" in §2. Kept in the list so nobody re-derives it from the git history |
+| 17 | **`/app` not-found pages are served with HTTP 200, not 404** | **Pre-existing, documented, deliberately not fixed.** `app/app/loading.tsx` puts a Suspense boundary above every app page, so the response starts streaming, the status is committed as 200, and the later `notFound()` cannot change it. Proven by controlled comparison: `(marketing)` has no `loading.tsx` and `/resources/<bad-slug>` calls the same `notFound()` and correctly returns 404. **Left alone on purpose** — removing `loading.tsx` would trade a correct status code for the slow-TLS hang those files prevent; `/app` is `noindex, nofollow` so no crawler is affected; the page the user sees is correct. Only monitoring would read a soft-404 as a success. `qa-probe-not-found.mjs` records it in an `observations` array rather than dropping the assertion |
 
 **The demo tenant is a clock bomb, and it is worth knowing about before you trust
 a red gate.** Several seed scripts wrote relative deadlines with `Date.now()`
@@ -3061,6 +3201,9 @@ node scripts/audit/qa-exercise-sitemap-unpublish.mjs        # rebuilds the app; 
 node scripts/audit/qa-cleanup-sitemap-probe.mjs            # removes ONLY rows these sitemap probes created
 node scripts/audit/qa-probe-client-timesheet.mjs          # read-only: can this flow run here at all?
 node scripts/audit/qa-probe-summary-view-filter.mjs     # read-only: which predicate hides a record from the client view
+node scripts/audit/qa-probe-not-found.mjs                    # 18 assertions; proves every 404 has a way out that works
+node scripts/audit/qa-probe-account-signin.mjs [email]        # read-only: can this demo account actually sign in, and is its membership active
+node scripts/audit/audit-role-sweep.mjs [role ...]           # 13 roles; exits non-zero on a failed sign-in, a broken page, or too little coverage
 
 # demo repair, all dry run unless --apply
 node scripts/audit/qa-repoint-document-bucket.mjs   # --apply

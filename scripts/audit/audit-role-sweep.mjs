@@ -46,6 +46,11 @@ const ALL_ROLES = [
 
 const only = process.argv.slice(2);
 const roles = only.length ? ALL_ROLES.filter((r) => only.includes(r)) : ALL_ROLES;
+// Declared here, not in the verdict block: the evidence writer below needs it,
+// and a `const` referenced before its declaration is a TDZ ReferenceError at
+// runtime — which would have thrown only on a partial run, i.e. exactly when
+// someone was debugging.
+const isFullRun = only.length === 0;
 
 // Marketing pages are role-independent; swept once.
 // (No /industries - it is not a route. CMS industries feed the services pages.)
@@ -114,14 +119,34 @@ async function signIn(page, email) {
   await page.fill('input[type=password]', PW);
   await page.click('button[type=submit]');
   await page.waitForLoadState("domcontentloaded");
-  await page.waitForTimeout(2500);
-  if (page.url().includes("/login")) return { ok: false, reason: "still on /login" };
+
+  // Wait for the thing being asserted, not for a fixed number of milliseconds.
+  //
+  // This used to be `waitForTimeout(2500)` followed by "still on /login?". Under
+  // load — 13 roles signed in back to back, each waiting on a live Supabase
+  // round trip — 2.5s was sometimes not enough, and the run recorded
+  // `login: { ok: false }` for `operations` and then carried on as if nothing
+  // had happened. 36 pages of coverage vanished and the summary still read
+  // "0 errors". A fixed sleep is a guess about a duration; this waits for the
+  // condition itself.
+  try {
+    await page.waitForFunction(
+      () => !window.location.pathname.includes("/login"),
+      null,
+      { timeout: 20000 },
+    );
+  } catch {
+    // Fall through to the checks below, which classify why.
+  }
+
+  if (page.url().includes("/login")) return { ok: false, reason: "still on /login after 20s" };
   if (page.url().includes("access-denied")) return { ok: false, reason: "redirected to access-denied" };
   return { ok: true, landed: new URL(page.url()).pathname };
 }
 
 const browser = await chromium.launch();
 const report = { base: BASE, startedAt: new Date().toISOString(), roles: {}, marketing: [] };
+const loginFailures = [];
 
 // ---- marketing (anonymous) ----
 {
@@ -158,7 +183,17 @@ for (const role of roles) {
 
   const login = await signIn(page, email);
   entry.login = login;
-  if (!login.ok) { report.roles[role] = entry; await ctx.close(); continue; }
+  if (!login.ok) {
+    // A role that cannot sign in contributes ZERO pages, which used to vanish
+    // silently: the sweep recorded the failure in JSON, printed nothing, and
+    // exited 0 with "0 errors" at the bottom. A skipped role is a hole in the
+    // coverage, not a clean result — it is now counted and it fails the run.
+    loginFailures.push({ role, email, reason: login.reason });
+    console.error(`FAIL ${role.padEnd(13)} sign-in failed — ${login.reason}`);
+    report.roles[role] = entry;
+    await ctx.close();
+    continue;
+  }
 
   // Discover reachable pages from the landing surface. These four are the real
   // route names (app/app/applicant, app/app/approvals).
@@ -247,8 +282,68 @@ console.error(`\nmarketing problems: ${report.marketing.filter((r) => r.status !
 // never tracked. Keep both -- the root file for the script's own contract, this one for review.
 try {
   mkdirSync("docs/evidence", { recursive: true });
-  writeFileSync("docs/evidence/role-sweep.json", JSON.stringify(report, null, 2));
-  console.error("wrote docs/evidence/role-sweep.json");
+  // Only a FULL run may overwrite the tracked evidence file.
+  //
+  // The canary that proved the new exit logic worked (`audit-role-sweep.mjs
+  // definitely-not-a-role`) replaced a 479-visit report with a 0-visit one. The
+  // file whose entire job is to be the reproducible record behind the report's
+  // numbers was destroyed by a debugging command — and it still looked
+  // plausible, because an empty report has the same shape as a real one. Partial
+  // runs write only the gitignored root file.
+  if (isFullRun) {
+    writeFileSync("docs/evidence/role-sweep.json", JSON.stringify(report, null, 2));
+    console.error("wrote docs/evidence/role-sweep.json");
+  } else {
+    console.error("partial run — docs/evidence/role-sweep.json left untouched");
+  }
 } catch (e) {
   console.error(`could not write docs/evidence/role-sweep.json: ${e.message}`);
 }
+
+// ---- verdict ----
+//
+// This script had NO exit-code logic at all. Every number it printed — "err=0",
+// "marketing problems: 0/10" — was decoration: the process exited 0 whatever it
+// found, so nothing could ever gate on it. "0 page errors" was a claim printed to
+// a terminal, not a result.
+//
+// A sweep that silently loses a whole role is the dangerous failure mode, because
+// less coverage reads exactly like more coverage. Three assertions close it:
+//   1. every role must sign in,
+//   2. no page may be in a broken state,
+//   3. the run must cover at least MIN_VISITS pages in total — the floor that a
+//      skipped role would drop below.
+const totalVisits = Object.values(report.roles).reduce((n, r) => n + (r.pages?.length ?? 0), 0);
+const pageErrors = Object.entries(report.roles).flatMap(([role, r]) =>
+  (r.pages ?? [])
+    .filter((p) => !["ok", "empty-state", "redirected", "download"].includes(p.status))
+    .map((p) => `${role} ${p.path} → ${p.status}`),
+);
+const marketingProblems = report.marketing.filter((r) => r.status !== "ok");
+
+// The observed full run covered 479 visits across 13 roles. A floor well below
+// that still catches a whole missing role (the smallest contributes 13) without
+// breaking when demo data legitimately trims a page or two.
+const MIN_VISITS = 380;
+// The floor only means something on a FULL sweep. Running a deliberate subset
+// (`audit-role-sweep.mjs owner`) is a normal thing to do and must not fail on
+// coverage it was never meant to produce. A filter that matches no role at all is
+// a user error, not a pass.
+
+const problems = [];
+if (!isFullRun && roles.length === 0) problems.push(`no role matched the filter ${JSON.stringify(process.argv.slice(2))}`);
+if (loginFailures.length) problems.push(`${loginFailures.length} role(s) could not sign in: ${loginFailures.map((f) => `${f.role} (${f.reason})`).join(", ")}`);
+if (pageErrors.length) problems.push(`${pageErrors.length} page(s) in a broken state: ${pageErrors.slice(0, 8).join("; ")}`);
+if (marketingProblems.length) problems.push(`${marketingProblems.length}/${report.marketing.length} marketing page(s) not ok`);
+if (isFullRun && totalVisits < MIN_VISITS) problems.push(`coverage floor: ${totalVisits} visits < ${MIN_VISITS} — a role was probably skipped`);
+if (!isFullRun) console.error(`\n(partial run: ${roles.join(", ") || "no roles"} — coverage floor not applied)`);
+
+console.error(`\ntotal role-page visits: ${totalVisits} across ${Object.keys(report.roles).length} roles`);
+console.error(`page errors: ${pageErrors.length}`);
+
+if (problems.length) {
+  console.error("\nVERDICT: FAIL");
+  for (const p of problems) console.error(`  - ${p}`);
+  process.exit(1);
+}
+console.error("VERDICT: PASS — every role signed in, no page in a broken state, coverage floor met");
