@@ -2054,6 +2054,29 @@ test passed — 622 of them — because the strings they look for were all prese
 rather than stacked, since nothing had been pushed. A source-shape assertion and a compiler
 catch different bugs, and this codebase needs both.
 
+So the guard was then driven for real rather than left at source-shape.
+`qa-probe-timesheet-window-guard.mjs` seeds an attendance record inside the assignment
+window and one ten days before it, clicks **Send to client** on each, and asserts 4/4:
+
+| Assertion | Result |
+|---|---|
+| CONTROL: an in-window day still submits | PASS — "Timesheet submitted for client review.", status `client_review` |
+| An out-of-window day is refused, naming the window | PASS — "This day (2026-08-26) falls before the employee's client assignment starts (2026-09-05), so the client would never see it." |
+| The refused record was **not** written to `client_review` | PASS — `approval_status` unchanged at `supervisor_review` |
+| The refused record is invisible to the client view | PASS — absent, as the view filter says |
+
+The control is what makes the other three mean anything: without it, a broken button or an
+invalid fixture would produce the same "refused" reading. The third assertion is the one no
+source assertion could give — a guard placed *after* the update would pass every string check
+and still leave the record in the client's queue.
+
+Getting there took three failed runs, each fixed by dumping the page instead of guessing:
+the fixture collided with `UNIQUE(employee_id, work_date)`; the attendance page is
+**week-scoped**, so a fixture months back is invisible on the default week; and its default
+view is a **heatmap** with no per-record button until `heatmap=0` is passed. The Date column
+also renders as `Wed 26`, not `2026-08-26`. Every one of those would have been easy to
+report as "the guard does not fire".
+
 ### Client timesheet workflow — `qa-exercise-client-timesheet-workflow.mjs`, 13/14
 
 The only workflow that crosses the Beepa/client boundary with a status hand-off. Both
@@ -2357,7 +2380,7 @@ employee still sees only their own folder and hr sees all seven.
 | 5 | **Invite account creation** | Blocked by Supabase email rate limiting in this environment. **Signup account creation is no longer on this list** — it ran end to end, creating a real account and applicant membership, once the budget allowed one call through. That is the whole reason to keep re-probing instead of writing a blocker down once. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
 | 6 | `super_admin` holds 21 of 50 permissions | **Now measured, not just counted** — `qa-inspect-super-admin-gaps.mjs`. See below. A deliberate platform-vs-business split is defensible; the gap that is not defensible is `cms.manage`, held by **only `marketing`** — not by `owner`, not by `super_admin` |
 | 7 | **Storage RLS casts with `::uuid`, which RAISES rather than denies** | **Fixed** — `20261011130000_storage_rls_safe_uuid_cast.sql`, applied and verified behaviourally. Six policies guarded by an immutable `public.try_uuid(text)`. The important part is what the naive fix would have caused: `can_access_client(NULL)` can return TRUE for anyone holding `clients.read`/`clients.manage`/`system.manage`, because those permission terms never reference the argument — so routing it through a NULL-returning cast alone would have converted "raise, therefore deny" into "grant the whole bucket". Those three policies take an explicit `is not null` guard. Verified against a real malformed object (`client-documents/demo/…`): the listing now returns `ok, []` instead of a Postgres error |
-| 8 | **Client timesheet P1: submit accepts a day the client view filters out** | **Fixed** — `submitTimesheetForClientReview` now refuses a day outside the employee's client assignment window, with a message naming both dates, before the record is written to `client_review`. A submission that would vanish between Beepa and the client is now refused where the information to prevent it exists. See §4. **This finding was nearly withdrawn on bad evidence — the near-miss is recorded below** |
+| 8 | **Client timesheet P1: submit accepts a day the client view filters out** | **Fixed and driven through the UI** — `submitTimesheetForClientReview` refuses a day outside the employee's client assignment window before writing `client_review`. `qa-probe-timesheet-window-guard.mjs` seeds one in-window day and one out-of-window day, clicks the real "Send to client" button, and asserts 4/4 — including that the refused record's `approval_status` is **unchanged**, which is the ordering claim a source assertion cannot prove. **This finding was nearly withdrawn on bad evidence — the near-miss is recorded below** |
 | 9 | **List pager offers "Next" on the last page when it is exactly full** | **Fixed** — 36 pager instances across 32 pages now fetch `PAGE_SIZE + 1` and drop the sentinel row before rendering. `components/app/list-pager.tsx` needed **no change**: once the extra row is gone, `rowCount >= pageSize` is exactly the right test. The residual risk is that the invariant now lives in 32 call sites rather than one place, so the test discovers pages by walking `app/**/*.tsx` for `ListPager` rather than keeping a hand-written list |
 | 10 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
 | 11 | Playwright e2e not running in CI | Needs `RUN_E2E=true` plus secrets |
