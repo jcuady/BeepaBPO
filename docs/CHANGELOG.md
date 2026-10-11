@@ -76,10 +76,16 @@ Phased delivery of the Beepa BPO platform (not semver releases).
 - Gate: **655 tests / 93 files** (was 634), tsc clean. 11 new tests written red first across
   `tests/auth-error-messages.test.ts`, `tests/client-invite.test.ts`,
   `tests/admin-invite.test.ts` and `tests/hire-convert.test.ts`.
-- **Still open, deliberately:** about 80 other server actions across `lib/` return
+- **Still open, deliberately:** 68 sites across 18 session-gated modules return
   `error?.message` from the driver as their user-facing message. See `docs/QA_REPORT.md`
-  §2 and §6 row 19. Not fixed here — it is a separate piece of work and the copy decisions
-  belong to whoever owns those screens.
+  §2 and §6 row 19. **An earlier draft of that entry claimed these were reachable by an
+  anonymous visitor and could leak database schema; that was wrong.** It confused CMS
+  *content* with CMS *action errors*. `scripts/audit/public-error-surface.mjs` measures it:
+  **0 of the 18 files sit in a module without a session gate**, and both genuinely public
+  paths are already safe — `lib/auth/actions.ts` routes through the mappers, and
+  `contactAction` discards the raw message at `lib/contact/actions.ts:68`. It is internal
+  copy quality, not disclosure, and the severity was corrected down rather than left
+  inflated. Not fixed here — the copy decisions belong to whoever owns those screens.
 
 ## A permissive RLS policy that the product never needed (2026-10-09)
 
