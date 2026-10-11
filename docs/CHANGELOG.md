@@ -2,6 +2,56 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## All three invite paths created the account before checking the role (2026-10-12)
+
+- **Every invite action ordered its steps wrongly, in the same way.**
+  `inviteClientUser` (`lib/clients/actions.ts`), `inviteInternalUser` (`lib/admin/actions.ts`)
+  and `convertApplicantToEmployee` (`lib/recruitment/actions.ts`) all call
+  `inviteOrResolveAuthUser` — which creates a real auth user **and sends a real invitation
+  email** — and only then looked up the role, upserted the membership and inserted the
+  membership role. The role lookup is a cheap local read that sat *after* two irreversible
+  steps. Any failure from that point on left an **orphaned auth user and an invitation for
+  access that did not exist**, while reporting "role is not configured" to the caller.
+- **The `profiles` update discarded its result**, so a failed profile write reported
+  success and left a provisioned user with no name. The hire path discarded the same way
+  on its `applicants.profile_id` link.
+- **The role lookup now runs before anything irreversible**, and every post-invite failure
+  rolls the account back. The rollback is gated on `invited === true` and the gate is
+  asserted in test, because `invited` is `false` whenever the helper resolved somebody who
+  already had an account — deleting on that path would destroy a colleague's login to tidy
+  up a failed membership write. The one failure that deliberately does **not** roll back
+  is the self-service baseline grant in `inviteInternalUser`, where the membership and
+  primary role already exist and the account works.
+- **The failure surfaced GoTrue's raw string to the user.** A toast read
+  `email rate limit exceeded` — the provider's internal name for HTTP 429, shown verbatim
+  to an org admin. `lib/auth/error-messages.ts` already holds four sibling mappers over one
+  shared `authFailureKind`, and its header comment names this exact drift as the failure it
+  exists to prevent: *"so the next mapper added cannot invent a fourth reading of a status
+  that three others already agree on."* The invite path **was** that fourth reading, and the
+  only one returning `inviteError?.message` unmodified. `inviteErrorMessage` now joins the
+  family; its signature accepts `message?: string` and never reads it. The rejected branch
+  says nothing about whether an address is registered, because the caller intercepts
+  "already been registered" before the mapper is reached.
+- **Fixing the copy broke my own test, and that is recorded too.**
+  `qa-exercise-client-invite.mjs` decided success by matching a blacklist of words against
+  the toast (`/unable|error|rate limit|invalid|…/i`). That worked only because the raw
+  GoTrue string contains "rate limit". The new copy — *"Too many invites have been sent
+  from this network. Wait a moment, then try again."* — matches none of them, and the
+  harness reported **PASS on an invite that had been refused**. It now asks one question,
+  *did an auth user appear?*, and prints the toast beside the verdict. Copy is not a
+  signal; a check that must be edited whenever someone improves the wording is measuring
+  the wording. Re-run against the live build with the quota closed it correctly reports
+  BLOCKED and exits 2.
+- **Verified end to end, not only in unit tests:** the rebuild and re-run above is what
+  produced both the old and the new toast text.
+- Gate: **655 tests / 93 files** (was 634), tsc clean. 11 new tests written red first across
+  `tests/auth-error-messages.test.ts`, `tests/client-invite.test.ts`,
+  `tests/admin-invite.test.ts` and `tests/hire-convert.test.ts`.
+- **Still open, deliberately:** about 80 other server actions across `lib/` return
+  `error?.message` from the driver as their user-facing message. See `docs/QA_REPORT.md`
+  §2 and §6 row 19. Not fixed here — it is a separate piece of work and the copy decisions
+  belong to whoever owns those screens.
+
 ## A permissive RLS policy that the product never needed (2026-10-09)
 
 - **`public.lead_attribution` granted `WITH CHECK (true)` to `authenticated`**,

@@ -1,8 +1,8 @@
 {
   "check": "client-invite",
-  "generatedAt": "2026-10-11T20:54:40.783Z",
+  "generatedAt": "2026-10-11T21:17:15.867Z",
   "base": "http://localhost:3100",
-  "marker": "qa-invite-mv4axa53",
+  "marker": "qa-invite-mv4bqbet",
   "total": 7,
   "passed": 6,
   "failures": 1,
@@ -27,12 +27,12 @@
     {
       "name": "the form accepts the invite address",
       "pass": true,
-      "detail": "qa-invite-mv4axa53@beepabpo.com"
+      "detail": "qa-invite-mv4bqbet@beepabpo.com"
     },
     {
       "name": "invite succeeds",
       "pass": false,
-      "detail": "toast: email rate limit exceeded"
+      "detail": "no auth user was created — toast: Too many invites have been sent from this network. Wait a moment, then try again."
     },
     {
       "name": "cleanup left no membership behind",

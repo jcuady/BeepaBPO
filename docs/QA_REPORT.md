@@ -951,14 +951,25 @@ node scripts/audit/qa-run-all.mjs --list     # the registry, no execution
 Current state, one run:
 
 ```
-OK    not-found             8s  every 404 has a working way out
-OK    dialog-keyboard       6s  confirm dialogs: focus in, focus back, Escape and Cancel
+OK    not-found             6s  every 404 has a working way out
+OK    dialog-keyboard       5s  confirm dialogs: focus in, focus back, Escape and Cancel
 OK    command-palette      12s  cmd-K opens, filters, navigates, returns focus
 OK    notification-bell     4s  bell accessible name, AA contrast, keyboard exit
 OK    internal-links      307s  no internal link lands on an error page
-OK    gate                 20s  vitest 634 tests / 93 files, tsc clean
-6/6 passed
+SKIP  client-invite         6s  the last uncovered action, driven through its real form
+OK    gate                 17s  vitest + tsc --noEmit
+========================================================================
+6/7 passed, 1 blocked by the environment
+
+1 check(s) BLOCKED by the environment, not by the code:
+  - client-invite: BLOCKED: the environment's email budget closed again. Re-run later.
+These are not regressions. Re-run to pick them up when the window opens.
 ```
+
+`SKIP` rather than `OK` for a blocked check, because the word "OK" next to a check that
+never ran its assertions is the same class of lie as a pass with no evidence file. The
+exit code is 0 either way: a closed email budget is not something a code change can fix,
+and a suite that is permanently red for that reason trains people to ignore it.
 
 Three decisions in the runner are deliberate:
 
@@ -991,6 +1002,158 @@ removes the only evidence that the failure is in the harness rather than the pro
 That is the same lesson as the four false positives above, arriving from the other
 direction — this time the broken instrument manufactured five false *failures* instead of
 four false *passes*.
+
+### P1 — All three invite paths created the account before checking the role. Fixed.
+
+The last uncovered action, `inviteClientUser`, could not be driven end to end because
+Supabase's email budget kept the window closed. Three attempts over roughly forty minutes
+all came back BLOCKED, which is an honest answer and also a frustrating place to stop,
+so the third attempt was used to read the failure rather than retry it.
+
+The toast said:
+
+```
+email rate limit exceeded
+```
+
+That is GoTrue's internal name for HTTP 429, shown verbatim to an org admin who had just
+clicked **Invite client user**. Following it back found two defects, and one of them was
+not about error copy at all.
+
+**The ordering was wrong in all three invite paths.** Each of them followed this shape:
+
+1. `inviteOrResolveAuthUser` — creates a real auth user **and emails a real invitation**
+2. `profiles.update`
+3. `from("roles").select(...)` — look up the role
+4. `organization_memberships.upsert`
+5. `membership_roles.upsert`
+
+Step 3 is a cheap local read. It sat *after* steps 1 and 2, so any failure from there on
+happened only once an account existed and an invitation had gone out to a real person. A
+mis-seeded `client_admin` row produced an orphaned auth user, an invitation for access
+that did not exist, and an error message telling the admin the invite had failed. The
+membership and role upserts failed the same way. And the `profiles` update discarded its
+result entirely, so a failed profile write reported success.
+
+`inviteOrResolveAuthUser` has exactly three call sites, and all three had the defect:
+
+| Action | File | Fixed |
+| --- | --- | --- |
+| `inviteClientUser` | `lib/clients/actions.ts` | role lookup moved above the invite; rollback added |
+| `inviteInternalUser` | `lib/admin/actions.ts` | same |
+| `convertApplicantToEmployee` | `lib/recruitment/actions.ts` | same, plus two discarded update results |
+
+The fix is to resolve the role before anything irreversible happens, and to roll the
+account back if a later step fails. The rollback gate is the whole safety argument:
+
+```ts
+const rollbackCreatedUser = async () => {
+  if (invited === true) {
+    await admin.auth.admin.deleteUser(userId);
+  }
+};
+```
+
+`invited` is `false` whenever the helper paged through `listUsers` and matched somebody who
+already had an account. Unconditionally deleting on that path would destroy a colleague's
+login to tidy up a failed membership write — a far worse outcome than the orphan being
+fixed. In the hire path the gate matters twice over, because an applicant who already has a
+`profile_id` takes that same `invited: false` branch.
+
+One failure deliberately does **not** roll back: the self-service baseline grant in
+`inviteInternalUser`. By that point the membership and its primary role are written, so the
+account works — removing it over a missing convenience role would destroy a usable login.
+`tests/admin-invite.test.ts` asserts that distinction so a future blanket "wrap it all in
+the rollback" edit cannot quietly undo it.
+
+**The raw provider string was the second defect**, and it is the one this repo had already
+solved. `lib/auth/error-messages.ts` holds four sibling mappers over one shared
+`authFailureKind`, and its header comment names the exact failure it exists to prevent:
+
+> so the next mapper added cannot invent a fourth reading of a status that three others
+> already agree on
+
+The invite path *was* that fourth reading, and the only one of the four that returned
+`inviteError?.message` unmodified. `inviteErrorMessage` now joins the family. Its signature
+accepts `message?: string` and never reads it — the provider text is right there and
+discarding it is the contract.
+
+Two claims about the new copy are pinned by tests rather than asserted in prose: it never
+echoes the provider string for any status, and its rejected branch says nothing about
+whether an address is registered, because `inviteOrResolveAuthUser` intercepts "already
+been registered" before the mapper is reached. The four mappers are checked to agree on
+what each status *means* (429 → wait, 0/5xx → unreachable) without being forced to share
+a string, since the drift worth preventing is two mappers disagreeing about a status.
+
+#### The check I broke while fixing it, which is the part worth keeping
+
+The invite exercise decided whether the invite succeeded by matching a **blacklist of
+words against the toast**:
+
+```js
+const failed = !toastText || /unable|error|rate limit|invalid|failed|.../i.test(toastText);
+```
+
+It worked only by coincidence. GoTrue's raw string contains "rate limit", so the blacklist
+tripped. The moment `inviteErrorMessage` replaced it with real copy — *"Too many invites
+have been sent from this network. Wait a moment, then try again."* — not one of those
+words matched, and the harness reported:
+
+```
+PASS  invite succeeds  — Too many invites have been sent from this network. Wait a moment, then try again.
+FAIL  an auth user was created for the invited address  — not found
+```
+
+**A pass on an invite that had been refused outright.** Improving the error message had
+silently disabled the failure detector, and the suite would have reported a working
+feature that does not work.
+
+This is the same lesson as the persistence probe that could not detect a store which wrote
+but never rehydrated, arriving from a new direction: *a check that goes stale when the
+thing it checks is improved is its own kind of wrong.* Copy is not a signal. The exercise
+now asks one question — **did an auth user appear?** — and prints the toast beside the
+verdict as a detail:
+
+```js
+const authUser = listed.data?.users?.find((u) => u.email === EMAIL);
+if (!authUser) {
+  // ... classify as BLOCKED or FAIL, then
+  check("invite succeeds", false, `no auth user was created — toast: ${toastText}`);
+  throw new Error("invite did not succeed");
+}
+```
+
+The BLOCKED/FAIL classification still reads the toast, but it can no longer manufacture a
+pass: it only ever downgrades a failure that state has already confirmed. Re-run against
+the live build with the quota closed, it now reports BLOCKED and exits 2, which is correct.
+
+Gate: **655 tests / 93 files** (was 634), tsc clean. 11 new tests were written red first,
+across `tests/auth-error-messages.test.ts`, `tests/client-invite.test.ts`,
+`tests/admin-invite.test.ts` and `tests/hire-convert.test.ts`.
+
+### Still open: about eighty actions return raw database errors to the user
+
+The two invite paths were the only place this report could *observe* a raw provider string
+end to end. The same shape is present across the server actions at scale:
+
+```ts
+error: error?.message ?? "Unable to create lead."
+```
+
+Roughly **80 sites** across `lib/` return the driver's own message whenever the fallback
+would be wrong — CMS, payroll, tickets, CRM, recruitment, billing, leave, NTE, documents,
+attendance. On the public CMS path that text is authored by an administrator and shown to
+every visitor; on the others it is PostgREST vocabulary ("duplicate key value violates
+unique constraint") presented as a user-facing error.
+
+**This is documented, not fixed.** Eighty call sites is a different piece of work from the
+two that were live in front of a user during this pass, and changing all of them in the
+same commit as a defect fix would bury it. The fix is mechanical once decided — one mapper
+per domain, as `lib/auth/error-messages.ts` already does for auth — but the copy decisions
+belong to whoever owns those screens.
+
+What is *not* defensible is leaving it undocumented: the same class of defect as §2's
+signup row, repeated eighty times, is invisible until a user hits one.
 
 ---
 
@@ -3437,6 +3600,7 @@ employee still sees only their own folder and hr sees all seven.
 | 16 | **Withdrawn — "4 CMS-built `/careers` slugs are link-reachable but absent from the sitemap"** | **Not a real gap.** All five `/careers` slugs are in the sitemap. The reading that said otherwise came from a stale build artifact; see "The sitemap findings below were a measurement error" in §2. Kept in the list so nobody re-derives it from the git history |
 | 17 | **`/app` not-found pages are served with HTTP 200, not 404** | **Pre-existing, documented, deliberately not fixed.** `app/app/loading.tsx` puts a Suspense boundary above every app page, so the response starts streaming, the status is committed as 200, and the later `notFound()` cannot change it. Proven by controlled comparison: `(marketing)` has no `loading.tsx` and `/resources/<bad-slug>` calls the same `notFound()` and correctly returns 404. **Left alone on purpose** — removing `loading.tsx` would trade a correct status code for the slow-TLS hang those files prevent; `/app` is `noindex, nofollow` so no crawler is affected; the page the user sees is correct. Only monitoring would read a soft-404 as a success. `qa-probe-not-found.mjs` records it in an `observations` array rather than dropping the assertion |
 | 18 | ~~**Confirm dialogs lose keyboard focus on Escape**~~ | **WITHDRAWN — the defect was real, the diagnosis and the "still open" status were not.** This row was written after a fix that restored focus on Cancel but still not on Escape, blaming Base UI's `closeOnFocusOut` branch (`FloatingFocusManager.js:591`). That branch is inside `else if (portalContext?.portalNode)` and a modal dialog never reaches it. Instrumenting `finalFocus` showed it was called on **both** paths and returned `null` on Escape because the probe had focused the control *before React registered the capture listener* — a broken instrument, not a library limit. With a fresh context and a settle before the first interaction, **both paths pass: 16/16**. See §2 for the full correction. Kept so nobody re-derives the wrong root cause from the git history |
+| 19 | **~80 server actions return the driver's raw error text to the user** | **Documented, not fixed.** `error: error?.message ?? "Unable to create lead."` appears across `lib/cms`, `lib/payroll`, `lib/tickets`, `lib/crm`, `lib/recruitment`, `lib/billing`, `lib/leave`, `lib/hr`, `lib/documents`, `lib/attendance` and others. On the public CMS path that string is authored by an administrator and rendered to every visitor. **The two invite paths were fixed in §2** because they were the only ones this pass could observe end to end, and because one of them exposed the failure through a toast rather than a form field. Eighty call sites is a separate piece of work: the fix is mechanical (one mapper per domain, as `lib/auth/error-messages.ts` does for auth) but the copy decisions belong to whoever owns those screens, and doing it inside a defect-fix commit would bury the finding |
 
 **The demo tenant is a clock bomb, and it is worth knowing about before you trust
 a red gate.** Several seed scripts wrote relative deadlines with `Date.now()`

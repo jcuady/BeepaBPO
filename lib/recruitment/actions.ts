@@ -501,6 +501,20 @@ export async function convertApplicantToEmployee(
 
   const admin = createAdminClient();
 
+  // Resolved BEFORE the invite, same as `inviteClientUser` and
+  // `inviteInternalUser`. It used to sit after `inviteOrResolveAuthUser`, so a
+  // missing `employee` role row failed the hire only once an auth user existed
+  // and an invitation had been emailed — leaving an orphan and telling the
+  // recruiter the hire failed.
+  const { data: role } = await admin
+    .from("roles")
+    .select("id")
+    .eq("code", "employee")
+    .single();
+  if (!role) {
+    return { ok: false, error: "Employee role is not configured." };
+  }
+
   if (applicant.profile_id) {
     const { data: existingEmployee } = await admin
       .from("employees")
@@ -544,12 +558,34 @@ export async function convertApplicantToEmployee(
   }
   const { userId, invited } = authResolved;
 
-  await admin
+  /**
+   * Undo an account this action created, after the point of no return.
+   *
+   * Gated on `invited === true` because that is not a formality here. An
+   * applicant who already has a `profile_id` takes the branch at the top and is
+   * returned with `invited: false`, and `inviteOrResolveAuthUser` returns the
+   * same flag when it resolves an existing account by paging `listUsers`. Either
+   * way the profile predates this hire — deleting it would destroy a real
+   * person's account to tidy up a failed membership write.
+   */
+  const rollbackCreatedUser = async () => {
+    if (invited === true) {
+      await admin.auth.admin.deleteUser(userId);
+    }
+  };
+
+  // Both results were previously discarded, so a failed write here still
+  // reported success and left the applicant unlinked to the new employee.
+  const { error: applicantLinkError } = await admin
     .from("applicants")
     .update({ profile_id: userId })
     .eq("id", applicant.id);
+  if (applicantLinkError) {
+    await rollbackCreatedUser();
+    return { ok: false, error: "Unable to link the new employee to the applicant." };
+  }
 
-  await admin
+  const { error: profileError } = await admin
     .from("profiles")
     .update({
       first_name: applicant.first_name,
@@ -558,14 +594,9 @@ export async function convertApplicantToEmployee(
       status: invited ? "invited" : "active",
     })
     .eq("id", userId);
-
-  const { data: role } = await admin
-    .from("roles")
-    .select("id")
-    .eq("code", "employee")
-    .single();
-  if (!role) {
-    return { ok: false, error: "Employee role is not configured." };
+  if (profileError) {
+    await rollbackCreatedUser();
+    return { ok: false, error: "Unable to set up the new employee's profile." };
   }
 
   const { data: membership, error: membershipError } = await admin
@@ -584,10 +615,8 @@ export async function convertApplicantToEmployee(
     .single();
 
   if (membershipError || !membership) {
-    return {
-      ok: false,
-      error: membershipError?.message ?? "Unable to assign membership.",
-    };
+    await rollbackCreatedUser();
+    return { ok: false, error: "Unable to assign membership." };
   }
 
   // Hiring REPLACES the applicant role rather than sitting alongside it.
@@ -610,10 +639,8 @@ export async function convertApplicantToEmployee(
     role_id: role.id,
   });
   if (roleError) {
-    return {
-      ok: false,
-      error: roleError.message ?? "Unable to assign the employee role.",
-    };
+    await rollbackCreatedUser();
+    return { ok: false, error: "Unable to assign the employee role." };
   }
 
   let employeeNumber = `BEE-${Date.now().toString().slice(-5)}`;

@@ -38,6 +38,19 @@ export async function inviteInternalUser(
   }
 
   const admin = createAdminClient();
+
+  // Resolved BEFORE the invite, same as `inviteClientUser`. It used to sit after
+  // `inviteOrResolveAuthUser`, so a missing role row aborted the action only once
+  // an auth user existed and an invitation had already been emailed.
+  const { data: role } = await admin
+    .from("roles")
+    .select("id, code")
+    .eq("code", parsed.data.role_code)
+    .maybeSingle();
+  if (!role) {
+    return { ok: false, error: "Selected role is not configured." };
+  }
+
   const authResolved = await inviteOrResolveAuthUser(admin, {
     email: parsed.data.email,
     firstName: parsed.data.first_name,
@@ -51,7 +64,28 @@ export async function inviteInternalUser(
   const displayName =
     `${parsed.data.first_name} ${parsed.data.last_name}`.trim();
 
-  await admin
+  /**
+   * Undo an account this action created, after the point of no return.
+   *
+   * Gated on `invited === true` for the same reason as the client path:
+   * `invited: false` means `inviteOrResolveAuthUser` paged through `listUsers`
+   * and matched somebody who already works here. Deleting that person's account
+   * to tidy up a failed membership write is worse than the orphan this prevents.
+   *
+   * Deliberately NOT used at the self-service baseline step below: by then the
+   * membership and its primary role exist, so the person can already sign in and
+   * work. Rolling back there would destroy a usable account over a missing
+   * convenience role.
+   */
+  const rollbackCreatedUser = async () => {
+    if (invited === true) {
+      await admin.auth.admin.deleteUser(userId);
+    }
+  };
+
+  // Result was previously discarded, so a failed profile update still reported
+  // success and left a provisioned user with no name.
+  const { error: profileError } = await admin
     .from("profiles")
     .update({
       first_name: parsed.data.first_name,
@@ -61,13 +95,12 @@ export async function inviteInternalUser(
     })
     .eq("id", userId);
 
-  const { data: role } = await admin
-    .from("roles")
-    .select("id, code")
-    .eq("code", parsed.data.role_code)
-    .maybeSingle();
-  if (!role) {
-    return { ok: false, error: "Selected role is not configured." };
+  if (profileError) {
+    await rollbackCreatedUser();
+    return {
+      ok: false,
+      error: "Unable to set up the invited user's profile.",
+    };
   }
 
   const { data: membership, error: membershipError } = await admin
@@ -86,10 +119,8 @@ export async function inviteInternalUser(
     .single();
 
   if (membershipError || !membership) {
-    return {
-      ok: false,
-      error: membershipError?.message ?? "Unable to assign membership.",
-    };
+    await rollbackCreatedUser();
+    return { ok: false, error: "Unable to assign membership." };
   }
 
   const { error: roleError } = await admin.from("membership_roles").upsert(
@@ -97,10 +128,8 @@ export async function inviteInternalUser(
     { onConflict: "membership_id,role_id" },
   );
   if (roleError) {
-    return {
-      ok: false,
-      error: roleError.message ?? "Unable to assign role.",
-    };
+    await rollbackCreatedUser();
+    return { ok: false, error: "Unable to assign the selected role." };
   }
 
   // Give them the same self-service baseline every other staff member has.
@@ -122,10 +151,11 @@ export async function inviteInternalUser(
         { onConflict: "membership_id,role_id" },
       );
       if (baselineError) {
-        return {
-          ok: false,
-          error: baselineError.message ?? "Unable to grant self-service access.",
-        };
+        // No rollback here, unlike the three failures above. Membership and the
+        // primary role are already written, so the invited person can sign in and
+        // work; removing the account over a missing self-service role would be a
+        // far worse outcome than the incomplete grant.
+        return { ok: false, error: "Unable to grant self-service access." };
       }
       if (r.code === SELF_SERVICE_BASELINE_ROLE_CODE) baselinePreserved = true;
     }

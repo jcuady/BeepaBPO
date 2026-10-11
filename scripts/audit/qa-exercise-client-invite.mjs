@@ -148,24 +148,47 @@ try {
     .then((h) => h.jsonValue())
     .catch(() => null);
 
-  const failed = !toastText || /unable|error|rate limit|invalid|failed|expired|not configured|select a client/i.test(toastText);
-  if (failed) {
-    // Distinguish "the environment refused to send mail" from "the feature is
-    // broken". Only the first is a legitimate blocker.
-    if (/rate limit|too many|email/i.test(toastText ?? "") && /rate|limit|quota/i.test(toastText ?? "")) {
-      outcome = "blocked";
-      block(`invite refused by the environment: "${toastText}"`);
-    }
-    check("invite succeeds", false, `toast: ${toastText ?? "(none)"}`);
-    throw new Error("invite did not succeed");
-  }
-  check("invite succeeds", true, toastText.slice(0, 90));
-
-  // ---- what the action must have written ----------------------------------
+  // ------------------------------------------------------------------
+  // Success is decided by STATE, never by the wording of the toast.
+  //
+  // This used to be a blacklist of failure words matched against the toast:
+  // /unable|error|rate limit|invalid|failed|.../i. It worked only because the
+  // product happened to surface GoTrue's raw string, which contains "rate
+  // limit". When `inviteErrorMessage` replaced that with real copy — "Too many
+  // invites have been sent from this network. Wait a moment, then try again." —
+  // not one of those words matched, and this harness reported PASS on an invite
+  // that had been refused outright.
+  //
+  // An improved error message turned a working detector into a silent one. The
+  // lesson is that copy is not a signal: a check that has to be edited every
+  // time someone improves the wording is measuring the wording.
+  //
+  // So the only question asked here is "did an account appear?", and the toast
+  // is demoted to a detail printed alongside the verdict.
+  // ------------------------------------------------------------------
   const listed = await db.auth.admin.listUsers({ page: 1, perPage: 200 });
   const authUser = listed.data?.users?.find((u) => u.email === EMAIL);
   createdUserId = authUser?.id ?? null;
-  check("an auth user was created for the invited address", !!authUser, authUser?.id ?? "not found");
+
+  if (!authUser) {
+    // No account means the invite did not take effect, whatever the toast says.
+    // Distinguish "the environment refused to send mail" from "the feature is
+    // broken": only the first is a legitimate blocker.
+    //
+    // This list only ever CLASSIFIES a failure that state has already confirmed.
+    // It can no longer manufacture a pass, which is the entire failure mode.
+    const environmentRefused = /too many invites|rate limit|quota|couldn't reach the invite service/i
+      .test(toastText ?? "");
+    if (environmentRefused) {
+      outcome = "blocked";
+      block(`invite refused by the environment: "${toastText}"`);
+    }
+    check("invite succeeds", false,
+      `no auth user was created — toast: ${toastText ?? "(none)"}`);
+    throw new Error("invite did not succeed");
+  }
+  check("invite succeeds", true, `auth user ${authUser.id} — toast: ${toastText ?? "(no toast)"}`);
+  check("an auth user was created for the invited address", true, authUser.id);
 
   const profiles = await must(
     db.from("profiles").select("id, display_name, first_name, last_name, status").eq("id", createdUserId),

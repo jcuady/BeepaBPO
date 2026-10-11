@@ -43,6 +43,21 @@ export async function inviteClientUser(
     return { ok: false, error: "That client organization is not active." };
   }
 
+  // Resolved BEFORE anything irreversible happens. This is a cheap local read,
+  // and it used to sit after `inviteOrResolveAuthUser` — so a missing or
+  // mis-seeded `client_admin` row aborted the action only once an auth user
+  // existed and an invitation had been emailed to a real address. The admin was
+  // told "role is not configured" and left holding an orphan.
+  const { data: role } = await admin
+    .from("roles")
+    .select("id, code")
+    .eq("code", parsed.data.role_code)
+    .eq("scope", "client")
+    .maybeSingle();
+  if (!role) {
+    return { ok: false, error: "Selected client role is not configured." };
+  }
+
   const authResolved = await inviteOrResolveAuthUser(admin, {
     email: parsed.data.email,
     firstName: parsed.data.first_name,
@@ -56,7 +71,30 @@ export async function inviteClientUser(
   const displayName =
     `${parsed.data.first_name} ${parsed.data.last_name}`.trim();
 
-  await admin
+  /**
+   * Undo the account this action created, after the point of no return.
+   *
+   * The gate is the whole safety argument and it is not negotiable.
+   * `inviteOrResolveAuthUser` returns `invited: false` when it paged through
+   * `listUsers` and matched a colleague who already had an account. Rolling back
+   * on that path would delete a real person's login to tidy up a failed
+   * membership write — a far worse outcome than the orphan this prevents. So we
+   * only ever remove an account we ourselves created moments ago.
+   *
+   * The invitation email has already been sent and cannot be recalled, so a
+   * rollback leaves the recipient holding a link to an account that no longer
+   * exists. That is the correct trade: the alternative is an account that signs
+   * in to nothing, with a membership that was never written.
+   */
+  const rollbackCreatedUser = async () => {
+    if (invited === true) {
+      await admin.auth.admin.deleteUser(userId);
+    }
+  };
+
+  // Result was previously discarded, so a failed profile update still reported
+  // success and left a provisioned user with no name.
+  const { error: profileError } = await admin
     .from("profiles")
     .update({
       first_name: parsed.data.first_name,
@@ -66,14 +104,12 @@ export async function inviteClientUser(
     })
     .eq("id", userId);
 
-  const { data: role } = await admin
-    .from("roles")
-    .select("id, code")
-    .eq("code", parsed.data.role_code)
-    .eq("scope", "client")
-    .maybeSingle();
-  if (!role) {
-    return { ok: false, error: "Selected client role is not configured." };
+  if (profileError) {
+    await rollbackCreatedUser();
+    return {
+      ok: false,
+      error: "Unable to set up the invited user's profile.",
+    };
   }
 
   const { data: membership, error: membershipError } = await admin
@@ -92,10 +128,8 @@ export async function inviteClientUser(
     .single();
 
   if (membershipError || !membership) {
-    return {
-      ok: false,
-      error: membershipError?.message ?? "Unable to assign membership.",
-    };
+    await rollbackCreatedUser();
+    return { ok: false, error: "Unable to assign membership." };
   }
 
   const { error: roleError } = await admin.from("membership_roles").upsert(
@@ -103,10 +137,8 @@ export async function inviteClientUser(
     { onConflict: "membership_id,role_id" },
   );
   if (roleError) {
-    return {
-      ok: false,
-      error: roleError.message ?? "Unable to assign role.",
-    };
+    await rollbackCreatedUser();
+    return { ok: false, error: "Unable to assign the portal role." };
   }
 
   await logAudit(admin, {

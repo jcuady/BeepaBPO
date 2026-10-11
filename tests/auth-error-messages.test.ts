@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { authErrorMessage } from "@/lib/auth/error-messages";
+import {
+  authErrorMessage,
+  inviteErrorMessage,
+} from "@/lib/auth/error-messages";
 
 /**
  * A wrong password and a rate-limited request are different problems with
@@ -49,5 +52,91 @@ describe("authErrorMessage", () => {
     // Rate limiting and bad credentials must not read identically.
     expect(messages[0]).not.toBe(messages[4]);
     expect(messages[1]).not.toBe(messages[4]);
+  });
+});
+
+/**
+ * The invite family is the fourth mapper over the same three statuses, and it was
+ * the only one of the four that returned the provider's raw string.
+ *
+ * `lib/auth/error-messages.ts` says in its own header comment that the failure
+ * mode it exists to prevent is "the next mapper added inventing a fourth reading
+ * of a status that three others already agree on". This block is that mapper.
+ *
+ * The defect was not theoretical. Measured in this environment, an org admin
+ * inviting a client user was shown a toast reading exactly:
+ *
+ *     email rate limit exceeded
+ *
+ * That is GoTrue's internal vocabulary for an HTTP 429, rendered verbatim to a
+ * business user, with no instruction and no way to tell that retyping the
+ * address will not help. The three sibling mappers already translate that exact
+ * status into copy a user can act on.
+ */
+describe("inviteErrorMessage", () => {
+  it("never echoes the provider's raw message", () => {
+    // The exact error object `inviteUserByEmail` produced when the quota closed.
+    const raw = {
+      status: 429,
+      message: "email rate limit exceeded",
+    };
+    const message = inviteErrorMessage(raw);
+    expect(message).not.toMatch(/rate limit/i);
+    expect(message).not.toContain(raw.message);
+    // And it must not fall back to the provider text for any other status either.
+    for (const status of [0, 400, 500, 503]) {
+      const out = inviteErrorMessage({ status, message: "email rate limit exceeded" });
+      expect(out).not.toContain("email rate limit exceeded");
+    }
+  });
+
+  it("tells a rate-limited user to wait rather than to fix their input", () => {
+    const message = inviteErrorMessage({ status: 429 });
+    expect(message).toMatch(/too many|wait/i);
+    // A rate limit is not a verdict on the address or the organization.
+    expect(message).not.toMatch(/invalid address|not configured|already registered/i);
+  });
+
+  it("does not blame the address when the service is unreachable", () => {
+    // supabase-js reports a network failure as status 0.
+    const network = inviteErrorMessage({ status: 0 });
+    expect(network).toMatch(/couldn't reach|try again/i);
+    expect(network).not.toMatch(/invalid|already/i);
+  });
+
+  it("does not blame the address when the auth service is broken", () => {
+    for (const status of [500, 502, 503]) {
+      expect(inviteErrorMessage({ status })).not.toMatch(/invalid|already registered/i);
+    }
+  });
+
+  it("keeps the rejected branch free of an account-existence oracle", () => {
+    // `inviteUserByEmail` answers "already been registered" for a taken address,
+    // and `inviteOrResolveAuthUser` intercepts that string BEFORE it reaches this
+    // mapper. So nothing in here may describe the account as existing or not:
+    // a staff member who could read it off the error would gain an oracle the
+    // staff-only surface does not otherwise need.
+    const rejected = inviteErrorMessage({ status: 400 });
+    expect(rejected).not.toMatch(/already|exists|registered|taken/i);
+    expect(rejected).toMatch(/try again/i);
+  });
+
+  it("handles a missing error object without crashing", () => {
+    expect(() => inviteErrorMessage(null)).not.toThrow();
+    expect(inviteErrorMessage(null)).toBeTruthy();
+    expect(inviteErrorMessage({})).toBeTruthy();
+  });
+
+  it("agrees with its siblings on what each status means", () => {
+    // The drift this guards against is two mappers disagreeing about a status.
+    // Invite copy differs from sign-in copy by design, so compare the decision,
+    // not the string: 429 must read as "wait", and 0/5xx must read as
+    // "unreachable", in both families.
+    expect(inviteErrorMessage({ status: 429 })).toMatch(/too many/i);
+    expect(authErrorMessage({ status: 429 })).toMatch(/too many/i);
+    for (const status of [0, 500, 503]) {
+      expect(inviteErrorMessage({ status })).toMatch(/couldn't reach/i);
+      expect(authErrorMessage({ status })).toMatch(/couldn't reach/i);
+    }
   });
 });

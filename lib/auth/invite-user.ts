@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { inviteErrorMessage } from "@/lib/auth/error-messages";
 import { getEnv } from "@/lib/env";
 
 type Admin = ReturnType<typeof createAdminClient>;
@@ -38,9 +39,9 @@ export async function inviteOrResolveAuthUser(
     inviteError?.message?.toLowerCase().includes("registered");
 
   if (!already) {
-    return {
-      error: inviteError?.message ?? "Unable to send invite.",
-    };
+    // Previously `inviteError?.message`, which put "email rate limit exceeded"
+    // in a toast. The raw provider string never reaches the caller now.
+    return { error: inviteErrorMessage(inviteError) };
   }
 
   // ponytail: admin API has no getUserByEmail; page through for demo-scale orgs

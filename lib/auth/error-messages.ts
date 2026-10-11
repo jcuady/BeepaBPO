@@ -132,3 +132,38 @@ export function passwordResetErrorMessage(error: { status?: number } | null): st
   }
   return "We couldn't send reset instructions. Try again in a moment.";
 }
+
+/**
+ * The invite counterpart — the fourth mapper over these three statuses, and the
+ * one that should not have been needed, because it is the same three branches.
+ *
+ * `inviteOrResolveAuthUser` returned `inviteError?.message` straight to the
+ * caller, so the admin who submitted the form was shown GoTrue's own string.
+ * Measured here, verbatim from the UI:
+ *
+ *     email rate limit exceeded
+ *
+ * That is the provider's internal name for HTTP 429, offered to a business user
+ * with no instruction attached. The three mappers above already translate this
+ * exact status into copy that says what to do, and the header comment on this
+ * file names the drift this mapper creates as the failure mode worth preventing.
+ *
+ * `message` is accepted in the type and never read. That is deliberate and it is
+ * the contract: the provider text is right there, and discarding it is the point.
+ * A signature that could not accept it would let the next edit reach for it.
+ */
+export function inviteErrorMessage(
+  error: { status?: number; message?: string } | null,
+): string {
+  const kind = authFailureKind(error);
+  if (kind === "rate-limited") {
+    return "Too many invites have been sent from this network. Wait a moment, then try again.";
+  }
+  if (kind === "unreachable") {
+    return "We couldn't reach the invite service. Try again in a moment.";
+  }
+  // Deliberately says nothing about whether the address is registered. The
+  // "already been registered" case is intercepted by the caller before it gets
+  // here, so no wording in this branch may imply the account exists or does not.
+  return "Unable to send the invite right now. Try again in a moment.";
+}
