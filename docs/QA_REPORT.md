@@ -1288,9 +1288,9 @@ proceed reports *why*.
 Restoration verified by read-back: invoices 7→7, items 27→27, payments 4→4, advances
 2→2, and 1 approval request + its action row created by the run removed.
 
-### P2 — Every filter on every internal list page is live — and two of them were proved so the harness itself could be trusted
+### P2 — Every filter on every internal and client list page is live
 
-`qa-exercise-list-filters.mjs`, **27/27 on 20 pages**, 0 defects.
+`qa-exercise-list-filters.mjs`, **35/35 on 27 pages across 3 roles**, 0 defects.
 
 The action coverage in §5 counts server actions. It does not cover the other half of
 a list page: the GET filter form. A filter can render, sit in a proper form, submit a
@@ -1299,6 +1299,14 @@ page changes nothing and reports a confident, complete, wrong list. That is not
 hypothetical: it is exactly what the NTE search box was (§2, P2), and the release
 gate's "no dead controls" audit passed the whole time, because that audit can see a
 control that submits and cannot see a query that ignores it.
+
+Three roles are driven, each in its own browser context, because the cookie jar
+decides which pages render at all: internal (21 routes, `owner`), client (8 routes,
+`clientadmin`) and applicant (1 route, `applicant`). An earlier version ran only the
+internal pass and printed the other nine routes as "not covered by this run" — which
+left nine list pages whose filters **nobody had ever driven**, while the report read
+as though the filter layer were covered. That is the same failure as the storage RLS
+finding above: a gap that is visible only if you go looking for it is not closed.
 
 Two invariants, chosen so neither has an escape hatch:
 
@@ -1310,22 +1318,22 @@ Two invariants, chosen so neither has an escape hatch:
   weaker but still falsifiable: *at least one* option value must produce a different
   result set. A dropdown where no option does anything is inert.
 
-Plus two guards that keep the result honest: a page whose unfiltered list is empty is
+Plus guards that keep the result honest: a page whose unfiltered list is empty is
 **skipped** for the dropdown leg (with no rows, no filter can change anything, and
 reporting that as inert would be the same mistake pointed the other way), and a
 dropdown with no effect is printed as a **candidate for confirmation against its
 table**, never concluded to be a defect from the DOM alone.
 
-`/app/approvals` has no filter form at all and is reported as such rather than
-skipped silently.
+`/app/approvals`, `/app/client/tickets` and `/app/client/timesheets` have no filter
+form at all and are reported as such rather than skipped silently.
 
-#### The first run of this script reported 14 dead filters. All 14 were the script.
+#### This script reported 14 dead filters. All 14 were the script.
 
 That is worth recording in full, because the failure looked exactly like a product
 defect and two of the named pages had been fixed and proven earlier in this same
 session — `/app/hr/nte` above all, whose search box this report lists as **Fixed**.
 
-Three harness bugs, all of the same family — a locator that looks right and is not:
+Four harness bugs, all of the same family — a locator that looks right and is not:
 
 1. **`.first()` filled the CREATE form, not the filter form.** Most of these pages
    render a second form above the filter: "Create ticket", "Create NTE case",
@@ -1339,26 +1347,34 @@ Three harness bugs, all of the same family — a locator that looks right and is
    928 characters, and on any list whose rows sit inside a form (the per-row status
    and assign selects) it deletes the rows themselves — reducing the fingerprint to
    page chrome and making every comparison equal.
+4. **Waiting for the URL to stop moving is not waiting for the content.** A Next.js
+   client-side transition updates the address bar **immediately** and streams the RSC
+   payload afterwards, so "the URL has settled" says nothing about whether the new
+   markup is on screen. Measured directly, the search that was reported dead works
+   correctly — 5 job posts unfiltered, 0 plus the `No job posts` empty state filtered.
 
 The fix is to identify the filter form **by its Apply button** and remove only that
 one form. Nothing about the product changed; the run went from 14 reported defects to
 zero, without touching a line of application code.
 
-#### Waiting for the URL is not waiting for the content
+#### Widening the matcher to cover a documented variant matched the thing it was meant to exclude
 
-The corrected run still reported one dead filter — `/app/recruitment/jobs`, where the
-query reached the URL and the list did not change. It was wrong again, for a fourth
-reason: the run waited for the URL to stop moving and then sampled. A Next.js
-client-side transition updates the address bar **immediately** and streams the RSC
-payload afterwards, so "the URL has settled" says nothing about whether the new
-markup is on screen. Measured directly, that search works correctly — 5 job posts
-unfiltered, 0 plus the `No job posts` empty state when filtered.
+After the client leg was added, `FilterBar`'s `showApply={false}` option — "omit the
+Apply button (Enter still submits)" — would have made the script silently skip any
+page using it. The first fallback accepted "a form containing a named `select`".
 
-The harness now samples the fingerprint until **two consecutive reads agree**. This
-one change also un-skipped four pages (`/app/employees`, `/app/billing`,
-`/app/admin/users`, and the NTE row) that the stability control had been rejecting
-for "content is not stable across two identical loads" — they were not unstable, they
-were being sampled mid-render.
+`/app/client/tickets` has **no filter form at all**, but its create form has
+`<select name="priority">` and `<select name="category">`. The fallback drove the
+create form and reported two defects on a page whose filters do not exist — the same
+fourteenth-bug, one generation later.
+
+The fallback now accepts only a form carrying a real FilterBar marker: the search
+input, `name="q"` or `aria-label` beginning "Search". The shape this will miss — a
+FilterBar with **both** `showApply` and `showSearch` off — does not exist today, and
+is stated in the script header rather than papered over. **Under-detecting and saying
+so is strictly better than matching the thing you meant to exclude**: a skipped page
+is visible and costs coverage, whereas a wrong match produces confident invented
+defects and costs trust.
 
 The rule this earns, which is the same one the source-contract guards in this repo
 keep re-learning: **before reporting a defect from a harness, prove the harness can
@@ -1899,7 +1915,7 @@ node scripts/audit/qa-exercise-money-workflow.mjs        # 33 assertions
 node scripts/audit/qa-exercise-documents-workflow.mjs     # 31 assertions
 node scripts/audit/qa-exercise-client-timesheet-workflow.mjs # 13/14, one real finding
 node scripts/audit/qa-exercise-tickets-workflow.mjs          # 33 assertions
-node scripts/audit/qa-exercise-list-filters.mjs             # 27 assertions across 20 list pages
+node scripts/audit/qa-exercise-list-filters.mjs             # 35 assertions, 27 pages, 3 roles
 node scripts/audit/check-auth-email-rate-limit.mjs          # exits 0 the moment the 429 clears
 node scripts/audit/qa-probe-client-timesheet.mjs          # read-only: can this flow run here at all?
 node scripts/audit/qa-probe-summary-view-filter.mjs     # read-only: which predicate hides a record from the client view

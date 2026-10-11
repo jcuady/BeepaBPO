@@ -46,6 +46,16 @@
 //     rows, no filter can change anything, and reporting that as a dead filter would
 //     be the same mistake in the opposite direction.
 //
+// A KNOWN LIMIT, STATED RATHER THAN PAPERED OVER
+// The filter form is identified by its Apply button, or failing that by the search
+// input (`name="q"` / `aria-label` beginning "Search"). A FilterBar rendered with BOTH
+// `showApply={false}` and `showSearch={false}` — selects only, Enter to submit — has
+// neither marker and will be reported as "no Apply form on this page" and skipped. No
+// page uses that shape today. Widening the rule to catch it would mean matching any
+// form containing a named select, which matches create forms too; that was tried, it
+// drove /app/client/tickets' create form, and it reported two defects on a page whose
+// filters do not exist.
+//
 // A NOTE ON WHAT A PASS HERE IS NOT
 // When a dropdown reports no effect, this script does not conclude a defect on its
 // own — the org may genuinely hold one status and the control is untestable. It
@@ -54,9 +64,12 @@
 // the DOM alone would be a claim the evidence does not carry.
 //
 // SCOPE
-// Internal pages reachable as the owner. `/app/client/*` and `/app/applicant/*` need
-// a client or applicant session and are listed as skipped rather than silently
-// dropped — the client-side lists are covered by the client-timesheet run.
+// Three roles, each in its own browser context, because the cookie jar decides which
+// pages render at all: internal (21 routes, owner), client (8 routes, clientadmin) and
+// applicant (1 route). An earlier version ran only the internal pass and listed the
+// client and applicant routes as "not covered by this run" — which left nine list
+// pages whose filters nobody had ever driven. They are now driven by the same
+// assertions under the role that can actually see them.
 //
 // SAFE TO RE-RUN: read-only. Nothing is written by this script.
 //
@@ -78,39 +91,59 @@ for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
 
 const BASE = process.env.QA_BASE_URL ?? "http://localhost:3100";
 const OWNER_EMAIL = "owner@demo.beepabpo.com";
+const CLIENT_EMAIL = "clientadmin@demo.beepabpo.com";
+const APPLICANT_EMAIL = "applicant@demo.beepabpo.com";
 const MARK = `qaflt${Date.now().toString(36)}`;
 
-/** Internal list pages that render a FilterBar. */
-const PAGES = [
-  "/app/tickets",
-  "/app/employees",
-  "/app/attendance",
-  "/app/attendance/corrections",
-  "/app/leave",
-  "/app/approvals",
-  "/app/billing",
-  "/app/cash-advances",
-  "/app/crm/leads",
-  "/app/crm/deals",
-  "/app/crm/proposals",
-  "/app/hr/nte",
-  "/app/payroll/periods",
-  "/app/recruitment/jobs",
-  "/app/recruitment/applicants",
-  "/app/admin/users",
-  "/app/admin/organizations",
-  "/app/my/leave",
-  "/app/my/cash-advances",
-  "/app/my/documents",
-  "/app/my/notifications",
-];
-
-/** Present so their absence is a stated gap rather than an invisible one. */
-const SKIPPED_ROLES = [
-  "/app/client/tickets", "/app/client/timesheets", "/app/client/attendance",
-  "/app/client/billing", "/app/client/documents", "/app/client/notifications",
-  "/app/client/requests", "/app/client/team",
-  "/app/applicant/notifications",
+/**
+ * One entry per role, because a list page only exists for the role that may see it.
+ * The internal pass cannot reach /app/client/* or /app/applicant/* at all — those
+ * routes redirect a signed-in owner away, which is itself the RLS doing its job, but
+ * it means their filters would otherwise never be driven by anyone.
+ */
+const ROLES = [
+  {
+    label: "internal",
+    email: OWNER_EMAIL,
+    pages: [
+      "/app/tickets",
+      "/app/employees",
+      "/app/attendance",
+      "/app/attendance/corrections",
+      "/app/leave",
+      "/app/approvals",
+      "/app/billing",
+      "/app/cash-advances",
+      "/app/crm/leads",
+      "/app/crm/deals",
+      "/app/crm/proposals",
+      "/app/hr/nte",
+      "/app/payroll/periods",
+      "/app/recruitment/jobs",
+      "/app/recruitment/applicants",
+      "/app/admin/users",
+      "/app/admin/organizations",
+      "/app/my/leave",
+      "/app/my/cash-advances",
+      "/app/my/documents",
+      "/app/my/notifications",
+    ],
+  },
+  {
+    label: "client",
+    email: CLIENT_EMAIL,
+    pages: [
+      "/app/client/tickets",
+      "/app/client/timesheets",
+      "/app/client/attendance",
+      "/app/client/billing",
+      "/app/client/documents",
+      "/app/client/notifications",
+      "/app/client/requests",
+      "/app/client/team",
+    ],
+  },
+  { label: "applicant", email: APPLICANT_EMAIL, pages: ["/app/applicant/notifications"] },
 ];
 
 const results = [];
@@ -127,12 +160,55 @@ function note(s) {
 
 /**
  * The filter form, identified by its Apply button — never by position.
- * Tagged so the fingerprint can remove this form and only this form.
+ *
+ * `FilterBar` accepts `showApply={false}` ("omit the Apply button (Enter still
+ * submits)"), so an Apply-button-only rule would skip those pages SILENTLY and turn
+ * a future page into an untested one. The fallback therefore accepts a form with no
+ * Apply button ONLY when it carries a real FilterBar marker: the search input, which
+ * is `name="q"` by default and carries an `aria-label` of "Search …".
+ *
+ * The fallback deliberately does NOT accept "a form containing a named select".
+ * That was tried and it is wrong: /app/client/tickets has no filter form at all, but
+ * its create form has `<select name="priority">` and `<select name="category">`, so
+ * the broad rule drove the create form and reported two defects on a page whose
+ * filters do not exist. Under-detecting and saying so is strictly better than
+ * matching the thing you meant to exclude. A filter form with BOTH showApply and
+ * showSearch off is the one shape this will miss; the header says so.
  */
 function filterForm(page) {
   return page
     .locator("form")
     .filter({ has: page.locator("button[type=submit]", { hasText: /^Apply$/ }) });
+}
+
+/** Fallback identification for a FilterBar rendered with showApply={false}. */
+async function filterFormFallback(page) {
+  return page
+    .locator("form")
+    .filter({ has: page.locator('input[name=q], input[aria-label^="Search"]') })
+    .first();
+}
+
+/** True when this page has a filter form at all, by either identification. */
+async function hasFilterForm(page) {
+  return page.evaluate(() => {
+    const forms = [...document.querySelectorAll("form")];
+    const hasApply = (f) =>
+      [...f.querySelectorAll("button[type=submit]")].some((b) => (b.textContent ?? "").trim() === "Apply");
+    if (forms.some(hasApply)) return true;
+    // showApply={false}: a filter form still carries the search input.
+    return forms.some((f) => f.querySelector('input[name=q], input[aria-label^="Search"]') !== null);
+  });
+}
+
+/** Submit the filter form the way a user would, falling back when there is no Apply. */
+async function submitFilter(form) {
+  const apply = form.locator("button[type=submit]", { hasText: /^Apply$/ }).first();
+  if (await apply.isVisible().catch(() => false)) {
+    await apply.click();
+  } else {
+    await form.evaluate((f) => f.requestSubmit());
+  }
 }
 
 /**
@@ -153,9 +229,10 @@ async function fingerprint(page) {
     // silently reduces the fingerprint to page chrome and makes every comparison
     // equal — a false "this filter does nothing" on every row-bearing list.
     for (const f of [...clone.querySelectorAll("form")]) {
-      const isFilterForm = [...f.querySelectorAll("button[type=submit]")].some(
-        (b) => (b.textContent ?? "").trim() === "Apply",
-      );
+      const isFilterForm =
+        [...f.querySelectorAll("button[type=submit]")].some(
+          (b) => (b.textContent ?? "").trim() === "Apply",
+        ) || f.querySelector('input[name=q], input[aria-label^="Search"]') !== null;
       if (isFilterForm) f.remove();
     }
     return clone.innerText ?? "";
@@ -187,15 +264,6 @@ async function listIsEmpty(page) {
   return page.evaluate(() => !!document.querySelector("main .border-dashed"));
 }
 
-/** True when this page has a filter form at all. */
-async function hasFilterForm(page) {
-  return page.evaluate(() =>
-    [...document.querySelectorAll("form")].some((f) =>
-      [...f.querySelectorAll("button[type=submit]")].some((b) => (b.textContent ?? "").trim() === "Apply"),
-    ),
-  );
-}
-
 async function settle(page) {
   await page.waitForLoadState("domcontentloaded");
   // The app redirects on permission boundaries; sampling early reads a
@@ -225,105 +293,113 @@ async function baseline(page, route) {
 }
 
 const browser = await chromium.launch();
-const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-const page = await context.newPage();
-page.on("pageerror", (e) => note(`pageerror on ${page.url()}: ${e.message}`));
-
-await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
-await page.locator("input[name=email], input[type=email]").first().waitFor({ state: "visible", timeout: 20000 });
-await page.locator("input[name=email], input[type=email]").first().fill(OWNER_EMAIL);
-await page.locator("input[type=password]").first().fill(env.DEMO_PASSWORD);
-await page.click("button[type=submit]");
-await page.waitForURL(/\/app/, { timeout: 20000 }).catch(() => {});
-await page.waitForLoadState("domcontentloaded");
-note(`signed in as ${OWNER_EMAIL}`);
-
 let tested = 0;
 let skipped = 0;
 
-for (const route of PAGES) {
-  try {
-    const base = await baseline(page, route);
-    if (base.skip) {
-      note(`${route}: ${base.skip} — skipped`);
-      skipped++;
-      continue;
-    }
-    const a = base.a;
-    const form = filterForm(page);
+for (const role of ROLES) {
+  // A fresh context per role: the cookie jar is what decides which pages render at
+  // all, and reusing one would leave the owner signed in while walking client routes.
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  page.on("pageerror", (e) => note(`pageerror on ${page.url()}: ${e.message}`));
 
-    // ---- 1. the search box, with a string that cannot match a seeded row.
-    const search = form.locator("input[type=text], input:not([type])").first();
-    if (await search.isVisible().catch(() => false)) {
-      await search.fill(MARK);
-      await form.locator("button[type=submit]", { hasText: /^Apply$/ }).first().click();
-      await settle(page);
-      const after = await stableFingerprint(page);
-      const reached = page.url().includes(MARK);
-      check(
-        `${route} — a search that matches nothing changes the list`,
-        after !== a,
-        reached ? (after !== a ? "list changed" : "URL carried the query but the list did not change") : "the search value never reached the URL",
-      );
-    }
+  await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
+  await page.locator("input[name=email], input[type=email]").first().waitFor({ state: "visible", timeout: 20000 });
+  await page.locator("input[name=email], input[type=email]").first().fill(role.email);
+  await page.locator("input[type=password]").first().fill(env.DEMO_PASSWORD);
+  await page.click("button[type=submit]");
+  await page.waitForURL(/\/app/, { timeout: 20000 }).catch(() => {});
+  await page.waitForLoadState("domcontentloaded");
+  if (page.url().includes("/login")) {
+    note(`${role.label}: ${role.email} could not sign in — skipped`);
+    skipped += role.pages.length;
+    await context.close();
+    continue;
+  }
+  note(`signed in as ${role.email} (${role.label})`);
 
-    // ---- 2. each dropdown: at least one option must change the list.
-    if (base.empty) {
-      note(`${route}: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert`);
-    } else {
-      await page.goto(`${BASE}${route}`, { waitUntil: "domcontentloaded" });
-      await settle(page);
-      const form2 = filterForm(page);
-      const n = await form2.locator("select").count();
-      let changedAny = false;
-      const tried = [];
-      for (let i = 0; i < n && !changedAny; i++) {
-        const sel = form2.locator("select").nth(i);
-        const name = (await sel.getAttribute("name")) ?? `select#${i}`;
-        const values = await sel.locator("option").evaluateAll((os) => os.map((o) => o.value));
-        for (const v of values) {
-          if (!v) continue; // "" is the "all" sentinel
-          await sel.selectOption(v).catch(() => {});
-          await form2.locator("button[type=submit]", { hasText: /^Apply$/ }).first().click();
-          await settle(page);
-          const after = await stableFingerprint(page);
-          tried.push(`${name}=${v}`);
-          if (after !== a) {
-            changedAny = true;
-            break;
+  for (const route of role.pages) {
+    try {
+      const base = await baseline(page, route);
+      if (base.skip) {
+        note(`${route}: ${base.skip} — skipped`);
+        skipped++;
+        continue;
+      }
+      const a = base.a;
+      const form = (await filterForm(page).count()) ? filterForm(page) : await filterFormFallback(page);
+
+      // ---- 1. the search box, with a string that cannot match a seeded row.
+      const search = form.locator("input[type=text], input:not([type])").first();
+      if (await search.isVisible().catch(() => false)) {
+        await search.fill(MARK);
+        await submitFilter(form);
+        await settle(page);
+        const after = await stableFingerprint(page);
+        const reached = page.url().includes(MARK);
+        check(
+          `${route} — a search that matches nothing changes the list`,
+          after !== a,
+          reached ? (after !== a ? "list changed" : "URL carried the query but the list did not change") : "the search value never reached the URL",
+        );
+      }
+
+      // ---- 2. each dropdown: at least one option must change the list.
+      if (base.empty) {
+        note(`${route}: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert`);
+      } else {
+        await page.goto(`${BASE}${route}`, { waitUntil: "domcontentloaded" });
+        await settle(page);
+        const form2 = (await filterForm(page).count()) ? filterForm(page) : await filterFormFallback(page);
+        const n = await form2.locator("select").count();
+        let changedAny = false;
+        const tried = [];
+        for (let i = 0; i < n && !changedAny; i++) {
+          const sel = form2.locator("select").nth(i);
+          const name = (await sel.getAttribute("name")) ?? `select#${i}`;
+          const values = await sel.locator("option").evaluateAll((os) => os.map((o) => o.value));
+          for (const v of values) {
+            if (!v) continue; // "" is the "all" sentinel
+            await sel.selectOption(v).catch(() => {});
+            await submitFilter(form2);
+            await settle(page);
+            const after = await stableFingerprint(page);
+            tried.push(`${name}=${v}`);
+            if (after !== a) {
+              changedAny = true;
+              break;
+            }
+            // The submit reloads the document; re-acquire before the next attempt.
+            await page.goto(`${BASE}${route}`, { waitUntil: "domcontentloaded" });
+            await settle(page);
           }
-          // The submit reloads the document; re-acquire before the next attempt.
-          await page.goto(`${BASE}${route}`, { waitUntil: "domcontentloaded" });
-          await settle(page);
+        }
+        if (n === 0) {
+          note(`${route}: filter form has no dropdowns`);
+        } else if (changedAny) {
+          check(`${route} — at least one dropdown option changes the list`, true, `${tried[tried.length - 1]} of ${tried.length} tried`);
+        } else {
+          check(`${route} — at least one dropdown option changes the list`, false, `${tried.length} value(s) tried`);
+          candidates.push({ route, tried });
         }
       }
-      if (n === 0) {
-        note(`${route}: filter form has no dropdowns`);
-      } else if (changedAny) {
-        check(`${route} — at least one dropdown option changes the list`, true, `${tried[tried.length - 1]} of ${tried.length} tried`);
-      } else {
-        check(`${route} — at least one dropdown option changes the list`, false, `${tried.length} value(s) tried`);
-        candidates.push({ route, tried });
-      }
+      tested++;
+    } catch (e) {
+      note(`${route}: ${e.message}`);
+      skipped++;
     }
-    tested++;
-  } catch (e) {
-    note(`${route}: ${e.message}`);
-    skipped++;
   }
+  await context.close();
 }
 
-await context.close();
 await browser.close();
 
 console.log("\n" + "=".repeat(72));
-console.log(`filters exercised on ${tested} page(s); ${skipped} page(s) skipped`);
+console.log(`filters exercised on ${tested} page(s) across ${ROLES.length} role(s); ${skipped} page(s) skipped`);
 if (candidates.length) {
   console.log("\nno-effect dropdown candidates — confirm each against its table before calling it a defect:");
   for (const c of candidates) console.log(`  ${c.route}\n    ${c.tried.join("\n    ")}`);
 }
-console.log("\nroutes NOT covered by this run (need another session's role):");
-for (const r of SKIPPED_ROLES) console.log(`  ${r}`);
 
 const passed = results.filter((r) => r.pass).length;
 console.log(`\n${passed}/${results.length} assertions passed`);
