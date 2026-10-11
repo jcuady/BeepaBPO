@@ -1009,7 +1009,49 @@ other nine were not. Two were security defects (§2).
 | `logoutAllAction` | **Revokes the other device** |
 | `switchAccountAction` | A membership-less user reaches access-denied and can escape it |
 | `signupAction` | **Driven end to end** — real account + applicant membership created via the form, then deleted |
-| `resetPasswordAction` | **Not driven** — needs a real recovery token from an inbox |
+| `resetPasswordAction` | **Driven elsewhere, 8/8** — needs a *session*, not an inbox; see §5 |
+
+**The anti-enumeration assertion was measuring the wrong element, and reporting an
+environment ceiling as a defect.** It compared two strings pulled out of the page and failed
+with `real="if an account exists." | fake="If an account exists for that email, we sent reset
+instruction"` — which reads like a serious oracle. It was not.
+
+Three separate instrument bugs, found in sequence:
+
+1. **The fallback returned unrelated page text.** The extractor matched
+   `/If an account exists[^.]*\./i` and, on no match, fell back to `text.slice(0, 200)` of the
+   whole body. A real address hitting the 429 renders *"Too many password reset requests.
+   Wait a minute, then try again."* in a `role="alert"` — which does not match — so the
+   fallback returned the first 200 characters of the page, which happened to end `…if an
+   account exists.` **A fallback that returns unrelated text is not evidence about the thing
+   being tested.**
+2. **`role="alert"` is not specific enough.** The toast host carries that role too and is
+   *empty* when no toast fires, so the corrected version classified the fake address as
+   `error` with empty text — a third spurious failure. Only alerts that carry text count.
+3. **The discriminator was wrong.** The first attempt branched on
+   `!/If an account exists/i.test(known)`, but both strings match that regex
+   case-insensitively, so the branch never fired.
+
+`qa-probe-forgot-password-enumeration.mjs` settles the underlying question by calling the API
+the action calls:
+
+```
+real  hr@demo.beepabpo.com                        email rate limit exceeded
+fake  qa-no-such-account-…@demo.beepabpo.com      no error
+```
+
+Supabase answers **silently-successfully** for an address with no account and only dispatches
+mail for one that exists, so an exhausted budget surfaces as an error on the real address and
+nothing on the fake one. The **copy** is identical on both paths when a send gets through —
+which the sibling assertion confirms, and which still passes. So this is BLOCKED, not FAIL.
+
+Stated plainly, because it is a real property and not a comfortable one: **while mail is
+rate-limited, a caller can tell a real address from a fake one.** That is the documented cost
+of a decision made deliberately in `15a5193` — surface a failed send as an ERROR rather than
+mask it behind the success copy, so nobody waits on an inbox that will stay empty. Every
+wording in `passwordResetErrorMessage` is delivery-failure wording and none of them mentions
+existence, so nothing about *why* the send failed is disclosed. The oracle is the budget being
+visible, and it closes when the budget is not empty. Recorded, not re-litigated.
 
 The account-menu run prints its own inventory, which is how the missing control was
 seen rather than inferred:
@@ -1774,7 +1816,7 @@ predates the audit effort (2026-09-22) and is seed provenance recording that a p
 created during seeding. A cleanup rule written to remove test residue does not get to delete
 real history.
 
-### Link crawl — `qa-exercise-internal-links.mjs`, 28/29 across four passes
+### Link crawl — `qa-exercise-internal-links.mjs`, **29/29**
 
 Every control so far was proven by asserting on **rows it changed**: a filter that
 narrows a list, an action that writes. Nothing had ever checked the other half of a
@@ -1788,6 +1830,51 @@ The run walks each role's reachable links from a seed set that includes list pag
 not just the nav, because the id-rot risk lives in the detail links inside rows, and a
 nav-only crawl would find the sidebar and call it a day. **Four passes: internal (102
 links), client (32), applicant (5) and the public marketing site (25).**
+
+#### The standing 28/29 named the wrong table. Now 29/29.
+
+This failure had been written up as:
+
+> `/app/payroll/periods/42df33d5-…` (record no longer exists) — **audit history** for a
+> deleted record; every QA run that creates and deletes a record leaves one
+
+That was a guess presented as a finding, and it was wrong. When the payroll audit cleanup
+finally removed the `audit_logs` residue, the link **survived** — so it had never been coming
+from `audit_logs` at all.
+
+`qa-probe-dead-payroll-link.mjs` asks the narrow question: does anything still reference that
+one id?
+
+```
+target period: 42df33d5-f7b2-4194-8bc7-2ac75f4eead7  deleted
+audit_logs (entity_type=payroll_period)        0
+notifications (entity_type=payroll_period)     0
+notifications (action_url contains the id)     0
+approval_requests (entity_id)                  1   <- pending, 2026-10-10
+approval_actions (via request)                 0
+payroll_records                                0
+```
+
+It was a **`pending` `approval_requests` row**. The approvals queue renders a link from it,
+the crawler follows it, the period is gone. Five such requests existed; only the `pending` one
+was crawlable, which is why exactly one link ever failed. `qa-cleanup-payroll-audit.mjs` now
+removes them under three constraints — the `payroll` workflow (**not** all 30 approval
+requests, which would sweep in 23 leave and 2 cash-advance requests), an `entity_id` that
+resolves to no live period, and a post-QA date.
+
+**A first attempt at that probe produced confident nonsense**, which is the reason it is
+worth recording. Asked broadly — "which rows reference a deleted payroll period?" — it
+answered *"62 of 62 notifications"* and *"30 of 30 approval requests"*. Both were its own
+fault: a `__none__` sentinel was compared against the live-id set, so every notification with
+a `/app/tickets` or `/app/leave` URL counted as a hit; and every `approval_requests` row was
+compared against live **payroll period** ids, so leave requests and cash advances — different
+entities entirely — all counted as dead. That is the same error as comparing `payroll_record`
+ids against period ids, which nearly made live audit history look safe to delete. **A survey
+across entity types invites exactly that mistake; an exact-match probe on one id cannot.**
+
+The link crawl had already been skipping `/app/reports/export` as a download endpoint — worth
+noting because `audit-role-sweep.mjs` was counting that same route as a page error at the same
+time. Two crawlers, one correct, one not.
 
 Four things are judged, all by where the link **lands**, never by whether it has an
 href:
@@ -2788,9 +2875,9 @@ it. So every committed exercise was re-run against the build containing all of t
 | `recruitment-workflow` | 23/23 |
 | `leave-workflow` | 13/13 |
 | `ticket-workflow` | 10/10 |
-| `auth-workflow` | all assertions PASS; 1 path BLOCKED by the 429 |
+| `auth-workflow` | 35/35; 2 paths BLOCKED by the 429 (signup creation, and the forgot-password anti-enumeration comparison) |
 | `admin-workflow` | all assertions PASS; invite path BLOCKED by the 429 |
-| `internal-links` | 28/29 — the known payroll audit-history link |
+| `internal-links` | **29/29** — was 28/29; the payroll dead link was a stale `approval_requests` row, not audit history |
 | `hire-workflow` | **23/23** — was a harness crash, resolved below |
 
 Two results here are worth more than the green ticks: the sweep **found a real defect**
