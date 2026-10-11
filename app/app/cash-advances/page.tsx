@@ -58,12 +58,14 @@ export default async function CashAdvancesQueuePage({
       "id, requested_amount, status, reason, created_at, employees(employee_number, profiles(display_name))",
     )
     .order("created_at", { ascending: true })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (status) query = query.eq("status", status);
   else query = query.in("status", [...QUEUE_STATUSES]);
 
-  const { data: requests } = await query;
+  const { data: fetched } = await query;
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const requests = fetched?.slice(0, PAGE_SIZE);
 
   const canReview =
     workspace.permissions.has("cash_advance.approve") ||

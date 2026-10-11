@@ -50,10 +50,11 @@ export default async function MyDocumentsPage({
       .select("id, title, category, created_at, visibility")
       .eq("employee_id", employee.id)
       .order("created_at", { ascending: false })
-      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     if (visibility) q = q.eq("visibility", visibility);
     const { data } = await q;
-    documents = data ?? [];
+    // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+    documents = data?.slice(0, PAGE_SIZE) ?? [];
   }
 
   return (

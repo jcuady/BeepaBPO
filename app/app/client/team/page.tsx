@@ -50,10 +50,11 @@ export default async function ClientTeamPage({
       )
       .eq("client_organization_id", clientOrgId)
       .order("display_name")
-      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     if (q) query = query.ilike("display_name", ilikePattern(q) ?? "");
     const { data } = await query;
-    members = data ?? [];
+    // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+    members = data?.slice(0, PAGE_SIZE) ?? [];
   }
 
   return (

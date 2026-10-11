@@ -58,12 +58,12 @@ export default async function BillingPage({
       "id, invoice_number, period_start, period_end, due_date, total, currency, status, organizations(name)",
     )
     .order("due_date", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (status) query = query.eq("status", status);
   if (pattern) query = query.ilike("invoice_number", pattern);
 
-  const [{ data: invoices }, clientsResult] = await Promise.all([
+  const [{ data: invoiceRows }, clientsResult] = await Promise.all([
     query,
     canIssue
       ? supabase
@@ -75,6 +75,9 @@ export default async function BillingPage({
           .limit(200)
       : Promise.resolve({ data: [] as { id: string; name: string }[] }),
   ]);
+
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const invoices = invoiceRows?.slice(0, PAGE_SIZE);
 
   const clients = clientsResult.data ?? [];
 

@@ -78,12 +78,12 @@ export default async function CrmDealsPage({
       "id, title, stage, estimated_value, currency, expected_close_date, lead_id, updated_at, crm_leads(company_name)",
     )
     .order("updated_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (stage) query = query.eq("stage", stage);
   if (pattern) query = query.ilike("title", pattern);
 
-  const [{ data: deals }, { data: leads }] = await Promise.all([
+  const [{ data: dealRows }, { data: leads }] = await Promise.all([
     query,
     can(workspace.permissions, "crm.manage")
       ? supabase
@@ -93,6 +93,9 @@ export default async function CrmDealsPage({
           .limit(100)
       : Promise.resolve({ data: null }),
   ]);
+
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const deals = dealRows?.slice(0, PAGE_SIZE);
 
   const manage = can(workspace.permissions, "crm.manage");
   const leadOptions =

@@ -60,7 +60,7 @@ export default async function CrmLeadsPage({
       "id, company_name, contact_name, contact_email, status, source, created_at",
     )
     .order("created_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (status) query = query.eq("status", status);
   if (pattern) {
@@ -69,7 +69,9 @@ export default async function CrmLeadsPage({
     );
   }
 
-  const { data: leads } = await query;
+  const { data: fetched } = await query;
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const leads = fetched?.slice(0, PAGE_SIZE);
   const manage = canManage(workspace);
 
   return (

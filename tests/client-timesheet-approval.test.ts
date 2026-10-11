@@ -58,4 +58,38 @@ describe("client timesheet approval seam", () => {
     expect(migration).toContain("ar.id as attendance_record_id");
     expect(migration).toContain("allow_timesheet_approval = true");
   });
+
+  it("the view hides days outside the assignment window", () => {
+    // The mechanism the submit-side guard defends against. Asserted here as well as in
+    // the action, because the guard is only correct while this holds: if someone ever
+    // widens the view to include out-of-window days, the guard becomes an unnecessary
+    // restriction and this assertion is what will say so.
+    expect(migration).toContain("ar.work_date >= ea.start_date");
+    expect(migration).toContain("ar.work_date <= ea.end_date");
+  });
+
+  it("submit refuses a day the client could never see", () => {
+    // A record outside the assignment window is absent from
+    // public.client_attendance_summary, and both client review queues read that view
+    // filtering only on approval_status. Without this check the record still reaches
+    // `client_review` and never appears on the client's side.
+    expect(actions).toContain("work_date, approval_status");
+    expect(actions).toContain("client_organization_id, start_date, end_date");
+    expect(actions).toMatch(/workDate < startDate/);
+    expect(actions).toMatch(/workDate > endDate/);
+    expect(actions).toContain("so the client would never see it");
+  });
+
+  it("the guard refuses rather than silently dropping, and runs before the update", () => {
+    // Order matters: the window check must precede the write to `client_review`, or a
+    // rejected day would still be left sitting in the client's queue.
+    const body = actions.slice(
+      actions.indexOf("export async function submitTimesheetForClientReview"),
+    );
+    const guardAt = body.indexOf("so the client would never see it");
+    const updateAt = body.indexOf('update({ approval_status: "client_review" })');
+    expect(guardAt, "window guard not found").toBeGreaterThan(-1);
+    expect(updateAt, "status update not found").toBeGreaterThan(-1);
+    expect(guardAt, "the guard must run before the record is submitted").toBeLessThan(updateAt);
+  });
 });

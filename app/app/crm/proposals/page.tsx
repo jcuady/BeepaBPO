@@ -67,12 +67,12 @@ export default async function CrmProposalsPage({
       "id, title, amount, currency, status, sent_at, updated_at, deal_id, crm_deals(id, title)",
     )
     .order("updated_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (status) query = query.eq("status", status);
   if (pattern) query = query.ilike("title", pattern);
 
-  const [{ data: proposals }, dealsResult] = await Promise.all([
+  const [{ data: proposalRows }, dealsResult] = await Promise.all([
     query,
     manage
       ? supabase
@@ -83,6 +83,9 @@ export default async function CrmProposalsPage({
           .limit(100)
       : Promise.resolve({ data: null }),
   ]);
+
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const proposals = proposalRows?.slice(0, PAGE_SIZE);
 
   const dealOptions =
     dealsResult.data?.map((d) => ({

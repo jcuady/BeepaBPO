@@ -177,7 +177,7 @@ export async function submitTimesheetForClientReview(
   const admin = createAdminClient();
   const { data: record } = await admin
     .from("attendance_records")
-    .select("id, employee_id, approval_status")
+    .select("id, employee_id, work_date, approval_status")
     .eq("id", parsed.data.attendance_record_id)
     .maybeSingle();
 
@@ -197,7 +197,7 @@ export async function submitTimesheetForClientReview(
 
   const { data: assignment } = await admin
     .from("employee_assignments")
-    .select("client_organization_id")
+    .select("client_organization_id, start_date, end_date")
     .eq("employee_id", record.employee_id)
     .eq("assignment_type", "client")
     .eq("status", "active")
@@ -209,6 +209,36 @@ export async function submitTimesheetForClientReview(
       ok: false,
       error: "Employee has no active client assignment.",
     };
+  }
+
+  // The client never sees a day outside the assignment window, and the reason is in
+  // the view rather than in either page: public.client_attendance_summary filters
+  //   and (ea.start_date is null or ar.work_date >= ea.start_date)
+  //   and (ea.end_date   is null or ar.work_date <= ea.end_date)
+  // so a record outside the window is absent from the view entirely. Both client
+  // review queues read that view and filter only on approval_status, so without this
+  // check the record still reaches `client_review` and simply never appears on the
+  // client's side: Beepa shows "submitted", the client's queue is empty, and nothing
+  // anywhere says why. A timesheet day vanishes silently between two organisations.
+  //
+  // Refusing here is the fix the owner chose: the submit is where the information to
+  // prevent it exists, and failing loudly at submission is recoverable in a way that
+  // a silent hand-off is not.
+  const workDate = record.work_date;
+  if (workDate) {
+    const { start_date: startDate, end_date: endDate } = assignment;
+    if (startDate && workDate < startDate) {
+      return {
+        ok: false,
+        error: `This day (${workDate}) falls before the employee's client assignment starts (${startDate}), so the client would never see it. Correct the attendance date or the assignment first.`,
+      };
+    }
+    if (endDate && workDate > endDate) {
+      return {
+        ok: false,
+        error: `This day (${workDate}) falls after the employee's client assignment ended (${endDate}), so the client would never see it. Correct the attendance date or the assignment first.`,
+      };
+    }
   }
 
   const settingsError = await assertClientTimesheetApprovalEnabled(

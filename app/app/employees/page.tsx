@@ -48,7 +48,7 @@ export default async function EmployeesPage({
     )
     .eq("employment_status", "active")
     .order("employee_number")
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (pattern) {
     const { data: profileMatches } = await supabase
@@ -69,7 +69,8 @@ export default async function EmployeesPage({
   }
 
   const { data } = await query;
-  const employees = (data ?? []) as {
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const employees = (data ?? []).slice(0, PAGE_SIZE) as {
     id: string;
     employee_number: string;
     job_title: string | null;

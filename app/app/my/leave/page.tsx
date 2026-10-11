@@ -77,7 +77,7 @@ export default async function MyLeavePage({
       .select("id, start_at, end_at, status, reason, leave_types(name)")
       .eq("employee_id", employee.id)
       .order("created_at", { ascending: false })
-      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     if (status) reqQuery = reqQuery.eq("status", status);
 
     const [{ data: balanceRows }, { data: requestRows }] = await Promise.all([
@@ -92,7 +92,8 @@ export default async function MyLeavePage({
     ]);
 
     balances = (balanceRows ?? []) as typeof balances;
-    requests = (requestRows ?? []) as typeof requests;
+    // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+    requests = (requestRows ?? []).slice(0, PAGE_SIZE) as typeof requests;
   }
 
   return (

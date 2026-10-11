@@ -74,10 +74,11 @@ export default async function ClientBillingPage({
       )
       .eq("client_organization_id", clientOrgId)
       .order("due_date", { ascending: false })
-      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     if (status) query = query.eq("status", status);
     const { data } = await query;
-    invoices = data ?? [];
+    // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+    invoices = data?.slice(0, PAGE_SIZE) ?? [];
   }
 
   return (

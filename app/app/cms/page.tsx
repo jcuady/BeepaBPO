@@ -61,57 +61,64 @@ export default async function CmsAdminPage({
 
   const supabase = await createClient();
   const [
-    { data: posts },
-    { data: services },
-    { data: faqs },
-    { data: industries },
-    { data: testimonials },
-    { data: caseStudies },
+    { data: postRows },
+    { data: serviceRows },
+    { data: faqRows },
+    { data: industryRows },
+    { data: testimonialRows },
+    { data: caseStudyRows },
     { data: aboutRow },
   ] = await Promise.all([
     supabase
       .from("blog_posts")
       .select("id, title, slug, excerpt, body, status, published_at, updated_at")
       .order("updated_at", { ascending: false })
-      .range((postsPage - 1) * PAGE_SIZE, postsPage * PAGE_SIZE - 1),
+      .range((postsPage - 1) * PAGE_SIZE, postsPage * PAGE_SIZE),
     supabase
       .from("services")
       .select("id, title, slug, summary, description, status, sort_order, updated_at")
       .order("sort_order", { ascending: true })
-      .range((servicesPage - 1) * PAGE_SIZE, servicesPage * PAGE_SIZE - 1),
+      .range((servicesPage - 1) * PAGE_SIZE, servicesPage * PAGE_SIZE),
     supabase
       .from("faqs")
       .select("id, question, answer, category, status, updated_at")
       .order("sort_order", { ascending: true })
-      .range((faqsPage - 1) * PAGE_SIZE, faqsPage * PAGE_SIZE - 1),
+      .range((faqsPage - 1) * PAGE_SIZE, faqsPage * PAGE_SIZE),
     supabase
       .from("industries")
       .select("id, name, slug, description, status, updated_at")
       .order("sort_order", { ascending: true })
-      .range((industriesPage - 1) * PAGE_SIZE, industriesPage * PAGE_SIZE - 1),
+      .range((industriesPage - 1) * PAGE_SIZE, industriesPage * PAGE_SIZE),
     supabase
       .from("testimonials")
       .select(
         "id, client_name, client_title, company_name, quote, rating, status, updated_at",
       )
       .order("sort_order", { ascending: true })
-      .range(
-        (testimonialsPage - 1) * PAGE_SIZE,
-        testimonialsPage * PAGE_SIZE - 1,
-      ),
+      .range((testimonialsPage - 1) * PAGE_SIZE, testimonialsPage * PAGE_SIZE),
     supabase
       .from("case_studies")
       .select(
         "id, title, slug, summary, body, client_name, industry, status, published_at, updated_at",
       )
       .order("updated_at", { ascending: false })
-      .range((casesPage - 1) * PAGE_SIZE, casesPage * PAGE_SIZE - 1),
+      .range((casesPage - 1) * PAGE_SIZE, casesPage * PAGE_SIZE),
     supabase
       .from("site_settings")
       .select("value")
       .eq("key", ABOUT_SETTING_KEY)
       .maybeSingle(),
   ]);
+
+  // Each query above over-fetches by one so that a full page proves a next page
+  // exists. Dropping that extra row keeps every pager's rowCount equal to the
+  // number of rows actually rendered, which is what `ListPager` compares.
+  const posts = postRows?.slice(0, PAGE_SIZE);
+  const services = serviceRows?.slice(0, PAGE_SIZE);
+  const faqs = faqRows?.slice(0, PAGE_SIZE);
+  const industries = industryRows?.slice(0, PAGE_SIZE);
+  const testimonials = testimonialRows?.slice(0, PAGE_SIZE);
+  const caseStudies = caseStudyRows?.slice(0, PAGE_SIZE);
 
   const about = parseAboutSetting(aboutRow?.value);
 

@@ -59,10 +59,11 @@ export default async function MyCashAdvancesPage({
       .select("id, requested_amount, remaining_balance, status, reason, created_at")
       .eq("employee_id", employee.id)
       .order("created_at", { ascending: false })
-      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     if (status) q = q.eq("status", status);
     const { data } = await q;
-    requests = data ?? [];
+    // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+    requests = data?.slice(0, PAGE_SIZE) ?? [];
   }
 
   return (

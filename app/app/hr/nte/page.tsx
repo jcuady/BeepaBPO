@@ -65,8 +65,8 @@ export default async function HrNtePage({
     caseQuery = caseQuery.eq("status", status);
   }
 
-  const [{ data: cases }, { data: employees }] = await Promise.all([
-    caseQuery.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
+  const [{ data: caseRows }, { data: employees }] = await Promise.all([
+    caseQuery.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
     canManage
       ? supabase
           .from("employees")
@@ -82,6 +82,9 @@ export default async function HrNtePage({
           }[],
         }),
   ]);
+
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const cases = caseRows?.slice(0, PAGE_SIZE);
 
   const employeeOptions = (employees ?? []).map((emp) => {
     const profile = emp.profiles as { display_name: string } | null;

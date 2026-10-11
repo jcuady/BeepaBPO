@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 function src(path: string) {
@@ -20,6 +20,29 @@ function code(path: string) {
     .split(/\r?\n/)
     .filter((line) => !line.trim().startsWith("//"))
     .join("\n");
+}
+
+function tsxFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) return tsxFiles(full);
+    return entry.name.endsWith(".tsx") ? [full] : [];
+  });
+}
+
+/**
+ * Every page under `app/` that renders a `ListPager`.
+ *
+ * Discovered rather than listed by hand so a newly paginated page is covered
+ * the day it is written. A hand-kept list is exactly how this defect class
+ * comes back: nobody adds the new page to the old list.
+ */
+function listPagerPages(): string[] {
+  const root = join(process.cwd(), "app");
+  return tsxFiles(root)
+    .map((file) => relative(process.cwd(), file))
+    .filter((path) => src(path).includes("ListPager"))
+    .sort();
 }
 
 describe("hot list pagination", () => {
@@ -110,6 +133,54 @@ describe("a page hosting several independent lists", () => {
   it("Page {page} label stays readable on a phone", () => {
     // `ListPager` renders a plain <span>, which the responsive auditor inspects.
     // It was `text-sm` (14px) like the rest of the pre-`Card` world.
+    expect(pager).toContain("text-base text-slate sm:text-sm");
+  });
+});
+
+describe("a full last page must not advertise a next one", () => {
+  // The defect: `ListPager` shows Next whenever `rowCount >= pageSize`. Callers
+  // fed it `rows.length` from a query capped at `.range(from, from + PAGE_SIZE - 1)`,
+  // so a page that was exactly full *and* the last one still showed Next, and
+  // clicking it landed on an empty table. The fix is at the call sites: fetch
+  // PAGE_SIZE + 1 rows and drop the extra one. Once it is dropped, the rendered
+  // count can only reach pageSize when a further page genuinely exists.
+
+  it("every ListPager page drops its sentinel row", () => {
+    const pages = listPagerPages();
+    // A guard against the discovery helper quietly returning nothing and the
+    // per-page loop below passing vacuously.
+    expect(pages.length).toBeGreaterThan(20);
+    for (const path of pages) {
+      expect(code(path), path).toContain(".slice(0, PAGE_SIZE)");
+    }
+  });
+
+  it("no ListPager page still bounds itself at the last displayed row", () => {
+    // `.range(from, page * PAGE_SIZE - 1)` returns at most PAGE_SIZE rows, so the
+    // pager cannot tell a full last page from a full middle page. The upper bound
+    // has to be `page * PAGE_SIZE` (one row past the page) for the slice to mean
+    // anything.
+    for (const path of listPagerPages()) {
+      expect(code(path), path).not.toContain("PAGE_SIZE - 1");
+    }
+  });
+
+  it("the six CMS lists each fetch a sentinel", () => {
+    // /app/cms stacks six independent paginated lists on one page. Fixing five
+    // and leaving the sixth on the old range would reintroduce the empty-page
+    // bug on exactly one of the six, which is the case nobody tests by hand.
+    const cms = code("app/app/cms/page.tsx");
+    expect([...cms.matchAll(/\.range\(/g)]).toHaveLength(6);
+    expect([...cms.matchAll(/\.slice\(0, PAGE_SIZE\)/g)]).toHaveLength(6);
+  });
+
+  it("ListPager's own contract is untouched by the sentinel", () => {
+    // None of this works if `showNext` is rewritten to something cleverer, so the
+    // whole fix rests on this one line staying as it is.
+    const pager = src("components/app/list-pager.tsx");
+    expect(pager).toContain("const showNext = rowCount >= pageSize;");
+    expect(pager).toMatch(/param = "page"/);
+    expect(pager).toContain("qs.set(param, String(page))");
     expect(pager).toContain("text-base text-slate sm:text-sm");
   });
 });

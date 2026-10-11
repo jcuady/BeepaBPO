@@ -102,7 +102,7 @@ export default async function AttendanceAdminPage({
     )
     .eq("employment_status", "active")
     .order("employee_number")
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (pattern) {
     const { data: profileMatches } = await supabase
@@ -123,7 +123,8 @@ export default async function AttendanceAdminPage({
   }
 
   const { data: employeeRows } = await empQuery;
-  const employees = (employeeRows ?? []) as EmployeeRow[];
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const employees = (employeeRows ?? []).slice(0, PAGE_SIZE) as EmployeeRow[];
   const employeeIds = employees.map((e) => e.id);
 
   const { data: recordRows } = employeeIds.length

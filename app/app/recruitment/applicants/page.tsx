@@ -54,7 +54,7 @@ export default async function RecruitmentApplicantsPage({
       "id, stage, created_at, applicants(first_name, last_name, email), job_posts(title, slug)",
     )
     .order("created_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (stage) query = query.eq("stage", stage);
 
@@ -92,7 +92,8 @@ export default async function RecruitmentApplicantsPage({
   }
 
   const { data: applications } = await query;
-  const rows = applications ?? [];
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const rows = (applications ?? []).slice(0, PAGE_SIZE);
 
   return (
     <PageContainer>

@@ -2,10 +2,14 @@ import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { changePasswordSchema } from "@/lib/validation/auth";
-import { signupErrorMessage } from "@/lib/auth/error-messages";
+import {
+  passwordResetErrorMessage,
+  signupErrorMessage,
+  signupSuccessMessage,
+} from "@/lib/auth/error-messages";
 
 /**
- * Two security defects in the auth layer, both found by driving the real UI.
+ * Four security defects in the auth layer, all found by driving the real UI.
  *
  * 1. CWE-620, Unverified Password Change.
  *    `changePasswordAction` validated only the NEW password and then called
@@ -22,6 +26,21 @@ import { signupErrorMessage } from "@/lib/auth/error-messages";
  *    browser they were looking at, which is precisely the browser in doubt. The
  *    changelog claimed the global path was "reachable only on purpose"; it was
  *    reachable never.
+ *
+ * 3. Signup confirmed an account it never created.
+ *    Supabase deliberately does not disclose whether an address is registered.
+ *    Measured here: `signUp` against an address that already has an account
+ *    returns no error and a user id belonging to no real auth user, and
+ *    `signupAction` reported "Account created" off that response anyway.
+ *
+ * 4. `forgotPasswordAction` discarded its error.
+ *    The result of `resetPasswordForEmail` was awaited and thrown away, so a
+ *    429 and a successful send were reported identically — both as "we sent reset
+ *    instructions".
+ *
+ * 3 and 4 are the same defect wearing different clothes: a message that cannot
+ * distinguish the two causes sends every investigation down the wrong path. See
+ * lib/auth/error-messages.ts, which is where that rule is written down.
  */
 
 const actions = readFileSync(join(process.cwd(), "lib/auth/actions.ts"), "utf8");
@@ -176,6 +195,127 @@ describe("signup error messaging", () => {
     );
     expect(signupBody).toContain("signupErrorMessage(error)");
     expect(signupBody).not.toMatch(/error:\s*"Unable to create account with that email\."/);
+  });
+});
+
+describe("signup must not confirm an account it did not create", () => {
+  const signupBody = functionBody(
+    code,
+    "signupAction",
+    "export async function forgotPasswordAction",
+  );
+
+  it("never tells the user an account was created", () => {
+    // Measured: signUp against an address that already has an account returns no
+    // error at all, plus a user id belonging to no real auth user. The old copy
+    // read "Account created" straight off that response, so a prospective user
+    // with a taken address was told their account existed — and, worse, that
+    // their address was free. Supabase does not disclose this and the
+    // non-disclosure is the product's stance, so the copy is the only place this
+    // lie can be taken back.
+    expect(signupSuccessMessage()).not.toMatch(/account created/i);
+    expect(signupBody, "signupAction still reports a created account").not.toMatch(
+      /Account created/,
+    );
+  });
+
+  it("says the same thing whether the address was free or already taken", () => {
+    // The oracle test. This has to hold without anyone re-reading the copy, so it
+    // is pinned two ways: the mapper takes no outcome to branch on (arity 0 — no
+    // status, user object or flag exists for a later edit to feed it), and the
+    // action returns exactly ONE success message, unswitched. Two literals, or a
+    // message chosen by an `if`, would each restore the oracle even though the
+    // branch would look defensible in review.
+    expect(
+      signupSuccessMessage.length,
+      "signupSuccessMessage takes an outcome and could be branched on",
+    ).toBe(0);
+    expect(signupSuccessMessage()).toBe(signupSuccessMessage());
+
+    const messages = signupBody.match(/message:\s*[^\n]+/g) ?? [];
+    expect(
+      messages,
+      "signupAction returns more than one success message, so one of them is selected by outcome",
+    ).toHaveLength(1);
+    expect(messages[0]).toContain("signupSuccessMessage()");
+  });
+
+  it("names both possibilities without confirming either", () => {
+    const message = signupSuccessMessage();
+    expect(message, "the copy must leave both outcomes open").toMatch(/\bif\b/i);
+    expect(message, "the copy must not assert that anything was created").not.toMatch(
+      /account (was |is )?created|we created|your account is ready/i,
+    );
+    // A returning user needs somewhere to go. Without it the message only tells
+    // them to wait for an email that was never sent, which is the original bug
+    // with better manners.
+    expect(message).toMatch(/sign in/i);
+  });
+});
+
+describe("forgot-password must not report a failed send as sent", () => {
+  const forgotBody = functionBody(
+    code,
+    "forgotPasswordAction",
+    "export async function resetPasswordAction",
+  );
+
+  it("reads the error from resetPasswordForEmail", () => {
+    // The bug was literally that the error could not be read: the call's result
+    // was awaited and discarded. Asserting that `resetPasswordForEmail` appears
+    // would pass against the broken version, so this pins the destructuring, and
+    // the negative assertion catches the call being un-bound again.
+    expect(forgotBody).toMatch(
+      /const\s*\{\s*error\s*\}\s*=\s*await\s+supabase\.auth\.resetPasswordForEmail\(/,
+    );
+    expect(
+      forgotBody,
+      "the result of resetPasswordForEmail is awaited and thrown away again",
+    ).not.toMatch(/^\s*await\s+supabase\.auth\.resetPasswordForEmail\(/m);
+  });
+
+  it("returns an error state when the send fails", () => {
+    const afterCall = forgotBody.slice(forgotBody.indexOf("resetPasswordForEmail"));
+    const branchAt = afterCall.indexOf("if (error)");
+    expect(branchAt, "the delivery failure is never examined").toBeGreaterThan(-1);
+    // `ok: false`, not `ok: true` carrying different copy: a send that did not
+    // happen must not render as the confirmation panel.
+    expect(
+      afterCall.slice(branchAt),
+      "a failed send is still reported as ok",
+    ).toContain("ok: false");
+    expect(afterCall).toContain("passwordResetErrorMessage(error)");
+  });
+
+  it("a rate-limited reset is not reported as sent", () => {
+    // Measured: resetPasswordForEmail answered 429 on one call here and no error
+    // on the next, and the action reported success both times. The user waited on
+    // an inbox that had nothing in it, and rate limiting looked exactly like a
+    // forgotten password.
+    const message = passwordResetErrorMessage({ status: 429 });
+    expect(message, "a rate limit must tell the user to wait").toMatch(
+      /too many|wait/i,
+    );
+    expect(message, "a rate limit must not read as instructions sent").not.toMatch(
+      /we sent|sent reset instructions/i,
+    );
+  });
+
+  it("does not let a failure become an account-existence oracle", () => {
+    // The unknown address is not an error in Supabase — the call succeeds
+    // silently for one — so it must keep reaching the success copy that discloses
+    // nothing. The new failure branch must not add a way to probe for accounts,
+    // so no wording in the family may name an account as missing.
+    expect(forgotBody).toContain(
+      "If an account exists for that email, we sent reset instructions.",
+    );
+    const discloses = /no account|not found|does not exist|unknown address|unregistered/i;
+    for (const status of [400, 422, 429, 500, 0]) {
+      expect(
+        passwordResetErrorMessage({ status }),
+        `status ${status} discloses whether the account exists`,
+      ).not.toMatch(discloses);
+    }
   });
 });
 

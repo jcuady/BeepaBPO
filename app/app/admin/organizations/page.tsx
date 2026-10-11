@@ -39,11 +39,13 @@ export default async function AdminOrganizationsPage({
     .from("organizations")
     .select("id, name, slug, type, status, created_at")
     .order("name")
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   if (type) query = query.eq("type", type);
   if (status) query = query.eq("status", status);
 
-  const { data: orgs } = await query;
+  const { data: fetched } = await query;
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const orgs = fetched?.slice(0, PAGE_SIZE);
 
   return (
     <PageContainer>

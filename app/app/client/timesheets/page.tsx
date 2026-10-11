@@ -81,7 +81,7 @@ export default async function ClientTimesheetsPage({
           // approval with no pager and no indication they existed. The heading
           // below also counted only what fit on the page, so it is now backed by
           // a real `count` rather than by `pendingReview.length`.
-          .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
+          .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
         supabase
           .from("client_attendance_summary")
           .select("attendance_record_id", { count: "exact", head: true })
@@ -107,7 +107,8 @@ export default async function ClientTimesheetsPage({
       );
     }
 
-    pendingReview = (pending ?? []).filter(
+    // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+    pendingReview = (pending ?? []).slice(0, PAGE_SIZE).filter(
       (row): row is typeof pendingReview[number] =>
         Boolean(row.attendance_record_id),
     );

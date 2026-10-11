@@ -32,12 +32,12 @@ export default async function MyNotificationsPage({
     .select("id, title, body, read_at, created_at, action_url")
     .eq("user_id", workspace.user.id)
     .order("created_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (readState === "unread") query = query.is("read_at", null);
   else if (readState === "read") query = query.not("read_at", "is", null);
 
-  const [{ data: notifications }, { data: preferences }] = await Promise.all([
+  const [{ data: notificationRows }, { data: preferences }] = await Promise.all([
     query,
     supabase
       .from("notification_preferences")
@@ -45,6 +45,9 @@ export default async function MyNotificationsPage({
       .eq("user_id", workspace.user.id)
       .maybeSingle(),
   ]);
+
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const notifications = notificationRows?.slice(0, PAGE_SIZE);
 
   return (
     <PageContainer size="narrow">

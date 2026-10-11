@@ -57,10 +57,10 @@ export default async function PayrollPeriodsPage({
     .from("payroll_periods")
     .select("id, name, start_date, end_date, pay_date, status")
     .order("start_date", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   if (status) listQuery = listQuery.eq("status", status);
 
-  const [{ data: periods }, { data: periodCtx }] = await Promise.all([
+  const [{ data: periodRows }, { data: periodCtx }] = await Promise.all([
     listQuery,
     canManage
       ? supabase
@@ -70,6 +70,9 @@ export default async function PayrollPeriodsPage({
           .limit(12)
       : Promise.resolve({ data: [] as { name: string; start_date: string; end_date: string }[] }),
   ]);
+
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const periods = periodRows?.slice(0, PAGE_SIZE);
 
   return (
     <PageContainer>

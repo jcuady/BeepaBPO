@@ -103,12 +103,15 @@ export default async function ApprovalsPage({
   const page = pageParam(params.page);
 
   const supabase = await createClient();
-  const { data: requests } = await supabase
+  const { data: fetched } = await supabase
     .from("approval_requests")
     .select("id, entity_type, entity_id, status, created_at, current_step, workflow_id, payload")
     .eq("status", "pending")
     .order("created_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const requests = fetched?.slice(0, PAGE_SIZE);
 
   const workflowIds = [
     ...new Set((requests ?? []).map((r) => r.workflow_id).filter(Boolean)),

@@ -65,7 +65,7 @@ export default async function InternalTicketsPage({
       "id, ticket_number, subject, status, priority, category, created_at, sla_due_at, resolved_at, assigned_user_id, client_organization_id, organizations(name), assignee:profiles!tickets_assigned_user_id_fkey(display_name)",
     )
     .order("created_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (pattern) {
     query = query.or(`subject.ilike.${pattern},ticket_number.ilike.${pattern}`);
@@ -73,7 +73,9 @@ export default async function InternalTicketsPage({
   if (status) query = query.eq("status", status);
   if (priority) query = query.eq("priority", priority);
 
-  const { data: tickets } = await query;
+  const { data: fetched } = await query;
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const tickets = fetched?.slice(0, PAGE_SIZE);
   const canManage = can(workspace.permissions, "tickets.manage");
   const canCreate = can(workspace.permissions, "tickets.self");
 

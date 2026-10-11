@@ -52,14 +52,17 @@ export default async function AttendanceCorrectionsPage({
   const page = pageParam(params.page);
 
   const supabase = await createClient();
-  const { data: requests } = await supabase
+  const { data: fetched } = await supabase
     .from("attendance_correction_requests")
     .select(
       "id, reason, status, requested_clock_in_at, requested_clock_out_at, created_at, employees(employee_number, job_title, profiles(display_name)), attendance_records(work_date, clock_in_at, clock_out_at)",
     )
     .eq("status", status)
     .order("created_at", { ascending: true })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const requests = fetched?.slice(0, PAGE_SIZE);
 
   const pendingIds =
     status === "pending" ? (requests ?? []).map((r) => r.id) : [];

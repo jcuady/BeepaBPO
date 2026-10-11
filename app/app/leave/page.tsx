@@ -50,14 +50,17 @@ export default async function LeaveApprovalsPage({
   const page = pageParam(params.page);
 
   const supabase = await createClient();
-  const { data: requests } = await supabase
+  const { data: fetched } = await supabase
     .from("leave_requests")
     .select(
       "id, start_at, end_at, status, reason, employees(job_title, employee_number, profiles(display_name)), leave_types(name)",
     )
     .eq("status", status)
     .order("created_at", { ascending: true })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const requests = fetched?.slice(0, PAGE_SIZE);
 
   const actionableIds = (requests ?? [])
     .filter((r) => r.status === "pending" || r.status === "manager_approved")

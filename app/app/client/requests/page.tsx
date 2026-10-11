@@ -80,11 +80,12 @@ export default async function ClientRequestsPage({
       .select("id, ticket_number, subject, status, category, created_at")
       .eq("client_organization_id", clientOrgId)
       .order("created_at", { ascending: false })
-      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     if (status) query = query.eq("status", status);
     if (q) query = query.ilike("subject", ilikePattern(q) ?? "");
     const { data } = await query;
-    tickets = data ?? [];
+    // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+    tickets = data?.slice(0, PAGE_SIZE) ?? [];
   }
 
   return (

@@ -125,8 +125,14 @@ try {
     process.exitCode = 2;
     throw new Error("BLOCKED: signup email rate limited");
   }
-  check("the form reports the account was created", headingShown > 0 && /Account created/i.test(body),
-    headingShown ? body.match(/Account created[^\n]*/)?.[0] ?? "heading shown, message missing" : `no panel; body: ${body.slice(0, 160)}`);
+  // The action used to say "Account created" here, which was a lie for an address that
+  // was already registered. It now uses anti-enumeration wording that asserts neither
+  // outcome. Both halves are asserted: the new wording must be present, and the old
+  // claim must be gone.
+  const successCopy = body.match(/If that address[^\n]*/)?.[0]?.trim() ?? "";
+  check("the form reports the signup neutrally, not 'Account created'",
+    headingShown > 0 && successCopy.length > 0 && !/Account created/i.test(body),
+    headingShown ? (successCopy || "panel shown but expected wording missing") : `no panel; body: ${body.slice(0, 160)}`);
 
   // ---------- 2. did a REAL user get created? (positive control for 1)
   const user = await findUser(EMAIL);
@@ -161,8 +167,8 @@ try {
   await page2.getByRole("button", { name: /create account/i }).click();
   await page2.waitForTimeout(6000);
   const body2 = await page2.locator("body").innerText();
-  const claimedAgain = /Account created/i.test(body2);
-  note(`re-submitting an already-registered address reports: ${claimedAgain ? '"Account created"' : body2.match(/role="alert"[\s\S]{0,200}/)?.[0]?.slice(0, 120) ?? "something else"}`);
+  const copy2 = body2.match(/If that address[^\n]*/)?.[0]?.trim() ?? "";
+  note(`re-submitting an already-registered address reports: ${copy2 || body2.slice(0, 120)}`);
 
   // `auth.users` is not exposed through the Data API, so the admin API is the only way to
   // count real accounts. A second submission must not add one.
@@ -178,10 +184,16 @@ try {
   check("the already-registered path created no second membership", msAfter.length === 1,
     `${msAfter.length} membership row(s) for the one real user`);
 
-  if (claimedAgain) {
-    check("KNOWN P2 CONFIRMED through the UI: an existing address is reported as 'Account created'",
-      true, "reported as created; no account and no membership were actually made");
-  }
+  // Anti-enumeration is observable here, not just asserted in prose: both submissions
+  // take the same code path, so the already-registered one must produce byte-identical
+  // wording to the genuinely-new one. If these ever diverge, the form has become an
+  // account-existence oracle and that is a regression, not an improvement.
+  check("an already-registered address is not reported as 'Account created'",
+    !/Account created/i.test(body2),
+    /Account created/i.test(body2) ? "STILL reported as created" : "neutral wording");
+  check("an already-registered address gets the same wording as a new one",
+    copy2.length > 0 && copy2 === successCopy,
+    copy2 === successCopy ? "identical" : `differed:\n    new: ${successCopy}\n    dup: ${copy2}`);
   await page2.close();
 } catch (e) {
   console.error(`\nRUN ERROR: ${e.message}`);

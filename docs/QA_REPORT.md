@@ -1509,7 +1509,7 @@ Giving applicants one is a product decision; until then the notification points 
 they actually are. The test now asserts this specific mistake directly, because a file
 existence check is not an access check.
 
-### P2 — Signing up with an address that already has an account reports "Account created". Documented, not changed.
+### P2 — Signing up with an address that already has an account reports "Account created". Fixed.
 
 Found while probing the 429 blocker, not by driving the UI — which is itself the
 point: this is the one part of `signupAction` that does not need the rate limit
@@ -1557,7 +1557,24 @@ It also means `signupAction`'s *success* path is only fully honest in the case w
 an account really was created — which is exactly the case the 429 currently prevents
 anyone here from reaching.
 
-### P2 — `forgotPasswordAction` discards its error, so a 429 is reported as success. Documented, not changed.
+**Fixed.** The owner chose anti-enumeration wording, and `signupSuccessMessage()` now
+reads *"If that address wasn't already registered, we sent a verification link. If it
+was, sign in instead."* The second clause matters: without it the message still tells a
+taken address to wait for an email that will never arrive, which is the original bug
+with better manners.
+
+The helper takes **no arguments**. There is no status, user object or flag for a caller
+to branch on, so it cannot be turned into an existence oracle by a later edit — adding a
+parameter is the change that has to argue for itself. The assign step is left alone,
+with a comment saying why: a present id is not evidence of a created account, and
+treating a phantom id as a failure would rebuild the oracle this branch exists to avoid.
+
+`qa-exercise-signup-workflow.mjs` now asserts the stronger property rather than the
+weaker one: both submissions take the same code path, so the already-registered address
+must produce **byte-identical wording** to the genuinely-new one. Divergence would mean
+the form had become an account-existence oracle.
+
+### P2 — `forgotPasswordAction` discards its error, so a 429 is reported as success. Fixed.
 
 `lib/auth/actions.ts:248`:
 
@@ -1575,6 +1592,26 @@ action reported success in both cases. While that copy is a correct anti-enumera
 pattern, the *rate-limit* case is not enumeration — it is a delivery failure the user
 is told did not happen. Worth distinguishing from "this address is unknown"; not
 changed unilaterally, because the fix is a copy decision.
+
+**Fixed.** The owner chose anti-enumeration wording, and `forgotPasswordAction` now
+destructures the error and returns an **error state**, not success-with-different-copy.
+Two reasons, and the second is the one that matters:
+
+- The defect is precisely that `ok: true` asserted something that did not happen. Only
+  `ok: false` restores that distinction, and the form renders it differently from the
+  confirmation panel.
+- **It is safe, and the success alternative is not.** An unknown address is not an error
+  in Supabase at all — `resetPasswordForEmail` succeeds silently for one and falls
+  through to the untouched "If an account exists for that email" copy. Every error
+  reachable here is therefore a delivery or infrastructure failure, which is independent
+  of whether the account exists. A genuine error carries **zero** information about
+  existence. Keeping success-with-different-copy would leave a green confirmation panel
+  on top of a failed send, which is the thing the user has to be protected from.
+
+`passwordResetErrorMessage()` joins `authErrorMessage` and `signupErrorMessage` behind a
+shared `authFailureKind()` classifier, so "429 is a rate limit, 0 and 5xx are the service,
+everything else is the request" is decided once. A fourth mapper cannot be added with a
+fourth reading of a status the other three already agree on.
 
 ### Link crawl — `qa-exercise-internal-links.mjs`, 28/29 across four passes
 
@@ -1952,6 +1989,40 @@ This was found by the run reporting BLOCKED and someone going to look, rather th
 gate. **A blocked leg is worth the investigation** — this one turned out to be a real P1
 sitting behind an unexercised action.
 
+#### A near-miss: this P1 was very nearly withdrawn on a truncated read
+
+The owner was asked to choose between date-checking at submission and widening the client
+view. While preparing that question I re-read the view, concluded it had **no** date
+filter, and told the owner the P1 was a measurement error. That was wrong, and the way it
+went wrong is worth more than the finding.
+
+The view has three definitions across migrations. I read the one in
+`20260906001300_query_rls_optimization.sql` and the search context was **truncated at
+`and ea.status = 'active'`** — exactly one line before the filter. The current definition
+in `20260907180000_client_timesheet_approval.sql` ends:
+
+```sql
+and (ea.start_date is null or ar.work_date >= ea.start_date)
+and (ea.end_date   is null or ar.work_date <= ea.end_date);
+```
+
+So the original finding was right, and my refutation rested on a partial read presented
+with more confidence than it deserved. What made it *nearly* wrong rather than merely
+sloppy: the confirming probe I then wrote returned **0 hidden rows**, which is true and
+which I treated as if it were evidence of absence. It is not — no demo record currently
+falls outside the window, so the filter has nothing to hide. A probe that returns zero
+because the condition is unexercised is not the same as a probe that returns zero because
+the condition does not exist, and I did not distinguish them before reporting.
+
+The rewritten probe compares the two populations directly — every attendance record
+belonging to an actively-assigned employee against the rows the view returns — rather
+than trusting a read of the SQL. It confirms the filter is present and reports that
+nothing currently falls outside it.
+
+Two rules, both the same rule as the sitemap one above: **a truncated context read is not
+evidence of absence**, and **a probe returning zero is not evidence that the condition is
+absent** until you have checked the condition is exercisable.
+
 ### Client timesheet workflow — `qa-exercise-client-timesheet-workflow.mjs`, 13/14
 
 The only workflow that crosses the Beepa/client boundary with a status hand-off. Both
@@ -2190,6 +2261,60 @@ somewhere above 12. It is not 81.
 
 ---
 
+### The list pager offered "Next" on an exactly-full last page. Fixed.
+
+`components/app/list-pager.tsx:39` read `const showNext = rowCount >= pageSize`, and every
+caller passed `rowCount={rows.length}` where the query was bounded to at most `pageSize`
+rows. So an exactly-full **last** page looked identical to a full page with more behind
+it, and "Next" led to an empty page.
+
+The fix fetches `PAGE_SIZE + 1` and drops the sentinel before rendering. The part worth
+noting is the consequence: **once the extra row is gone, `rowCount >= pageSize` is exactly
+the right test**, so `components/app/list-pager.tsx` needed no change at all. The bug was
+never in the predicate — it was in the data feeding it. Applied across **36 pager
+instances in 32 pages**, including all six independent lists on `/app/cms`.
+
+The residual risk is named rather than hidden: the invariant now lives in 32 call sites
+instead of one place, and nothing at runtime distinguishes a caller who remembered the
+slice from one who did not. The mitigation is that
+`tests/list-pagination.test.ts` **discovers** pages by walking `app/**/*.tsx` for
+`ListPager` rather than keeping a hand-maintained list, and asserts each one slices. A
+hand-kept list is exactly how this defect returns.
+
+### Storage RLS raised instead of denying on a malformed path. Fixed.
+
+Six policies in `20260906000800_storage_buckets.sql` cast the first folder segment of a
+storage object name straight to `uuid`. Object names are caller-supplied, so any
+non-uuid first segment made Postgres raise inside the policy check. A policy that
+raises is not a policy that denies — and since the error aborts the statement, a single
+malformed object made **every** read against that bucket fail. That is a denial of
+service, not just a wrong answer.
+
+`20261011130000_storage_rls_safe_uuid_cast.sql` adds an immutable
+`public.try_uuid(text)` (regex-guarded `CASE`, pure SQL rather than a PL/pgSQL
+`EXCEPTION` block, which is a subtransaction and cannot be treated as a safe constant in
+policy expressions) and drops/recreates all six policies with semantics preserved
+verbatim.
+
+**The part that would have made this worse.** The two helpers behave differently on NULL,
+and the naive fix routes straight into a privilege escalation:
+
+- `is_self_employee(NULL)` is a bare `exists(...)`, so it returns **false**. The safe cast
+  alone denies, and those policies need no second guard.
+- `can_access_client(NULL)` **can return true**. Its permission terms never reference the
+  argument, so anyone holding `clients.read`, `clients.manage` or `system.manage` gets
+  true for *any* org id including NULL.
+
+Routing `can_access_client` through a NULL-returning cast alone would have converted
+"raise, therefore deny" into **"grant the whole bucket"**, for precisely the accounts most
+likely to hold those permissions. Those three policies take an explicit `is not null`
+guard, which is true on well-formed paths, so no working access was narrowed.
+
+Verified behaviourally rather than by reading the stored expression: the live bucket
+really does contain a malformed object (`client-documents/demo/…`), and listing it as four
+authenticated demo users now returns `ok, []` instead of a Postgres error, while an
+employee still sees only their own folder and hr sees all seven.
+
 ## 6. Still open
 
 | # | Item | Why |
@@ -2200,9 +2325,9 @@ somewhere above 12. It is not 81.
 | 4 | **2 of 83 server actions not yet driven end to end** | See §5. `resetPasswordAction` needs a recovery token from an inbox that does not exist here; `inviteClientUser` is waiting on the environment's email budget. Neither is blocked by a defect in this codebase. `check-auth-email-rate-limit.mjs` prints exactly what is still blocking each |
 | 5 | **Invite account creation** | Blocked by Supabase email rate limiting in this environment. **Signup account creation is no longer on this list** — it ran end to end, creating a real account and applicant membership, once the budget allowed one call through. That is the whole reason to keep re-probing instead of writing a blocker down once. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
 | 6 | `super_admin` holds 21 of 50 permissions | Deliberate platform-vs-business split, or a gap — a product call. See §2 |
-| 7 | **Storage RLS casts with `::uuid`, which RAISES rather than denies** | `20260906000800_storage_buckets.sql:53`. A malformed `object_name` aborts the policy check with a Postgres error instead of a clean deny. Security-relevant and a migration decision — not changed unilaterally |
-| 8 | **Client timesheet P1: submit accepts a day the client view filters out** | `submitTimesheetForClientReview` does not date-check against the assignment window, so a timesheet can be handed to a client who will never see it. The two halves of the flow disagree; which one is authoritative is a product call. See §4 |
-| 9 | **List pager offers "Next" on the last page when it is exactly full** | `list-pager.tsx:39`, 47 call sites. Latent, not live in the demo. Fix is either `PAGE_SIZE + 1` fetch or a count query per list — a cost decision. See §2 |
+| 7 | **Storage RLS casts with `::uuid`, which RAISES rather than denies** | **Fixed** — `20261011130000_storage_rls_safe_uuid_cast.sql`, applied and verified behaviourally. Six policies guarded by an immutable `public.try_uuid(text)`. The important part is what the naive fix would have caused: `can_access_client(NULL)` can return TRUE for anyone holding `clients.read`/`clients.manage`/`system.manage`, because those permission terms never reference the argument — so routing it through a NULL-returning cast alone would have converted "raise, therefore deny" into "grant the whole bucket". Those three policies take an explicit `is not null` guard. Verified against a real malformed object (`client-documents/demo/…`): the listing now returns `ok, []` instead of a Postgres error |
+| 8 | **Client timesheet P1: submit accepts a day the client view filters out** | **Fixed** — `submitTimesheetForClientReview` now refuses a day outside the employee's client assignment window, with a message naming both dates, before the record is written to `client_review`. A submission that would vanish between Beepa and the client is now refused where the information to prevent it exists. See §4. **This finding was nearly withdrawn on bad evidence — the near-miss is recorded below** |
+| 9 | **List pager offers "Next" on the last page when it is exactly full** | **Fixed** — 36 pager instances across 32 pages now fetch `PAGE_SIZE + 1` and drop the sentinel row before rendering. `components/app/list-pager.tsx` needed **no change**: once the extra row is gone, `rowCount >= pageSize` is exactly the right test. The residual risk is that the invariant now lives in 32 call sites rather than one place, so the test discovers pages by walking `app/**/*.tsx` for `ListPager` rather than keeping a hand-written list |
 | 10 | Push delivery on a real device | Needs hardware; re-subscribe required after the VAPID rotation |
 | 11 | Playwright e2e not running in CI | Needs `RUN_E2E=true` plus secrets |
 | 12 | Nothing is pushed to `origin` | `origin/main` is 10 commits and ~371 files behind this branch |
@@ -2281,6 +2406,8 @@ node scripts/audit/qa-exercise-internal-links.mjs         # 29 assertions, 4 pas
 node scripts/audit/qa-repair-notification-routes.mjs       # idempotent; repairs role-blind ticket links
 node scripts/audit/check-auth-email-rate-limit.mjs          # exits 0 the moment the 429 clears
 node scripts/audit/qa-exercise-signup-workflow.mjs          # signupAction e2e; exit 2 = BLOCKED, not failed
+node scripts/audit/qa-probe-client-timesheet-window.mjs     # does the view hide out-of-window days?
+node scripts/audit/qa-check-realtime-residue.mjs            # did the realtime probe leak a notification row?
 node scripts/audit/qa-exercise-sitemap-unpublish.mjs        # rebuilds the app; needs `rm -rf .next` first (see §2)
 node scripts/audit/qa-cleanup-sitemap-probe.mjs            # removes ONLY rows these sitemap probes created
 node scripts/audit/qa-probe-client-timesheet.mjs          # read-only: can this flow run here at all?

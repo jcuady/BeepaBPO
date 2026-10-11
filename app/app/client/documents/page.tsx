@@ -56,10 +56,11 @@ export default async function ClientDocumentsPage({
       .eq("client_organization_id", clientOrgId)
       .in("visibility", ["client_visible", "public"])
       .order("created_at", { ascending: false })
-      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     if (category) query = query.eq("category", category);
     const { data } = await query;
-    documents = data ?? [];
+    // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+    documents = data?.slice(0, PAGE_SIZE) ?? [];
   }
 
   return (

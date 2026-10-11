@@ -125,7 +125,7 @@ export default async function AdminUsersPage({
       )
       .in("status", ["active", "invited"])
       .order("created_at", { ascending: false })
-      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     // PostgREST ANDs separate filter calls, so the role narrowing and the text
     // narrowing compose. A single `.or()` cannot express "role X AND name Y",
@@ -140,7 +140,8 @@ export default async function AdminUsersPage({
     }
 
     const { data } = await query;
-    memberships = (data ?? []) as MembershipRow[];
+    // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+    memberships = (data ?? []).slice(0, PAGE_SIZE) as MembershipRow[];
   }
 
   return (

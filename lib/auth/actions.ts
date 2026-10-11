@@ -7,7 +7,12 @@ import { createClient } from "@/lib/supabase/server";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { getEnv } from "@/lib/env";
 import { safeNext } from "@/lib/auth/safe-next";
-import { authErrorMessage, signupErrorMessage } from "@/lib/auth/error-messages";
+import {
+  authErrorMessage,
+  passwordResetErrorMessage,
+  signupErrorMessage,
+  signupSuccessMessage,
+} from "@/lib/auth/error-messages";
 import {
   changePasswordSchema,
   employeeLoginSchema,
@@ -220,13 +225,21 @@ export async function signupAction(
   }
 
   if (data.user?.id) {
+    // A present id is NOT evidence of a created account. Measured: for an
+    // address that already has one, signUp returns no error and a user object
+    // whose id belongs to no real auth user, so this insert fails its foreign key
+    // to auth.users and the catch in `assignApplicantMembership` swallows it.
+    // That silence is the correct outcome, not a bug to route around: there is
+    // nothing to assign, and the user has been told nothing that separates the
+    // two cases. Do not "fix" the swallowed error by treating a missing or
+    // phantom id as a failure — that rebuilds the account-existence oracle this
+    // whole branch exists not to have.
     await assignApplicantMembership(data.user.id);
   }
 
   return {
     ok: true,
-    message:
-      "Account created. Check your email to verify before signing in.",
+    message: signupSuccessMessage(),
   };
 }
 
@@ -245,9 +258,33 @@ export async function forgotPasswordAction(
   }
 
   const supabase = await createClient();
-  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
     redirectTo: authCallbackUrl("/reset-password"),
   });
+
+  // The error was never destructured, so it could not be read, and success was
+  // returned unconditionally. Measured: this call answered 429 on one invocation
+  // and no error on the next, and the user was told reset instructions were sent
+  // both times — including the time nothing was sent. They wait on an inbox that
+  // has nothing in it, and rate limiting looks identical to a forgotten password.
+  //
+  // Error state, NOT success state with different copy. Two reasons, in order.
+  // The defect is precisely that `ok: true` asserted something that did not
+  // happen; only `ok: false` restores the distinction, and the form renders it
+  // differently from the confirmation panel. And it is safe, which the success
+  // alternative is not: every error reachable here is a delivery or rate-limit
+  // failure, which is independent of whether the address is registered. An
+  // unknown address is not an error in Supabase at all — the call succeeds
+  // silently and falls through to the copy below — so a genuine error tells an
+  // attacker nothing about existence. Returning success-with-different-copy would
+  // keep the confirmation panel, which is the one thing that must not survive a
+  // failed send.
+  if (error) {
+    return {
+      ok: false,
+      error: passwordResetErrorMessage(error),
+    };
+  }
 
   return {
     ok: true,

@@ -68,7 +68,7 @@ export default async function ClientTicketsPage({
       "id, ticket_number, subject, status, created_at, priority, sla_due_at, resolved_at",
     )
     .order("created_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (clientOrgId) {
     query = query.eq("client_organization_id", clientOrgId);
@@ -76,7 +76,9 @@ export default async function ClientTicketsPage({
     query = query.eq("requester_user_id", workspace.user.id);
   }
 
-  const { data: tickets } = await query;
+  const { data: fetched } = await query;
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const tickets = fetched?.slice(0, PAGE_SIZE);
   const showCreate = canCreate && ticketingAllowed;
 
   return (

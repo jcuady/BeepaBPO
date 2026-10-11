@@ -97,13 +97,14 @@ export default async function ClientAttendancePage({
       .eq("client_organization_id", clientOrgId)
       .gte("work_date", from)
       .order("work_date", { ascending: false })
-      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     if (to) query = query.lte("work_date", to);
     if (status) query = query.eq("status", status);
 
     const { data } = await query;
-    rows = data ?? [];
+    // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+    rows = data?.slice(0, PAGE_SIZE) ?? [];
   }
 
   return (

@@ -42,12 +42,14 @@ export default async function RecruitmentJobsPage({
     .from("job_posts")
     .select("id, title, slug, status, location_text, published_at, created_at")
     .order("created_at", { ascending: false })
-    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (status) query = query.eq("status", status);
   if (pattern) query = query.ilike("title", pattern);
 
-  const { data: jobs } = await query;
+  const { data: fetched } = await query;
+  // One extra row proves a next page exists; drop it so rowCount is the rendered count.
+  const jobs = fetched?.slice(0, PAGE_SIZE);
   const canManage = workspace.permissions.has("recruitment.manage");
 
   return (
