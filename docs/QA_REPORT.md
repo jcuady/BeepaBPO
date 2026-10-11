@@ -814,6 +814,49 @@ No defect found here. This entry is in the report anyway, because *"we now have 
 that would catch it"* is a result worth being able to point at, and because the next
 person should not have to re-derive that this surface was untested.
 
+### P2 — The notification bell hid its unread count from screen readers, and its badge failed contrast. Fixed.
+
+The bell is how a user learns something needs them, and it is the app's other primary
+daily interaction. Two defects, both invisible to every other check here — the role
+sweep records "0 console noise" and moves on, the link crawl reads `a[href]` and sees
+neither.
+
+**1. The unread count was never announced (WCAG 4.1.2 Name, Role, Value).** The badge
+is a `<span>` inside the button, but the button carries a **static**
+`aria-label="Notifications"`. `aria-label` overrides descendant content, so a screen
+reader announced "Notifications" and nothing else — a bell with 1 unread and a bell
+with 9+ were indistinguishable. Measured before the fix: badge rendering `9+`,
+`aria-label` reading `Notifications`.
+
+**2. The badge failed WCAG AA contrast.** White on the brand green `#119446` measures
+**3.93:1** at 10px bold. Small text is never "large text" however bold it is, so the
+4.5:1 threshold is the one that applies. Measured from computed styles in the page,
+not read off the class names, so a theme change cannot silently invalidate it.
+
+Both fixed, and the second fix is the one worth reading twice: `globals.css` already
+had the right token and already said so —
+
+```css
+/* Interactive/text green darkened for WCAG AA 4.5:1 on white; brand #119446 kept for accents */
+--color-green-strong: #0b6e34;
+```
+
+The badge had reached for `green` where the design system says accents belong. Switching
+to `green-strong` measures **6.37:1**. The defect was not a missing colour; it was a
+documented rule about which colour is for what, ignored at one call site.
+
+`qa-probe-notification-bell.mjs`, **10/10**, evidence at
+`docs/evidence/notification-bell-check.json`. It is read-only by design — it does not
+click a notification, because that marks the row read and navigates.
+
+**And the probe's own first post-fix run failed, correctly, for a reason worth
+recording:** the final assertion compared the returned focus label to exactly
+`"Notifications"`. Once the count moved into the name the label reads
+`"Notifications (12 unread)"`, so the check reported a regression that was actually the
+fix landing. A check that goes stale when the thing it checks is **improved** is its own
+kind of wrong — it manufactures a defect out of a remedy — and it is the mirror image of
+the false passes documented above.
+
 ---
 
 ## 3. Data population
@@ -3317,6 +3360,7 @@ node scripts/audit/qa-probe-summary-view-filter.mjs     # read-only: which predi
 node scripts/audit/qa-probe-not-found.mjs                    # 18 assertions; proves every 404 has a way out that works
 node scripts/audit/qa-probe-dialog-keyboard.mjs                # 16 assertions, read-only; Escape + Cancel both restore focus
 node scripts/audit/qa-probe-command-palette.mjs             # 11 assertions; opens, filters, navigates, and returns focus
+node scripts/audit/qa-probe-notification-bell.mjs          # 10 assertions; accessible name, AA contrast, keyboard exit
 node scripts/audit/qa-probe-account-signin.mjs [email]        # read-only: can this demo account actually sign in, and is its membership active
 node scripts/audit/audit-role-sweep.mjs [role ...]           # 13 roles; exits non-zero on a failed sign-in, a broken page, or too little coverage
 

@@ -124,13 +124,28 @@ export function NotificationBell({
             variant="ghost"
             size="icon"
             className={cn("relative min-h-11 min-w-11", className)}
-            aria-label="Notifications"
+            // The count has to be IN the name. It used to live only in the badge
+            // span below, but `aria-label` overrides descendant content, so a
+            // screen reader announced "Notifications" and nothing else — a bell
+            // with 1 unread and a bell with 9+ were indistinguishable. WCAG 4.1.2.
+            // The real count is announced here even though the badge abbreviates
+            // to "9+"; that is deliberate, the spoken form should not lose data.
+            aria-label={
+              unreadCount > 0
+                ? `Notifications (${unreadCount} unread)`
+                : "Notifications"
+            }
           />
         }
       >
         <IconBell stroke={1.75} className="size-5" />
         {unreadCount > 0 ? (
-          <span className="absolute top-2 right-2 flex size-4 items-center justify-center rounded-full bg-green text-[10px] font-bold text-white">
+          // `green-strong`, not `green`. The brand green #119446 measures 3.93:1
+          // against white — below the 4.5:1 that 10px bold text needs, since small
+          // text is never "large text" however bold it is. globals.css already
+          // documents this: #119446 is "kept for accents", and `--color-green-strong`
+          // is the darkened variant for exactly this job (6.37:1 on white).
+          <span className="absolute top-2 right-2 flex size-4 items-center justify-center rounded-full bg-green-strong text-[10px] font-bold text-white">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         ) : null}
