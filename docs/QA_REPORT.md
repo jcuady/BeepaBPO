@@ -2389,6 +2389,70 @@ them, scoped to `approval_status = 'client_review'` (the seeded demo data is ent
 `finalized`, so it cannot touch a real row), and the baseline was verified back to 40 rows.
 Redirect to a file and read the file; do not truncate a probe that writes.
 
+### P1 — Two more `.limit()`s where the code meant "all of them". Fixed.
+
+The `/app/client/approvals` fix above came from sweeping one pattern class. The same sweep
+run across `lib/**` found two more of the same bug, and they are worse than the original
+because of where they sit.
+
+**Payroll seeding — the money path.** `createPayrollPeriod` seeded draft payroll records
+from:
+
+```ts
+.from("employees").select("id")
+.eq("organization_id", BEEPA_ORG_ID)
+.eq("employment_status", "active")
+.limit(500)
+```
+
+Three separate failures in five lines:
+
+1. An org with more than 500 active employees got records for **some** of them, while the
+   action returned `ok: true` with `seeded: 500`. Anyone dropped had **no payroll record at
+   all** and nothing in the response said so.
+2. There is **no `.order()`**. PostgREST makes no promise about ordering without one, so the
+   set is not "the first 500" — it is an arbitrary 500, and it can differ between two runs
+   over identical data.
+3. `salaryByEmployee.get(e.id) ?? 0` then pays **0** for anyone whose salary row was missed,
+   which is the quiet-money version of the same bug.
+
+A BPO passing 500 headcount is routine, not an edge case.
+
+**Ticket assignees.** `listTicketAssignees` offered `.limit(100)` internal members as
+assignees. Past 100 internal staff, the 101st teammate simply could not be put on a ticket —
+no error, no indication, just a person who is unassignable.
+
+**Both fixed** through a new `lib/pagination/fetch-all.ts`. `fetchAllByRange()` walks
+`.range()` in pages and throws past `maxPages` rather than returning a partial list. The
+`order` is load-bearing and documented as such: `.range()` over an order that is not *total*
+can skip or repeat rows, which would trade a silent omission for a silent duplicate. Payroll
+orders by `id`; assignees order by `created_at` **then `id`**, because `created_at` alone is
+not unique.
+
+The helper is a separate module rather than inline in `actions.ts`, because that file is
+`"use server"` where every export must be an async server action.
+
+**Proven on the code, because the demo data cannot reach either cap** — the org has 10
+active employees (2% of 500) and 13 internal members (13% of 100).
+`tests/silent-cap-paging.test.ts` drives `fetchAllByRange` against a stub serving **1200**
+rows at 500 per page — three pages, all returned — and pins the properties that matter:
+
+- every row is returned well past one page;
+- an exactly-full final page does not trigger a further request, and a short page ends the walk;
+- **past `maxPages` it throws** rather than returning a list that looks complete — this is
+  what separates "no cap" from "a bigger cap";
+- a page error names the page number and the operation;
+- neither call site contains a bare `.limit(` on an active-employee query, and the assignees
+  order is tie-broken by `id`.
+
+Measured headroom is reported by `qa-probe-silent-caps.mjs` rather than asserted from memory,
+so the day this stops being latent, the probe says so.
+
+Three of those assertions failed on their first run, all because they matched the **comment
+prose explaining the fix** — a comment saying "the previous `.limit(100)`" reads as exactly
+the pattern being proved absent. The tests now strip comments before asserting on source. An
+assertion about what code does must not be falsifiable by what a comment says about it.
+
 ### Storage RLS raised instead of denying on a malformed path. Fixed.
 
 Six policies in `20260906000800_storage_buckets.sql` cast the first folder segment of a

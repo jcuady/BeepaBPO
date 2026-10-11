@@ -10,6 +10,7 @@ import { logAudit } from "@/lib/audit/log";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
+import { listAllActiveEmployees } from "@/lib/pagination/fetch-all";
 import { createClient } from "@/lib/supabase/server";
 import {
   createPayrollPeriodSchema,
@@ -93,12 +94,24 @@ export async function createPayrollPeriod(
 
   let seeded = 0;
   if (parsed.data.seed_records) {
-    const { data: employees } = await supabase
-      .from("employees")
-      .select("id")
-      .eq("organization_id", BEEPA_ORG_ID)
-      .eq("employment_status", "active")
-      .limit(500);
+    // Paged, not capped. This used to be a single `.limit(500)` with no `.order()`, which
+    // meant an org with more than 500 active employees silently got payroll records for an
+    // ARBITRARY 500 -- PostgREST promises no ordering, so the set could differ between two
+    // runs on identical data -- while the action still returned ok:true with
+    // `seeded: 500`. Whoever was dropped had no payroll record at all, and nothing in the
+    // response said so. A BPO passing 500 headcount is routine, and this is the money path.
+    let employees: { id: string }[];
+    try {
+      employees = await listAllActiveEmployees(supabase, BEEPA_ORG_ID);
+    } catch (fetchError) {
+      return {
+        ok: false,
+        error:
+          fetchError instanceof Error
+            ? fetchError.message
+            : "Unable to load active employees for payroll seeding.",
+      };
+    }
 
     const salaryByEmployee = new Map<string, number>();
     if (employees?.length) {
