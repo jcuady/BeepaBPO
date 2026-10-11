@@ -857,6 +857,41 @@ fix landing. A check that goes stale when the thing it checks is **improved** is
 kind of wrong — it manufactures a defect out of a remedy — and it is the mirror image of
 the false passes documented above.
 
+### The responsive audit could not be aimed at the production build
+
+`audit-app-responsive.mjs` exists, covers the authenticated `/app/*` surface at eight
+viewports, and reads the same `data-page-status` boundaries this report keeps insisting
+on. It was simply never runnable against the server this pass uses:
+
+```js
+const BASE = process.env.BASE_URL ?? "http://localhost:3000";
+```
+
+3000 is the **dev** port. Run against a `next start` build on 3100 — which is where every
+other probe in `scripts/audit/` points — it failed immediately with
+`ERR_CONNECTION_REFUSED`. That failure looks like a broken application, not a misaimed
+tool, which is why it is worth writing down: nothing in the output said "wrong port".
+
+Both responsive scripts now read `QA_BASE_URL` first, matching every other probe in the
+directory, keeping their existing argument/env var for existing callers, and defaulting
+to the **production** port rather than the dev one.
+
+**The full sweep then ran clean, but only because it was chunked.** All 28 default routes
+× 8 viewports in one process reached **2.4 GB RSS and 20+ minutes** with no incremental
+output, and took the application server down with it. Contexts are closed correctly
+(`await ctx.close()` per combination), so this is Chromium accumulating across ~224
+context create/destroy cycles, not a leak in the script. Run in four chunks of seven
+routes it takes ~140 s each and stays flat:
+
+| Chunk | Routes | Combinations | Result |
+|---|---|---|---|
+| 1–4 | 28 | **224** | **all clean, 0 failures** |
+
+So the mobile surface — overflow, right-edge bleed, sub-44px touch targets, sub-16px body
+copy, console errors, and boundary denials — is **224/224 across eight viewports from
+iPhone SE to wide desktop**. The only cost of the audit is that it has to be run in
+chunks; that is now documented in §7 rather than rediscovered by the next person.
+
 ---
 
 ## 3. Data population
@@ -3361,6 +3396,12 @@ node scripts/audit/qa-probe-not-found.mjs                    # 18 assertions; pr
 node scripts/audit/qa-probe-dialog-keyboard.mjs                # 16 assertions, read-only; Escape + Cancel both restore focus
 node scripts/audit/qa-probe-command-palette.mjs             # 11 assertions; opens, filters, navigates, and returns focus
 node scripts/audit/qa-probe-notification-bell.mjs          # 10 assertions; accessible name, AA contrast, keyboard exit
+# Responsive. MUST be chunked: one process over all 28 routes x 8 viewports reaches
+# 2.4 GB and takes the app server with it. Four chunks of ~7 routes, ~140s each.
+node scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/dashboard /app/my /app/my/attendance /app/my/leave /app/my/payroll /app/my/requests /app/my/documents
+# ...run the remaining 21 default routes in three more chunks of seven.
+# `/app/cms` needs the marketing account: node scripts/audit-app-responsive.mjs marketing@demo.beepabpo.com /app/cms
+node scripts/audit-responsive.mjs                           # public surface; same QA_BASE_URL convention
 node scripts/audit/qa-probe-account-signin.mjs [email]        # read-only: can this demo account actually sign in, and is its membership active
 node scripts/audit/audit-role-sweep.mjs [role ...]           # 13 roles; exits non-zero on a failed sign-in, a broken page, or too little coverage
 

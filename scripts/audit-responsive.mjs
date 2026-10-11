@@ -12,7 +12,10 @@
  */
 import { chromium } from "@playwright/test";
 
-const BASE = process.argv[2] ?? "http://localhost:3000";
+// Same convention as `audit-app-responsive.mjs` and the rest of this directory:
+// `QA_BASE_URL` wins, a positional base URL still works, and the default is the
+// production port rather than the dev port.
+const BASE = process.env.QA_BASE_URL ?? process.argv[2] ?? "http://localhost:3100";
 const ROUTES = process.argv.slice(3);
 const routes = ROUTES.length ? ROUTES : ["/"];
 

@@ -35,7 +35,14 @@ import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const BASE = process.env.BASE_URL ?? "http://localhost:3000";
+// `QA_BASE_URL` first, matching every other probe in this directory, so the
+// whole suite can be pointed at one server with one variable. `BASE_URL` is
+// kept for existing callers. The default is 3100, not 3000: 3000 is the dev
+// server, and this audit is only meaningful against a production build — a
+// silently-wrong default meant it always failed with ERR_CONNECTION_REFUSED
+// when a `next start` was up, which looks like a broken app rather than a
+// misaimed tool.
+const BASE = process.env.QA_BASE_URL ?? process.env.BASE_URL ?? "http://localhost:3100";
 
 // Usage: audit-app-responsive.mjs [email] [route ...]
 //
