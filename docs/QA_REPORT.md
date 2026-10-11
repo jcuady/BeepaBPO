@@ -1549,7 +1549,7 @@ pattern, the *rate-limit* case is not enumeration — it is a delivery failure t
 is told did not happen. Worth distinguishing from "this address is unknown"; not
 changed unilaterally, because the fix is a copy decision.
 
-### Link crawl — `qa-exercise-internal-links.mjs`, 20/21
+### Link crawl — `qa-exercise-internal-links.mjs`, 28/29 across four passes
 
 Every control so far was proven by asserting on **rows it changed**: a filter that
 narrows a list, an action that writes. Nothing had ever checked the other half of a
@@ -1561,8 +1561,8 @@ notification's **body** and never followed its **link**.
 
 The run walks each role's reachable links from a seed set that includes list pages —
 not just the nav, because the id-rot risk lives in the detail links inside rows, and a
-nav-only crawl would find the sidebar and call it a day. **140 links across three
-roles: 102 internal, 32 client, 6 applicant.**
+nav-only crawl would find the sidebar and call it a day. **Four passes: internal (102
+links), client (32), applicant (5) and the public marketing site (25).**
 
 Four things are judged, all by where the link **lands**, never by whether it has an
 href:
@@ -1610,7 +1610,93 @@ whole pass would have been filed next to three rows of my own mess.
 A download endpoint (`/app/reports/export`) is not a page — Playwright aborts the
 navigation with "Download is starting" — and is skipped and named, rather than counted
 as a broken link. An earlier version counted it, which would have been a fourth
-invented defect from the same script that produced three others.
+invented defect from the same script that had already produced three others.
+
+#### The public marketing surface was excluded on a bad reason
+
+The first version of this run declared the public site out of scope because *"the
+contact-form pass covers it"*. That pass covered the contact **action**. It had never
+followed a single marketing link, and the **sitemap — which advertises CMS-built
+detail URLs to search engines — had never been requested at all**. A slug that no
+longer resolves would have been advertised and unnoticed.
+
+The public pass found the surface **healthy**, and the checks are worth stating
+because they are the ones that would have caught a CMS regression:
+
+| Check | Result |
+|---|---|
+| Every link reachable from the 12 public seeds | **25 links, all resolve** |
+| Every URL in `/sitemap.xml` | **18 URLs, all resolve** |
+| Header/footer nav present on every marketing page | 10/10 |
+| `/login` reachable | from all 10 marketing pages |
+| `/signup` reachable | from `/careers` only — which is the right design: applicants register from the job they applied for |
+
+`/careers` also links five CMS-built slugs (`/careers/hr`, `/careers/payroll`,
+`/careers/support`, `/careers/quality`, `/careers/customer-support-specialist`), while
+the sitemap lists only one of them. That is not a defect — the sitemap is a curated
+index — but it does mean **five pages are reachable by link and invisible to search
+engines**, which is a content decision rather than a bug, and worth knowing if organic
+traffic on role pages matters.
+
+`/login` and `/signup` are seeded explicitly rather than followed from the marketing
+pages, because links that appear only *on* those pages — `/forgot-password` from the
+sign-in form — are otherwise discovered by nothing at all.
+
+### P2 — The release gate was not reliably green, and its failures were load artefacts. Fixed.
+
+This report had claimed **18/18 "All checks passed. Ship it."** after every batch for
+most of the session. That claim was true of the runs it was made about, and it stopped
+being true of the gate as a property. Three consecutive runs failed on **three
+different tests**, none of which had anything to do with the changes in flight:
+
+| Run | Failed step | Real cause |
+|---|---|---|
+| 1 | Vitest — `push-notification-flow` | 5s timeout on a test that is otherwise fine |
+| 2 | Vitest — `nav-active` "scales linearly" | ratio measured **411.9** against a ceiling of 400 |
+| 3 | Vitest — `encoding-integrity` "contains no UTF-8 mojibake" | **5s timeout**, not a mojibake finding |
+
+The third is the one worth dwelling on, because I misread it first. The console
+summary names the test that was *running* when the clock expired, so the report read
+"mojibake found in the repo" — and a scan of all 642 scanned files found **zero**. Only
+running vitest with `--reporter=json` and reading `failureMessages` exposed the actual
+message: `Test timed out in 5000ms`. **A timeout in a test whose name is an assertion
+reads exactly like a failure of that assertion.** That is the same failure mode as
+`.first()` matching the create form: a plausible-looking reading that the evidence does
+not support.
+
+Two real causes, both fixed:
+
+**1. The encoding test reads every tracked text file twice on Windows/OneDrive.** ~640
+files of synchronous I/O, with the file list built at module load so the first test
+pays for the walk too. Under vitest's 5s default that is a coin flip. The budget is
+now 120s. No assertion was weakened — none of these tests is timing-related, so a
+longer budget cannot make one pass that should fail.
+
+**2. The nav scaling test divides by its noisiest sample.** It measures a *ratio*
+(`largeMs / smallMs`), and the small operation finishes in microseconds, so it is the
+one most likely to be interrupted by the scheduler. One preemption during the small
+sample inflates the denominator and pushes the ratio over the ceiling — observed 406
+and 411 against 400, on an algorithm that is linear. It now takes the **fastest of five
+samples**, which is the measurement least contaminated by preemption. **The threshold
+is unchanged at 400**, so a quadratic regression still measures ~40000 and is still
+caught. This measures the algorithm rather than the scheduler; it does not relax the
+gate.
+
+The author of that test had already hit the same class of problem once before — the
+comment records dropping `RUNS` from 2000 to 500 because the test had become "a load
+detector". The fix stopped the *timeout* and left the *ratio* still load-sensitive,
+which is why it kept coming back.
+
+**One genuine intermittent remains, and it is not a test artefact.** The realtime step
+subscribed, inserted a row, and received nothing in 60 seconds. Run immediately after,
+the same probe delivered in **159ms** against a 15s budget. That is Supabase's
+delivery, not this repo's code: subscribed, inserted, silent. The probe cleans up its
+own row either way — verified, 61 notifications before and after a failed run — so a
+miss costs nothing but a red gate.
+
+The honest position after this: **the suite is green, and the gate is green, but the
+gate is not yet deterministic on a loaded machine.** Every earlier "18/18" in this
+report should be read as "18/18 on that run".
 
 ### P2 — Every document in the demo was undownloadable. Two causes, both fixed.
 
@@ -2100,7 +2186,7 @@ node scripts/audit/qa-exercise-documents-workflow.mjs     # 31 assertions
 node scripts/audit/qa-exercise-client-timesheet-workflow.mjs # 13/14, one real finding
 node scripts/audit/qa-exercise-tickets-workflow.mjs          # 33 assertions
 node scripts/audit/qa-exercise-list-filters.mjs             # 35 assertions, 27 pages, 3 roles
-node scripts/audit/qa-exercise-internal-links.mjs         # 21 assertions, 140 links, 3 roles
+node scripts/audit/qa-exercise-internal-links.mjs         # 29 assertions, 4 passes, incl. sitemap
 node scripts/audit/qa-repair-notification-routes.mjs       # idempotent; repairs role-blind ticket links
 node scripts/audit/check-auth-email-rate-limit.mjs          # exits 0 the moment the 429 clears
 node scripts/audit/qa-probe-client-timesheet.mjs          # read-only: can this flow run here at all?

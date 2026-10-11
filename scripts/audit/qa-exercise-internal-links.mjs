@@ -34,8 +34,14 @@
 // are simply never visited here.
 //
 // SCOPE
-// internal (owner), client (clientadmin), applicant (applicant). Marketing pages are
-// outside the authenticated app and are covered by the public contact-form pass.
+// Four passes, each in its own browser context, because the cookie jar decides which
+// pages render at all: internal (21 seeds, owner), client (9, clientadmin),
+// applicant (2) and the public marketing site (10 seeds, not signed in).
+//
+// The public pass was previously excluded on the grounds that the contact-form pass
+// "covers it" — which covered the contact ACTION and nothing else. No marketing link
+// had ever been followed, and the sitemap, which advertises CMS-built detail URLs to
+// search engines, had never been requested at all.
 //
 // SAFE TO RE-RUN: read-only. Nothing is written by this script.
 //
@@ -94,13 +100,37 @@ const ROLES = [
     seeds: ["/app/applicant", "/app/applicant/notifications"],
     floor: 2,
   },
+  {
+    // No sign-in. The public marketing surface was previously excluded on the
+    // grounds that "the contact-form pass covers it" — which covered the contact
+    // ACTION and nothing else: no marketing link had ever been followed, and the
+    // sitemap's CMS-driven detail URLs had never been requested at all.
+    label: "public",
+    email: null,
+    seeds: [
+      "/", "/about", "/services", "/why-beepa", "/careers", "/resources",
+      "/case-studies", "/contact", "/privacy", "/terms",
+      // The auth pages are reachable from the marketing site but are not part of
+      // it, so they have to be seeded explicitly. Without them, links that only
+      // appear ON these pages — /forgot-password from the sign-in form — are never
+      // discovered by anything, and a genuine dead link there would go unseen.
+      "/login", "/signup",
+    ],
+    floor: 20,
+  },
 ];
 
-/** Anchors that are chrome, not navigation the user asked for. */
-const IGNORE = [
-  "/login", "/logout",
-  "#", "mailto:", "tel:", "http://localhost", "http://127.0.0.1",
-];
+/**
+ * Anchors that are chrome, not navigation the user asked for.
+ *
+ * /login and /logout are ignored for AUTHENTICATED roles only: inside the app they
+ * are chrome that every page repeats, and following them would measure the same URL
+ * a dozen times. On the public site they are ordinary destinations — "Sign in" in the
+ * header, "Log in" in the footer — and the whole point of the public pass is to check
+ * they work.
+ */
+const IGNORE_AUTH = ["/login", "/logout"];
+const IGNORE_ALL = ["#", "mailto:", "tel:", "http://localhost", "http://127.0.0.1"];
 
 /** A record id, used to tell "this route is gone" from "this record is gone". */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -165,20 +195,26 @@ const browser = await chromium.launch();
 for (const role of ROLES) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
+  const isPublic = role.email === null;
+  const ignore = isPublic ? IGNORE_ALL : [...IGNORE_ALL, ...IGNORE_AUTH];
 
-  await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
-  await page.locator("input[name=email], input[type=email]").first().waitFor({ state: "visible", timeout: 20000 });
-  await page.locator("input[name=email], input[type=email]").first().fill(role.email);
-  await page.locator("input[type=password]").first().fill(env.DEMO_PASSWORD);
-  await page.click("button[type=submit]");
-  await page.waitForURL(/\/app/, { timeout: 20000 }).catch(() => {});
-  await page.waitForLoadState("domcontentloaded");
-  if (page.url().includes("/login")) {
-    note(`${role.label}: ${role.email} could not sign in — skipped`);
-    await context.close();
-    continue;
+  if (!isPublic) {
+    await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
+    await page.locator("input[name=email], input[type=email]").first().waitFor({ state: "visible", timeout: 20000 });
+    await page.locator("input[name=email], input[type=email]").first().fill(role.email);
+    await page.locator("input[type=password]").first().fill(env.DEMO_PASSWORD);
+    await page.click("button[type=submit]");
+    await page.waitForURL(/\/app/, { timeout: 20000 }).catch(() => {});
+    await page.waitForLoadState("domcontentloaded");
+    if (page.url().includes("/login")) {
+      note(`${role.label}: ${role.email} could not sign in — skipped`);
+      await context.close();
+      continue;
+    }
+    note(`signed in as ${role.email} (${role.label})`);
+  } else {
+    note(`${role.label}: not signed in`);
   }
-  note(`signed in as ${role.email} (${role.label})`);
 
   // ---- collect. Only the path is kept: query strings on internal links are filter
   // state, not distinct destinations, and including them would inflate the count
@@ -188,7 +224,7 @@ for (const role of ROLES) {
     try {
       await page.goto(`${BASE}${seed}`, { waitUntil: "domcontentloaded" });
       await settle(page);
-      if (page.url().includes("/login")) continue;
+      if (!isPublic && page.url().includes("/login")) continue;
       const hrefs = await page.evaluate(() =>
         [...document.querySelectorAll("a[href]")]
           .map((a) => a.getAttribute("href") ?? "")
@@ -197,7 +233,7 @@ for (const role of ROLES) {
           .filter((h) => h.startsWith("/") && !h.startsWith("//")),
       );
       for (const h of hrefs) {
-        if (IGNORE.some((bad) => h === bad || h.startsWith(bad + "?"))) continue;
+        if (ignore.some((bad) => h === bad || h.startsWith(bad + "?"))) continue;
         const path = h.split("#")[0].split("?")[0];
         if (!path || found.has(path)) continue;
         found.set(path, seed);
@@ -286,12 +322,68 @@ for (const role of ROLES) {
       continue;
     }
     // 3. bounced to the login form, or redirected somewhere else.
-    if (path.startsWith("/login")) {
+    // On the public site "/login" is a destination, not a bounce — treating a link to
+    // the sign-in page as a failure would make the pass unable to pass.
+    if (!isPublic && path.startsWith("/login")) {
       bounced.push(`${link} (reached from ${found.get(link)})`);
       continue;
     }
     const target = link.split("#")[0].split("?")[0];
     if (path !== target) redirected.push(`${link} -> ${path}`);
+  }
+
+  // ---- The sitemap advertises URLs to search engines, including CMS-driven detail
+  // routes built from slugs. Nothing else in this report requests them, so a slug
+  // that no longer resolves is advertised and never noticed. Each listed URL is
+  // fetched and must not 404.
+  if (isPublic) {
+    let listed = [];
+    try {
+      const res = await page.request.get(`${BASE}/sitemap.xml`);
+      const xml = await res.text();
+      listed = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)]
+        .map((m) => m[1])
+        .map((u) => {
+          try {
+            return new URL(u).pathname;
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean);
+    } catch (e) {
+      note(`public: could not read /sitemap.xml — ${e.message}`);
+    }
+
+    check(
+      "public — the sitemap lists something to check",
+      listed.length > 0,
+      `${listed.length} URL(s)`,
+    );
+
+    const sitemapBroken = [];
+    for (const u of listed) {
+      const res = await page.request.get(`${BASE}${u}`).catch(() => null);
+      if (!res) {
+        sitemapBroken.push(`${u} (request failed)`);
+        continue;
+      }
+      if (res.status() >= 400) sitemapBroken.push(`${u} (HTTP ${res.status()})`);
+    }
+    check(
+      "public — every URL in the sitemap resolves",
+      sitemapBroken.length === 0,
+      sitemapBroken.length === 0
+        ? `${listed.length} URL(s) all resolve`
+        : sitemapBroken.join("; "),
+    );
+
+    // And the reverse direction: a public page nobody links to is not reachable by
+    // navigation, which is usually intentional (login, signup) and always worth a look.
+    const unreachable = role.seeds.filter((s) => !found.has(s));
+    if (unreachable.length) {
+      note(`public: ${unreachable.length} seed page(s) were never linked from another page: ${unreachable.join(", ")}`);
+    }
   }
 
   check(
@@ -309,11 +401,14 @@ for (const role of ROLES) {
     redirected.length === 0,
     redirected.length === 0 ? "none" : redirected.join("; "),
   );
-  check(
-    `${role.label} — no internal link dead-ends on "Access not allowed"`,
-    denied.length === 0,
-    denied.length === 0 ? "none" : denied.join("; "),
-  );
+  // Meaningless for an anonymous visitor: nothing is forbidden to them.
+  if (!isPublic) {
+    check(
+      `${role.label} — no internal link dead-ends on "Access not allowed"`,
+      denied.length === 0,
+      denied.length === 0 ? "none" : denied.join("; "),
+    );
+  }
   check(
     `${role.label} — no link points at a record that no longer exists`,
     staleEntities.length === 0,

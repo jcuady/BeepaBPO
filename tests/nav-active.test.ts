@@ -99,11 +99,31 @@ describe("sidebar active tab", () => {
     // 500 still gives a sample well clear of timer resolution while keeping the
     // absolute cost small enough to survive contention.
     const RUNS = 500;
-    const smallMs = Math.max(time(small, RUNS), 0.05);
-    const largeMs = Math.max(time(large, RUNS), 0.05);
+    const SAMPLES = 5;
+
+    // Take the FASTEST of several samples, not one arbitrary one.
+    //
+    // The assertion below is a RATIO whose denominator is the small sample, so a
+    // single scheduler hiccup during the small measurement — the operation that
+    // finishes in microseconds and is therefore most likely to be interrupted —
+    // inflates the denominator's cost relative to the large one and pushes the
+    // ratio over the ceiling. Observed on this machine: 406 and 411 against a
+    // limit of 400, on a linear algorithm, purely under load.
+    //
+    // The minimum is the sample least contaminated by preemption, so it measures
+    // the ALGORITHM rather than the scheduler. The threshold is unchanged, so this
+    // cannot hide a quadratic regression -- that would still measure ~40000.
+    const best = (hrefs: string[]) => {
+      let min = Infinity;
+      for (let i = 0; i < SAMPLES; i += 1) min = Math.min(min, time(hrefs, RUNS));
+      return min;
+    };
+
+    const smallMs = Math.max(best(small), 0.05);
+    const largeMs = Math.max(best(large), 0.05);
 
     // 200x more items must cost far more than 200x the time. Linear gives ~200,
     // quadratic ~40000. 20x leaves ample headroom for a busy machine.
     expect(largeMs / smallMs).toBeLessThan(20 * 20);
-  }, 30_000);
+  }, 60_000);
 });

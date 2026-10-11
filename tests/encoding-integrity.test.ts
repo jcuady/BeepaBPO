@@ -75,9 +75,22 @@ function collect(dir: string, out: string[] = []): string[] {
 const files = SCAN_ROOTS.flatMap((r) => collect(r));
 
 describe("encoding integrity", () => {
+  // These four tests read every tracked text file TWICE (once for mojibake, once for
+  // the legitimate-punctuation control) and the file list is built at module load, so
+  // the first test pays for the walk as well. That is ~640 files of synchronous I/O
+  // on Windows/OneDrive, which blows past vitest's 5s default whenever the suite runs
+  // alongside `next build` or a live dev server.
+  //
+  // The timeout is raised rather than the work reduced: no assertion here is timing
+  // related, so a longer budget cannot make any of them pass that should fail. The
+  // failure it replaces was reported as `contains no UTF-8 mojibake` — vitest names
+  // the test that was running when the clock expired, and the real cause (a timeout)
+  // only appears in the full failure message. That mislabel is worth not repeating.
+  const FILE_SCAN_TIMEOUT = 120_000;
+
   it("finds source files to scan", () => {
     expect(files.length, "the scanner walked no files, so every check below would pass vacuously").toBeGreaterThan(100);
-  });
+  }, FILE_SCAN_TIMEOUT);
 
   it("contains no UTF-8 mojibake", () => {
     const offenders: string[] = [];
@@ -94,7 +107,7 @@ describe("encoding integrity", () => {
       offenders,
       `mojibake found; these bytes are UTF-8 that was decoded as cp1252:\n${offenders.join("\n")}`,
     ).toEqual([]);
-  });
+  }, FILE_SCAN_TIMEOUT);
 
   it("still contains real Unicode punctuation, so the scan above is not vacuous", () => {
     // The control for the test above. A repo stripped of em dashes would satisfy
@@ -102,7 +115,7 @@ describe("encoding integrity", () => {
     let count = 0;
     for (const f of files) count += (readFileSync(join(ROOT, f), "utf8").match(LEGITIMATE) ?? []).length;
     expect(count, "no real em dashes or curly quotes anywhere; the scanner may be inert").toBeGreaterThan(100);
-  });
+  }, FILE_SCAN_TIMEOUT);
 
   it("keeps migrations free of mojibake, since it is copied straight into the database", () => {
     // A corrupted migration writes corrupted customer-facing copy into the CMS
@@ -115,5 +128,5 @@ describe("encoding integrity", () => {
       for (const [name, seq] of MOJIBAKE) if (text.includes(seq)) offenders.push(`${f} ${name}`);
     }
     expect(offenders).toEqual([]);
-  });
+  }, FILE_SCAN_TIMEOUT);
 });
