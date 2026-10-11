@@ -440,6 +440,24 @@ Two related oddities, also left alone: a role literally named `admin` grants **0
 of 50** permissions, and `owner` is missing `permissions.manage`,
 `attendance.correct` and `cms.manage`.
 
+**Measured, because "21 of 50" is not decidable — the set is.**
+`qa-inspect-super-admin-gaps.mjs` reads `role_permissions` directly and prints both sides.
+It changes how this should be read, in two directions that pull opposite ways:
+
+1. **The 29 are a least-privilege default, not an enforced boundary.** `super_admin` holds
+   `roles.manage` *and* `permissions.manage`, so it can grant itself anything it is
+   missing. That makes "21 of 50" a starting posture rather than a wall, and means the
+   number should not be reported as a vulnerability. `lib/permissions/can.ts` has no
+   super_admin special case precisely because the role data is expected to carry the policy.
+2. **`cms.manage` is the one item here that reads as a defect.** It is held by **exactly
+   one role, `marketing`** — not by `owner`, not by `super_admin`. Every other permission in
+   the system is held by at least two roles. Practically, the ability to edit the website is
+   a single marketing seat: if that person leaves, nobody who administers the system can
+   change the marketing content, and recovery means a direct database write.
+
+No permission is dead config — all 50 are held by at least one role. So the remaining 28
+are a defensible split; `cms.manage` is the one worth a decision.
+
 ### P1 — A release gate depended on demo rows nothing guaranteed. Fixed.
 
 The gate went red at 16/18. Two steps failed — *Vitest (full suite)* and *Live data
@@ -2337,7 +2355,7 @@ employee still sees only their own folder and hr sees all seven.
 | 3 | **Hire pipeline** | **Now exercised** — 18/18, see §4. One defect found and fixed |
 | 4 | **2 of 83 server actions not yet driven end to end** | See §5. `resetPasswordAction` needs a recovery token from an inbox that does not exist here; `inviteClientUser` is waiting on the environment's email budget. Neither is blocked by a defect in this codebase. `check-auth-email-rate-limit.mjs` prints exactly what is still blocking each |
 | 5 | **Invite account creation** | Blocked by Supabase email rate limiting in this environment. **Signup account creation is no longer on this list** — it ran end to end, creating a real account and applicant membership, once the budget allowed one call through. That is the whole reason to keep re-probing instead of writing a blocker down once. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
-| 6 | `super_admin` holds 21 of 50 permissions | Deliberate platform-vs-business split, or a gap — a product call. See §2 |
+| 6 | `super_admin` holds 21 of 50 permissions | **Now measured, not just counted** — `qa-inspect-super-admin-gaps.mjs`. See below. A deliberate platform-vs-business split is defensible; the gap that is not defensible is `cms.manage`, held by **only `marketing`** — not by `owner`, not by `super_admin` |
 | 7 | **Storage RLS casts with `::uuid`, which RAISES rather than denies** | **Fixed** — `20261011130000_storage_rls_safe_uuid_cast.sql`, applied and verified behaviourally. Six policies guarded by an immutable `public.try_uuid(text)`. The important part is what the naive fix would have caused: `can_access_client(NULL)` can return TRUE for anyone holding `clients.read`/`clients.manage`/`system.manage`, because those permission terms never reference the argument — so routing it through a NULL-returning cast alone would have converted "raise, therefore deny" into "grant the whole bucket". Those three policies take an explicit `is not null` guard. Verified against a real malformed object (`client-documents/demo/…`): the listing now returns `ok, []` instead of a Postgres error |
 | 8 | **Client timesheet P1: submit accepts a day the client view filters out** | **Fixed** — `submitTimesheetForClientReview` now refuses a day outside the employee's client assignment window, with a message naming both dates, before the record is written to `client_review`. A submission that would vanish between Beepa and the client is now refused where the information to prevent it exists. See §4. **This finding was nearly withdrawn on bad evidence — the near-miss is recorded below** |
 | 9 | **List pager offers "Next" on the last page when it is exactly full** | **Fixed** — 36 pager instances across 32 pages now fetch `PAGE_SIZE + 1` and drop the sentinel row before rendering. `components/app/list-pager.tsx` needed **no change**: once the extra row is gone, `rowCount >= pageSize` is exactly the right test. The residual risk is that the invariant now lives in 32 call sites rather than one place, so the test discovers pages by walking `app/**/*.tsx` for `ListPager` rather than keeping a hand-written list |
