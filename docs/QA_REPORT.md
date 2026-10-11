@@ -789,6 +789,31 @@ A fourth one is worth keeping too: the probe initially asserted "inside the app 
 by counting `nav a[href]` and passed with 17, while reading the *marketing* header. See
 the 404 section above, and note it is now the second time this project has produced it.
 
+### Coverage added, no defect found — the ⌘K command palette
+
+The palette is the app's primary navigation affordance: the header advertises it with
+a literal `⌘K` hint, so every user is told to reach for it. Nothing drove it. The role
+sweep visits pages; the link crawl reads `a[href]`; and the palette renders **none** of
+those, because cmdk builds its items at runtime from the permission set. A palette that
+opened but could not be typed into, could not be arrowed, or could not be left with
+Escape would pass every existing check.
+
+`qa-probe-command-palette.mjs`, **11/11**, evidence at
+`docs/evidence/command-palette-check.json`. It drives the real thing end to end —
+Ctrl+K opens it, focus lands in the search input, typing filters 35 items to 3, Enter
+lands on `/app/my/attendance`, the palette closes itself, and Escape returns focus to
+the exact link that was focused beforehand (`A → /app/tickets`, not `<body>`).
+
+It also asserts the **permission contract**: `getCommandLinks` must not offer an
+employee a route the owner's palette does not have. Owner sees 35 targets, employee 11,
+and the employee's set is a strict subset — the check records any employee-only link
+into `observations` rather than silently allowing it, because a palette that advertises
+a route the user cannot open is a lie told by the navigation itself.
+
+No defect found here. This entry is in the report anyway, because *"we now have a check
+that would catch it"* is a result worth being able to point at, and because the next
+person should not have to re-derive that this surface was untested.
+
 ---
 
 ## 3. Data population
@@ -3291,6 +3316,7 @@ node scripts/audit/qa-probe-client-timesheet.mjs          # read-only: can this 
 node scripts/audit/qa-probe-summary-view-filter.mjs     # read-only: which predicate hides a record from the client view
 node scripts/audit/qa-probe-not-found.mjs                    # 18 assertions; proves every 404 has a way out that works
 node scripts/audit/qa-probe-dialog-keyboard.mjs                # 16 assertions, read-only; Escape + Cancel both restore focus
+node scripts/audit/qa-probe-command-palette.mjs             # 11 assertions; opens, filters, navigates, and returns focus
 node scripts/audit/qa-probe-account-signin.mjs [email]        # read-only: can this demo account actually sign in, and is its membership active
 node scripts/audit/audit-role-sweep.mjs [role ...]           # 13 roles; exits non-zero on a failed sign-in, a broken page, or too little coverage
 

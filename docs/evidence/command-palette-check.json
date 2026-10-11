@@ -1,0 +1,67 @@
+{
+  "check": "command-palette",
+  "generatedAt": "2026-10-11T19:35:06.745Z",
+  "base": "http://localhost:3100",
+  "total": 11,
+  "passed": 11,
+  "failures": 0,
+  "warnings": 0,
+  "observations": [],
+  "results": [
+    {
+      "name": "Ctrl+K opens the command palette",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "focus lands in the palette input on open",
+      "pass": true,
+      "detail": "activeElement placeholder Search pages…"
+    },
+    {
+      "name": "palette lists navigation targets",
+      "pass": true,
+      "detail": "35 item(s)"
+    },
+    {
+      "name": "typing filters the list",
+      "pass": true,
+      "detail": "35 -> 3 item(s)"
+    },
+    {
+      "name": "the filter keeps the thing you searched for",
+      "pass": true,
+      "detail": "Attendance | Attendance | Corrections"
+    },
+    {
+      "name": "Enter navigates to the selected command",
+      "pass": true,
+      "detail": "landed /app/my/attendance"
+    },
+    {
+      "name": "the palette closes itself after navigating",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Escape closes the palette",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "focus is not dumped on <body> after Escape",
+      "pass": true,
+      "detail": "activeElement A -> /app/tickets"
+    },
+    {
+      "name": "focus returns to the control that opened the palette",
+      "pass": true,
+      "detail": "activeElement A -> /app/tickets"
+    },
+    {
+      "name": "an employee's palette offers no link the owner's does not",
+      "pass": true,
+      "detail": "owner 35 items, employee 11 items"
+    }
+  ]
+}
