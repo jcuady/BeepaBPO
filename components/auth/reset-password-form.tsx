@@ -33,7 +33,24 @@ export function ResetPasswordForm({
     );
   }
 
-  if (!token && !hasRecoverySession) {
+  // Gate on the SESSION, not on the token.
+  //
+  // This used to be `if (!token && !hasRecoverySession)`, so a bare `?token=` was enough to
+  // render a complete "Choose a new password" form. But `resetPasswordAction` never reads
+  // the token -- it calls `getUser()` and returns "This reset link is invalid or has
+  // expired." when there is no user. So that form could only ever fail, and it failed on
+  // submit, after the person had typed a new password twice.
+  //
+  // Measured, not inferred: `qa-exercise-reset-password.mjs` drives `/reset-password?token=…`
+  // with no session and gets the form rendered, then `REFUSED` on submission.
+  //
+  // The token is not a real path anyway. `forgotPasswordAction` redirects to
+  // `/auth/callback?next=/reset-password`; the callback exchanges the PKCE code and redirects
+  // to `/reset-password` with a session and NO token. So the token branch only ever described
+  // a state the product cannot produce — and rendered a dead end when a stale or hand-edited
+  // link supplied one anyway. The hidden input is still submitted; the action simply never
+  // needed it.
+  if (!hasRecoverySession) {
     return (
       <div className="rounded-[16px] border border-line bg-white p-6 sm:p-8">
         <h2 className="font-display text-2xl font-bold text-navy">Invalid link</h2>

@@ -26,6 +26,7 @@ user anything real?**
 | **Ticket workflow exercise** | `qa-exercise-ticket-workflow.mjs` | **client admin → operations, 10 assertions** |
 | **Admin workflow exercise** | `qa-exercise-admin-workflow.mjs` | **18 assertions** |
 | **Hire workflow exercise** | `qa-exercise-hire-workflow.mjs` | **23 assertions** |
+| **Reset password exercise** | `qa-exercise-reset-password.mjs` | **8 assertions** |
 | **CRM workflow exercise** | `qa-exercise-crm-workflow.mjs` | **21 assertions** |
 | **Payroll workflow exercise** | `qa-exercise-payroll-workflow.mjs` | **19 assertions** |
 | **Auth workflow exercise** | `qa-exercise-auth-workflow.mjs` | **35 assertions** |
@@ -1665,6 +1666,32 @@ shared `authFailureKind()` classifier, so "429 is a rate limit, 0 and 5xx are th
 everything else is the request" is decided once. A fourth mapper cannot be added with a
 fourth reading of a status the other three already agree on.
 
+### P3 — `/reset-password?token=…` rendered a password form that could never be submitted. Fixed.
+
+`ResetPasswordForm` gated on **either** a token in the URL **or** a recovery session:
+
+```tsx
+if (!token && !hasRecoverySession) { /* "Invalid link" */ }
+```
+
+But `resetPasswordAction` never reads the token. It calls `getUser()` and returns *"This
+reset link is invalid or has expired."* when there is no user. So a bare `?token=` was enough
+to render a complete, credible **"Choose a new password"** form — two password fields, a real
+button, no warnings — whose submission could only ever fail. The person types a new password
+twice, presses the button, and is told the link is invalid.
+
+Measured, not inferred. `qa-exercise-reset-password.mjs` opens `/reset-password?token=…` with
+no session and reports the form rendered; submitting then returned `REFUSED`.
+
+**Fixed** by gating on the session alone, which is the only thing the action accepts. The
+token is still submitted as a hidden input; the action simply never needed it. The token was
+never a live path anyway: `forgotPasswordAction` redirects to
+`/auth/callback?next=/reset-password`, the callback exchanges the PKCE code, and redirects to
+`/reset-password` with a session and **no** token. The branch only ever described a state the
+product cannot produce, and turned a stale or hand-edited link into a dead end.
+
+The exercise now asserts the corrected behaviour, so re-widening the gate turns it red.
+
 ### Link crawl — `qa-exercise-internal-links.mjs`, 28/29 across four passes
 
 Every control so far was proven by asserting on **rows it changed**: a filter that
@@ -2131,7 +2158,7 @@ view is a **heatmap** with no per-record button until `heatmap=0` is passed. The
 also renders as `Wed 26`, not `2026-08-26`. Every one of those would have been easy to
 report as "the guard does not fire".
 
-### Client timesheet workflow — `qa-exercise-client-timesheet-workflow.mjs`, 13/14
+### Client timesheet workflow — `qa-exercise-client-timesheet-workflow.mjs`, 13/14 → **14/14**
 
 The only workflow that crosses the Beepa/client boundary with a status hand-off. Both
 actions exercised, **both directions of the review** — Approve (`finalized`) and
@@ -2143,7 +2170,7 @@ that returns work to Beepa completely untested.
 | A draft timesheet exists for a client-assigned employee | PASS |
 | Internal user is offered *Send to client* for the day | PASS |
 | **`submitTimesheetForClientReview` moves the record to `client_review`** | PASS |
-| The timesheet hand-off writes an audit row | **FAIL — no `logAudit` in the module** |
+| The timesheet hand-off writes an audit row | FAIL — no `logAudit` in the module · **now PASS, both sides log** |
 | The submitted day is no longer offered for submission | PASS |
 | The timesheet appears in the client review queue | PASS *(was BLOCKED)* |
 | The client is offered Approve | PASS |
@@ -2178,6 +2205,33 @@ One hardening noted for whoever picks it up: `reviewClientTimesheet`'s final upd
 `error` but **not the affected row count**. PostgREST returns no error when an update
 matches zero rows, so a concurrent hand-off would let the action report "Timesheet
 approved." while nothing changed — the same shape as the P0 in §2.
+
+**Does the client review belong in the approval engine? No — and the split is deliberate.**
+`reviewClientTimesheet` writes no `approval_requests` row, which looked like an omission. It
+is not:
+
+- The engine's `ApprovalWorkflowCode` is `leave | attendance_correction | cash_advance |
+  payroll`. There is **no** client-timesheet workflow, so routing this through
+  `advanceApprovalRequest` would fail at `resolveActiveWorkflow` — there is nothing to
+  resolve.
+- The attendance record carries its **own** state machine, `timesheet_approval_status`
+  = `draft → employee_review → supervisor_review → client_review → finalized`. The review
+  is one transition in that machine, not a step in a configurable chain.
+- The sibling action in the same domain proves the split is a decision rather than an
+  oversight: `lib/attendance/corrections.ts` **does** create and advance an approval request
+  (`attendance_correction`). A correction rewrites historical data, so it earns a multi-step
+  chain; a routine periodic sign-off does not.
+
+The one genuinely odd detail is that this action requires `approvals.act` while touching no
+approval request. That reads as deliberate belt-and-braces — a client must hold an explicit
+"may approve" grant — and is left as is. It is recorded here so the next reader does not
+re-open it as an unexamined inconsistency.
+
+One residual risk is worth stating plainly: because the client review is a bare status
+transition, it has **no second approver and no workflow gate**. The only thing standing
+between "client clicks Approve" and "day is finalized" is this action's own permission
+check. That is a design choice, and it is the thing to revisit first if attendance disputes
+ever become a problem.
 
 ### Tickets workflow — `qa-exercise-tickets-workflow.mjs`, 33/33
 
@@ -2362,7 +2416,7 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/admin` | 5 | **5** |
 | `lib/recruitment` | 7 | **7** (2 from the hire pass, 5 here) |
 | `lib/tickets` | 6 | **6** (2 from the admin pass: create, assign; 4 here: reply, status, both SLA actions) |
-| `lib/auth` | 10 | **9** (signup driven end to end once the email budget allowed it; `resetPasswordAction` not driven) |
+| `lib/auth` | 10 | **10** (signup once the email budget allowed it; `resetPasswordAction` driven 8/8 — it needs a session, not an inbox) |
 | `lib/cms` | 14 | **14** |
 | `lib/crm` | 8 | **8** (`createLeadFromContact` via the public contact form) |
 | `lib/payroll` | 5 | **5** |
@@ -2374,22 +2428,41 @@ evidence. "Every button works" needs a distinction between *rendered* and
 | `lib/cash-advance` | 2 | **2** |
 | `lib/clients` (1) | 1 | 0 |
 | `lib/employees` (1), `lib/profile` (1), `lib/contact` (1) | 3 | **3** |
-| **Total** | **83** | **81** |
+| **Total** | **83** | **82** |
 
-**81 of 83 actions are exercised end to end.** The other 2 are `resetPasswordAction` and
-`inviteClientUser`. Both ask Supabase to send an email, and this environment rate-limits
-outbound mail — but that is a **budget, not a wall**, which this session proved the hard way:
-`signupAction` sat in the "blocked forever" bucket for most of the QA run, was assumed dead,
-and then ran to completion, creating a real account and a real applicant membership, the
-moment the budget allowed a call through. `check-auth-email-rate-limit.mjs` re-probes all four
-API calls and deletes anything it creates, so the assumption is never made twice.
+**82 of 83 actions are exercised end to end.** The one remaining is `inviteClientUser`.
 
-`inviteClientUser` has not yet had that window. `resetPasswordAction` needs something the
-budget cannot provide: it consumes a recovery token from an inbox, and there is no mail
-provider here. Both render correctly and are covered by unit tests and typecheck, but no
-committed script has driven their success path through a browser, and that gap is stated plainly
-rather than papered over by counting the page sweep as proof — a button can render perfectly and
-do nothing, which is exactly how every defect in this report was found.
+**`resetPasswordAction` was called blocked for the wrong reason, and is now driven.** It was
+listed as needing "a recovery token from an inbox, and there is no mail provider here". That
+is true of the email *arrival* and false of the *action*. Reading it settles it:
+
+```ts
+const { data: { user } } = await supabase.auth.getUser();
+if (!user) return { ok: false, error: "This reset link is invalid or has expired." };
+await supabase.auth.updateUser({ password: parsed.data.password });
+```
+
+It never reads the token. A session is the only input, and a session does not need a mailbox.
+`qa-exercise-reset-password.mjs` creates a throwaway account, signs in, and drives the real
+form — **8/8** — closing with the round trip that gives the claim its meaning: sign out, sign
+in with the **new** password, and confirm the **old** one is rejected with an error on screen.
+A "Password updated" message alone would only prove the action returned `ok`.
+
+The emailed-link arrival and the PKCE exchange at `/auth/callback` remain uncovered, because
+that genuinely needs a mailbox. The script prints that as a standing `NOT COVERED` line rather
+than letting 8/8 imply more than it did.
+
+**One action left, and the budget reasoning still applies.** `inviteClientUser` calls
+`admin.inviteUserByEmail`, which is still answering HTTP 429. That is a **budget, not a
+wall** — which this session proved the hard way: `signupAction` sat in the "blocked forever"
+bucket for most of the QA run, was assumed dead, and then ran to completion the moment the
+budget allowed a call through. `check-auth-email-rate-limit.mjs` re-probes all four API calls
+and deletes anything it creates, so the assumption is never made twice.
+
+That script also shows the limit is not uniform: `auth.signUp` on the apex domain is
+accepted while the same call on the demo subdomain is rate limited, and
+`resetPasswordForEmail` is accepted outright. So the remaining block is specific to
+`inviteUserByEmail` right now, not a general "mail is off".
 
 Earlier sessions did leave evidence in `audit_logs` for a few more
 (`payroll.period.create`, `applicant.stage_change`, `client.invite`) via ad-hoc
@@ -2721,6 +2794,7 @@ node scripts/audit/qa-exercise-leave-workflow.mjs   # 13 assertions
 node scripts/audit/qa-exercise-ticket-workflow.mjs  # 10 assertions
 node scripts/audit/qa-exercise-admin-workflow.mjs   # 18 assertions (1 path may report BLOCKED)
 node scripts/audit/qa-exercise-hire-workflow.mjs    # 23 assertions
+node scripts/audit/qa-exercise-reset-password.mjs  # 8 assertions; NOT COVERED line is printed
 node scripts/audit/qa-exercise-crm-workflow.mjs     # 21 assertions
 node scripts/audit/qa-exercise-payroll-workflow.mjs # 19 assertions
 node scripts/audit/qa-exercise-auth-workflow.mjs    # 35 assertions (signup reports BLOCKED under 429)
@@ -2732,7 +2806,7 @@ node scripts/audit/qa-exercise-notifications-workflow.mjs # 16 assertions
 node scripts/audit/qa-exercise-profile-workflow.mjs      # 19 assertions
 node scripts/audit/qa-exercise-money-workflow.mjs        # 33 assertions
 node scripts/audit/qa-exercise-documents-workflow.mjs     # 31 assertions
-node scripts/audit/qa-exercise-client-timesheet-workflow.mjs # 13/14, one real finding
+node scripts/audit/qa-exercise-client-timesheet-workflow.mjs # 14/14 (was 13/14; the finding is fixed)
 node scripts/audit/qa-exercise-tickets-workflow.mjs          # 33 assertions
 node scripts/audit/qa-exercise-list-filters.mjs             # 35 assertions, 27 pages, 3 roles
 node scripts/audit/qa-exercise-internal-links.mjs         # 29 assertions, 4 passes, incl. sitemap
