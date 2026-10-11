@@ -168,7 +168,21 @@ try {
   await page2.waitForTimeout(6000);
   const body2 = await page2.locator("body").innerText();
   const copy2 = body2.match(/If that address[^\n]*/)?.[0]?.trim() ?? "";
-  note(`re-submitting an already-registered address reports: ${copy2 || body2.slice(0, 120)}`);
+  const alert2 = (await page2.locator("[role=alert]").allInnerTexts()).join(" | ").trim();
+  const secondLimited = /too many|rate limit|try again later/i.test(alert2);
+  note(`re-submitting an already-registered address reports: ${copy2 || alert2 || body2.slice(0, 120)}`);
+
+  // This run signs up TWICE, and the environment's budget is roughly one signup per window
+  // (measured: first probe accepted, second refused 429). So the duplicate leg can be
+  // blocked by the environment while the first succeeded a few seconds earlier. That is not
+  // a product result and must not be scored as one -- otherwise a rate-limited duplicate
+  // reads as "the anti-enumeration copy differs", which is the opposite of what happened.
+  if (secondLimited && !copy2) {
+    console.log(`\nBLOCKED — the duplicate-address leg was rate limited ("${alert2}").`);
+    console.log("The first submission succeeded, so assertions 1-3 above are valid; assertions");
+    console.log("about the duplicate path are not measurable in this run and are not counted.");
+    note(`BLOCKED_PARTIAL: first leg valid, duplicate leg unmeasurable`);
+  }
 
   // `auth.users` is not exposed through the Data API, so the admin API is the only way to
   // count real accounts. A second submission must not add one.
@@ -188,12 +202,14 @@ try {
   // take the same code path, so the already-registered one must produce byte-identical
   // wording to the genuinely-new one. If these ever diverge, the form has become an
   // account-existence oracle and that is a regression, not an improvement.
-  check("an already-registered address is not reported as 'Account created'",
-    !/Account created/i.test(body2),
-    /Account created/i.test(body2) ? "STILL reported as created" : "neutral wording");
-  check("an already-registered address gets the same wording as a new one",
-    copy2.length > 0 && copy2 === successCopy,
-    copy2 === successCopy ? "identical" : `differed:\n    new: ${successCopy}\n    dup: ${copy2}`);
+  if (!secondLimited || copy2) {
+    check("an already-registered address is not reported as 'Account created'",
+      !/Account created/i.test(body2),
+      /Account created/i.test(body2) ? "STILL reported as created" : "neutral wording");
+    check("an already-registered address gets the same wording as a new one",
+      copy2.length > 0 && copy2 === successCopy,
+      copy2 === successCopy ? "identical" : `differed:\n    new: ${successCopy}\n    dup: ${copy2}`);
+  }
   await page2.close();
 } catch (e) {
   console.error(`\nRUN ERROR: ${e.message}`);
