@@ -3304,43 +3304,42 @@ re-measured: `ok` 445 / redirected 27 / empty 2 / download 5, zero console noise
 shifting between `ok` and `redirected` against the run above is ordinary crawl variance,
 and the load-bearing number is still `errors = 0`.
 
-**83 of 83 actions are exercised end to end** — and the last one was reached, on a
-later window, with one caveat recorded rather than hidden.
-
-`inviteClientUser` drove its **real form on `/app/clients`** and every assertion passed:
+**83 of 83 actions are exercised end to end**, and the last one — `inviteClientUser` —
+was driven **through its real form on `/app/clients`** and passed **17/17**, exit 0:
 
 ```
-PASS  invite succeeds  — auth user c07c2985-… — toast: Invite sent to qa-invite-mv4dnh1c@beepabpo.com for CloudPeak.
-PASS  an auth user was created for the invited address  — c07c2985-…
-PASS  the profile carries the names typed into the form  — {"display_name":"Qa Invitee",…,"status
-PASS  a membership was created  — 1 row(s)
+PASS  invite succeeds  — auth user f07bb2d9-… — toast: Invite sent to qa-invite-mv4fticz@beepabpo.com for CloudPeak.
+PASS  the profile carries the names typed into the form  — {"display_name":"Qa Invitee",…
 PASS  the membership points at the organization the form selected  — 1a91499c-… vs selected 1a91499c-…
-PASS  the membership belongs to the invited user
-PASS  the membership is a client membership, not an internal one  — client
-PASS  an invited user is marked invited, not active  — invited
 PASS  the membership carries the client_admin portal role  — client_admin
 PASS  the granted role is client-scoped  — client
 PASS  the invited user cannot sign in with a password before accepting  — Invalid login credentials
+cleanup: membership_roles:done | membership:done | profile:done | auth_user:true
+PASS  cleanup left no membership behind  — 0 row(s)
+PASS  cleanup removed the invited auth user  — gone
 ```
 
-The last one is the assertion that gives the run its meaning: an invited user holds no
+The sign-in assertion is the one that gives the run its meaning: an invited user holds no
 password yet, so the portal is not reachable until they accept. A run that only checked
 "a user was created" would pass with that hole wide open.
 
-**The caveat: `docs/evidence/client-invite-check.json` does not record this run.** The
-cleanup step crashed immediately afterwards — see §2, *"A cleanup failure that left a real
-account in the database"* — and the crash landed between the assertions and the
-`writeFileSync`. The file on disk therefore still shows a BLOCKED run from a later
-attempt. Hand-writing the successful result into the evidence file would defeat the one
-rule this report has held throughout, so it was left blocked and the discrepancy stated
-here instead. **Re-run the exercise when the window opens to close this out**; it needs
-the same single invite every other attempt did.
+`docs/evidence/client-invite-check.json` records the run: `17/17`, `failures: 0`,
+`blocked: false`, `cleanupVerified: true`.
+
+**This took four attempts and the first successful one was still not enough.** The run at
+06:11 passed all eleven product assertions and then crashed in cleanup, so the evidence
+file was never written — see §2, *"A cleanup failure that left a real account in the
+database"*. The result was **not** hand-written into the evidence file even though the
+proving run was known to be good, because writing it by hand would have destroyed the
+exact property the file exists to provide. It was left reading BLOCKED and stated here
+instead. The re-run above is what closed it, and it also confirmed the cleanup fix on a
+run that actually had something to clean up.
 
 **The practical consequence for whoever runs it: do not probe and then exercise.**
 Probing spends an invite, so `qa-run-all.mjs` runs the exercise directly and only after a
-wait. The budget allows roughly **one** invite per window, which is why a successful run
-is followed by immediate BLOCKEDs and why re-running costs nothing when the window is
-closed.
+wait. The budget allows roughly **one** invite per window, so a successful run is
+followed by immediate BLOCKEDs — and a blocked attempt costs nothing, which is why
+retrying on a closed window is free.
 
 **`resetPasswordAction` was called blocked for the wrong reason, and is now driven.** It was
 listed as needing "a recovery token from an inbox, and there is no mail provider here". That
@@ -3656,8 +3655,8 @@ employee still sees only their own folder and hr sees all seven.
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
 | 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
 | 3 | **Hire pipeline** | **Now exercised** — 23/23, see §4. The harness was hiding four of its own bugs behind a "no published job" error; the product button worked throughout |
-| 4 | **`inviteClientUser` is proven, but its evidence file does not record it** | **83/83 actions now exercised end to end.** The invite exercise reached Supabase inside the budget and passed all 11 assertions, including that an invited user cannot sign in before accepting. The cleanup crashed immediately afterwards (§2, *"A cleanup failure that left a real account in the database"*) and the crash landed between the assertions and the `writeFileSync`, so `docs/evidence/client-invite-check.json` still shows a BLOCKED run from a later attempt. **Not hand-written** — that would defeat the one rule this report has held throughout. Re-run the exercise when the window opens; it costs one invite, and the closed-window cost is nothing. The budget allows roughly **one** invite per window. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
-| 5 | **Invite account creation** | Blocked by Supabase email rate limiting in this environment, specifically `admin.inviteUserByEmail`. **Signup account creation is no longer on this list** — it ran end to end, creating a real account and applicant membership, once the budget allowed one call through. That is the whole reason to keep re-probing instead of writing a blocker down once. The limit is also not uniform: `auth.signUp` on the apex domain is accepted while the same call on the demo subdomain is limited, and `resetPasswordForEmail` is accepted outright. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
+| 4 | ~~**`inviteClientUser` unexercised**~~ | **CLOSED — 83/83.** Driven through its real form, **17/17**, exit 0, recorded in `docs/evidence/client-invite-check.json` (`failures: 0`, `blocked: false`, `cleanupVerified: true`). The first successful run passed all eleven product assertions and then crashed in cleanup (§2), so the evidence file was not written; it was **not** hand-written either, and the re-run closed it properly. See §5 |
+| 5 | **Outbound email budget is roughly one invite per window** | **No longer a coverage gap — both paths are now driven end to end.** `inviteClientUser` (17/17) and `signupAction` both ran against Supabase inside the budget, creating real accounts that were then cleaned up and verified gone. What remains is an **environment property**, not a defect: any single attempt may be refused, and a refused attempt costs nothing. This is now the third time a "blocked" row on this list has turned out to be a window that had not opened yet, which is why they are re-run rather than written down once. The limit is also not uniform: `auth.signUp` on the apex domain is accepted while the same call on the demo subdomain is limited, and `resetPasswordForEmail` is accepted outright. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
 | 6 | `super_admin` holds 21 of 50 permissions | **Now measured, not just counted** — `qa-inspect-super-admin-gaps.mjs`. See below. A deliberate platform-vs-business split is defensible; the gap that was not defensible is `cms.manage`, held by **only `marketing`** — not by `owner`, not by `super_admin`. **Now fixed** — `20261012010000_cms_manage_admin_recovery.sql` grants it to `owner` and `super_admin` as well; `marketing` keeps it, and `super_admin` moves to **22 of 50**. **New, measured after that fix:** `permissions.manage` is now the **only** permission in the system held by exactly one role (`super_admin`) — the same single-seat shape `cms.manage` had. It is left as a product decision: it is a platform power and `super_admin` is the platform role, so giving `owner` it blurs the split deliberately drawn above. But if the `super_admin` seat is ever emptied, nobody can grant a permission to anybody. Flagged, not changed |
 | 7 | **Storage RLS casts with `::uuid`, which RAISES rather than denies** | **Fixed** — `20261011130000_storage_rls_safe_uuid_cast.sql`, applied and verified behaviourally. Six policies guarded by an immutable `public.try_uuid(text)`. The important part is what the naive fix would have caused: `can_access_client(NULL)` can return TRUE for anyone holding `clients.read`/`clients.manage`/`system.manage`, because those permission terms never reference the argument — so routing it through a NULL-returning cast alone would have converted "raise, therefore deny" into "grant the whole bucket". Those three policies take an explicit `is not null` guard. Verified against a real malformed object (`client-documents/demo/…`): the listing now returns `ok, []` instead of a Postgres error |
 | 8 | **Client timesheet P1: submit accepts a day the client view filters out** | **Fixed and driven through the UI** — `submitTimesheetForClientReview` refuses a day outside the employee's client assignment window before writing `client_review`. `qa-probe-timesheet-window-guard.mjs` seeds one in-window day and one out-of-window day, clicks the real "Send to client" button, and asserts 4/4 — including that the refused record's `approval_status` is **unchanged**, which is the ordering claim a source assertion cannot prove. **This finding was nearly withdrawn on bad evidence — the near-miss is recorded below** |

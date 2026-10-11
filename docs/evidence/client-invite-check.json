@@ -1,12 +1,12 @@
 {
   "check": "client-invite",
-  "generatedAt": "2026-10-11T22:13:30.299Z",
+  "generatedAt": "2026-10-11T23:11:48.019Z",
   "base": "http://localhost:3100",
-  "marker": "qa-invite-mv4dqmsh",
-  "total": 7,
-  "passed": 6,
-  "failures": 1,
-  "blocked": true,
+  "marker": "qa-invite-mv4fticz",
+  "total": 17,
+  "passed": 17,
+  "failures": 0,
+  "blocked": false,
   "cleanupVerified": true,
   "results": [
     {
@@ -27,12 +27,62 @@
     {
       "name": "the form accepts the invite address",
       "pass": true,
-      "detail": "qa-invite-mv4dqmsh@beepabpo.com"
+      "detail": "qa-invite-mv4fticz@beepabpo.com"
     },
     {
       "name": "invite succeeds",
-      "pass": false,
-      "detail": "no auth user was created — toast: Too many invites have been sent from this network. Wait a moment, then try again."
+      "pass": true,
+      "detail": "auth user f07bb2d9-d347-4192-a756-b4c309d682be — toast: Invite sent to qa-invite-mv4fticz@beepabpo.com for CloudPeak."
+    },
+    {
+      "name": "an auth user was created for the invited address",
+      "pass": true,
+      "detail": "f07bb2d9-d347-4192-a756-b4c309d682be"
+    },
+    {
+      "name": "the profile carries the names typed into the form",
+      "pass": true,
+      "detail": "{\"id\":\"f07bb2d9-d347-4192-a756-b4c309d682be\",\"display_name\":\"Qa Invitee\",\"first_name\":\"Qa\",\"last_name\":\"Invitee\",\"status"
+    },
+    {
+      "name": "a membership was created",
+      "pass": true,
+      "detail": "1 row(s)"
+    },
+    {
+      "name": "the membership points at the organization the form selected",
+      "pass": true,
+      "detail": "1a91499c-56b5-4d60-ae9d-3835545b6ed5 vs selected 1a91499c-56b5-4d60-ae9d-3835545b6ed5"
+    },
+    {
+      "name": "the membership belongs to the invited user",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the membership is a client membership, not an internal one",
+      "pass": true,
+      "detail": "client"
+    },
+    {
+      "name": "an invited user is marked invited, not active",
+      "pass": true,
+      "detail": "invited"
+    },
+    {
+      "name": "the membership carries the client_admin portal role",
+      "pass": true,
+      "detail": "client_admin"
+    },
+    {
+      "name": "the granted role is client-scoped",
+      "pass": true,
+      "detail": "client"
+    },
+    {
+      "name": "the invited user cannot sign in with a password before accepting",
+      "pass": true,
+      "detail": "Invalid login credentials"
     },
     {
       "name": "cleanup left no membership behind",
