@@ -2464,6 +2464,24 @@ accepted while the same call on the demo subdomain is rate limited, and
 `resetPasswordForEmail` is accepted outright. So the remaining block is specific to
 `inviteUserByEmail` right now, not a general "mail is off".
 
+**And that block is global, not address-scoped.** Since the rate limit demonstrably varies by
+domain for `signUp`, "invites are blocked" needed proving rather than assuming, and one probe
+address cannot prove it. `qa-probe-invite-domains.mjs` tries three domains — the demo
+subdomain, the apex, and `gmail.com`:
+
+```
+BLOCKED  qa-invite-…@demo.beepabpo.com    email rate limit exceeded
+BLOCKED  qa-invite-…@beepabpo.com         email rate limit exceeded
+BLOCKED  qa-invite-…@gmail.com            email rate limit exceeded
+VERDICT: inviteUserByEmail is blocked for every domain tried.
+```
+
+A known-good consumer domain being refused rules out address validation and per-domain
+config. It is a project-level email budget with nothing left in it. `inviteClientUser` is the
+one action of 83 that cannot be driven here, it is blocked by the environment rather than by
+this codebase, and the probe deletes anything it manages to create so it is safe to re-run
+whenever a window may have reset.
+
 Earlier sessions did leave evidence in `audit_logs` for a few more
 (`payroll.period.create`, `applicant.stage_change`, `client.invite`) via ad-hoc
 scripts that were not committed as reusable exercises, so the true figure is
@@ -2727,9 +2745,9 @@ employee still sees only their own folder and hr sees all seven.
 |---|---|---|
 | 1 | Approver queue defaults to `?status=pending`, hiding step-2 work | Product decision, not a defect to redesign silently |
 | 2 | **Admin role-assign and cron paths** | **Now exercised** — 18/18, see §4. Two defects found and fixed |
-| 3 | **Hire pipeline** | **Now exercised** — 18/18, see §4. One defect found and fixed |
-| 4 | **2 of 83 server actions not yet driven end to end** | See §5. `resetPasswordAction` needs a recovery token from an inbox that does not exist here; `inviteClientUser` is waiting on the environment's email budget. Neither is blocked by a defect in this codebase. `check-auth-email-rate-limit.mjs` prints exactly what is still blocking each |
-| 5 | **Invite account creation** | Blocked by Supabase email rate limiting in this environment. **Signup account creation is no longer on this list** — it ran end to end, creating a real account and applicant membership, once the budget allowed one call through. That is the whole reason to keep re-probing instead of writing a blocker down once. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
+| 3 | **Hire pipeline** | **Now exercised** — 23/23, see §4. The harness was hiding four of its own bugs behind a "no published job" error; the product button worked throughout |
+| 4 | **1 of 83 server actions not yet driven end to end** | See §5. `resetPasswordAction` is **now driven, 8/8** — it was called blocked on the grounds that it needed a recovery token from an inbox, but the action never reads the token; it needs a *session*, and a session does not need a mailbox. What genuinely stays uncovered is the emailed link's arrival and the PKCE exchange at `/auth/callback`, and the script prints that as a standing line. The one remaining action is `inviteClientUser`, waiting on the environment's email budget. Neither is blocked by a defect in this codebase. `check-auth-email-rate-limit.mjs` prints exactly what is still blocking |
+| 5 | **Invite account creation** | Blocked by Supabase email rate limiting in this environment, specifically `admin.inviteUserByEmail`. **Signup account creation is no longer on this list** — it ran end to end, creating a real account and applicant membership, once the budget allowed one call through. That is the whole reason to keep re-probing instead of writing a blocker down once. The limit is also not uniform: `auth.signUp` on the apex domain is accepted while the same call on the demo subdomain is limited, and `resetPasswordForEmail` is accepted outright. Check with `node scripts/audit/check-auth-email-rate-limit.mjs`, which deletes anything it creates |
 | 6 | `super_admin` holds 21 of 50 permissions | **Now measured, not just counted** — `qa-inspect-super-admin-gaps.mjs`. See below. A deliberate platform-vs-business split is defensible; the gap that is not defensible is `cms.manage`, held by **only `marketing`** — not by `owner`, not by `super_admin` |
 | 7 | **Storage RLS casts with `::uuid`, which RAISES rather than denies** | **Fixed** — `20261011130000_storage_rls_safe_uuid_cast.sql`, applied and verified behaviourally. Six policies guarded by an immutable `public.try_uuid(text)`. The important part is what the naive fix would have caused: `can_access_client(NULL)` can return TRUE for anyone holding `clients.read`/`clients.manage`/`system.manage`, because those permission terms never reference the argument — so routing it through a NULL-returning cast alone would have converted "raise, therefore deny" into "grant the whole bucket". Those three policies take an explicit `is not null` guard. Verified against a real malformed object (`client-documents/demo/…`): the listing now returns `ok, []` instead of a Postgres error |
 | 8 | **Client timesheet P1: submit accepts a day the client view filters out** | **Fixed and driven through the UI** — `submitTimesheetForClientReview` refuses a day outside the employee's client assignment window before writing `client_review`. `qa-probe-timesheet-window-guard.mjs` seeds one in-window day and one out-of-window day, clicks the real "Send to client" button, and asserts 4/4 — including that the refused record's `approval_status` is **unchanged**, which is the ordering claim a source assertion cannot prove. **This finding was nearly withdrawn on bad evidence — the near-miss is recorded below** |
