@@ -15,12 +15,23 @@ import { getClientOrganizationId } from "@/lib/organizations/client";
 import { formatWorkedMinutes } from "@/lib/attendance/minutes";
 import { can } from "@/lib/permissions/can";
 import { PageContainer } from "@/components/app/page-container";
+import { ListPager } from "@/components/app/list-pager";
+import { pageParam } from "@/lib/app/search-params";
 
 export const metadata: Metadata = { title: "Approvals" };
 
-export default async function ClientApprovalsPage() {
+const PAGE_SIZE = 20;
+
+export default async function ClientApprovalsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const workspace = await resolveWorkspace();
   if (!workspace) redirect("/login");
+
+  const params = await searchParams;
+  const page = pageParam(params.page);
 
   const clientOrgId = getClientOrganizationId(workspace);
   const supabase = await createClient();
@@ -37,8 +48,10 @@ export default async function ClientApprovalsPage() {
     worked_minutes: number | null;
   }[] = [];
 
+  let pendingTotal = 0;
+
   if (clientOrgId) {
-    const [{ data: settings }, { data }] = await Promise.all([
+    const [{ data: settings }, { data }, { count: pendingCount }] = await Promise.all([
       supabase
         .from("client_settings")
         .select("allow_timesheet_approval")
@@ -52,9 +65,22 @@ export default async function ClientApprovalsPage() {
         .eq("client_organization_id", clientOrgId)
         .eq("approval_status", "client_review")
         .order("work_date", { ascending: false })
-        .limit(40),
+        // Was a silent `.limit(40)`: a client with 41+ days waiting saw exactly 40, with
+        // no pager and no indication the rest existed — on the one screen whose entire job
+        // is telling someone what is waiting for them. `/app/client/timesheets` was fixed
+        // for exactly this and this page was missed.
+        //
+        // One extra row proves a next page exists; it is dropped below so the pager's
+        // rowCount is exactly the number of rows actually rendered.
+        .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+      supabase
+        .from("client_attendance_summary")
+        .select("attendance_record_id", { count: "exact", head: true })
+        .eq("client_organization_id", clientOrgId)
+        .eq("approval_status", "client_review"),
     ]);
     allowApproval = Boolean(settings?.allow_timesheet_approval);
+    pendingTotal = pendingCount ?? 0;
     if (!allowApproval) {
       return (
         <PageContainer>
@@ -71,10 +97,12 @@ export default async function ClientApprovalsPage() {
         </PageContainer>
       );
     }
-    pending = (data ?? []).filter(
-      (row): row is (typeof pending)[number] =>
-        Boolean(row.attendance_record_id),
-    );
+    pending = (data ?? [])
+      .slice(0, PAGE_SIZE)
+      .filter(
+        (row): row is (typeof pending)[number] =>
+          Boolean(row.attendance_record_id),
+      );
   }
 
   const showActions = canReview && allowApproval;
@@ -137,6 +165,9 @@ export default async function ClientApprovalsPage() {
           ))}
         </div>
       )}
+      {allowApproval && pendingTotal > 0 ? (
+        <ListPager page={page} pageSize={PAGE_SIZE} rowCount={pendingTotal} />
+      ) : null}
     </PageContainer>
   );
 }

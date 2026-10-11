@@ -2335,6 +2335,60 @@ slice from one who did not. The mitigation is that
 `ListPager` rather than keeping a hand-maintained list, and asserts each one slices. A
 hand-kept list is exactly how this defect returns.
 
+### P2 — `/app/client/approvals` silently capped a client's queue at 40. Fixed.
+
+A sweep of every `.limit(` in `app/app/**` found exactly one silent cap left on a
+decision-making surface. `/app/client/approvals` read:
+
+```ts
+.eq("approval_status", "client_review")
+.order("work_date", { ascending: false })
+.limit(40),
+```
+
+No pager, no count, no indication. A client with 41+ days waiting saw exactly 40 and had no
+way of knowing more existed — on the one screen whose entire purpose is telling someone what
+is waiting for them. Its sibling `/app/client/timesheets` was fixed for precisely this in an
+earlier session and **this page was missed**. Every other `.limit()` in the app is a
+documented sub-query (search candidates, comment pages, chart samples) or a detail page, so
+this was the last one.
+
+Fixed to the same shape as the sibling: `pageParam`, `.range((page - 1) * PAGE_SIZE, page *
+PAGE_SIZE)` with the sentinel dropped, an exact `count` query, and `<ListPager>`.
+
+**Proven by driving it, in both directions.**
+`qa-probe-client-approvals-pager.mjs` seeds 25 `client_review` days across both employees
+under an active client assignment — *inside* the assignment window, because the guard added
+in `15a5193` would refuse an out-of-window day and a fixture the product rejects is not a
+fixture — signs in as the client, and reads two pages.
+
+| Build | Result |
+|---|---|
+| **Before the fix** | **0/5** — page 1 rendered all 25 rows; `?page=2` was ignored and rendered the same 25 |
+| **After the fix** | **5/5** — page 1 renders 20, page 2 renders 5, all 25 reachable |
+
+The 0/5 matters as much as the 5/5. A probe that has only ever passed cannot distinguish a
+working fix from a broken page.
+
+Three harness errors were caught by dumping the page instead of guessing, each of which
+would have been easy to report as "pagination is broken":
+
+- `ListPager` renders **only** Previous/Next links, never numbered page links. A locator
+  looking for a link reading "2" reported the pager missing on a build that had it.
+- The Date column renders as `Oct 2, 2026` — the third date format this repo has used, after
+  ISO on the attendance page and `Wed 26` on its week view.
+- Counting *distinct dates* is wrong when the fixture spans two employees: the same
+  `work_date` legitimately appears twice. Count rows.
+
+And one residue bug worth naming, because it produced a failure three runs later that had
+nothing to do with the code: **truncating a probe's output with `Select-Object -First N`
+closes the pipe and kills node before its `finally` block runs.** Twenty-five seeded rows
+survived, and the next run failed with "only 8 free in-window dates" — a fixture-pool
+exhaustion that looked like a product problem. `qa-cleanup-approval-fixtures.mjs` removes
+them, scoped to `approval_status = 'client_review'` (the seeded demo data is entirely
+`finalized`, so it cannot touch a real row), and the baseline was verified back to 40 rows.
+Redirect to a file and read the file; do not truncate a probe that writes.
+
 ### Storage RLS raised instead of denying on a malformed path. Fixed.
 
 Six policies in `20260906000800_storage_buckets.sql` cast the first folder segment of a
