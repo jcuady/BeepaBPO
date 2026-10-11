@@ -69,3 +69,6 @@ next-env.d.ts
 !.claude/skills/seo-beepa/**
 # local QA server log
 .qa-*.log
+# Role-sweep working file. The reviewed copy is docs/evidence/role-sweep.json, which IS
+# tracked; this root artifact is regenerated on every run and is only a working copy.
+.qa-sweep-report.json
