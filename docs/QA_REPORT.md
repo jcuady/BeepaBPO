@@ -25,7 +25,7 @@ user anything real?**
 | **Live workflow exercise** | `qa-exercise-leave-workflow.mjs` | **employee → team lead → HR, 13 assertions** |
 | **Ticket workflow exercise** | `qa-exercise-ticket-workflow.mjs` | **client admin → operations, 10 assertions** |
 | **Admin workflow exercise** | `qa-exercise-admin-workflow.mjs` | **18 assertions** |
-| **Hire workflow exercise** | `qa-exercise-hire-workflow.mjs` | **18 assertions** |
+| **Hire workflow exercise** | `qa-exercise-hire-workflow.mjs` | **23 assertions** |
 | **CRM workflow exercise** | `qa-exercise-crm-workflow.mjs` | **21 assertions** |
 | **Payroll workflow exercise** | `qa-exercise-payroll-workflow.mjs` | **19 assertions** |
 | **Auth workflow exercise** | `qa-exercise-auth-workflow.mjs` | **35 assertions** |
@@ -804,50 +804,84 @@ Two things this exercise got wrong first, both worth recording:
   never match. Every read in this script now goes through a `must()` helper that
   throws on `error` or `null`.
 
-### Hire workflow — `qa-exercise-hire-workflow.mjs`, 18/18
+### Hire workflow — `qa-exercise-hire-workflow.mjs`, 23/23
 
 ```
-recruiter/HR  moves stage  ->  HR  hires  ->  employee record + membership + role
+recruiter cannot hire  ->  HR moves stage  ->  HR hires  ->  employee + membership + role
 ```
 
-Uses the existing Demo Applicant, who already has a `profile_id`. That is
-deliberate: without one the action calls `inviteOrResolveAuthUser`, which sends
-an email and is rate-limited here, so the hire path could not be exercised at
-all.
+`convertApplicantToEmployee` is the highest-consequence button in the product: it creates
+an employee record, rewrites an applicant's membership into an internal one, replaces their
+role, flips the application to `hired` and writes an audit row. This pass drives it through
+the real UI as the role that is allowed to.
+
+**It seeds its own fixture.** The seeded demo data has no `applicants` row for
+`applicant@demo.beepabpo.com` — it has an auth user, an `applicant` membership and a
+profile, but not the recruitment rows. Without a `profile_id` the action calls
+`inviteOrResolveAuthUser`, which sends an email and is rate-limited here, so the hire path
+could not be exercised at all. The pass therefore creates the `applicants` +
+`job_applications` rows itself, against a real published `job_posts` row, and deletes both
+in cleanup.
 
 | Assertion | Result |
 |---|---|
 | Signed in as HR — the role that can actually hire | PASS |
+| Applicant page loads | PASS |
+| Signed in as Recruiter — the role that cannot | PASS |
+| **The Recruiter page really is the Recruiter** | **PASS** — cookie identity asserted |
+| **Recruiter does NOT see the Hire button** | **PASS** — absent, not failing |
+| **Recruiter still sees the stage control** | **PASS** |
+| **The HR and Recruiter sessions are separate** | **PASS** |
 | Stage change asks for confirmation | PASS — `Move application stage?` |
-| Stage moved to `offer` | PASS |
-| `application_stage_history` recorded the move | PASS — `{screening → offer}` |
+| Stage moved to `offer` | PASS — `client_interview → offer` |
+| `application_stage_history` recorded the move | PASS — `{client_interview → offer}` |
 | Hire button visible to HR | PASS |
 | Hire asks for confirmation | PASS |
-| Employee record created and active | PASS — `BEE-00023` |
+| Employee record created and active | PASS — `BEE-000NN`, increments per run |
 | Hired member has the `employee` role | PASS — `[employee]` |
 | **No stale `applicant` role left behind** | **PASS** |
 | Membership became `internal` and active | PASS |
 | Application is now `hired` | PASS |
-| Hire is audit-logged | PASS — `application.hire_convert` |
+| Hire is audit-logged | PASS — `application.stage_update` + `application.hire_convert` |
 | 0 console errors | PASS |
-| Recruitment left exactly as found | PASS |
+| **Recruitment left exactly as found** | **PASS** — incl. the `profiles` row |
 
-**Separation of duties, verified rather than assumed:** the Hire button needs
-BOTH `recruitment.manage` and `employees.manage`. Only `owner` and `hr` hold
-both, so **Recruiter cannot hire** — the button is absent, not merely failing.
-That is correct and intentional; it is asserted here so a future permission
-change that quietly widens it will be noticed.
+**Separation of duties, now asserted rather than claimed.** The Hire button renders only
+when `canAll(permissions, ["recruitment.manage", "employees.manage"])` holds. Recruiter
+holds the first and not the second, so the button is **absent from the page** — not present
+and failing on click. Recruiter *does* see the stage control, which is what makes the
+absence meaningful: absent-Hire alongside present-stage is a permission boundary, whereas
+absent-everything would just be a broken page.
 
-The stage `<select>` opens a `ConfirmDialog`. Choosing a stage and moving on
-changes nothing, and the open overlay then intercepts every later click — which
-is how the first two runs failed, once as "stage did not change" and once as a
-Playwright "element intercepts pointer events". The same ConfirmDialog rule that
-bit the leave and ticket exercises applies to recruitment too.
+This was previously written up here as *"asserted here so a future permission change that
+quietly widens it will be noticed"*. **It was not asserted by anything.** The pass only
+ever signed in as HR, so the claim was documentation asserting a control no test exercised.
+It is asserted now, in its own `BrowserContext`.
 
-The restore also had a real bug, caught by its own final assertion: it deleted
-roles the run *added* but never re-inserted one the run *removed*, so a failed
-run left the account with no roles at all. `qa-repair-applicant-membership.mjs`
-exists for the case where a killed process never runs its `finally` at all.
+The stage `<select>` opens a `ConfirmDialog`. Choosing a stage and moving on changes
+nothing, and the open overlay then intercepts every later click — which is how the first two
+runs failed, once as "stage did not change" and once as a Playwright "element intercepts
+pointer events". The same ConfirmDialog rule that bit the leave and ticket exercises
+applies to recruitment too.
+
+The restore also had a real bug, caught by its own final assertion: it deleted roles the run
+*added* but never re-inserted one the run *removed*, so a failed run left the account with
+no roles at all. `qa-repair-applicant-membership.mjs` exists for the case where a killed
+process never runs its `finally` at all.
+
+**The fixture is deliberately named `Qa Hireprobe`, not `Demo Applicant`.** The action
+rewrites the profile to `${first_name} ${last_name}`. A fixture named "Demo Applicant"
+overwrites "Demo Applicant" with "Demo Applicant", so the profile-restore check passed
+whether or not a restore had happened — it could not fail, and so proved nothing. A distinct
+name makes the overwrite visible. `--skip-profile-restore` injects the fault on demand and
+was run to confirm the check goes red: **22/23, with `profile=Qa Hireprobe … MISMATCH`.**
+
+Cleanup is verified, not assumed. `qa-probe-hire-residue.mjs` is a gate (non-zero exit) over
+the things a hire touches outside recruitment — the `profiles` row, the created employee,
+the fixture rows, and `audit_logs` rows left pointing at a deleted application.
+`qa-cleanup-hire-fixture.mjs` clears that residue, scoped by a marker no demo row carries
+(`source = 'qa_hire_fixture'`) and, for audit rows, by **absence** — the `entity_id`
+resolves to no live application, so real audit history cannot be in scope.
 
 ### CRM workflow — `qa-exercise-crm-workflow.mjs`, 21/21
 
@@ -2271,6 +2305,37 @@ Recorded because each produced a report full of defects that did not exist:
   field left behind. The fix is to read each pre-existing row back **by id, with no
   org filter** (so a stranded row is found rather than reported as missing) and compare
   **field by field**. A tally cannot fail on a value.
+- **An identity guard built on the wrong storage is not a weak guard — it is a broken
+  one.** Asserting "this page is really signed in as Recruiter" by reading
+  `localStorage['sb-…-auth-token']` returned `null` on a page that was plainly signed in,
+  twice: this app is server-rendered with `@supabase/ssr` and keeps the session in the
+  **cookie**. localStorage is genuinely empty. The failure mode is worse than useless —
+  it returns `null` whether the page is correct or the harness is wrong, so it cannot tell
+  those two apart. Guessing a second shape (`.user.email`, then the JWT claims) produced
+  `null` again. What settled it was dumping the actual stores — localStorage keys, cookie
+  names, decoded values — rather than reasoning about which one *should* hold it. **Inspect
+  the instrument before you trust or fix it.**
+- **Prove the guard can fail, or it is decoration.** With a real cookie probe in place the
+  identity check was still unproven, because it had only ever been run against a correct
+  page. `--identity-canary` asserts the *wrong* identity on purpose; it fails
+  (`session email=recruiter@… expected=hr@…`), which is what earns the real run its PASS.
+  The same standard is applied to the profile restore via `--skip-profile-restore`:
+  **22/23 with `MISMATCH`**, then 23/23 clean.
+- **A fixture must not be named identically to the state it is supposed to disturb.** The
+  action rewrites the profile to `${first_name} ${last_name}`. Seeding an applicant called
+  "Demo Applicant" rewrote "Demo Applicant" with "Demo Applicant", so the profile-restore
+  assertion passed whether or not a restore happened — it had no reachable failure state.
+  A check that cannot fail is not a check.
+- **Seeding above the `try/finally` is a leak, not a style question.** Target resolution
+  ran at module top level, so a throw there skipped cleanup entirely. That is precisely how
+  an `applicants` row survived into the demo data and was then silently **reused** by every
+  later run (the pass finds its target by email), which would have made the leak permanent
+  and invisible. Fixture ids are now recorded at module scope on creation and rolled back
+  from the `main().catch()`.
+- **`error` must be checked before a row is called "missing".** The report of *"no published
+  job"* came from discarding *"Could not find the table 'public.job_postings' in the schema
+  cache"*. Five published posts existed throughout. An unchecked `error` converts a loud
+  schema error into a quiet, confident, and completely wrong data finding.
 
 ---
 
@@ -2500,7 +2565,7 @@ it. So every committed exercise was re-run against the build containing all of t
 | `auth-workflow` | all assertions PASS; 1 path BLOCKED by the 429 |
 | `admin-workflow` | all assertions PASS; invite path BLOCKED by the 429 |
 | `internal-links` | 28/29 — the known payroll audit-history link |
-| `hire-workflow` | **harness crash**, see below |
+| `hire-workflow` | **23/23** — was a harness crash, resolved below |
 
 Two results here are worth more than the green ticks: the sweep **found a real defect**
 (the audit gap, which had been a standing 13/14) and it **verified the one assertion that had
@@ -2508,8 +2573,46 @@ been honestly reported as unverified** — the signup applicant-role check now p
 *"that membership carries the applicant role — 1 role row(s)"*.
 
 `hire-workflow` died on `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` from
-`src\win\async.c` — a libuv abort in the harness process, not a product result. It is left
-unresolved rather than counted as a pass or as a defect.
+`src\win\async.c`. It is now **resolved**, and the crash was never the interesting part.
+
+**The crash was not `process.exit()`.** It was this: the exercise body was top-level
+`await`, so *any* throw rejected the module and Node tore the process down while undici and
+Playwright handles were still closing. It reproduced on a throw from a script that never
+launched a browser at all. The assertion was a symptom of an unhandled rejection racing
+handle teardown; the native abort then replaced the real error message and returned exit
+code 3221226505. Wrapping the body in `main()` with a `.catch()` keeps the failure on the
+normal exit path, so the message survives and the process drains its handles instead of
+racing them. **A missing table and a missing seed row had both been reading as a Node bug.**
+
+**And behind the crash was a harness bug that had been masquerading as a data problem.**
+The run reported `Error: no published job`. There were five published job posts the entire
+time. The script queried `job_postings` — the table is `job_posts` — and destructured
+`{ data: job }` without checking `error`, so PostgREST's *"Could not find the table
+'public.job_postings' in the schema cache"* was discarded and an empty result was reported
+as missing data. The FK was misspelled too: `job_posting_id`, not `job_post_id`. The app
+was consistent throughout (`lib/recruitment/actions.ts` uses `job_post_id`); both errors
+were in the harness.
+
+Four defects, all in the harness, none in the product:
+
+| Defect | Consequence |
+|---|---|
+| `job_postings` + `job_posting_id`, and `error` discarded | "no published job" — a false diagnosis of a table that never existed |
+| Fixture seeded at `offer`, then asked to move to `offer` | `handleChange` ignores an unchanged stage, so no dialog; the run died on a 30s click timeout. The app was right; the fixture contradicted itself |
+| Seeding ran *above* the `try/finally` | a throw during target resolution skipped cleanup entirely and leaked the `applicants` row into the demo data |
+| `must()` returns `data ?? []`, so a `maybeSingle` miss is a **truthy** `[]` | `finalApp === null` was false for a genuinely deleted row, and a run that had restored the database perfectly scored as a failure |
+
+The seeding gap is now closed at the source: fixture ids are recorded at module scope the
+moment they are created, and the `.catch()` on `main()` rolls them back if resolution fails
+at any point. The leaked row was found by `qa-probe-hire-fixture-state.mjs` and removed by
+`qa-cleanup-hire-fixture.mjs`, which is scoped to a marker no demo row carries.
+
+One more, and the most dangerous shape of the four: a stale identifier inside `restore()`
+threw, which skipped the rest of cleanup **including the verification that was supposed to
+prove cleanup worked** — and the run still printed `17/17 checks passed` and exited 0,
+because the throw was swallowed by a `console.error` in the `finally`. **A check that never
+ran reported as a pass.** A cleanup failure is now recorded through `check()`, so it lands
+in the tally and forces a non-zero exit.
 
 ### Storage RLS raised instead of denying on a malformed path. Fixed.
 
@@ -2617,7 +2720,7 @@ node scripts/audit/qa-verify-notifications.mjs      # distinctness, dead links, 
 node scripts/audit/qa-exercise-leave-workflow.mjs   # 13 assertions
 node scripts/audit/qa-exercise-ticket-workflow.mjs  # 10 assertions
 node scripts/audit/qa-exercise-admin-workflow.mjs   # 18 assertions (1 path may report BLOCKED)
-node scripts/audit/qa-exercise-hire-workflow.mjs    # 18 assertions
+node scripts/audit/qa-exercise-hire-workflow.mjs    # 23 assertions
 node scripts/audit/qa-exercise-crm-workflow.mjs     # 21 assertions
 node scripts/audit/qa-exercise-payroll-workflow.mjs # 19 assertions
 node scripts/audit/qa-exercise-auth-workflow.mjs    # 35 assertions (signup reports BLOCKED under 429)
