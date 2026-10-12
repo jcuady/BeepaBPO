@@ -72,3 +72,11 @@ next-env.d.ts
 # Role-sweep working file. The reviewed copy is docs/evidence/role-sweep.json, which IS
 # tracked; this root artifact is regenerated on every run and is only a working copy.
 .qa-sweep-report.json
+
+# Design reference inputs. These are the source-of-truth mockups this redesign is
+# built FROM, not application source: a separate Vite/Lovable project with its
+# own package.json, its own node_modules expectations and ~4.6 MB of
+# photography. Tracked in git they dragged a second dependency tree into
+# the app's typecheck, which is why tsconfig.json excludes the folder too.
+BeepaBPO new landing design/
+BeepaBPO new landing design.zip
