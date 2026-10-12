@@ -1,6 +1,6 @@
 {
   "check": "qa-suite",
-  "generatedAt": "2026-10-12T07:13:04.489Z",
+  "generatedAt": "2026-10-12T09:47:36.376Z",
   "base": "http://localhost:3100",
   "tiersRun": [
     "fast",
@@ -8,9 +8,9 @@
     "slow"
   ],
   "total": 15,
-  "passed": 13,
-  "failures": 1,
-  "blocked": 1,
+  "passed": 15,
+  "failures": 0,
+  "blocked": 0,
   "missingEvidence": [],
   "results": [
     {
@@ -19,7 +19,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 7,
+      "seconds": 10,
       "evidence": "docs/evidence/not-found-check.json",
       "evidenceWritten": true,
       "tail": "18/18 passed",
@@ -31,7 +31,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 5,
+      "seconds": 6,
       "evidence": "docs/evidence/dialog-keyboard-check.json",
       "evidenceWritten": true,
       "tail": "PASS  changing status opens the confirm dialog | PASS  focus moves into the dialog on open  — activeElement BUTTON# \"Cancel\" | 16/16 passed",
@@ -43,7 +43,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 12,
+      "seconds": 13,
       "evidence": "docs/evidence/command-palette-check.json",
       "evidenceWritten": true,
       "tail": "PASS  focus lands in the palette input on open  — activeElement placeholder Search pages… | PASS  focus returns to the control that opened the palette  — active",
@@ -67,7 +67,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 323,
+      "seconds": 391,
       "evidence": "docs/evidence/internal-links-check.json",
       "evidenceWritten": true,
       "tail": "PASS  applicant — no internal link lands on a page error  [none] | PASS  public — no internal link lands on a page error  [none] | 29/29 assertions passed",
@@ -77,14 +77,13 @@
       "id": "client-invite",
       "what": "the last uncovered action, driven through its real form (BLOCKED when mail is rate limited)",
       "tier": "fast",
-      "status": "BLOCKED",
-      "code": 2,
-      "seconds": 6,
+      "status": "PASS",
+      "code": 0,
+      "seconds": 16,
       "evidence": "docs/evidence/client-invite-check.json",
       "evidenceWritten": true,
-      "tail": "evidence: this attempt was BLOCKED and is recorded in docs/evidence/client-invite-blocked.json. | 6/7 passed | BLOCKED: the environment's email budget closed ag",
-      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-client-invite.mjs",
-      "rawOutput": " been sent from this network. Wait a moment, then try again.\"\nFAIL  invite succeeds  — no auth user was created — toast: Too many invites have been sent from this network. Wait a moment, then try again.\ncleanup: \nPASS  cleanup left no membership behind  — 0 row(s)\nPASS  cleanup removed the invited auth user  — gone\nevidence: this attempt was BLOCKED and is recorded in docs/evidence/client-invite-blocked.json.\n          docs/evidence/client-invite-check.json still holds the last run that measured the action (17/17).\n\n6/7 passed\nBLOCKED: the environment's email budget closed again. Re-run later."
+      "tail": "PASS  cleanup left no membership behind  — 0 row(s) | PASS  cleanup removed the invited auth user  — gone | 17/17 passed",
+      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-client-invite.mjs"
     },
     {
       "id": "runtime-radius",
@@ -92,7 +91,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 14,
+      "seconds": 17,
       "evidence": "docs/evidence/runtime-radius-check.json",
       "evidenceWritten": true,
       "tail": "page errors        : 0",
@@ -104,10 +103,10 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 138,
+      "seconds": 164,
       "evidence": "docs/evidence/responsive-app-chunk1.json",
       "evidenceWritten": true,
-      "tail": "56/56 viewport-route combinations clean (136s)",
+      "tail": "56/56 viewport-route combinations clean (160s)",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/dashboard /app/my /app/my/attendance /app/my/leave /app/my/payroll /app/my/requests /app/my/documents"
     },
     {
@@ -116,10 +115,10 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 148,
+      "seconds": 174,
       "evidence": "docs/evidence/responsive-app-chunk2.json",
       "evidenceWritten": true,
-      "tail": "56/56 viewport-route combinations clean (146s)",
+      "tail": "56/56 viewport-route combinations clean (170s)",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/my/schedule /app/crm /app/crm/leads /app/crm/deals /app/crm/proposals /app/attendance /app/leave"
     },
     {
@@ -128,10 +127,10 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 153,
+      "seconds": 164,
       "evidence": "docs/evidence/responsive-app-chunk3.json",
       "evidenceWritten": true,
-      "tail": "56/56 viewport-route combinations clean (151s)",
+      "tail": "56/56 viewport-route combinations clean (161s)",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/employees /app/payroll /app/payroll/periods /app/billing /app/recruitment /app/recruitment/jobs /app/recruitment/applicants"
     },
     {
@@ -140,10 +139,10 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 153,
+      "seconds": 160,
       "evidence": "docs/evidence/responsive-app-chunk4.json",
       "evidenceWritten": true,
-      "tail": "56/56 viewport-route combinations clean (151s)",
+      "tail": "56/56 viewport-route combinations clean (157s)",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/tickets /app/approvals /app/reports /app/hr /app/admin /app/admin/users /app/clients"
     },
     {
@@ -152,10 +151,10 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 22,
+      "seconds": 24,
       "evidence": "docs/evidence/responsive-app-cms.json",
       "evidenceWritten": true,
-      "tail": "8/8 viewport-route combinations clean (20s)",
+      "tail": "8/8 viewport-route combinations clean (21s)",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit-app-responsive.mjs marketing@demo.beepabpo.com /app/cms"
     },
     {
@@ -164,7 +163,7 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 104,
+      "seconds": 111,
       "evidence": "docs/evidence/responsive-public.json",
       "evidenceWritten": true,
       "tail": "80/80 viewport-route combinations clean",
@@ -174,14 +173,13 @@
       "id": "role-sweep",
       "what": "13 roles across their reachable pages",
       "tier": "slow",
-      "status": "FAIL",
-      "code": 1,
-      "seconds": 905,
+      "status": "PASS",
+      "code": 0,
+      "seconds": 965,
       "evidence": "docs/evidence/role-sweep.json",
       "evidenceWritten": true,
-      "tail": "page errors: 2 | VERDICT: FAIL",
-      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/audit-role-sweep.mjs",
-      "rawOutput": "=19 redir=2 empty=0 dl=0 err=0 noise=0\nfinance       pages= 36 ok=33 redir=2 empty=0 dl=1 err=0 noise=0\nemployee      pages= 18 ok=15 redir=2 empty=0 dl=1 err=0 noise=0\nclientadmin   pages= 36 ok=33 redir=3 empty=0 dl=0 err=0 noise=0\nclientviewer  pages= 36 ok=33 redir=3 empty=0 dl=0 err=0 noise=0\napplicant     pages= 13 ok=10 redir=2 empty=0 dl=0 err=1 noise=0\n\nmarketing problems: 0/10\nwrote docs/evidence/role-sweep.json\n\ntotal role-page visits: 479 across 13 roles\npage errors: 2\n\nVERDICT: FAIL\n  - 2 page(s) in a broken state: recruiter /app/dashboard → THREW; applicant /app/dashboard → THREW"
+      "tail": "page errors: 0",
+      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/audit-role-sweep.mjs"
     },
     {
       "id": "gate",
@@ -189,10 +187,10 @@
       "tier": "gate",
       "status": "PASS",
       "code": 0,
-      "seconds": 38,
+      "seconds": 29,
       "evidence": null,
       "evidenceWritten": null,
-      "tail": "vitest: 667 tests / 94 files | tsc: clean"
+      "tail": "vitest: 651 tests / 87 files | tsc: clean"
     }
   ]
 }
