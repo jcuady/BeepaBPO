@@ -12,23 +12,22 @@ describe("principal audit P1 seams", () => {
     expect(src).toContain("destructive");
   });
 
-  it("marketing proof strips use honest trust strip without fake logos", () => {
-    const trusted = readFileSync(
-      join(process.cwd(), "components/marketing/trusted-by-section.tsx"),
+  it("landing page makes no fabricated trust claims", () => {
+    // Retargeted when the landing page was replaced by the reference design.
+    // The components this used to read (trusted-by-section, proof-strip) no
+    // longer exist; the rule they enforced still does: no invented client
+    // logos, no invented named testimonials, no invented headcounts, and no
+    // placeholder image hosts.
+    const landing = readFileSync(
+      join(process.cwd(), "components/landing/landing-page.tsx"),
       "utf8",
     );
-    const proof = readFileSync(
-      join(process.cwd(), "components/marketing/proof-strip.tsx"),
-      "utf8",
-    );
-    expect(trusted).not.toContain("cdn.simpleicons.org");
-    expect(trusted).not.toContain("google");
-    expect(trusted).not.toContain("Nexora");
-    expect(trusted).toContain("Built for growing teams");
-    expect(trusted).toContain("trust-marquee");
-    expect(proof).not.toContain("500+");
-    expect(proof).not.toContain("Maria Santos");
-    expect(proof).not.toContain("picsum.photos");
+    expect(landing).not.toContain("cdn.simpleicons.org");
+    expect(landing).not.toContain("Nexora");
+    expect(landing).not.toContain("picsum.photos");
+    expect(landing).not.toContain("Maria Santos");
+    expect(landing).not.toMatch(/\b500\+/);
+    expect(landing).not.toMatch(/\b\d{3,}\+?\s*(clients|customers|companies)\b/i);
   });
 
   it("client portal flags gate ticketing create + nav", () => {

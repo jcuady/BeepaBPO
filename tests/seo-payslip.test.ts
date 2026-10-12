@@ -51,14 +51,17 @@ describe("favicon and SEO assets", () => {
   });
 
   it("homepage wires Organization + WebSite JSON-LD", () => {
-    const page = readFileSync(
-      join(process.cwd(), "app/(marketing)/page.tsx"),
-      "utf8",
-    );
+    const page = readFileSync(join(process.cwd(), "app/page.tsx"), "utf8");
     expect(page).toContain("organizationJsonLd");
     expect(page).toContain("websiteJsonLd");
     expect(page).toContain("FAQPage");
-    expect(page).toContain("BRAND.title");
+    // The page no longer publishes the generic `BRAND.title` — it ships the
+    // reference design's own authored title, and the root layout appends the
+    // brand name via its `%s | <name>` template. What this assertion protects
+    // is unchanged: the homepage must not fall back to a placeholder title.
+    expect(page).toContain(
+      "Filipino talent. Built around your business.",
+    );
     const jsonLd = readFileSync(
       join(process.cwd(), "lib/seo/json-ld.tsx"),
       "utf8",

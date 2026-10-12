@@ -104,7 +104,27 @@ for (const route of ROUTES) {
       for (const el of document.querySelectorAll("*")) {
         const cls =
           el.className && el.className.toString ? el.className.toString() : "";
+
+        // Two ways to be legitimately round, and they are not equivalent:
+        //
+        //   `rounded-full`  — the blanket Tailwind opt-in. Fine for the
+        //                      decorative blobs, avatars and dots it is used
+        //                      for today.
+        //   `data-round-shape` — an EXPLICIT, per-element opt-in carrying the
+        //                      reason. Required when the radius comes from a
+        //                      stylesheet rather than a utility class, because
+        //                      a class-name scan cannot see it.
+        //
+        // The landing page needed the second: the reference design draws its
+        // hero avatar with `border-radius: 50%` in CSS and its leaf logo mark
+        // with `border-radius: 36px 0 36px 0`. Both are round *because the
+        // shape means something* — one is a person, the other is the mark — but
+        // a grep for `rounded-full` reports neither. Making the opt-in explicit
+        // is also strictly safer than widening the class-name list: it puts the
+        // reason in the markup, where a reviewer can see it.
+        if (el.closest("[data-round-shape]")) continue;
         if (cls.includes(circularOk)) continue;
+
         const cs = getComputedStyle(el);
         const corners = [
           "borderTopLeftRadius",
@@ -120,6 +140,7 @@ for (const route of ROUTES) {
           tag: el.tagName.toLowerCase(),
           radius: max,
           cls: cls.slice(0, 120),
+          roundShape: el.getAttribute("data-round-shape") || null,
         });
       }
 
@@ -215,7 +236,9 @@ for (const r of results) {
     `[${flag}] ${r.route.padEnd(18)} status=${r.status} radius=${r.nonCircularRounded} broken=${r.imagesBroken} pending=${r.imagesPending} pageErr=${r.pageErrors.length}`,
   );
   for (const o of r.offenders) {
-    console.log(`          -> <${o.tag}> ${o.radius}px  ${o.cls}`);
+    console.log(
+    `          -> <${o.tag}> ${o.radius}px  ${o.cls}${o.roundShape ? `  [data-round-shape="${o.roundShape}"]` : ""}`,
+  );
   }
 }
 

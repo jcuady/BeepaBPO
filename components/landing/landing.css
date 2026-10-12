@@ -1,0 +1,1559 @@
+/* ==========================================================================
+   Beepa landing page — ported from the "BeepaBPO new landing design" reference.
+
+   Everything here is scoped under `.beepaLanding` so this page cannot leak into
+   the rest of the app. The other marketing routes keep the shared SiteHeader /
+   SiteFooter and the site's own tokens; this file deliberately does not touch
+   `html`, `body` or any global rule.
+
+   Two adaptations were made to the reference, both deliberate and both recorded
+   in docs/CHANGELOG.md:
+
+   1. FONT. The reference sets body copy in DM Sans. DM Sans is loaded in
+      app/layout.tsx as `--font-dm-sans` and applied only inside this wrapper, so
+      the rest of the app keeps Inter/Manrope.
+
+   2. MOBILE TYPE FLOOR. The reference sets a great deal of its editorial detail
+      at 8–14px, which is unreadable on a phone and is an iOS auto-zoom trigger.
+      scripts/audit-responsive.mjs enforces >=16px on narrow screens and the
+      codebase already treats that as a release rule (see 0e15e06). Desktop
+      values are the reference's, untouched. Inside the <=760px breakpoint every
+      body-copy size is raised to 16px. The page's character on a phone comes
+      from its layout, colour and photography, not from 9px captions.
+
+   The colour tokens are redeclared on the wrapper rather than in globals.css so
+   that the shared `Button` and `Dialog` primitives — which resolve their colours
+   through `var(--primary)` and friends — adopt the reference palette without
+   any of their own class strings changing.
+   ========================================================================== */
+
+.beepaLanding {
+  /* Reference palette (src/styles.css :root), redeclared on the wrapper. */
+  --lm-background: oklch(0.985 0.003 110);
+  --lm-foreground: oklch(0.2 0.012 265);
+  --lm-primary: oklch(0.53 0.156 151);
+  --lm-primary-foreground: oklch(0.99 0 0);
+  --lm-secondary: oklch(0.945 0.006 110);
+  --lm-accent: oklch(0.93 0.036 135);
+  --lm-muted-foreground: oklch(0.49 0.01 265);
+  --lm-border: oklch(0.86 0.006 110);
+  --lm-brand-navy: oklch(0.265 0.09 281);
+  --lm-brand-lime: oklch(0.79 0.174 124);
+  --lm-destructive: oklch(0.58 0.2 25);
+  --lm-photo-scrim: linear-gradient(
+    180deg,
+    transparent 50%,
+    oklch(0.13 0.02 265 / 78%) 100%
+  );
+  --lm-panel-shadow: 0 14px 45px oklch(0.2 0.01 265 / 12%);
+  --lm-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --lm-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+
+  /* Re-point the shared primitives' tokens at the reference palette. */
+  --background: var(--lm-background);
+  --foreground: var(--lm-foreground);
+  --primary: var(--lm-primary);
+  --primary-foreground: var(--lm-primary-foreground);
+  --secondary: var(--lm-secondary);
+  --accent: var(--lm-accent);
+  --muted-foreground: var(--lm-muted-foreground);
+  --border: var(--lm-border);
+  --ring: var(--lm-primary);
+  --destructive: var(--lm-destructive);
+
+  min-height: 100%;
+  background: var(--lm-background);
+  color: var(--lm-foreground);
+  font-family: var(--lm-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.beepaLanding h1,
+.beepaLanding h2,
+.beepaLanding h3,
+.beepaLanding h4,
+.beepaLanding p,
+.beepaLanding figure {
+  margin: 0;
+}
+.beepaLanding h1,
+.beepaLanding h2,
+.beepaLanding h3,
+.beepaLanding h4 {
+  font-family: var(--lm-display);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.beepaLanding a {
+  color: inherit;
+  text-decoration: none;
+}
+.beepaLanding button,
+.beepaLanding input,
+.beepaLanding select,
+.beepaLanding textarea {
+  font: inherit;
+}
+.beepaLanding img {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+}
+.beepaLanding ::selection {
+  background: var(--lm-brand-lime);
+  color: var(--lm-brand-navy);
+}
+
+/* In-page anchors are the whole navigation model of this page, so smooth
+   scrolling and an offset for the header are enabled only while it is mounted. */
+html:has(.beepaLanding) {
+  scroll-behavior: smooth;
+  scroll-padding-top: 24px;
+}
+
+.beepaLanding .container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 64px;
+}
+
+/* ---------------------------------------------------------------- header */
+.beepaLanding .header {
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+.beepaLanding .logo {
+  width: 176px;
+  height: auto;
+  object-fit: contain;
+}
+.beepaLanding .nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.beepaLanding .nav a {
+  transition: color 0.2s;
+  /* 44px tap target. The header is 100px tall and centres its nav, so growing
+     the links to the target size changes nothing about how the bar looks. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.beepaLanding .nav a:hover {
+  color: var(--lm-primary);
+}
+.beepaLanding .nav .career-link {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.beepaLanding .nav .career-link::after,
+.beepaLanding .live-dot::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--lm-primary);
+  display: inline-block;
+}
+.beepaLanding .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.beepaLanding .header-actions .header-cta {
+  height: 39px;
+  font-size: 11px;
+  padding: 0 18px;
+}
+.beepaLanding .mobile-menu {
+  display: none;
+}
+.beepaLanding .arrow {
+  display: inline-block;
+  margin-left: 13px;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+/* ------------------------------------------------------------------ hero */
+.beepaLanding .eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.beepaLanding .eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 2px;
+  background: var(--lm-primary);
+}
+.beepaLanding .hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 620px;
+}
+.beepaLanding .hero-copy {
+  padding: 58px 44px 30px 0;
+  display: flex;
+  flex-direction: column;
+}
+.beepaLanding .hero h1 {
+  font-size: 67px;
+  line-height: 1.075;
+  margin: 34px 0 24px;
+  font-weight: 500;
+}
+.beepaLanding .hero h1 span {
+  color: var(--lm-primary);
+}
+.beepaLanding .hero-description {
+  max-width: 355px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--lm-muted-foreground);
+}
+.beepaLanding .hero-buttons {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-top: 31px;
+}
+.beepaLanding .hero-buttons button,
+.beepaLanding .hero-buttons a.cta {
+  font-size: 12px;
+  height: 44px;
+  padding: 0 20px;
+}
+.beepaLanding .hero-foot {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 37px;
+  font-size: 10px;
+  color: var(--lm-muted-foreground);
+}
+.beepaLanding .hero-foot .mini-portrait {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-position: 50% 32%;
+  flex: none;
+}
+.beepaLanding .hero-foot strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--lm-foreground);
+  margin-bottom: 3px;
+}
+.beepaLanding .hero-media {
+  position: relative;
+  overflow: hidden;
+}
+.beepaLanding .hero-media > img {
+  height: 100%;
+  position: absolute;
+  object-position: 50% 45%;
+}
+.beepaLanding .hero-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--lm-photo-scrim);
+  pointer-events: none;
+}
+.beepaLanding .photo-top {
+  position: absolute;
+  z-index: 1;
+  top: 24px;
+  right: 24px;
+  padding: 8px 12px;
+  background: var(--lm-brand-navy);
+  color: var(--lm-background);
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.beepaLanding .photo-caption {
+  position: absolute;
+  z-index: 1;
+  left: 28px;
+  right: 28px;
+  bottom: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  color: var(--lm-background);
+}
+.beepaLanding .photo-caption strong {
+  font-size: 15px;
+  font-weight: 500;
+  display: block;
+}
+.beepaLanding .photo-caption span {
+  font-size: 10px;
+  opacity: 0.8;
+}
+.beepaLanding .photo-caption .caption-location {
+  text-align: right;
+}
+
+/* ------------------------------------------------------------- assurance */
+.beepaLanding .assurance {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  padding: 27px 0;
+  border-bottom: 1px solid var(--lm-border);
+}
+.beepaLanding .assurance div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 11px;
+}
+.beepaLanding .check {
+  color: var(--lm-primary);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------- section */
+.beepaLanding .section {
+  padding-top: 94px;
+  padding-bottom: 94px;
+  border-bottom: 1px solid var(--lm-border);
+}
+.beepaLanding .section-number {
+  display: block;
+  color: var(--lm-primary);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+.beepaLanding .intro-headline {
+  font-size: 39px;
+  line-height: 1.35;
+  max-width: 1000px;
+  margin-bottom: 28px;
+}
+.beepaLanding .intro-headline .muted {
+  color: var(--lm-muted-foreground);
+}
+.beepaLanding .inline-face {
+  display: inline-block;
+  vertical-align: middle;
+  width: 45px;
+  height: 32px;
+  object-position: 50% 30%;
+  margin: 0 5px;
+}
+.beepaLanding .section-bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+}
+.beepaLanding .section-bottom p {
+  max-width: 490px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--lm-muted-foreground);
+}
+.beepaLanding .text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 25px;
+  border-bottom: 1px solid var(--lm-border);
+  padding-bottom: 8px;
+  font-size: 12px;
+}
+.beepaLanding .team-panorama {
+  height: 420px;
+  margin-top: 42px;
+  object-position: center 45%;
+}
+.beepaLanding .values {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 30px;
+  gap: 28px;
+}
+.beepaLanding .values article {
+  border-top: 1px solid var(--lm-foreground);
+  padding-top: 17px;
+}
+.beepaLanding .values h3 {
+  font-size: 13px;
+  font-weight: 650;
+  margin-bottom: 10px;
+}
+.beepaLanding .values p {
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--lm-muted-foreground);
+}
+
+/* -------------------------------------------------------------- greeting */
+.beepaLanding .greeting {
+  overflow: hidden;
+  border-bottom: 1px solid var(--lm-border);
+  display: flex;
+  justify-content: center;
+  gap: 38px;
+  padding: 29px 0;
+  white-space: nowrap;
+  font-family: var(--lm-display);
+  font-size: 30px;
+}
+.beepaLanding .greeting span:nth-child(even) {
+  color: var(--lm-muted-foreground);
+}
+
+/* -------------------------------------------------------------- services */
+.beepaLanding .section-heading {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  margin-bottom: 36px;
+  align-items: end;
+}
+.beepaLanding .section-heading h2 {
+  font-size: 38px;
+  line-height: 1.15;
+}
+.beepaLanding .section-heading p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--lm-muted-foreground);
+  max-width: 420px;
+}
+.beepaLanding .service-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 13px;
+}
+.beepaLanding .service-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 360px;
+}
+.beepaLanding .service-card > img {
+  position: absolute;
+  height: 100%;
+  transition: transform 0.6s;
+}
+.beepaLanding .service-card:hover > img {
+  transform: scale(1.035);
+}
+.beepaLanding .service-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--lm-photo-scrim);
+}
+.beepaLanding .service-card-content {
+  position: absolute;
+  bottom: 22px;
+  left: 22px;
+  right: 22px;
+  color: var(--lm-background);
+  z-index: 1;
+}
+.beepaLanding .service-card-content h3 {
+  font-size: 22px;
+  margin-bottom: 9px;
+}
+.beepaLanding .service-card-content p {
+  font-size: 11px;
+  line-height: 1.6;
+  max-width: 220px;
+  opacity: 0.85;
+}
+.beepaLanding .service-card-content .service-counter {
+  font-size: 10px;
+  display: block;
+  margin-bottom: 9px;
+}
+.beepaLanding .service-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 20px;
+  column-gap: 32px;
+}
+.beepaLanding .service-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--lm-border);
+  padding: 18px 0;
+  font-size: 12px;
+}
+.beepaLanding .service-list-item span:first-child {
+  color: var(--lm-muted-foreground);
+  margin-right: 12px;
+  font-size: 9px;
+}
+.beepaLanding .service-list-item button {
+  width: 100%;
+  justify-content: space-between;
+  padding: 0;
+  border-radius: 0;
+  font-weight: 450;
+  height: auto;
+  min-height: 44px;
+}
+
+/* ------------------------------------------------------------------ time */
+.beepaLanding .time-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 70px;
+}
+.beepaLanding .time-section h2 {
+  font-size: 38px;
+  line-height: 1.15;
+  max-width: 350px;
+}
+.beepaLanding .time-section p {
+  color: var(--lm-muted-foreground);
+  font-size: 13px;
+  line-height: 1.8;
+  margin-top: 20px;
+  max-width: 380px;
+}
+.beepaLanding .time-list {
+  margin-top: 35px;
+}
+.beepaLanding .time-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 17px 0;
+  border-bottom: 1px solid var(--lm-border);
+}
+.beepaLanding .time-row span {
+  font-size: 12px;
+}
+.beepaLanding .time-row strong {
+  font-size: 34px;
+  font-family: var(--lm-display);
+  font-weight: 400;
+}
+.beepaLanding .time-row small {
+  display: block;
+  color: var(--lm-muted-foreground);
+  font-size: 9px;
+  margin-top: 5px;
+}
+.beepaLanding .time-row:first-child strong {
+  color: var(--lm-primary);
+}
+.beepaLanding .time-photo {
+  height: 100%;
+  min-height: 400px;
+  object-position: 35% 50%;
+}
+
+/* --------------------------------------------------------------- process */
+.beepaLanding .process-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.beepaLanding .process-step {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--lm-secondary);
+  min-height: 245px;
+}
+.beepaLanding .process-step-copy {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+}
+.beepaLanding .process-step-copy > span {
+  font-size: 10px;
+  color: var(--lm-muted-foreground);
+}
+.beepaLanding .process-step-copy h3 {
+  font-size: 22px;
+  line-height: 1.2;
+  margin: auto 0 12px;
+}
+.beepaLanding .process-step-copy p {
+  font-size: 11px;
+  color: var(--lm-muted-foreground);
+  line-height: 1.7;
+}
+.beepaLanding .process-step img {
+  height: 100%;
+}
+
+/* ---------------------------------------------------------- transparency */
+.beepaLanding .transparency-band {
+  background: var(--lm-secondary);
+}
+.beepaLanding .transparency {
+  border: 0;
+}
+.beepaLanding .platform-stage {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  align-items: center;
+  gap: 60px;
+  margin-top: 50px;
+}
+.beepaLanding .platform-copy h3 {
+  font-size: 26px;
+  line-height: 1.25;
+}
+.beepaLanding .platform-copy p {
+  font-size: 12px;
+  color: var(--lm-muted-foreground);
+  line-height: 1.8;
+  margin-top: 18px;
+}
+.beepaLanding .platform-items {
+  margin: 25px 0;
+}
+.beepaLanding .platform-item {
+  border-top: 1px solid var(--lm-border);
+  padding: 16px 0;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.beepaLanding .platform-item span {
+  color: var(--lm-primary);
+  font-size: 16px;
+}
+.beepaLanding .device-switch {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--lm-background);
+  border: 1px solid var(--lm-border);
+  gap: 4px;
+}
+.beepaLanding .device-switch button {
+  border-radius: 1px;
+  min-width: 87px;
+  font-size: 11px;
+  height: 30px;
+}
+.beepaLanding .device-switch button[aria-pressed="true"] {
+  background: var(--lm-brand-navy);
+  color: var(--lm-background);
+}
+.beepaLanding .dashboard {
+  border: 1px solid var(--lm-border);
+  background: var(--lm-background);
+  box-shadow: var(--lm-panel-shadow);
+  padding: 21px;
+  transition: width 0.3s;
+  width: 100%;
+  min-height: 365px;
+  justify-self: center;
+}
+.beepaLanding .dashboard.mobile {
+  max-width: 280px;
+  border-radius: 22px;
+  border: 7px solid var(--lm-foreground);
+  padding: 17px;
+}
+.beepaLanding .dashboard-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--lm-border);
+  padding-bottom: 18px;
+  font-size: 9px;
+}
+.beepaLanding .dashboard-top img {
+  width: 85px;
+  object-fit: contain;
+}
+.beepaLanding .dashboard h4 {
+  font-size: 20px;
+  margin-top: 23px;
+}
+.beepaLanding .dashboard .demo-label {
+  font-size: 8px;
+  color: var(--lm-muted-foreground);
+}
+.beepaLanding .dashboard-sub {
+  font-size: 10px;
+  color: var(--lm-muted-foreground);
+  margin: 7px 0 20px;
+}
+.beepaLanding .dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--lm-border);
+}
+.beepaLanding .dashboard-stats small {
+  font-size: 8px;
+  color: var(--lm-muted-foreground);
+  display: block;
+  margin-bottom: 6px;
+}
+.beepaLanding .dashboard-stats strong {
+  font-size: 22px;
+  font-weight: 500;
+}
+.beepaLanding .dashboard-stats strong em {
+  font-size: 10px;
+  font-style: normal;
+  color: var(--lm-primary);
+}
+.beepaLanding .dashboard-table {
+  width: 100%;
+  margin-top: 18px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 9px;
+}
+.beepaLanding .dashboard-table th {
+  color: var(--lm-muted-foreground);
+  font-weight: 400;
+  padding-bottom: 12px;
+}
+.beepaLanding .dashboard-table td {
+  padding: 11px 0;
+  border-top: 1px solid var(--lm-border);
+}
+.beepaLanding .status {
+  font-size: 8px;
+  background: var(--lm-accent);
+  color: var(--lm-primary);
+  padding: 4px 6px;
+  display: inline-block;
+}
+.beepaLanding .mobile .dashboard-stats {
+  gap: 6px;
+}
+.beepaLanding .mobile .dashboard-stats strong {
+  font-size: 18px;
+}
+.beepaLanding .mobile .dashboard-table th:nth-child(3),
+.beepaLanding .mobile .dashboard-table td:nth-child(3) {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- report */
+.beepaLanding .report-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 58px;
+  align-items: center;
+}
+.beepaLanding .report-photo {
+  height: 400px;
+}
+.beepaLanding .report-copy h2 {
+  font-size: 38px;
+  line-height: 1.15;
+}
+.beepaLanding .report-copy p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--lm-muted-foreground);
+  margin: 22px 0 24px;
+}
+.beepaLanding .report-list div {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--lm-border);
+  font-size: 12px;
+}
+.beepaLanding .report-list div span:last-child {
+  color: var(--lm-primary);
+}
+
+/* --------------------------------------------------------------- promise */
+.beepaLanding .promise {
+  padding: 60px 0;
+  border-bottom: 1px solid var(--lm-border);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 40px;
+}
+.beepaLanding .promise article + article {
+  border-left: 1px solid var(--lm-border);
+  padding-left: 40px;
+}
+.beepaLanding .promise strong {
+  display: block;
+  font-size: 33px;
+  font-family: var(--lm-display);
+  color: var(--lm-primary);
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.beepaLanding .promise h3 {
+  font-size: 13px;
+  margin-bottom: 9px;
+  font-weight: 600;
+}
+.beepaLanding .promise p {
+  color: var(--lm-muted-foreground);
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+/* --------------------------------------------------------------- planner */
+.beepaLanding .planner {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 80px;
+}
+.beepaLanding .planner h2 {
+  font-size: 38px;
+  line-height: 1.15;
+}
+.beepaLanding .planner-description {
+  margin: 20px 0 30px;
+  font-size: 12px;
+  color: var(--lm-muted-foreground);
+  line-height: 1.8;
+  max-width: 400px;
+}
+.beepaLanding .field {
+  display: block;
+  margin-bottom: 22px;
+}
+.beepaLanding .field > span {
+  display: block;
+  font-size: 10px;
+  margin-bottom: 9px;
+  color: var(--lm-muted-foreground);
+}
+.beepaLanding .field select,
+.beepaLanding .field input,
+.beepaLanding .field textarea {
+  width: 100%;
+  border: 1px solid var(--lm-border);
+  background: var(--lm-background);
+  padding: 11px 12px;
+  font-size: 12px;
+  border-radius: 0;
+  color: var(--lm-foreground);
+  outline: none;
+}
+.beepaLanding .field select:focus,
+.beepaLanding .field input:focus,
+.beepaLanding .field textarea:focus {
+  border-color: var(--lm-primary);
+}
+.beepaLanding .range-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+}
+.beepaLanding input[type="range"] {
+  accent-color: var(--lm-primary);
+  padding: 0;
+  margin-top: 14px;
+}
+.beepaLanding .planner-summary {
+  padding: 35px 0 0;
+  border-top: 1px solid var(--lm-foreground);
+}
+.beepaLanding .planner-summary .summary-title {
+  font-size: 10px;
+  color: var(--lm-muted-foreground);
+}
+.beepaLanding .planner-summary h3 {
+  font-size: 36px;
+  margin-top: 15px;
+  line-height: 1.15;
+}
+.beepaLanding .planner-summary h3 span {
+  color: var(--lm-primary);
+}
+.beepaLanding .summary-details {
+  margin: 28px 0;
+}
+.beepaLanding .summary-details div {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--lm-border);
+  font-size: 11px;
+}
+.beepaLanding .summary-details span {
+  color: var(--lm-muted-foreground);
+}
+.beepaLanding .planner-summary p {
+  font-size: 10px;
+  color: var(--lm-muted-foreground);
+  line-height: 1.7;
+  margin-top: 16px;
+  max-width: 320px;
+}
+
+/* --------------------------------------------------------------- careers */
+.beepaLanding .careers-band {
+  background: var(--lm-brand-navy);
+  color: var(--lm-background);
+}
+.beepaLanding .careers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  padding-top: 66px;
+  padding-bottom: 66px;
+}
+.beepaLanding .careers .section-number {
+  color: var(--lm-brand-lime);
+}
+.beepaLanding .careers h2 {
+  font-size: 40px;
+  line-height: 1.15;
+}
+.beepaLanding .careers p {
+  font-size: 12px;
+  line-height: 1.8;
+  max-width: 340px;
+  opacity: 0.75;
+  margin: 22px 0;
+}
+.beepaLanding .career-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--lm-background) 20%, transparent);
+  padding: 21px 0;
+  gap: 18px;
+}
+.beepaLanding .career-row h3 {
+  font-size: 19px;
+}
+.beepaLanding .career-row small {
+  font-size: 10px;
+  opacity: 0.55;
+  display: block;
+  margin-top: 6px;
+}
+.beepaLanding .career-row button {
+  color: var(--lm-brand-lime);
+}
+.beepaLanding .career-note {
+  font-size: 9px;
+  opacity: 0.55;
+  margin-top: 18px;
+}
+
+/* ------------------------------------------------------------------- faq */
+.beepaLanding .faq-layout {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 80px;
+}
+.beepaLanding .faq-layout h2 {
+  font-size: 38px;
+  line-height: 1.15;
+}
+.beepaLanding .faq-layout p {
+  font-size: 12px;
+  color: var(--lm-muted-foreground);
+  margin-top: 20px;
+  max-width: 280px;
+  line-height: 1.8;
+}
+.beepaLanding .faq-item {
+  border-bottom: 1px solid var(--lm-border);
+}
+.beepaLanding .faq-item button {
+  width: 100%;
+  padding: 20px 0;
+  height: auto;
+  min-height: 62px;
+  justify-content: space-between;
+  text-align: left;
+  white-space: normal;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.beepaLanding .faq-item button span:last-child {
+  color: var(--lm-primary);
+  margin-left: 15px;
+  font-size: 18px;
+}
+.beepaLanding .faq-item p {
+  margin: 0;
+  padding: 0 25px 22px 0;
+  max-width: none;
+  font-size: 11px;
+}
+
+/* ------------------------------------------------------------- final cta */
+.beepaLanding .final-cta {
+  position: relative;
+  height: 420px;
+  overflow: hidden;
+}
+.beepaLanding .final-cta > img {
+  height: 100%;
+  object-position: 50% 45%;
+}
+.beepaLanding .final-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    oklch(0.12 0.02 265 / 80%),
+    oklch(0.12 0.02 265 / 12%)
+  );
+}
+.beepaLanding .final-copy {
+  position: absolute;
+  z-index: 1;
+  left: 48px;
+  top: 85px;
+  color: var(--lm-background);
+}
+.beepaLanding .final-copy h2 {
+  font-size: 43px;
+  max-width: 560px;
+  line-height: 1.15;
+}
+.beepaLanding .final-copy p {
+  font-size: 12px;
+  margin: 20px 0 30px;
+  opacity: 0.8;
+}
+.beepaLanding .final-copy button {
+  font-size: 12px;
+}
+
+/* ---------------------------------------------------------------- footer */
+.beepaLanding .footer {
+  padding-top: 46px;
+  padding-bottom: 30px;
+}
+.beepaLanding .footer-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--lm-border);
+}
+.beepaLanding .footer-tagline {
+  font-size: 12px;
+  color: var(--lm-muted-foreground);
+  margin-top: 15px;
+}
+.beepaLanding .footer-links {
+  display: flex;
+  gap: 50px;
+  font-size: 11px;
+}
+.beepaLanding .footer-links div {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.beepaLanding .footer-links strong {
+  font-size: 10px;
+  color: var(--lm-muted-foreground);
+  font-weight: 400;
+  margin-bottom: 4px;
+}
+.beepaLanding .footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 22px;
+  font-size: 9px;
+  color: var(--lm-muted-foreground);
+}
+.beepaLanding .footer-brand {
+  font-size: 112px;
+  font-family: var(--lm-display);
+  color: var(--lm-brand-navy);
+  font-weight: 650;
+  line-height: 1.3;
+  margin-top: 25px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.beepaLanding .footer-brand span {
+  width: 65px;
+  height: 65px;
+  border: 9px solid var(--lm-primary);
+  border-radius: 36px 0 36px 0;
+}
+
+/* ---------------------------------------------------------------- dialog */
+.beepaLanding .dialog-form {
+  margin-top: 16px;
+}
+.beepaLanding .dialog-form .field {
+  margin-bottom: 15px;
+}
+.beepaLanding .dialog-form .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.beepaLanding .dialog-disclaimer {
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--lm-muted-foreground);
+  margin-top: 16px;
+}
+.beepaLanding .dialog-success {
+  background: var(--lm-accent);
+  padding: 15px;
+  font-size: 12px;
+  color: var(--lm-primary);
+  margin-top: 18px;
+}
+
+/* ============================================================ breakpoints */
+
+/* ---------------------------------------------------------------- touch
+   WCAG 2.5.5 target size applies at every width, not only on phones. The
+   reference draws several controls as bare text runs — the section link, the
+   footer link column, the planner's range slider and the mobile menu button —
+   which are all under 44px tall. Padding is added rather than a wrapper so the
+   hit area grows without moving anything on the page. */
+.beepaLanding .text-link {
+  min-height: 44px;
+}
+.beepaLanding .footer-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.beepaLanding input[type="range"] {
+  min-height: 44px;
+}
+.beepaLanding .mobile-menu {
+  min-width: 44px;
+}
+
+@media (min-width: 1500px) {
+  .beepaLanding .hero {
+    min-height: 690px;
+  }
+  .beepaLanding .hero h1 {
+    font-size: 76px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .beepaLanding .container {
+    padding: 0 36px;
+  }
+  .beepaLanding .nav {
+    gap: 17px;
+  }
+  .beepaLanding .nav a {
+    font-size: 11px;
+  }
+  .beepaLanding .header-actions {
+    gap: 12px;
+  }
+  .beepaLanding .header {
+    gap: 20px;
+  }
+  .beepaLanding .logo {
+    width: 150px;
+  }
+  .beepaLanding .hero h1 {
+    font-size: 55px;
+  }
+  .beepaLanding .hero {
+    min-height: 600px;
+  }
+  .beepaLanding .hero-buttons {
+    gap: 15px;
+  }
+  .beepaLanding .hero-copy {
+    padding-right: 26px;
+  }
+  .beepaLanding .platform-stage {
+    gap: 30px;
+  }
+  .beepaLanding .process-step {
+    min-height: 270px;
+  }
+  .beepaLanding .process-step-copy {
+    padding: 17px;
+  }
+  .beepaLanding .section {
+    padding-top: 75px;
+    padding-bottom: 75px;
+  }
+}
+
+@media (max-width: 760px) {
+  .beepaLanding .container {
+    padding: 0 22px;
+  }
+  .beepaLanding .header {
+    height: 80px;
+  }
+  .beepaLanding .logo {
+    width: 145px;
+  }
+  .beepaLanding .nav {
+    display: none;
+  }
+  .beepaLanding .header-actions .header-cta {
+    display: none;
+  }
+  .beepaLanding .mobile-menu {
+    display: inline-flex;
+  }
+  .beepaLanding .nav.open {
+    display: flex;
+    position: absolute;
+    top: 80px;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background: var(--lm-background);
+    padding: 25px;
+    flex-direction: column;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--lm-border);
+    box-shadow: var(--lm-panel-shadow);
+  }
+  .beepaLanding .nav.open a {
+    font-size: 14px;
+    padding: 6px 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .beepaLanding .hero {
+    grid-template-columns: 1fr;
+  }
+  .beepaLanding .hero-copy {
+    padding: 30px 0;
+  }
+  .beepaLanding .hero h1 {
+    font-size: 49px;
+    margin-top: 24px;
+  }
+  .beepaLanding .hero-description {
+    max-width: 340px;
+  }
+  .beepaLanding .hero-buttons {
+    gap: 20px;
+  }
+  .beepaLanding .hero-foot {
+    padding-top: 28px;
+  }
+  .beepaLanding .hero-media {
+    height: 420px;
+  }
+
+  .beepaLanding .assurance {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 10px;
+    padding: 24px 0;
+  }
+  .beepaLanding .section {
+    padding-top: 58px;
+    padding-bottom: 58px;
+  }
+  .beepaLanding .intro-headline {
+    font-size: 29px;
+    line-height: 1.4;
+  }
+  .beepaLanding .inline-face {
+    width: 35px;
+    height: 26px;
+  }
+  .beepaLanding .section-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .beepaLanding .team-panorama {
+    height: 270px;
+    margin-top: 28px;
+  }
+  .beepaLanding .values {
+    grid-template-columns: 1fr 1fr;
+    gap: 25px 20px;
+  }
+  .beepaLanding .greeting {
+    gap: 25px;
+    font-size: 24px;
+    padding: 23px 0;
+  }
+  .beepaLanding .section-heading {
+    grid-template-columns: 1fr;
+    gap: 23px;
+  }
+  .beepaLanding .section-heading h2,
+  .beepaLanding .time-section h2,
+  .beepaLanding .report-copy h2,
+  .beepaLanding .planner h2,
+  .beepaLanding .faq-layout h2 {
+    font-size: 33px;
+  }
+  .beepaLanding .service-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .beepaLanding .service-card {
+    min-height: 280px;
+  }
+  .beepaLanding .service-card:first-child {
+    grid-column: 1 / -1;
+    min-height: 340px;
+  }
+  .beepaLanding .service-card-content {
+    left: 16px;
+    bottom: 18px;
+    right: 16px;
+  }
+  .beepaLanding .service-card-content h3 {
+    font-size: 18px;
+  }
+  .beepaLanding .service-list {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 20px;
+  }
+  .beepaLanding .service-list-item {
+    padding: 13px 0;
+  }
+  .beepaLanding .service-list-item span:first-child {
+    margin-right: 7px;
+  }
+
+  .beepaLanding .time-section {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .beepaLanding .time-photo {
+    height: 300px;
+    min-height: 0;
+  }
+  .beepaLanding .time-list {
+    margin-top: 20px;
+  }
+  .beepaLanding .time-row strong {
+    font-size: 28px;
+  }
+  .beepaLanding .process-grid {
+    grid-template-columns: 1fr;
+  }
+  .beepaLanding .process-step {
+    min-height: 220px;
+  }
+  .beepaLanding .process-step-copy {
+    padding: 20px;
+  }
+  .beepaLanding .platform-stage {
+    grid-template-columns: 1fr;
+    gap: 35px;
+  }
+  .beepaLanding .dashboard {
+    padding: 17px;
+    min-height: 340px;
+  }
+  .beepaLanding .report-layout {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .beepaLanding .report-photo {
+    height: 300px;
+  }
+  .beepaLanding .promise {
+    grid-template-columns: 1fr;
+    gap: 26px;
+    padding: 40px 0;
+  }
+  .beepaLanding .promise article + article {
+    border-left: 0;
+    border-top: 1px solid var(--lm-border);
+    padding: 24px 0 0;
+  }
+  .beepaLanding .promise strong {
+    font-size: 30px;
+  }
+  .beepaLanding .planner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .beepaLanding .planner-summary {
+    padding-top: 24px;
+  }
+  .beepaLanding .careers {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding-top: 50px;
+    padding-bottom: 50px;
+  }
+  .beepaLanding .careers h2 {
+    font-size: 35px;
+  }
+  .beepaLanding .careers p {
+    max-width: none;
+  }
+  .beepaLanding .faq-layout {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  .beepaLanding .faq-layout p {
+    max-width: 350px;
+  }
+  .beepaLanding .final-cta {
+    height: 380px;
+  }
+  .beepaLanding .final-copy {
+    left: 24px;
+    right: 24px;
+    top: 66px;
+  }
+  .beepaLanding .final-copy h2 {
+    font-size: 33px;
+  }
+  .beepaLanding .footer {
+    padding-top: 35px;
+    padding-bottom: 25px;
+  }
+  .beepaLanding .footer-top {
+    flex-direction: column;
+    gap: 30px;
+  }
+  .beepaLanding .footer-links {
+    gap: 48px;
+  }
+  .beepaLanding .footer-bottom {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .beepaLanding .footer-brand {
+    font-size: 68px;
+    gap: 16px;
+    margin-top: 25px;
+  }
+  .beepaLanding .footer-brand span {
+    width: 44px;
+    height: 44px;
+    border-width: 6px;
+  }
+
+  /* ---- MOBILE TYPE FLOOR (see header comment) -------------------------
+     Every one of these is below 16px in the reference. On a phone that is an
+     auto-zoom trigger and is unreadable, so they are raised to the floor the
+     responsive auditor enforces. Labels that are short, bold and all-caps are
+     already exempt (section numbers, eyebrows) and are left at their
+     reference sizes, because scaling them would wreck the editorial rhythm
+     without improving legibility. */
+  .beepaLanding .hero-description,
+  .beepaLanding .hero-foot,
+  .beepaLanding .hero-foot strong,
+  .beepaLanding .photo-caption strong,
+  .beepaLanding .photo-caption span,
+  .beepaLanding .photo-top,
+  .beepaLanding .assurance div,
+  .beepaLanding .section-bottom p,
+  .beepaLanding .text-link,
+  .beepaLanding .values h3,
+  .beepaLanding .values p,
+  .beepaLanding .section-heading p,
+  .beepaLanding .service-card-content h3,
+  .beepaLanding .service-card-content p,
+  .beepaLanding .service-card-content .service-counter,
+  .beepaLanding .service-list-item,
+  .beepaLanding .service-list-item span:first-child,
+  .beepaLanding .time-section p,
+  .beepaLanding .time-row span,
+  .beepaLanding .time-row small,
+  .beepaLanding .process-step-copy > span,
+  .beepaLanding .process-step-copy h3,
+  .beepaLanding .process-step-copy p,
+  .beepaLanding .platform-copy h3,
+  .beepaLanding .platform-copy p,
+  .beepaLanding .platform-item,
+  .beepaLanding .dashboard-sub,
+  .beepaLanding .dashboard-table,
+  .beepaLanding .dashboard-stats small,
+  .beepaLanding .dashboard-stats strong,
+  .beepaLanding .dashboard .demo-label,
+  .beepaLanding .dashboard-top,
+  .beepaLanding .status,
+  .beepaLanding .report-copy p,
+  .beepaLanding .report-list div,
+  .beepaLanding .promise h3,
+  .beepaLanding .promise p,
+  .beepaLanding .planner-description,
+  .beepaLanding .field > span,
+  .beepaLanding .field select,
+  .beepaLanding .field input,
+  .beepaLanding .field textarea,
+  .beepaLanding .range-label,
+  .beepaLanding .planner-summary .summary-title,
+  .beepaLanding .summary-details div,
+  .beepaLanding .planner-summary p,
+  .beepaLanding .careers p,
+  .beepaLanding .career-row h3,
+  .beepaLanding .career-row small,
+  .beepaLanding .career-note,
+  .beepaLanding .faq-layout p,
+  .beepaLanding .faq-item button,
+  .beepaLanding .faq-item p,
+  .beepaLanding .final-copy p,
+  .beepaLanding .footer-tagline,
+  .beepaLanding .footer-bottom span,
+  .beepaLanding .dialog-disclaimer,
+  .beepaLanding .dialog-success {
+    font-size: 16px;
+  }
+
+  /* The dashboard is an illustrative mock, not body copy, but its table text
+     still has to be readable when the device preview is toggled on a phone. */
+  .beepaLanding .dashboard-table {
+    font-size: 16px;
+  }
+  .beepaLanding .dashboard-stats strong {
+    font-size: 20px;
+  }
+
+  /* Career and service rows keep a little more breathing room once enlarged. */
+  .beepaLanding .service-list-item {
+    padding: 15px 0;
+  }
+  .beepaLanding .career-row {
+    padding: 18px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beepaLanding *,
+  .beepaLanding *::before,
+  .beepaLanding *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

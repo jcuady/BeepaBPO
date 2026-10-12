@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Serif, Inter, Manrope } from "next/font/google";
+import { DM_Sans, Instrument_Serif, Inter, Manrope } from "next/font/google";
 import { BRAND } from "@/lib/site";
 import "./globals.css";
 
@@ -7,6 +7,21 @@ const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
   weight: ["500", "600", "700"],
+  display: "swap",
+});
+
+/**
+ * Body face for the landing page only.
+ *
+ * The landing page is a direct port of the "BeepaBPO new landing design"
+ * reference, which sets its body copy in DM Sans. The variable is applied
+ * strictly inside `.beepaLanding` (see components/landing/landing.css), so
+ * every other route keeps Inter for body and Manrope for display.
+ */
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
   display: "swap",
 });
 
@@ -137,7 +152,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.variable} ${instrumentSerif.variable} ${inter.variable} h-full`}
+      className={`${manrope.variable} ${dmSans.variable} ${instrumentSerif.variable} ${inter.variable} h-full`}
     >
       <body className="flex min-h-full flex-col font-sans text-ink">
         {children}
