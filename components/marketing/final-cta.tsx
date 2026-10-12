@@ -32,10 +32,10 @@ export function FinalCTA() {
       <Container>
         <Reveal>
           {/* Mint bezel-frame card */}
-          <div className="relative isolate rounded-[2rem] bg-white p-6 ring-1 ring-line shadow-[0_30px_60px_-32px_rgba(31,32,88,0.18),0_8px_24px_-12px_rgba(11,110,52,0.10)] sm:p-8 md:p-12">
+          <div className="relative isolate rounded-none bg-white p-6 ring-1 ring-line shadow-[0_30px_60px_-32px_rgba(31,32,88,0.18),0_8px_24px_-12px_rgba(11,110,52,0.10)] sm:p-8 md:p-12">
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 -z-10 rounded-[2rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]"
+              className="pointer-events-none absolute inset-0 -z-10 rounded-none shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]"
             />
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-end lg:gap-10">
               <div className="lg:col-span-7">

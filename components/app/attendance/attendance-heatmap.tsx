@@ -129,7 +129,7 @@ export function AttendanceHeatmap({
   }
 
   return (
-    <div className="rounded-[16px] border border-line bg-white p-4 sm:p-5">
+    <div className="rounded-none border border-line bg-white p-4 sm:p-5">
       <div className="overflow-x-auto">
         {/* Uses the Table primitive. This was the last hand-rolled <table> in the
             app; it carried its own thead/cell styling that had already drifted
@@ -172,7 +172,7 @@ export function AttendanceHeatmap({
                       <button
                         type="button"
                         className={cn(
-                          "mx-auto flex size-11 items-center justify-center rounded-[12px] text-xs font-semibold transition-colors",
+                          "mx-auto flex size-11 items-center justify-center rounded-none text-xs font-semibold transition-colors",
                           KIND_CLASS[kind],
                           "cursor-pointer hover:ring-2 hover:ring-green-strong/40 focus-visible:ring-2 focus-visible:ring-green-strong focus-visible:outline-none",
                         )}
@@ -208,7 +208,7 @@ export function AttendanceHeatmap({
           <li key={kind} className="inline-flex items-center gap-1.5">
             <span
               className={cn(
-                "inline-flex size-3.5 items-center justify-center rounded-[4px] text-[8px] font-bold",
+                "inline-flex size-3.5 items-center justify-center rounded-none text-[8px] font-bold",
                 KIND_SWATCH[kind],
                 kind === "present" ? "text-white" : "text-navy",
               )}

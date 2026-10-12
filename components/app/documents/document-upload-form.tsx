@@ -45,7 +45,7 @@ export function DocumentUploadForm({
     <form
       ref={formRef}
       action={onSubmit}
-      className="space-y-3 rounded-[16px] border border-line bg-white p-4"
+      className="space-y-3 rounded-none border border-line bg-white p-4"
     >
       <p className="font-display text-sm font-semibold text-navy">
         Upload document

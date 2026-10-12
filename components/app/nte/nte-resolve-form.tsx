@@ -68,7 +68,7 @@ export function NteResolveForm({
     resolutionType === "suspension" || resolutionType === "dismissal";
 
   return (
-    <div className="space-y-3 rounded-[12px] border border-line bg-mist/40 p-4">
+    <div className="space-y-3 rounded-none border border-line bg-mist/40 p-4">
       <p className="text-sm font-medium text-navy">Resolve case</p>
       <div className="space-y-2">
         <Label htmlFor={`nte-resolution-${nteCaseId}`}>Resolution</Label>

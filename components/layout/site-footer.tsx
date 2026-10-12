@@ -88,7 +88,7 @@ export function SiteFooter() {
             <Link
               href="/"
               className={cn(
-                "inline-flex min-h-11 items-center rounded-[4px]",
+                "inline-flex min-h-11 items-center rounded-none",
                 focusRing,
               )}
               aria-label={`${BRAND.displayName} home`}

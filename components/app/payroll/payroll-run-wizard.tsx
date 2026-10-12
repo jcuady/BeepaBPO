@@ -78,7 +78,7 @@ export function PayrollRunWizard({ periods }: { periods: PeriodSpan[] }) {
             <label
               key={option.id}
               className={cn(
-                "flex min-h-11 cursor-pointer gap-3 rounded-[16px] border p-4",
+                "flex min-h-11 cursor-pointer gap-3 rounded-none border p-4",
                 frequency === option.id
                   ? "border-green bg-soft-green/60"
                   : "border-line bg-white",
@@ -103,7 +103,7 @@ export function PayrollRunWizard({ periods }: { periods: PeriodSpan[] }) {
       ) : null}
 
       {step === 1 ? (
-        <div className="space-y-3 rounded-[16px] border border-line p-4">
+        <div className="space-y-3 rounded-none border border-line p-4">
           <p className="font-display text-base font-semibold text-navy">
             {window.name}
           </p>

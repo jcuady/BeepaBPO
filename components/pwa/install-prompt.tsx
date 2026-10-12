@@ -75,7 +75,7 @@ export function InstallPrompt() {
 
   if (showIosTip && !deferredPrompt) {
     return (
-      <div className="fixed inset-x-4 bottom-20 z-40 rounded-xl border border-line bg-white p-4 shadow-lg md:bottom-6 md:left-auto md:right-6 md:max-w-sm">
+      <div className="fixed inset-x-4 bottom-20 z-40 rounded-none border border-line bg-white p-4 shadow-lg md:bottom-6 md:left-auto md:right-6 md:max-w-sm">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-navy">Install Beepa</p>
@@ -95,7 +95,7 @@ export function InstallPrompt() {
   if (!deferredPrompt) return null;
 
   return (
-    <div className="fixed inset-x-4 bottom-20 z-40 rounded-xl border border-line bg-white p-4 shadow-lg md:bottom-6 md:left-auto md:right-6 md:max-w-sm">
+    <div className="fixed inset-x-4 bottom-20 z-40 rounded-none border border-line bg-white p-4 shadow-lg md:bottom-6 md:left-auto md:right-6 md:max-w-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-navy">Install Beepa</p>

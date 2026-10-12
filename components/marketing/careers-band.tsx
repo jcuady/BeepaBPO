@@ -88,8 +88,8 @@ export function CareersBand() {
           </Reveal>
 
           <Reveal delay={80} className="relative isolate lg:col-span-7">
-            <div className="relative rounded-[2rem] bg-mist p-2 shadow-[0_30px_60px_-32px_rgba(31,32,88,0.22),0_8px_24px_-12px_rgba(11,110,52,0.10)]">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-[1.625rem] bg-white/60 ring-1 ring-line/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] sm:aspect-[16/10] lg:aspect-[5/4]">
+            <div className="relative rounded-none bg-mist p-2 shadow-[0_30px_60px_-32px_rgba(31,32,88,0.22),0_8px_24px_-12px_rgba(11,110,52,0.10)]">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-none bg-white/60 ring-1 ring-line/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] sm:aspect-[16/10] lg:aspect-[5/4]">
                 <Image
                   src={careersTeamPhoto}
                   alt="Beepa team members collaborating in the office"

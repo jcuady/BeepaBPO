@@ -46,7 +46,7 @@ export function PlatformSection() {
                     className="absolute top-7 right-[-0.5rem] hidden h-px w-[calc(100%-3.5rem)] translate-x-full bg-line lg:block"
                   />
                 )}
-                <div className="flex items-center gap-3 rounded-[12px] border border-line bg-white p-4 lg:flex-col lg:items-start lg:gap-4 lg:p-5">
+                <div className="flex items-center gap-3 rounded-none border border-line bg-white p-4 lg:flex-col lg:items-start lg:gap-4 lg:p-5">
                   <span className="flex size-11 items-center justify-center rounded-none bg-soft-green text-green">
                     <Icon stroke={1.75} className="size-5" />
                   </span>

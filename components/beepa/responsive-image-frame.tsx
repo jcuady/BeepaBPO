@@ -8,7 +8,12 @@ type Props = {
   className?: string;
   imageClassName?: string;
   sizes?: string;
-  /** interlocking: brand corners; soft: rounded; blend: large rounded (sharp, no dissolve) */
+  /**
+   * Square brand: every frame variant resolves to the same squared outline, so
+   * `frame` now only selects the lime inner accent (interlocking) or nothing.
+   * The variant names are kept so existing call sites keep compiling; collapse
+   * to a boolean once this component has a caller again (it currently has none).
+   */
   frame?: "interlocking" | "soft" | "blend" | "none";
 };
 
@@ -24,18 +29,15 @@ export function ResponsiveImageFrame({
   return (
     <div
       className={cn(
-        "relative overflow-hidden bg-mist",
-        frame === "interlocking" &&
-          "rounded-tl-[24px] rounded-br-[24px] rounded-tr-[8px] rounded-bl-[8px] ring-1 ring-line",
-        frame === "soft" && "rounded-[16px] ring-1 ring-line",
-        frame === "blend" && "rounded-[1.25rem] ring-1 ring-line md:rounded-[1.75rem]",
+        "relative overflow-hidden rounded-none bg-mist ring-1 ring-line",
+        frame === "none" && "ring-0",
         className,
       )}
     >
       {frame === "interlocking" && (
         <span
           aria-hidden
-          className="pointer-events-none absolute -inset-px z-10 rounded-tl-[24px] rounded-br-[24px] rounded-tr-[8px] rounded-bl-[8px] ring-2 ring-lime/40 ring-offset-0"
+          className="pointer-events-none absolute -inset-px z-10 rounded-none ring-2 ring-lime/40 ring-offset-0"
         />
       )}
       <Image

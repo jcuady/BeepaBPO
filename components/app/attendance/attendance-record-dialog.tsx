@@ -37,7 +37,7 @@ const STATUSES = [
 ] as const;
 
 const selectClass =
-  "flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm text-navy";
+  "flex min-h-11 w-full rounded-none border border-line bg-white px-3 text-sm text-navy";
 
 export type AttendanceDialogEmployee = {
   id: string;

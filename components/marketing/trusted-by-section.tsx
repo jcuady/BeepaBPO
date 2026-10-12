@@ -38,7 +38,7 @@ function MarqueeTrack({ decorative = false }: { decorative?: boolean }) {
             className="flex shrink-0 items-center"
           >
             <span className="flex items-center gap-2.5 px-4 sm:gap-3 sm:px-6">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-white text-green-strong ring-1 ring-line">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-none bg-white text-green-strong ring-1 ring-line">
                 <Icon stroke={1.5} className="size-4" aria-hidden />
               </span>
               <span className="font-display text-[13px] font-semibold tracking-tight text-navy whitespace-nowrap sm:text-[15px]">

@@ -158,7 +158,7 @@ export function SignupForm() {
             name="acceptTerms"
             type="checkbox"
             required
-            className="mt-1 size-5 shrink-0 cursor-pointer rounded-[6px] border-line accent-green-strong focus-visible:ring-2 focus-visible:ring-green-strong"
+            className="mt-1 size-5 shrink-0 cursor-pointer rounded-none border-line accent-green-strong focus-visible:ring-2 focus-visible:ring-green-strong"
           />
           <Label
             htmlFor="acceptTerms"

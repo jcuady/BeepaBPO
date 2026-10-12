@@ -16,7 +16,7 @@ import type { z } from "zod";
 type EmployeeInput = z.infer<typeof employeeUpdateSchema>;
 
 const selectClass =
-  "flex min-h-11 w-full rounded-[12px] border border-line bg-white px-3 text-sm text-navy";
+  "flex min-h-11 w-full rounded-none border border-line bg-white px-3 text-sm text-navy";
 
 export function EmployeeEditForm({
   defaultValues,

@@ -87,8 +87,8 @@ export function WhyBeepaSection() {
           </Reveal>
 
           <Reveal className="relative isolate lg:col-span-6 lg:col-start-7">
-            <div className="relative rounded-[2rem] bg-mist p-2 shadow-[0_30px_60px_-32px_rgba(31,32,88,0.22),0_8px_24px_-12px_rgba(11,110,52,0.10)]">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-[1.625rem] bg-white/60 ring-1 ring-line/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+            <div className="relative rounded-none bg-mist p-2 shadow-[0_30px_60px_-32px_rgba(31,32,88,0.22),0_8px_24px_-12px_rgba(11,110,52,0.10)]">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-none bg-white/60 ring-1 ring-line/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
                 <Image
                   src={whyAgentPhoto}
                   alt="Beepa support professional with headset in the office"
@@ -121,7 +121,7 @@ export function WhyBeepaSection() {
                 <div
                   key={column.label}
                   className={cn(
-                    "rounded-[1.75rem] p-6 ring-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] sm:p-7 md:p-8",
+                    "rounded-none p-6 ring-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] sm:p-7 md:p-8",
                     tintBg,
                   )}
                 >
@@ -129,7 +129,7 @@ export function WhyBeepaSection() {
                     <span
                       aria-hidden
                       className={cn(
-                        "flex size-8 items-center justify-center rounded-[10px] ring-1",
+                        "flex size-8 items-center justify-center rounded-none ring-1",
                         column.accent === "navy"
                           ? "bg-mist text-navy ring-line"
                           : "bg-white text-green-strong ring-green-strong/15",

@@ -93,7 +93,7 @@ export function FAQSection({
 
         <Reveal>
           {items.length === 0 ? (
-            <p className="mt-10 max-w-[36ch] rounded-[1.5rem] border border-line bg-mist/60 p-6 text-base leading-relaxed text-slate sm:mt-12">
+            <p className="mt-10 max-w-[36ch] rounded-none border border-line bg-mist/60 p-6 text-base leading-relaxed text-slate sm:mt-12">
               No published questions yet. Request a team and we will walk
               through roles, sourcing, and pay.
             </p>
@@ -102,14 +102,14 @@ export function FAQSection({
               {items.map((item, idx) => (
                 <div
                   key={item.q}
-                  className="rounded-[1.5rem] bg-white p-6 ring-1 ring-line shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] sm:p-7"
+                  className="rounded-none bg-white p-6 ring-1 ring-line shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] sm:p-7"
                 >
                   <div className="flex items-start gap-4">
                     <div className="lg:col-span-5">
                       <div className="flex items-center gap-3">
                         <span
                           aria-hidden
-                          className="flex size-9 items-center justify-center rounded-[10px] bg-soft-green text-green-strong ring-1 ring-green-strong/10"
+                          className="flex size-9 items-center justify-center rounded-none bg-soft-green text-green-strong ring-1 ring-green-strong/10"
                         >
                           <IconHelp stroke={1.5} className="size-4" />
                         </span>

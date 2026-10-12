@@ -86,12 +86,12 @@ export function ManpowerModelSection() {
               return (
                 <li
                   key={step.word}
-                  className="rounded-[1.75rem] bg-white p-6 ring-1 ring-line shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] sm:p-7 md:p-8"
+                  className="rounded-none bg-white p-6 ring-1 ring-line shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] sm:p-7 md:p-8"
                 >
                   <div className="flex items-center gap-3">
                     <span
                       aria-hidden
-                      className="flex size-10 items-center justify-center rounded-[12px] bg-soft-green text-green-strong ring-1 ring-green-strong/15"
+                      className="flex size-10 items-center justify-center rounded-none bg-soft-green text-green-strong ring-1 ring-green-strong/15"
                     >
                       <Icon stroke={1.5} className="size-5" />
                     </span>

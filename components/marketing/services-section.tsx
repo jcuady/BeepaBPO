@@ -133,7 +133,7 @@ export function ServicesSection() {
                       focusRing,
                     )}
                   >
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-[12px] bg-soft-green text-green-strong ring-1 ring-green-strong/10">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-none bg-soft-green text-green-strong ring-1 ring-green-strong/10">
                       <Icon
                         stroke={1.5}
                         className="size-5"

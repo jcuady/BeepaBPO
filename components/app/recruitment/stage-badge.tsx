@@ -67,7 +67,7 @@ export function StageExplainer({
 }) {
   const meta = stageMeta(stage);
   return (
-    <div className="rounded-lg border border-slate/15 bg-slate/5 p-3">
+    <div className="rounded-none border border-slate/15 bg-slate/5 p-3">
       <StageBadge stage={stage} />
       <p className="mt-2 text-base text-slate sm:text-sm">
         {audience === "staff" ? meta.staffNote : meta.applicantNote}

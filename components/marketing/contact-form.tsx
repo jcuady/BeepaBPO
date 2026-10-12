@@ -184,7 +184,7 @@ export function ContactForm() {
   if (state.ok) {
     return (
       <div
-        className="rounded-[20px] border border-line bg-soft-green p-6 sm:p-8"
+        className="rounded-none border border-line bg-soft-green p-6 sm:p-8"
         role="status"
         aria-live="polite"
         data-contact-wizard="success"
@@ -212,7 +212,7 @@ export function ContactForm() {
     <form
       action={action}
       onSubmit={onFormSubmit}
-      className="relative space-y-6 rounded-[20px] border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8"
+      className="relative space-y-6 rounded-none border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8"
       noValidate
       data-analytics="contact_form"
       data-contact-wizard="active"
@@ -401,7 +401,7 @@ export function ContactForm() {
 
       {state.error ? (
         <p
-          className="rounded-[8px] bg-red-50 px-3 py-2 text-base text-destructive"
+          className="rounded-none bg-red-50 px-3 py-2 text-base text-destructive"
           role="alert"
         >
           {state.error}

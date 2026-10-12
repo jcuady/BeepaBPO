@@ -98,14 +98,14 @@ export function ProofStrip() {
                 <li
                   key={item.word}
                   className={cn(
-                    "rounded-[1.75rem] p-6 ring-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] sm:p-7 md:p-8",
+                    "rounded-none p-6 ring-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] sm:p-7 md:p-8",
                     tone,
                   )}
                 >
                   <div className="flex items-center gap-3">
                     <span
                       aria-hidden
-                      className="flex size-10 items-center justify-center rounded-[12px] bg-white text-green-strong ring-1 ring-green-strong/15"
+                      className="flex size-10 items-center justify-center rounded-none bg-white text-green-strong ring-1 ring-green-strong/15"
                     >
                       <Icon stroke={1.5} className="size-5" />
                     </span>

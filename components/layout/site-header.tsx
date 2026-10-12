@@ -91,7 +91,7 @@ export function SiteHeader() {
         <Link
           href="/"
           className={cn(
-            "relative flex h-11 min-h-11 min-w-0 shrink items-center rounded-[4px]",
+            "relative flex h-11 min-h-11 min-w-0 shrink items-center rounded-none",
             focusRing,
           )}
           aria-label={`${BRAND.displayName} home`}
@@ -168,7 +168,7 @@ export function SiteHeader() {
                           href={link.href}
                           aria-current={active ? "page" : undefined}
                           className={cn(
-                            "flex min-h-11 items-center rounded-[8px] px-2 font-display text-base font-medium transition-[color,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                            "flex min-h-11 items-center rounded-none px-2 font-display text-base font-medium transition-[color,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]",
                             active
                               ? "bg-soft-green text-green-strong"
                               : "text-navy [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
@@ -186,7 +186,7 @@ export function SiteHeader() {
                     <Link
                       href="/login"
                       className={cn(
-                        "flex min-h-11 items-center rounded-[8px] px-2 font-display text-base font-medium text-navy [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
+                        "flex min-h-11 items-center rounded-none px-2 font-display text-base font-medium text-navy [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
                         focusRing,
                       )}
                     />
@@ -199,7 +199,7 @@ export function SiteHeader() {
                     <Link
                       href="/employee/login"
                       className={cn(
-                        "flex min-h-11 items-center rounded-[8px] px-2 font-display text-base font-medium text-navy [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
+                        "flex min-h-11 items-center rounded-none px-2 font-display text-base font-medium text-navy [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
                         focusRing,
                       )}
                     />

@@ -88,7 +88,7 @@ function SalaryEditor({ row }: { row: SalaryRow }) {
           onChange={(event) =>
             setFrequency(event.target.value as SalaryFrequency)
           }
-          className="flex h-11 w-full rounded-md border border-input bg-white px-3 text-sm text-navy"
+          className="flex h-11 w-full rounded-none border border-input bg-white px-3 text-sm text-navy"
         >
           <option value="semi_monthly">Semi-monthly</option>
           <option value="monthly">Monthly</option>

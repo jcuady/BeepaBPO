@@ -31,7 +31,10 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
-        "group/calendar bg-background p-2 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(7)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent",
+        /* Square brand: the day cells, the month/year triggers and the selected-range
+           joins all read `--cell-radius`, so setting it once squares the whole
+           calendar rather than chasing `rounded-(--cell-radius)` at ~14 sites. */
+        "group/calendar bg-background p-2 [--cell-radius:0px] [--cell-size:--spacing(7)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
