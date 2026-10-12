@@ -11,6 +11,36 @@ user anything real?**
 
 ---
 
+## 0. Addendum — post-redesign re-run (2026-10-12)
+
+The redesign in `docs/CHANGELOG.md` (landing page, auth, and the whole product onto one
+square brand) landed **after** the pass below, and the evidence this report relies on had
+gone stale: `docs/evidence/responsive-public.json` still read 80/80 from a run made before
+the hero rebuild and before the three new landing sections, so **it had never validated the
+redesigned page at all.**
+
+Re-run in full against the finished system:
+
+| Check | Result |
+|---|---|
+| `qa-run-all.mjs --all` | **14/14 passed** |
+| `responsive-public` | 80/80 — 10 public routes x 8 viewports |
+| `responsive-app` 1–4 + cms | 56/56 each, 8/8 — 28 app routes x 8 viewports |
+| `role-sweep` | 13 roles, **0 page errors** |
+| `internal-links` | 29/29 |
+| `client-invite` | 17/17 |
+| `not-found` / `dialog-keyboard` / `notification-bell` | 18/18 · 16/16 · 10/10 |
+| `gate` | 667 tests / 94 files, `tsc` clean |
+
+The first real run found **5 failures, all on `/`** — sub-16px text in the three new sections
+against the landing page's ≥16px rule, and a 40px hero CTA with no coarse-pointer floor
+against the 44px touch-target minimum. Both fixed in `0e15e06`; 80/80 after.
+
+`role-sweep` and `responsive-app` are the checks that carry the product-side risk: they walk
+the UI that squaring the shared primitives touched, and both are clean.
+
+---
+
 ## 1. What was run
 
 | Check | Tool | Scope |

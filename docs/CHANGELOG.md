@@ -2,6 +2,49 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## The landing page, auth and the whole product were redesigned onto one brand (2026-10-12)
+
+Design and branding only — **no workflow, route, or server-action behaviour changed.**
+The CMS-driven landing sections stayed editable in-app; the reference's visual language was
+applied over them rather than replacing their content model.
+
+- **Landing page rebuilt** against the reference: display type scale, panel shadows, a
+  squared 88px header, and a single 1360px container. Sections are numbered `01`–`07` in
+  **page order**, not import order.
+- **Three new sections** carrying the reference's signature moments — an assurance strip,
+  a time-zone band (Manila/London/New York/Sydney, with fixed figures labelled "Illustrative"
+  and no client clock, so there is no hydration risk), and a three-word promise line
+  separated by hairlines rather than cards.
+- **14 copy-pasted CTA blocks collapsed into one `MarketingCta` primitive.** An audit proved
+  all seven primary class strings were byte-identical and all seven secondaries too, so this
+  was copy-paste rather than seven independent decisions.
+- **Every auth page was rendering its own copy twice.** `AuthShell` and `EmployeeAuthShell`
+  overlay live HTML on a photo, but pointed at poster assets with that same text baked into
+  the pixels — six pages showed every line once translatable and once as paint. Now clean
+  photography, and `imageSrc` documents that it must not contain text.
+- **One corner language across the entire system.** Square corners moved into the shared
+  primitives (`button`, `input`, `textarea`, `select`, `card`, `badge`, `dialog`, `sidebar`,
+  `tabs`, …), which squared ~80 app pages without touching a page file. Avatars, the progress
+  bar, switch and scrollbar stay circular: that shape carries meaning, not branding.
+- **The last serif is gone.** The auth photo accent was an inline
+  `fontFamily: Georgia, …`, which also silently overrode its own class. It is now `font-display`.
+- **`--primary` was deliberately *not* copied from the reference.** That value is 3.2:1 on
+  white and fails AA for text; this repo darkened it for that reason. Copying it would have
+  been an accessibility regression dressed as fidelity.
+
+**Two gates caught what the unit tests could not:**
+
+- `responsive-public` had been passing on **stale evidence** — the committed JSON predated the
+  hero rebuild and the new sections, so it had never validated the redesigned page. Run for
+  real, it found 5 failures on `/`: three new sections authored at 13px/11px against a ≥16px
+  rule, and a 40px hero CTA with no coarse-pointer floor against a 44px touch target.
+- `final-cta.test.ts` asserted on **source text**, so extracting the CTA failed a test whose
+  intent was still satisfied. It now asserts on rendered markup via `renderToStaticMarkup`.
+
+Verified: **14/14 QA checks**, 667 tests / 94 files, `tsc` clean, production build compiles —
+including `role-sweep` across 13 roles and `responsive-app` across 28 routes × 8 viewports,
+which are what prove the product-side corner change cost nothing.
+
 ## 70 server actions returned the driver's raw error text (2026-10-12)
 
 - **Every `error: error?.message ?? "copy"` fallback in the codebase was unreachable
