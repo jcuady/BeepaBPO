@@ -431,7 +431,7 @@ export function ContactForm() {
             onClick={goNext}
           >
             Continue
-            <span className="flex size-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+            <span className="flex size-6 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
               <IconArrowRight stroke={2} className="size-3" aria-hidden />
             </span>
           </Button>

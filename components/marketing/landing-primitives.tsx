@@ -21,8 +21,18 @@ import { cn } from "@/lib/utils";
  */
 
 /* ──────────────────────────────────────────────────────────────────────────
- *  EyebrowPill — replaces bare uppercase text with a bordered pill
- *  matching the hero's design system.
+ *  EyebrowPill — the small-caps section marker. Square, with a short rule.
+ *
+ *  NAME RETAINED DELIBERATELY. This used to be a bordered pill with a coloured
+ *  dot. The new design drops the pill in favour of an 18x2px rule followed by
+ *  the label, which is what `.eyebrow` in globals.css already does for the
+ *  hero. Renaming it would mean editing every call site in the same commit as
+ *  the visual change, which makes the diff harder to read for no benefit; the
+ *  component's job has not changed, only its shape.
+ *
+ *  The dot became a rule rather than vanishing, because it is the one thing
+ *  that makes a bare uppercase label read as deliberate rather than as
+ *  leftover.
  * ──────────────────────────────────────────────────────────────────────── */
 export function EyebrowPill({
   children,
@@ -33,34 +43,18 @@ export function EyebrowPill({
   className?: string;
   tone?: "green" | "navy";
 }) {
-  const labelTone =
-    tone === "navy"
-      ? "text-navy"
-      : "text-green-strong";
+  const labelTone = tone === "navy" ? "text-navy" : "text-green-strong";
+  const ruleTone = tone === "navy" ? "bg-navy" : "bg-green-strong";
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2.5 rounded-full border border-line bg-white/85 py-1.5 pr-6 pl-3 ring-1 ring-line/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_1px_2px_rgba(31,32,88,0.04)]",
+        "inline-flex items-center gap-2.5 font-display text-[11px] font-semibold tracking-[0.16em] uppercase",
+        labelTone,
         className,
       )}
     >
-      <span
-        aria-hidden
-        className={cn(
-          "flex size-2 rounded-full ring-2",
-          tone === "navy"
-            ? "bg-navy ring-navy/15"
-            : "bg-green-strong ring-green-strong/15",
-        )}
-      />
-      <span
-        className={cn(
-          "font-display text-[11px] font-semibold uppercase tracking-[0.18em]",
-          labelTone,
-        )}
-      >
-        {children}
-      </span>
+      <span aria-hidden className={cn("block h-0.5 w-[18px] shrink-0", ruleTone)} />
+      <span>{children}</span>
     </span>
   );
 }
@@ -104,13 +98,13 @@ export function BezelFrame({
   return (
     <div
       className={cn(
-        "relative rounded-[2rem] bg-mist p-2 ring-1 ring-line shadow-[0_30px_60px_-32px_rgba(31,32,88,0.22),0_8px_24px_-12px_rgba(11,110,52,0.10)]",
+        "relative rounded-none bg-mist p-2 ring-1 ring-line shadow-panel",
         outerClassName,
       )}
     >
       <div
         className={cn(
-          "relative overflow-hidden rounded-[1.625rem] bg-white/60 ring-1 ring-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]",
+          "relative overflow-hidden rounded-none bg-white/60 ring-1 ring-white/70",
           aspectClassName,
           coreClassName,
         )}
@@ -148,25 +142,25 @@ export function StatusPill({
   return (
     <div
       className={cn(
-        "hidden items-center gap-2 rounded-full bg-white py-1.5 pr-3 pl-2.5 ring-1 ring-line shadow-[0_10px_24px_-12px_rgba(31,32,88,0.22)] md:flex",
+        "hidden items-center gap-2 rounded-none bg-navy px-3 py-2 font-display text-[11px] font-semibold tracking-[0.08em] text-white shadow-panel md:flex",
         className,
       )}
     >
       {Icon ? (
         <span
           aria-hidden
-          className="flex size-5 items-center justify-center rounded-full bg-soft-green text-green-strong"
+          className="flex size-5 items-center justify-center rounded-none bg-white/15 text-white"
         >
           <Icon stroke={1.5} className="size-3" />
         </span>
       ) : null}
-      <span className="font-display text-xs font-semibold tracking-tight text-navy">
+      <span className="font-display text-xs font-semibold tracking-tight text-white">
         {children}
       </span>
       {TrailingIcon ? (
         <TrailingIcon
           stroke={1.5}
-          className="size-3.5 text-slate"
+          className="size-3.5 text-white/70"
           aria-hidden
         />
       ) : null}
@@ -197,14 +191,14 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "hidden w-[15.5rem] rounded-2xl bg-white p-4 ring-1 ring-line shadow-[0_18px_36px_-18px_rgba(31,32,88,0.22)] md:block",
+        "hidden w-[15.5rem] rounded-none bg-white p-4 ring-1 ring-line shadow-raised md:block",
         className,
       )}
     >
       <div className="flex items-center gap-2">
         <span
           aria-hidden
-          className="flex size-7 items-center justify-center rounded-lg bg-soft-green text-green-strong ring-1 ring-green-strong/15"
+          className="flex size-7 items-center justify-center rounded-none bg-soft-green text-green-strong ring-1 ring-green-strong/15"
         >
           <Icon stroke={1.5} className="size-4" />
         </span>

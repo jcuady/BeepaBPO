@@ -64,10 +64,6 @@ export function ProofStrip() {
               <span className="block text-navy">People. Process.</span>
               <span className="block">
                 <span className="relative inline-block whitespace-nowrap">
-                  <span
-                    aria-hidden
-                    className="absolute inset-x-0 bottom-1 -z-10 h-[0.42em] rounded-[3px] bg-lime/45"
-                  />
                   <span className="relative text-green-strong">Progress</span>
                 </span>
                 <span className="text-navy">.</span>
@@ -85,12 +81,12 @@ export function ProofStrip() {
               href="/contact"
               data-analytics="proof_primary_cta"
               className={cn(
-                "group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-green-strong px-6 font-display text-base font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green",
+                "group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-none bg-green-strong px-6 font-display text-base font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green",
                 focusRing,
               )}
             >
               Request a team
-              <span className="flex size-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 motion-reduce:translate-x-0">
+              <span className="flex size-7 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 motion-reduce:translate-x-0">
                 <IconArrowRight
                   stroke={1.75}
                   className="size-3.5"
@@ -101,7 +97,7 @@ export function ProofStrip() {
             <Link
               href="/case-studies"
               className={cn(
-                "inline-flex min-h-11 w-full items-center justify-center rounded-full border border-navy/20 bg-white px-6 font-display text-base font-semibold text-navy transition-[transform,background-color,border-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:border-navy/35 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
+                "inline-flex min-h-11 w-full items-center justify-center rounded-none border border-navy/20 bg-white px-6 font-display text-base font-semibold text-navy transition-[transform,background-color,border-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:border-navy/35 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
                 focusRing,
               )}
             >

@@ -56,10 +56,10 @@ export function CareersBand() {
               aria-label="14 active job postings, 6 departments"
               className="mt-7 flex flex-wrap items-center gap-2.5 sm:mt-8"
             >
-              <span className="inline-flex items-center gap-2 rounded-full bg-soft-green/55 py-1.5 pr-4 pl-1.5 ring-1 ring-green-strong/10">
+              <span className="inline-flex items-center gap-2 rounded-none bg-soft-green/55 py-1.5 pr-4 pl-1.5 ring-1 ring-green-strong/10">
                 <span
                   aria-hidden
-                  className="flex size-6 items-center justify-center rounded-full bg-white text-green-strong"
+                  className="flex size-6 items-center justify-center rounded-none bg-white text-green-strong"
                 >
                   <IconBriefcase2 stroke={1.5} className="size-3.5" />
                 </span>
@@ -67,10 +67,10 @@ export function CareersBand() {
                   14 active postings
                 </span>
               </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-mist py-1.5 pr-4 pl-1.5 ring-1 ring-line">
+              <span className="inline-flex items-center gap-2 rounded-none bg-mist py-1.5 pr-4 pl-1.5 ring-1 ring-line">
                 <span
                   aria-hidden
-                  className="flex size-6 items-center justify-center rounded-full bg-white text-navy"
+                  className="flex size-6 items-center justify-center rounded-none bg-white text-navy"
                 >
                   <IconSparkles stroke={1.5} className="size-3.5" />
                 </span>
@@ -85,12 +85,12 @@ export function CareersBand() {
                 href="/careers"
                 data-analytics="careers_viewed"
                 className={cn(
-                  "group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-green-strong px-6 font-display text-base font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green",
+                  "group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-none bg-green-strong px-6 font-display text-base font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green",
                   focusRing,
                 )}
               >
                 See open roles
-                <span className="flex size-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 motion-reduce:translate-x-0">
+                <span className="flex size-7 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 motion-reduce:translate-x-0">
                   <IconArrowRight
                     stroke={1.75}
                     className="size-3.5"
@@ -102,7 +102,7 @@ export function CareersBand() {
                 href="/contact"
                 data-analytics="careers_contact"
                 className={cn(
-                  "inline-flex min-h-11 w-full items-center justify-center rounded-full border border-navy/20 bg-white px-6 font-display text-base font-semibold text-navy transition-[transform,background-color,border-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:border-navy/35 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
+                  "inline-flex min-h-11 w-full items-center justify-center rounded-none border border-navy/20 bg-white px-6 font-display text-base font-semibold text-navy transition-[transform,background-color,border-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:border-navy/35 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
                   focusRing,
                 )}
               >

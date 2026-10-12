@@ -60,12 +60,12 @@ export function PageHero({
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 {cta ? (
                   <Button
-                    className="group min-h-11 gap-2 rounded-full bg-green-strong text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green active:scale-[0.97] motion-reduce:active:scale-100"
+                    className="group min-h-11 gap-2 rounded-none bg-green-strong text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green active:scale-[0.97] motion-reduce:active:scale-100"
                     nativeButton={false}
                     render={<Link href={cta.href} />}
                   >
                     {cta.label}
-                    <span className="flex size-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5 motion-reduce:translate-x-0">
+                    <span className="flex size-6 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5 motion-reduce:translate-x-0">
                       <IconArrowRight
                         stroke={2}
                         className="size-3"
@@ -77,7 +77,7 @@ export function PageHero({
                 {secondaryCta ? (
                   <Button
                     variant="outline"
-                    className="min-h-11 rounded-full border-navy/20 bg-transparent text-navy transition-[transform,background-color,border-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-navy/35 hover:bg-white active:scale-[0.97] motion-reduce:active:scale-100"
+                    className="min-h-11 rounded-none border-navy/20 bg-transparent text-navy transition-[transform,background-color,border-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-navy/35 hover:bg-white active:scale-[0.97] motion-reduce:active:scale-100"
                     nativeButton={false}
                     render={<Link href={secondaryCta.href} />}
                   >
