@@ -56,7 +56,12 @@ const buttonVariants = cva(
            than a toolbar control is. */
         cta: "h-12 gap-2 px-6 font-display text-[0.9375rem] font-semibold tracking-[-0.01em]",
         "cta-sm": "h-9 gap-1.5 px-4 font-display text-[0.8125rem] font-semibold",
-        "editorial": "h-10 gap-2 font-display text-[0.9375rem] font-medium",
+        /* `cta` clears 44px outright, but `editorial` is a 40px underline-style
+           link that still has to be tappable on a phone — it draws no visible
+           box, so a missed tap is easy. Same coarse-pointer floor the product
+           sizes use, and what the responsive check enforces as a 44px target. */
+        "editorial":
+          "h-10 gap-2 font-display text-[0.9375rem] font-medium [@media(pointer:coarse)]:min-h-11",
         icon: "size-8 [@media(pointer:coarse)]:size-11",
         "icon-xs":
           "size-6 rounded-none in-data-[slot=button-group]:rounded-none [&_svg:not([class*='size-'])]:size-3 [@media(pointer:coarse)]:size-11",

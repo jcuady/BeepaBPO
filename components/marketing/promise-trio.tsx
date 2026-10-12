@@ -48,10 +48,10 @@ export function PromiseTrio() {
               <p className="font-display text-[2.0625rem] leading-none font-medium tracking-[-0.02em] text-green-strong">
                 {p.word}
               </p>
-              <h3 className="mt-3 font-display text-[13px] font-semibold text-navy">
+              <h3 className="mt-3 font-display text-base font-semibold text-navy">
                 {p.title}
               </h3>
-              <p className="mt-2 max-w-[34ch] font-display text-[13px] leading-[1.8] text-slate">
+              <p className="mt-2 max-w-[34ch] font-display text-base leading-[1.8] text-slate">
                 {p.body}
               </p>
             </article>

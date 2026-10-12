@@ -54,7 +54,7 @@ export function TimeZoneBand() {
                   <span className="font-display text-[0.9375rem] font-medium text-navy">
                     {zone.city}
                   </span>
-                  <small className="mt-1 block font-display text-[11px] text-slate">
+                  <small className="mt-1 block font-display text-base text-slate">
                     {zone.note}
                   </small>
                 </dt>
@@ -72,7 +72,7 @@ export function TimeZoneBand() {
             ))}
           </dl>
 
-          <p className="mt-4 font-display text-[11px] leading-relaxed text-slate">
+          <p className="mt-4 font-display text-base leading-relaxed text-slate">
             Illustrative time-zone comparison · October, daylight saving observed.
           </p>
         </div>

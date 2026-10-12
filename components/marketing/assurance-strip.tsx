@@ -32,7 +32,7 @@ export function AssuranceStrip() {
                 aria-hidden="true"
                 className="size-3.5 shrink-0 text-green-strong"
               />
-              <span className="font-display text-[13px] font-medium text-navy">
+              <span className="font-display text-base font-medium text-navy">
                 {text}
               </span>
             </li>
