@@ -67,7 +67,7 @@ export function ServicesSection() {
       <Container>
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-10 xl:gap-12">
           <Reveal className="lg:col-span-5">
-            <EyebrowPill>What we staff</EyebrowPill>
+            <EyebrowPill index="01">What we staff</EyebrowPill>
 
             <h2
               id="services-heading"

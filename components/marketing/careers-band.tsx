@@ -37,7 +37,7 @@ export function CareersBand() {
       <Container>
         <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-10 xl:gap-12">
           <Reveal className="lg:col-span-5">
-            <EyebrowPill>Open roles at Beepa</EyebrowPill>
+            <EyebrowPill index="04">Open roles at Beepa</EyebrowPill>
 
             <h2
               id="careers-heading"

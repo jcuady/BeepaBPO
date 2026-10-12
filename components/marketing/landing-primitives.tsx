@@ -38,10 +38,21 @@ export function EyebrowPill({
   children,
   className,
   tone = "green",
+  index,
 }: {
   children: React.ReactNode;
   className?: string;
   tone?: "green" | "navy";
+  /**
+   * Two-digit section number, e.g. `"01"`. The reference marks every section
+   * `01 / MORE THAN OUTSOURCING` — the number is what makes the page read as a
+   * sequence rather than a pile of blocks, and it is the cheapest way to make
+   * scroll position legible to a reader.
+   *
+   * Optional because two surfaces use this component for a label that is not a
+   * numbered section (the Careers band, for instance).
+   */
+  index?: string;
 }) {
   const labelTone = tone === "navy" ? "text-navy" : "text-green-strong";
   const ruleTone = tone === "navy" ? "bg-navy" : "bg-green-strong";
@@ -54,6 +65,18 @@ export function EyebrowPill({
       )}
     >
       <span aria-hidden className={cn("block h-0.5 w-[18px] shrink-0", ruleTone)} />
+      {index ? (
+        // The number is presentational — the heading below carries the meaning —
+        // so it is hidden from assistive tech rather than read as "zero one".
+        <>
+          <span aria-hidden className="tabular-nums">
+            {index}
+          </span>
+          <span aria-hidden className="-ml-1 opacity-45">
+            /
+          </span>
+        </>
+      ) : null}
       <span>{children}</span>
     </span>
   );

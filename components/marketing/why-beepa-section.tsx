@@ -58,7 +58,7 @@ export function WhyBeepaSection() {
       <Container>
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-10 xl:gap-12">
           <Reveal className="lg:col-span-5">
-            <EyebrowPill>How we split the work</EyebrowPill>
+            <EyebrowPill index="02">How we split the work</EyebrowPill>
 
             <h2
               id="why-beepa-heading"

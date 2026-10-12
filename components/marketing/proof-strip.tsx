@@ -55,7 +55,7 @@ export function ProofStrip() {
       <Container>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-end lg:gap-8">
           <Reveal className="lg:col-span-7">
-            <EyebrowPill>The Beepa operating model</EyebrowPill>
+            <EyebrowPill index="03">The Beepa operating model</EyebrowPill>
 
             <h2
               id="proof-heading"
