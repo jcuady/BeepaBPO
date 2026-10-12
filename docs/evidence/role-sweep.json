@@ -1,6 +1,6 @@
 {
   "base": "http://localhost:3100",
-  "startedAt": "2026-10-12T00:59:53.561Z",
+  "startedAt": "2026-10-12T04:52:36.277Z",
   "roles": {
     "owner": {
       "email": "owner@demo.beepabpo.com",
@@ -23,7 +23,7 @@
           "notes": [],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/approvals",
@@ -525,7 +525,7 @@
           "notes": [],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/approvals",
@@ -858,7 +858,7 @@
           "notes": [],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/approvals",
@@ -876,7 +876,7 @@
           ],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app",
@@ -886,7 +886,7 @@
           ],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/my/attendance",
@@ -1311,7 +1311,7 @@
           "notes": [],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/approvals",
@@ -1329,7 +1329,7 @@
           ],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app",
@@ -1339,7 +1339,7 @@
           ],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/my/attendance",
@@ -1605,7 +1605,7 @@
           "notes": [],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/approvals",
@@ -2003,7 +2003,7 @@
           "notes": [],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/approvals",
@@ -2417,7 +2417,7 @@
           "notes": [],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/approvals",
@@ -2435,7 +2435,7 @@
           ],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app",
@@ -2445,7 +2445,7 @@
           ],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/my/attendance",
@@ -2726,7 +2726,7 @@
           "notes": [],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/approvals",
@@ -2744,7 +2744,7 @@
           ],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app",
@@ -2754,7 +2754,7 @@
           ],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/my/attendance",
@@ -2916,7 +2916,7 @@
           "notes": [],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/approvals",
@@ -2934,7 +2934,7 @@
           ],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app",
@@ -2944,7 +2944,7 @@
           ],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/my/attendance",
@@ -3225,7 +3225,7 @@
           "notes": [],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/approvals",
@@ -3243,7 +3243,7 @@
           ],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app",
@@ -3253,7 +3253,7 @@
           ],
           "http": 200,
           "landed": "/app/my",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/my/attendance",
@@ -3392,7 +3392,7 @@
           ],
           "http": 200,
           "landed": "/app/client",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/approvals",
@@ -3410,17 +3410,18 @@
           ],
           "http": 200,
           "landed": "/app/client",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app",
           "status": "redirected",
           "notes": [
-            "-> /app/client"
+            "-> /app/client",
+            "8 skeleton(s) still mounted"
           ],
           "http": 200,
           "landed": "/app/client",
-          "heading": "Good morning, Demo."
+          "heading": null
         },
         {
           "path": "/app/client",
@@ -3428,7 +3429,7 @@
           "notes": [],
           "http": 200,
           "landed": "/app/client",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/client/team",
@@ -3704,7 +3705,7 @@
           ],
           "http": 200,
           "landed": "/app/client",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/approvals",
@@ -3722,7 +3723,7 @@
           ],
           "http": 200,
           "landed": "/app/client",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app",
@@ -3732,7 +3733,7 @@
           ],
           "http": 200,
           "landed": "/app/client",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/client",
@@ -3740,7 +3741,7 @@
           "notes": [],
           "http": 200,
           "landed": "/app/client",
-          "heading": "Good morning, Demo."
+          "heading": "Good afternoon, Demo."
         },
         {
           "path": "/app/client/team",

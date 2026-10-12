@@ -1,6 +1,6 @@
 {
   "check": "qa-suite",
-  "generatedAt": "2026-10-12T01:14:52.775Z",
+  "generatedAt": "2026-10-12T05:07:37.586Z",
   "base": "http://localhost:3100",
   "tiersRun": [
     "fast",
@@ -67,7 +67,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 307,
+      "seconds": 313,
       "evidence": "docs/evidence/internal-links-check.json",
       "evidenceWritten": true,
       "tail": "PASS  applicant — no internal link lands on a page error  [none] | PASS  public — no internal link lands on a page error  [none] | 29/29 assertions passed",
@@ -91,10 +91,10 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 136,
+      "seconds": 137,
       "evidence": "docs/evidence/responsive-app-chunk1.json",
       "evidenceWritten": true,
-      "tail": "56/56 viewport-route combinations clean (134s)",
+      "tail": "56/56 viewport-route combinations clean (135s)",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/dashboard /app/my /app/my/attendance /app/my/leave /app/my/payroll /app/my/requests /app/my/documents"
     },
     {
@@ -103,10 +103,10 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 145,
+      "seconds": 149,
       "evidence": "docs/evidence/responsive-app-chunk2.json",
       "evidenceWritten": true,
-      "tail": "56/56 viewport-route combinations clean (143s)",
+      "tail": "56/56 viewport-route combinations clean (147s)",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/my/schedule /app/crm /app/crm/leads /app/crm/deals /app/crm/proposals /app/attendance /app/leave"
     },
     {
@@ -115,10 +115,10 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 151,
+      "seconds": 148,
       "evidence": "docs/evidence/responsive-app-chunk3.json",
       "evidenceWritten": true,
-      "tail": "56/56 viewport-route combinations clean (149s)",
+      "tail": "56/56 viewport-route combinations clean (145s)",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/employees /app/payroll /app/payroll/periods /app/billing /app/recruitment /app/recruitment/jobs /app/recruitment/applicants"
     },
     {
@@ -127,10 +127,10 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 145,
+      "seconds": 149,
       "evidence": "docs/evidence/responsive-app-chunk4.json",
       "evidenceWritten": true,
-      "tail": "56/56 viewport-route combinations clean (143s)",
+      "tail": "56/56 viewport-route combinations clean (147s)",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/tickets /app/approvals /app/reports /app/hr /app/admin /app/admin/users /app/clients"
     },
     {
@@ -139,7 +139,7 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 22,
+      "seconds": 23,
       "evidence": "docs/evidence/responsive-app-cms.json",
       "evidenceWritten": true,
       "tail": "8/8 viewport-route combinations clean (20s)",
@@ -151,7 +151,7 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 105,
+      "seconds": 103,
       "evidence": "docs/evidence/responsive-public.json",
       "evidenceWritten": true,
       "tail": "80/80 viewport-route combinations clean",
@@ -163,7 +163,7 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 884,
+      "seconds": 886,
       "evidence": "docs/evidence/role-sweep.json",
       "evidenceWritten": true,
       "tail": "page errors: 0",
@@ -175,10 +175,10 @@
       "tier": "gate",
       "status": "PASS",
       "code": 0,
-      "seconds": 17,
+      "seconds": 16,
       "evidence": null,
       "evidenceWritten": null,
-      "tail": "vitest: 661 tests / 94 files | tsc: clean"
+      "tail": "vitest: 667 tests / 94 files | tsc: clean"
     }
   ]
 }
