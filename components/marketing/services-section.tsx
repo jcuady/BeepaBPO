@@ -15,6 +15,7 @@ import {
 import type { TablerIcon } from "@tabler/icons-react";
 import { Container } from "@/components/beepa/container";
 import { Reveal } from "@/components/marketing/reveal";
+import { MarketingCta } from "@/components/marketing/landing-primitives";
 import { SERVICES_CATALOG } from "@/lib/marketing/services-catalog";
 import { cn } from "@/lib/utils";
 import supportFloorPhoto from "../../public/images/services/customer-support-floor.png";
@@ -89,32 +90,12 @@ export function ServicesSection() {
               standard.
             </p>
             <div className="mt-7 flex w-full flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center">
-              <Link
-                href="/contact"
-                data-analytics="services_featured_cta"
-                className={cn(
-                  "group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-none bg-green-strong px-6 font-display text-base font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green",
-                  focusRing,
-                )}
-              >
+              <MarketingCta href="/contact" analytics="services_featured_cta">
                 Request a team
-                <span className="flex size-7 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 motion-reduce:translate-x-0">
-                  <IconArrowRight
-                    stroke={1.75}
-                    className="size-3.5"
-                    aria-hidden="true"
-                  />
-                </span>
-              </Link>
-              <Link
-                href="/services"
-                className={cn(
-                  "inline-flex min-h-11 w-full items-center justify-center rounded-none border border-navy/20 bg-white px-6 font-display text-base font-semibold text-navy transition-[transform,background-color,border-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:border-navy/35 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
-                  focusRing,
-                )}
-              >
+              </MarketingCta>
+              <MarketingCta href="/services" variant="secondary">
                 All services
-              </Link>
+              </MarketingCta>
             </div>
           </Reveal>
 

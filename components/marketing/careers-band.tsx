@@ -1,18 +1,15 @@
-import Link from "next/link";
 import Image from "next/image";
 import {
-  IconArrowRight,
   IconBriefcase2,
   IconClock24,
   IconSparkles,
 } from "@tabler/icons-react";
 import { Container } from "@/components/beepa/container";
 import { Reveal } from "@/components/marketing/reveal";
-import { cn } from "@/lib/utils";
 import careersTeamPhoto from "../../public/images/sections/careers-team.webp";
-import { focusRing } from "@/components/beepa/focus-ring";
 import {
   EyebrowPill,
+  MarketingCta,
   StatusPill,
 } from "@/components/marketing/landing-primitives";
 
@@ -81,33 +78,12 @@ export function CareersBand() {
             </div>
 
             <div className="mt-7 flex w-full flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center">
-              <Link
-                href="/careers"
-                data-analytics="careers_viewed"
-                className={cn(
-                  "group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-none bg-green-strong px-6 font-display text-base font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green",
-                  focusRing,
-                )}
-              >
+              <MarketingCta href="/careers" analytics="careers_viewed">
                 See open roles
-                <span className="flex size-7 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 motion-reduce:translate-x-0">
-                  <IconArrowRight
-                    stroke={1.75}
-                    className="size-3.5"
-                    aria-hidden="true"
-                  />
-                </span>
-              </Link>
-              <Link
-                href="/contact"
-                data-analytics="careers_contact"
-                className={cn(
-                  "inline-flex min-h-11 w-full items-center justify-center rounded-none border border-navy/20 bg-white px-6 font-display text-base font-semibold text-navy transition-[transform,background-color,border-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:border-navy/35 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
-                  focusRing,
-                )}
-              >
+              </MarketingCta>
+              <MarketingCta href="/contact" variant="secondary" analytics="careers_contact">
                 Request a team
-              </Link>
+              </MarketingCta>
             </div>
           </Reveal>
 

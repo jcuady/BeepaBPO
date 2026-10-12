@@ -1,6 +1,8 @@
 import Image, { type ImageProps } from "next/image";
-import type { TablerIcon } from "@tabler/icons-react";
+import Link from "next/link";
+import { IconArrowRight, type TablerIcon } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { focusRing } from "@/components/beepa/focus-ring";
 
 /**
  * Landing-page shared primitives for the redesigned marketing surface.
@@ -286,5 +288,67 @@ export function SectionBackdrop({
         className="pointer-events-none absolute -bottom-28 left-[-12%] h-[440px] w-[440px] rounded-full bg-white [mask-image:radial-gradient(closest-side,black,transparent_75%)]"
       />
     </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  MarketingCta — the section call-to-action pair.
+ *
+ *  Seven landing sections each render a primary/secondary pair. Before this
+ *  component existed those were fourteen hand-copied class strings; an audit
+ *  confirmed all seven primary strings were byte-identical and all seven
+ *  secondary strings were byte-identical, so the duplication was pure
+ *  copy-paste rather than seven independent decisions.
+ *
+ *  It is a LINK, not the product `Button`. These CTAs navigate to real pages
+ *  (`/contact`, `/services`, `/careers`) and the brief for this redesign is to
+ *  change the design and branding while keeping the existing logic and workflow
+ *  intact, so an anchor is what belongs here. The product `Button` renders a
+ *  Base UI `<button>` and its own `brand`/`cta` variants exist for in-app
+ *  surfaces that genuinely act rather than navigate.
+ *
+ *  The arrow chip is part of the primary only. Every one of the seven call
+ *  sites already agreed on that, so it is expressed as `primary` always having
+ *  it rather than as a prop each section could forget.
+ * ──────────────────────────────────────────────────────────────────────── */
+const CTA_BASE =
+  "inline-flex min-h-11 w-full items-center justify-center rounded-none px-6 font-display text-base font-semibold transition-[transform,background-color,border-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto";
+
+const CTA_VARIANTS = {
+  primary: cn(
+    CTA_BASE,
+    "group gap-2 bg-green-strong text-white [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green",
+    focusRing,
+  ),
+  secondary: cn(
+    CTA_BASE,
+    "border border-navy/20 bg-white text-navy [@media(hover:hover)_and_(pointer:fine)]:hover:border-navy/35 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
+    focusRing,
+  ),
+} as const;
+
+export function MarketingCta({
+  href,
+  children,
+  variant = "primary",
+  className,
+  analytics,
+}: {
+  href: string;
+  children: React.ReactNode;
+  variant?: keyof typeof CTA_VARIANTS;
+  className?: string;
+  /** Emitted as `data-analytics` so the existing funnel reporting keeps working. */
+  analytics?: string;
+}) {
+  return (
+    <Link href={href} data-analytics={analytics} className={cn(CTA_VARIANTS[variant], className)}>
+      {children}
+      {variant === "primary" ? (
+        <span className="flex size-7 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 motion-reduce:translate-x-0">
+          <IconArrowRight stroke={1.75} className="size-3.5" aria-hidden="true" />
+        </span>
+      ) : null}
+    </Link>
   );
 }
