@@ -202,7 +202,7 @@ export default async function AttendanceAdminPage({
               name="week"
               defaultValue={week}
               // Matches NativeSelectCompact, which is the control sitting next
-              // to it: rounded-lg, border-line, bg-mist/50, text-base on mobile
+              // to it: rounded-none, border-line, bg-mist/50, text-base on mobile
               // and 32px on desktop rising to 44px on coarse pointers.
               // Carrying the old `text-sm min-h-11` over from the raw element
               // would have left the two controls unable to match, which is the
@@ -274,7 +274,7 @@ export default async function AttendanceAdminPage({
         )
       ) : null}
 
-      <div className="overflow-x-auto rounded-[16px] border border-line bg-white">
+      <div className="overflow-x-auto rounded-none border border-line bg-white">
         {!records.length ? (
           <EmptyState
             icon={IconClock}

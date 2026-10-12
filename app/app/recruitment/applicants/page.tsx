@@ -127,7 +127,7 @@ export default async function RecruitmentApplicantsPage({
           description="Applications from the careers site will appear here."
         />
       ) : (
-        <div className="overflow-x-auto rounded-[16px] border border-line bg-white">
+        <div className="overflow-x-auto rounded-none border border-line bg-white">
           <Table>
             <TableHeader>
               <TableRow>

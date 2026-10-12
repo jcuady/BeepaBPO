@@ -116,7 +116,7 @@ export default async function CrmLeadsPage({
           description="Leads from the website and manual entry will appear here."
         />
       ) : (
-        <div className="overflow-x-auto rounded-[16px] border border-line bg-white">
+        <div className="overflow-x-auto rounded-none border border-line bg-white">
           <Table>
             <TableHeader>
               <TableRow>

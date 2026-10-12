@@ -23,7 +23,7 @@ export default async function MySupportPage() {
       />
       <Card>
         <CardContent className="space-y-4 p-6">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-soft-green text-green">
+          <div className="flex size-12 items-center justify-center rounded-none bg-soft-green text-green">
             <IconHeadset stroke={1.75} className="size-6" />
           </div>
           <p className="text-sm text-slate">

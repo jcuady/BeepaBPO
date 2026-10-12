@@ -115,7 +115,7 @@ export default async function CashAdvancesQueuePage({
           description="Employee cash advance requests matching this filter will appear here."
         />
       ) : (
-        <div className="overflow-x-auto rounded-[16px] border border-line bg-white">
+        <div className="overflow-x-auto rounded-none border border-line bg-white">
           <Table>
             <TableHeader>
               <TableRow>

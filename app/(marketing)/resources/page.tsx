@@ -52,8 +52,8 @@ export default async function ResourcesPage() {
         <Container>
           {!posts?.length ? (
             <div className="grid gap-8 lg:grid-cols-12">
-              <div className="rounded-[28px] bg-mist p-8 ring-1 ring-line lg:col-span-7 md:p-10">
-                <span className="flex size-12 items-center justify-center rounded-[14px] bg-white text-green-strong ring-1 ring-line">
+              <div className="rounded-none bg-mist p-8 ring-1 ring-line lg:col-span-7 md:p-10">
+                <span className="flex size-12 items-center justify-center rounded-none bg-white text-green-strong ring-1 ring-line">
                   <IconBook2 stroke={1.5} className="size-6" aria-hidden />
                 </span>
                 <SectionHeading as="h2" className="mt-6">
@@ -65,17 +65,17 @@ export default async function ResourcesPage() {
                   talk with us about the roles you need filled.
                 </p>
                 <Button
-                  className="group mt-8 min-h-11 gap-2 rounded-full bg-green-strong text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green active:scale-[0.97]"
+                  className="group mt-8 min-h-11 gap-2 rounded-none bg-green-strong text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green active:scale-[0.97]"
                   nativeButton={false}
                   render={<Link href="/contact" />}
                 >
                   Request talent
-                  <span className="flex size-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+                  <span className="flex size-6 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
                     <IconArrowRight stroke={2} className="size-3" aria-hidden />
                   </span>
                 </Button>
               </div>
-              <aside className="flex flex-col justify-between rounded-[28px] bg-navy p-8 text-white lg:col-span-5 md:p-10">
+              <aside className="flex flex-col justify-between rounded-none bg-navy p-8 text-white lg:col-span-5 md:p-10">
                 <div>
                   <IconFileDescription
                     stroke={1.5}
@@ -127,7 +127,7 @@ export default async function ResourcesPage() {
                     ) : null}
                     <Link
                       href={`/resources/${featured.slug}`}
-                      className="group mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-navy px-5 text-sm font-medium text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green-strong active:scale-[0.97]"
+                      className="group mt-6 inline-flex min-h-11 items-center gap-2 rounded-none bg-navy px-5 text-sm font-medium text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green-strong active:scale-[0.97]"
                     >
                       Read article
                       <IconArrowRight
@@ -137,7 +137,7 @@ export default async function ResourcesPage() {
                       />
                     </Link>
                   </div>
-                  <div className="hidden rounded-[28px] bg-mist ring-1 ring-line lg:col-span-5 lg:block lg:min-h-[240px]" />
+                  <div className="hidden rounded-none bg-mist ring-1 ring-line lg:col-span-5 lg:block lg:min-h-[240px]" />
                 </article>
               ) : null}
 

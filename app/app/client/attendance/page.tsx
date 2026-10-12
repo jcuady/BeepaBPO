@@ -157,7 +157,7 @@ export default async function ClientAttendancePage({
           description="Team attendance summaries will appear here as your assigned staff clock in."
         />
       ) : (
-        <div className="overflow-x-auto rounded-[16px] border border-line bg-white">
+        <div className="overflow-x-auto rounded-none border border-line bg-white">
           <Table>
             <TableHeader>
               <TableRow>

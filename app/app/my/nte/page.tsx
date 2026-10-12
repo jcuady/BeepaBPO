@@ -97,7 +97,7 @@ export default async function MyNtePage() {
                   {responses.map((resp) => (
                     <div
                       key={resp.id}
-                      className="rounded-[12px] border border-line bg-mist/50 p-3 text-sm"
+                      className="rounded-none border border-line bg-mist/50 p-3 text-sm"
                     >
                       <p className="text-xs text-slate">
                         Submitted{" "}
@@ -109,7 +109,7 @@ export default async function MyNtePage() {
                     </div>
                   ))}
                   {row.status === "resolved" ? (
-                    <div className="rounded-[12px] border border-line bg-soft-green/40 p-3 text-sm">
+                    <div className="rounded-none border border-line bg-soft-green/40 p-3 text-sm">
                       <p className="font-medium text-navy">
                         Outcome
                         {row.resolution_type

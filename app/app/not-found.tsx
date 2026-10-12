@@ -20,8 +20,8 @@ import { Button } from "@/components/ui/button";
 export default function AppNotFound() {
   return (
     <div className="mx-auto max-w-3xl py-10" data-page-status="not-found">
-      <div className="flex flex-col items-center rounded-[16px] border border-dashed border-line bg-white px-6 py-12 text-center">
-        <div className="flex size-12 items-center justify-center rounded-xl bg-mist text-slate">
+      <div className="flex flex-col items-center rounded-none border border-dashed border-line bg-white px-6 py-12 text-center">
+        <div className="flex size-12 items-center justify-center rounded-none bg-mist text-slate">
           <IconFileUnknown stroke={1.75} className="size-6" />
         </div>
         <p className="mt-4 font-display text-sm font-semibold uppercase tracking-wide text-slate">

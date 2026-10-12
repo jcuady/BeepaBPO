@@ -106,13 +106,13 @@ export default async function AboutPage() {
         secondaryCta={{ href: "/why-beepa", label: "Why Beepa" }}
         aside={
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            <div className="rounded-[20px] bg-navy p-5 text-white">
+            <div className="rounded-none bg-navy p-5 text-white">
               <IconSearch stroke={1.5} className="size-5 text-lime" aria-hidden />
               <p className="mt-3 font-display text-sm font-semibold">
                 We find the people
               </p>
             </div>
-            <div className="rounded-[20px] bg-white p-5 ring-1 ring-line">
+            <div className="rounded-none bg-white p-5 ring-1 ring-line">
               <IconCoin
                 stroke={1.5}
                 className="size-5 text-green-strong"
@@ -181,8 +181,8 @@ export default async function AboutPage() {
                 key={item.id}
                 className={
                   index === 0
-                    ? "rounded-[24px] bg-navy p-7 text-white md:col-span-2 lg:col-span-1"
-                    : "rounded-[24px] bg-white p-7 ring-1 ring-line"
+                    ? "rounded-none bg-navy p-7 text-white md:col-span-2 lg:col-span-1"
+                    : "rounded-none bg-white p-7 ring-1 ring-line"
                 }
               >
                 <IconBuildingSkyscraper
@@ -230,8 +230,8 @@ export default async function AboutPage() {
                   key={item.id}
                   className={
                     index === 0
-                      ? "rounded-[28px] bg-mist p-8 ring-1 ring-line lg:col-span-2 md:p-10"
-                      : "rounded-[28px] border border-line bg-white p-8"
+                      ? "rounded-none bg-mist p-8 ring-1 ring-line lg:col-span-2 md:p-10"
+                      : "rounded-none border border-line bg-white p-8"
                   }
                 >
                   <p className="whitespace-pre-wrap text-lg leading-relaxed text-navy md:text-xl">
@@ -260,12 +260,12 @@ export default async function AboutPage() {
               roles — we will start from there.
             </p>
             <Button
-              className="group min-h-11 w-fit gap-2 rounded-full bg-green-strong text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green active:scale-[0.97]"
+              className="group min-h-11 w-fit gap-2 rounded-none bg-green-strong text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green active:scale-[0.97]"
               nativeButton={false}
               render={<Link href="/contact" />}
             >
               Let&apos;s talk
-              <span className="flex size-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+              <span className="flex size-6 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
                 <IconArrowRight stroke={2} className="size-3" aria-hidden />
               </span>
             </Button>

@@ -130,8 +130,8 @@ export default async function CareersPage() {
           </div>
 
           {!jobs?.length ? (
-            <div className="mt-12 flex flex-col items-start gap-5 rounded-[28px] bg-white p-8 ring-1 ring-line md:p-10">
-              <span className="flex size-12 items-center justify-center rounded-[14px] bg-soft-green text-green-strong ring-1 ring-green-strong/10">
+            <div className="mt-12 flex flex-col items-start gap-5 rounded-none bg-white p-8 ring-1 ring-line md:p-10">
+              <span className="flex size-12 items-center justify-center rounded-none bg-soft-green text-green-strong ring-1 ring-green-strong/10">
                 <IconBriefcase stroke={1.5} className="size-6" aria-hidden />
               </span>
               <div>
@@ -144,18 +144,18 @@ export default async function CareersPage() {
                 </p>
               </div>
               <Button
-                className="group min-h-11 gap-2 rounded-full bg-green-strong text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green active:scale-[0.97]"
+                className="group min-h-11 gap-2 rounded-none bg-green-strong text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green active:scale-[0.97]"
                 nativeButton={false}
                 render={<Link href="/contact" />}
               >
                 Introduce yourself
-                <span className="flex size-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+                <span className="flex size-6 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
                   <IconArrowRight stroke={2} className="size-3" aria-hidden />
                 </span>
               </Button>
             </div>
           ) : (
-            <ul className="mt-12 divide-y divide-line overflow-hidden rounded-[28px] bg-white ring-1 ring-line">
+            <ul className="mt-12 divide-y divide-line overflow-hidden rounded-none bg-white ring-1 ring-line">
               {jobs.map((job) => (
                 <li key={job.id}>
                   <Link
@@ -175,7 +175,7 @@ export default async function CareersPage() {
                         {job.salary_display ? ` · ${job.salary_display}` : ""}
                       </p>
                     </div>
-                    <span className="inline-flex min-h-11 w-fit items-center gap-2 rounded-full bg-navy px-4 text-sm font-medium text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:bg-green-strong active:scale-[0.97]">
+                    <span className="inline-flex min-h-11 w-fit items-center gap-2 rounded-none bg-navy px-4 text-sm font-medium text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:bg-green-strong active:scale-[0.97]">
                       View role
                       <IconArrowRight
                         stroke={2}

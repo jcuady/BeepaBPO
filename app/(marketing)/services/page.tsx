@@ -107,9 +107,9 @@ export default async function ServicesPage() {
         cta={{ href: "/contact", label: "Request talent" }}
         secondaryCta={{ href: "/#how-we-work", label: "How we work" }}
         aside={
-          <ul className="space-y-4 rounded-[24px] bg-white p-6 ring-1 ring-line sm:p-7">
+          <ul className="space-y-4 rounded-none bg-white p-6 ring-1 ring-line sm:p-7">
             <li className="flex gap-3">
-              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-soft-green text-green-strong ring-1 ring-green-strong/10">
+              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-none bg-soft-green text-green-strong ring-1 ring-green-strong/10">
                 <IconSearch stroke={1.5} className="size-5" aria-hidden />
               </span>
               <div>
@@ -122,7 +122,7 @@ export default async function ServicesPage() {
               </div>
             </li>
             <li className="flex gap-3 border-t border-line pt-4">
-              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-soft-green text-green-strong ring-1 ring-green-strong/10">
+              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-none bg-soft-green text-green-strong ring-1 ring-green-strong/10">
                 <IconCoin stroke={1.5} className="size-5" aria-hidden />
               </span>
               <div>
@@ -159,14 +159,14 @@ export default async function ServicesPage() {
                   key={service.id}
                   id={service.slug}
                   className={cn(
-                    "group relative scroll-mt-24 overflow-hidden rounded-[28px] p-8 md:col-span-12 md:p-9",
+                    "group relative scroll-mt-24 overflow-hidden rounded-none p-8 md:col-span-12 md:p-9",
                     tone.card,
                     tone.span,
                   )}
                 >
                   <span
                     className={cn(
-                      "flex size-12 items-center justify-center rounded-[14px] ring-1",
+                      "flex size-12 items-center justify-center rounded-none ring-1",
                       tone.plate,
                     )}
                   >
@@ -203,7 +203,7 @@ export default async function ServicesPage() {
                   <Link
                     href="/contact"
                     className={cn(
-                      "mt-8 inline-flex size-10 min-h-11 min-w-11 items-center justify-center rounded-full transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 [@media(hover:hover)_and_(pointer:fine)]:group-hover:-translate-y-0.5",
+                      "mt-8 inline-flex size-10 min-h-11 min-w-11 items-center justify-center rounded-none transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 [@media(hover:hover)_and_(pointer:fine)]:group-hover:-translate-y-0.5",
                       tone.arrow,
                     )}
                     aria-label={`Request ${service.title} talent`}

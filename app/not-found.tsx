@@ -22,7 +22,7 @@ export default function NotFound() {
     <div className="flex min-h-[100dvh] flex-col overflow-x-clip">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:inline-flex focus:min-h-11 focus:items-center focus:rounded-[8px] focus:bg-white focus:px-4 focus:py-2 focus:font-display focus:text-sm focus:font-semibold focus:text-navy focus:shadow"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:inline-flex focus:min-h-11 focus:items-center focus:rounded-none focus:bg-white focus:px-4 focus:py-2 focus:font-display focus:text-sm focus:font-semibold focus:text-navy focus:shadow"
       >
         Skip to content
       </a>
@@ -32,7 +32,7 @@ export default function NotFound() {
           className="mx-auto flex w-full max-w-lg flex-col items-center px-6 text-center"
           data-page-status="not-found"
         >
-          <div className="flex size-12 items-center justify-center rounded-xl bg-mist text-slate">
+          <div className="flex size-12 items-center justify-center rounded-none bg-mist text-slate">
             <IconFileUnknown stroke={1.75} className="size-6" />
           </div>
           <p className="mt-4 font-display text-sm font-semibold uppercase tracking-wide text-slate">

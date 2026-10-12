@@ -7,7 +7,7 @@ export default function AccessDeniedPage() {
   return (
     <div className="min-h-[100dvh] bg-mist">
       <Container className="flex min-h-[100dvh] items-center justify-center py-16">
-        <div className="mx-auto max-w-lg rounded-[16px] border border-line bg-white p-8 text-center">
+        <div className="mx-auto max-w-lg rounded-none border border-line bg-white p-8 text-center">
           <p className="font-display text-sm font-semibold uppercase tracking-wide text-slate">
             Access denied
           </p>

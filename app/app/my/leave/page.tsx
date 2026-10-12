@@ -128,7 +128,7 @@ export default async function MyLeavePage({
                   {balances.map((balance) => (
                     <div
                       key={balance.id}
-                      className="rounded-[12px] border border-line px-4 py-3"
+                      className="rounded-none border border-line px-4 py-3"
                     >
                       <p className="font-medium text-base text-navy sm:text-sm">
                         {balance.leave_types?.name ?? "Leave"}

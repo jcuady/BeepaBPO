@@ -158,7 +158,7 @@ export default async function ApprovalsPage({
           description="When teammates submit requests, they will show up here."
         />
       ) : (
-        <ul className="divide-y divide-line rounded-[16px] border border-line bg-white">
+        <ul className="divide-y divide-line rounded-none border border-line bg-white">
           {requests.map((req) => {
             const ordered = stepsByWf.get(req.workflow_id) ?? [];
             const current =

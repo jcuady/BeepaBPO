@@ -160,7 +160,7 @@ export default async function ClientTimesheetsPage({
               pendingReview.map((row) => (
                 <div
                   key={row.attendance_record_id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-line px-3 py-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-none border border-line px-3 py-3"
                 >
                   <div>
                     <p className="font-medium text-navy">

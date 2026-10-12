@@ -102,7 +102,7 @@ export default function WhyBeepaPage() {
                 place, and manage salary so your team can focus on delivery.
               </p>
               <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-[20px] bg-mist p-5 ring-1 ring-line">
+                <div className="rounded-none bg-mist p-5 ring-1 ring-line">
                   <IconSearch
                     stroke={1.5}
                     className="size-6 text-green-strong"
@@ -115,7 +115,7 @@ export default function WhyBeepaPage() {
                     Source, screen, shortlist, place.
                   </p>
                 </div>
-                <div className="rounded-[20px] bg-navy p-5 text-white">
+                <div className="rounded-none bg-navy p-5 text-white">
                   <IconCoin stroke={1.5} className="size-6 text-lime" aria-hidden />
                   <p className="mt-3 font-display text-base font-semibold text-white">
                     Payroll handled
@@ -128,8 +128,8 @@ export default function WhyBeepaPage() {
             </div>
 
             <div className="lg:col-span-7">
-              <div className="h-full rounded-[1.75rem] bg-mist p-1.5 ring-1 ring-line sm:rounded-[2rem] sm:p-2">
-                <div className="relative aspect-[4/3] min-h-[280px] w-full overflow-hidden rounded-[calc(1.75rem-0.35rem)] bg-navy/10 sm:rounded-[calc(2rem-0.4rem)] lg:min-h-[420px]">
+              <div className="h-full rounded-none bg-mist p-1.5 ring-1 ring-line sm:rounded-none sm:p-2">
+                <div className="relative aspect-[4/3] min-h-[280px] w-full overflow-hidden rounded-none bg-navy/10 sm:rounded-none lg:min-h-[420px]">
                   <Image
                     src="/images/sections/why-beepa-agent.webp"
                     alt="Beepa support professional with headset in the office"
@@ -161,7 +161,7 @@ export default function WhyBeepaPage() {
             {SPLIT.map((column) => (
               <div
                 key={column.label}
-                className="rounded-[24px] bg-white p-8 ring-1 ring-line md:p-9"
+                className="rounded-none bg-white p-8 ring-1 ring-line md:p-9"
               >
                 <p className="font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-green-strong">
                   {column.label}
@@ -219,12 +219,12 @@ export default function WhyBeepaPage() {
               Ready for a clearer staffing partner? Share the roles you need.
             </p>
             <Button
-              className="group min-h-11 w-fit gap-2 rounded-full bg-green-strong text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green active:scale-[0.97]"
+              className="group min-h-11 w-fit gap-2 rounded-none bg-green-strong text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-green active:scale-[0.97]"
               nativeButton={false}
               render={<Link href="/contact" />}
             >
               Let&apos;s talk
-              <span className="flex size-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+              <span className="flex size-6 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
                 <IconArrowRight stroke={2} className="size-3" aria-hidden />
               </span>
             </Button>
