@@ -51,6 +51,7 @@
     "audit:touch": "node scripts/audit/audit-touch-overrides.mjs",
     "audit:filters": "node scripts/audit-filter-persistence.mjs",
     "audit:role-pages": "node scripts/audit-role-pages.mjs",
+    "audit:runtime-radius": "node scripts/audit/audit-runtime-radius.mjs",
     "verify:all": "node scripts/verify-all.mjs",
     "verify:skip-migration": "node scripts/verify-all.mjs --skip-migration"
   },

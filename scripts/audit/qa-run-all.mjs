@@ -57,6 +57,26 @@ const CHECKS = [
   // two. Run this DIRECTLY after a wait rather than probing first.
   { id: "client-invite",    tier: "fast",  cmd: ["scripts/audit/qa-exercise-client-invite.mjs"], evidence: "docs/evidence/client-invite-check.json", what: "the last uncovered action, driven through its real form (BLOCKED when mail is rate limited)" },
 
+  // The square brand was previously only ever checked by *reading class
+  // strings*. That proves no `rounded-[16px]` survives in the source, and stops
+  // there: it cannot see a radius that arrives through a variable, a cascade or
+  // the browser. Meanwhile `/signup` shipped a visibly broken sentence with
+  // every source-level gate green. This measures computed `border-*-radius` on
+  // painted elements in a real browser, which is the only check so far that
+  // looks at what was actually rendered.
+  //
+  // Scope, stated plainly: PUBLIC routes only. The auth-gated app UI is not
+  // covered here — `Card`, for instance, renders nowhere on these 12 pages, so
+  // a mutation there is invisible to this check. That was demonstrated, not
+  // assumed: mutating `Card` left this gate green. The product surface is
+  // covered by `responsive-app` and `role-sweep`, neither of which measures
+  // radius. Treat app-side corners as covered by review, not by this gate.
+  //
+  // `rounded-full` is excluded deliberately: avatars, the lime bullet dots, the
+  // switch, the progress bar and the status chips are circular because the
+  // shape carries meaning, not because they predate the redesign.
+  { id: "runtime-radius",  tier: "fast",  cmd: ["scripts/audit/audit-runtime-radius.mjs"],  evidence: "docs/evidence/runtime-radius-check.json",  what: "computed corner radius on 12 public routes (rounded-full excluded)" },
+
   // The app layout sweep MUST be chunked: one process over all 28 routes
   // reaches 2.4 GB and takes the app server with it. That constraint used to
   // leak out of the runner as well — only chunk 1 was registered, so `--all`

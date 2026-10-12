@@ -1,0 +1,152 @@
+{
+  "check": "runtime-radius",
+  "generatedAt": "2026-10-12T06:37:28.734Z",
+  "base": "http://localhost:3100",
+  "threshold": "8px on any corner",
+  "excluded": "rounded-full",
+  "routes": [
+    {
+      "route": "/",
+      "status": 200,
+      "nonCircularRounded": 0,
+      "offenders": [],
+      "imagesOk": 8,
+      "imagesBroken": 0,
+      "imagesPending": 0,
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/about",
+      "status": 200,
+      "nonCircularRounded": 0,
+      "offenders": [],
+      "imagesOk": 2,
+      "imagesBroken": 0,
+      "imagesPending": 0,
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/services",
+      "status": 200,
+      "nonCircularRounded": 0,
+      "offenders": [],
+      "imagesOk": 2,
+      "imagesBroken": 0,
+      "imagesPending": 0,
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/why-beepa",
+      "status": 200,
+      "nonCircularRounded": 0,
+      "offenders": [],
+      "imagesOk": 3,
+      "imagesBroken": 0,
+      "imagesPending": 0,
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/careers",
+      "status": 200,
+      "nonCircularRounded": 0,
+      "offenders": [],
+      "imagesOk": 2,
+      "imagesBroken": 0,
+      "imagesPending": 0,
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/resources",
+      "status": 200,
+      "nonCircularRounded": 0,
+      "offenders": [],
+      "imagesOk": 2,
+      "imagesBroken": 0,
+      "imagesPending": 0,
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/contact",
+      "status": 200,
+      "nonCircularRounded": 0,
+      "offenders": [],
+      "imagesOk": 2,
+      "imagesBroken": 0,
+      "imagesPending": 0,
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/login",
+      "status": 200,
+      "nonCircularRounded": 0,
+      "offenders": [],
+      "imagesOk": 4,
+      "imagesBroken": 0,
+      "imagesPending": 0,
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/signup",
+      "status": 200,
+      "nonCircularRounded": 0,
+      "offenders": [],
+      "imagesOk": 4,
+      "imagesBroken": 0,
+      "imagesPending": 0,
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/forgot-password",
+      "status": 200,
+      "nonCircularRounded": 0,
+      "offenders": [],
+      "imagesOk": 4,
+      "imagesBroken": 0,
+      "imagesPending": 0,
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/terms",
+      "status": 200,
+      "nonCircularRounded": 0,
+      "offenders": [],
+      "imagesOk": 2,
+      "imagesBroken": 0,
+      "imagesPending": 0,
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/privacy",
+      "status": 200,
+      "nonCircularRounded": 0,
+      "offenders": [],
+      "imagesOk": 2,
+      "imagesBroken": 0,
+      "imagesPending": 0,
+      "pageErrors": [],
+      "consoleErrors": []
+    }
+  ],
+  "totals": {
+    "routesChecked": 12,
+    "nonCircularRounded": 0,
+    "imagesTotal": 37,
+    "imagesBroken": 0,
+    "imagesPending": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "non200": []
+  },
+  "status": "PASS"
+}
