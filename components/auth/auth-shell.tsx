@@ -116,7 +116,7 @@ export function AuthShell({
           </div>
 
           {/* Brand panel: desktop only — mobile uses photo strip below (mockup) */}
-          <section className="relative hidden overflow-hidden rounded-none bg-white lg:order-1 lg:col-span-7 lg:block">
+          <section className="relative hidden overflow-hidden rounded-none bg-navy lg:order-1 lg:col-span-7 lg:block">
             <div className="absolute inset-0">
               <Image
                 src={imageSrc}
@@ -128,14 +128,33 @@ export function AuthShell({
                 className="object-cover object-[68%_center]"
                 aria-hidden
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-transparent to-white/30" />
+              {/* Navy photo scrim with light copy on top — the same treatment the
+                  landing page uses for `.service-card`, `.time-photo`,
+                  `.report-photo` and the mobile strip below.
+
+                  This panel used to fade the photo to white from the left
+                  (`from-white via-white/90 to-transparent`) and set the copy in
+                  navy and Slate on top of that fade. Measured on the rendered
+                  page (scripts/audit/audit-contrast.mjs, sampling the real
+                  backdrop pixels), the description sat on a mid-grey photograph
+                  at 1.38:1 and the eyebrow on a blue cast at 1.00:1 — the fade
+                  is near-transparent by the time the text block ends, roughly
+                  80% across a panel that is only ~450px wide. The decorative
+                  lime arc made it worse by putting a pale-lime pixel directly
+                  under the feature copy at 3.31:1.
+
+                  The honest fix is the brand's own model: darken the photo and
+                  put light copy on it, which is both legible at any crop of the
+                  photograph and consistent with every other photo surface in
+                  the system. */}
+              <div className="absolute inset-0 bg-navy/88" />
+              <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/45 to-navy/35" />
             </div>
 
             <svg
               aria-hidden
               viewBox="0 0 420 420"
-              className="pointer-events-none absolute -bottom-16 -left-20 z-[1] size-[340px]"
+              className="pointer-events-none absolute -bottom-16 -right-20 z-[1] size-[340px] scale-x-[-1]"
               fill="none"
             >
               <path
@@ -152,19 +171,19 @@ export function AuthShell({
                 brandbook allows Manrope + Inter only. */}
             <p
               aria-hidden
-              className="pointer-events-none absolute right-8 top-10 z-[1] max-w-[12ch] rotate-[-8deg] text-right font-display text-[1.35rem] font-semibold leading-tight tracking-[-0.02em] text-navy/90"
+              className="pointer-events-none absolute right-8 top-10 z-[1] max-w-[12ch] rotate-[-8deg] text-right font-display text-[1.35rem] font-semibold leading-tight tracking-[-0.02em] text-lime/90"
             >
               People power better business.
             </p>
 
             <div className="relative z-[2] flex min-h-[560px] flex-col justify-center p-12 xl:p-14">
-              <p className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-green-strong">
+              <p className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-lime">
                 {eyebrow}
               </p>
-              <h1 className="mt-4 max-w-[16ch] font-display text-[clamp(2rem,4.2vw,3.4rem)] font-bold leading-[1.05] tracking-tight text-navy text-balance">
+              <h1 className="mt-4 max-w-[16ch] font-display text-[clamp(2rem,4.2vw,3.4rem)] font-bold leading-[1.05] tracking-tight text-white text-balance">
                 {title}
               </h1>
-              <p className="mt-4 max-w-[42ch] text-base leading-relaxed text-slate sm:text-lg">
+              <p className="mt-4 max-w-[42ch] text-base leading-relaxed text-white/85 sm:text-lg">
                 {description}
               </p>
 
@@ -173,15 +192,15 @@ export function AuthShell({
                   const Icon = feature.icon;
                   return (
                     <li key={feature.label} className="flex items-start gap-3">
-                      <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-soft-green text-green-strong ring-1 ring-green-strong/10">
+                      <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-white/12 text-lime ring-1 ring-white/20">
                         <Icon stroke={1.5} className="size-5" />
                       </span>
                       <div>
-                        <p className="font-display text-sm font-bold text-navy">
+                        <p className="font-display text-sm font-bold text-white">
                           {feature.label}
                         </p>
                         {feature.description ? (
-                          <p className="mt-0.5 text-sm text-slate">
+                          <p className="mt-0.5 text-sm text-white/80">
                             {feature.description}
                           </p>
                         ) : null}

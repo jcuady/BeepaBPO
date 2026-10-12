@@ -135,14 +135,17 @@ export function EmployeeAuthShell({
                 className="object-cover object-[70%_center]"
                 aria-hidden
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-transparent to-white/30" />
+              {/* Same navy photo scrim as AuthShell — see the note there. The
+                  white-out gradient this replaces left Slate copy sitting on raw
+                  photography at 1.38:1. */}
+              <div className="absolute inset-0 bg-navy/88" />
+              <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/45 to-navy/35" />
             </div>
 
             <svg
               aria-hidden
               viewBox="0 0 420 420"
-              className="pointer-events-none absolute -bottom-16 -left-20 z-[1] size-[280px] sm:size-[340px]"
+              className="pointer-events-none absolute -bottom-16 -right-20 z-[1] size-[280px] scale-x-[-1] sm:size-[340px]"
               fill="none"
             >
               <path
@@ -155,13 +158,13 @@ export function EmployeeAuthShell({
             </svg>
 
             <div className="relative z-[2] flex min-h-[560px] flex-col justify-center p-12">
-              <p className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-green-strong">
+              <p className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-lime">
                 Internal Portal
               </p>
-              <h1 className="mt-4 max-w-[14ch] font-display text-[clamp(2rem,4.2vw,3.4rem)] font-bold leading-[1.05] tracking-tight text-navy text-balance">
+              <h1 className="mt-4 max-w-[14ch] font-display text-[clamp(2rem,4.2vw,3.4rem)] font-bold leading-[1.05] tracking-tight text-white text-balance">
                 Same people. Bigger possibilities.
               </h1>
-              <p className="mt-4 max-w-[40ch] text-base leading-relaxed text-slate sm:text-lg">
+              <p className="mt-4 max-w-[40ch] text-base leading-relaxed text-white/85 sm:text-lg">
                 Access the tools, resources, and support to do your best work —
                 together.
               </p>
@@ -171,14 +174,14 @@ export function EmployeeAuthShell({
                   const Icon = feature.icon;
                   return (
                     <li key={feature.label} className="flex items-start gap-3">
-                      <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-soft-green text-green-strong ring-1 ring-green-strong/10">
+                      <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-white/12 text-lime ring-1 ring-white/20">
                         <Icon stroke={1.5} className="size-5" />
                       </span>
                       <div>
-                        <p className="font-display text-sm font-bold text-navy">
+                        <p className="font-display text-sm font-bold text-white">
                           {feature.label}
                         </p>
-                        <p className="mt-0.5 text-sm text-slate">
+                        <p className="mt-0.5 text-sm text-white/80">
                           {feature.description}
                         </p>
                       </div>

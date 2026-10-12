@@ -193,7 +193,14 @@ export default async function ServicesPage() {
                   {service.description ? (
                     <p
                       className={cn(
-                        "mt-3 max-w-[48ch] whitespace-pre-wrap text-base leading-relaxed opacity-90",
+                        // No `opacity-90` here. Measured on the rendered page
+                        // (scripts/audit/audit-contrast.mjs), fading Slate by 10%
+                        // drops it to 3.75:1 on `--color-soft-green` and 4.06:1
+                        // on white — under AA for body copy. The summary above
+                        // already separates the long description from the
+                        // summary by position and length; the two read as
+                        // different tiers without a third step of lightness.
+                        "mt-3 max-w-[48ch] whitespace-pre-wrap text-base leading-relaxed",
                         tone.body,
                       )}
                     >

@@ -1,0 +1,165 @@
+{
+  "check": "contrast",
+  "generatedAt": "2026-10-12T12:15:55.970Z",
+  "base": "http://localhost:3100",
+  "standard": "WCAG 2.2 SC 1.4.3 (AA)",
+  "thresholds": {
+    "normal": 4.5,
+    "large": 3
+  },
+  "routes": [
+    {
+      "route": "/",
+      "status": 200,
+      "checked": 220,
+      "failures": 0,
+      "overPhotoSampled": 17,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/about",
+      "status": 200,
+      "checked": 97,
+      "failures": 0,
+      "overPhotoSampled": 0,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/services",
+      "status": 200,
+      "checked": 79,
+      "failures": 0,
+      "overPhotoSampled": 0,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/why-beepa",
+      "status": 200,
+      "checked": 71,
+      "failures": 0,
+      "overPhotoSampled": 0,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/careers",
+      "status": 200,
+      "checked": 69,
+      "failures": 0,
+      "overPhotoSampled": 0,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/resources",
+      "status": 200,
+      "checked": 61,
+      "failures": 0,
+      "overPhotoSampled": 0,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/contact",
+      "status": 200,
+      "checked": 75,
+      "failures": 0,
+      "overPhotoSampled": 0,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/login",
+      "status": 200,
+      "checked": 30,
+      "failures": 0,
+      "overPhotoSampled": 9,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/signup",
+      "status": 200,
+      "checked": 34,
+      "failures": 0,
+      "overPhotoSampled": 9,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/forgot-password",
+      "status": 200,
+      "checked": 25,
+      "failures": 0,
+      "overPhotoSampled": 6,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/employee/login",
+      "status": 200,
+      "checked": 19,
+      "failures": 0,
+      "overPhotoSampled": 9,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/terms",
+      "status": 200,
+      "checked": 39,
+      "failures": 0,
+      "overPhotoSampled": 0,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/privacy",
+      "status": 200,
+      "checked": 39,
+      "failures": 0,
+      "overPhotoSampled": 0,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    },
+    {
+      "route": "/app/dashboard",
+      "status": 200,
+      "checked": 30,
+      "failures": 0,
+      "overPhotoSampled": 9,
+      "unresolved": 0,
+      "skippedExempt": 0,
+      "pageErrors": []
+    }
+  ],
+  "signatures": [],
+  "totals": {
+    "routesChecked": 14,
+    "elementsMeasured": 888,
+    "overPhotoProbes": 59,
+    "overPhotoResolved": 59,
+    "failures": 0,
+    "distinctSignatures": 0,
+    "unresolved": 0,
+    "unparsedColours": [],
+    "non200": []
+  },
+  "status": "PASS"
+}

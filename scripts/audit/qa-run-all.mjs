@@ -77,6 +77,20 @@ const CHECKS = [
   // shape carries meaning, not because they predate the redesign.
   { id: "runtime-radius",  tier: "fast",  cmd: ["scripts/audit/audit-runtime-radius.mjs"],  evidence: "docs/evidence/runtime-radius-check.json",  what: "computed corner radius on 12 public routes (rounded-full excluded)" },
 
+  // Contrast is measured, not asserted. Every ratio the project carried was a
+  // number typed by hand into a document, including a set that was wrong by a
+  // factor of two because the luminance function it used never linearised sRGB,
+  // and a set that reported the reference palette as unusable when it is
+  // comfortably AA. Nothing caught either.
+  //
+  // This walks 14 routes, resolves each element's effective background by
+  // compositing up the ancestor chain, and for text over photography it hides
+  // the glyphs and samples the real pixels underneath. It is also the gate that
+  // found the invisible headings: `app/globals.css` puts a `color` declaration
+  // on every h1-h4, which overrode the landing page's inherit-from-container
+  // model and painted navy text on a navy band.
+  { id: "contrast", tier: "fast", cmd: ["scripts/audit/audit-contrast.mjs"], evidence: "docs/evidence/contrast-check.json",  what: "WCAG 2.2 AA text contrast on 14 routes, DOM-composited plus real-pixel sampling over photos" },
+
   // The app layout sweep MUST be chunked: one process over all 28 routes
   // reaches 2.4 GB and takes the app server with it. That constraint used to
   // leak out of the runner as well — only chunk 1 was registered, so `--all`

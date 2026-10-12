@@ -114,7 +114,14 @@ export function SiteFooter() {
                 href="/contact"
                 data-analytics="footer_cta"
                 className={cn(
-                  "group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-none bg-green px-6 font-display text-base font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green-strong",
+                  // `bg-green-strong`, not `bg-green`. Measured on the
+                  // rendered page, white on Beepa Green (#119446) is 3.93:1 —
+                  // under AA for a 16px label — and this CTA is the only one of
+                  // the site's marketing CTAs resting on the accent. It also
+                  // had the hover direction backwards: every other CTA is
+                  // dark green at rest and lightens on hover, this one lightened
+                  // into the dark on hover. Both fixed by matching the pattern.
+                  "group inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-none bg-green-strong px-6 font-display text-base font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green",
                   focusRing,
                 )}
               >

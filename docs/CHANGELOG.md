@@ -2,6 +2,105 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## Contrast is now measured, and five defects it found were invisible (2026-10-12)
+
+**No workflow, route, or server-action behaviour changed.** This is a measurement and
+rendering fix: a new runtime gate, and the corrections it forced.
+
+### The recorded contrast figures were wrong by roughly a factor of two
+
+Every palette ratio in this project was a number typed by hand into a document, computed as
+`0.2126·r + 0.7152·g + 0.0722·b` over **non-linearised sRGB values**. That is a weighted
+average of gamma-encoded channels, not WCAG relative luminance. Checked against the two
+published sentinels it fails both: `#767676` on white comes out 2.05:1 instead of 4.54:1,
+and black on white comes out 3.00:1 instead of 21:1.
+
+The consequence was not cosmetic. It had the reference palette marked as unusable:
+
+| Colour | Recorded | Actual |
+|---|---|---|
+| Reference primary `#008338` on white | 2.39:1 ✗ | **4.88:1 ✓** |
+| Reference muted `#5e6066` on page bg | 2.41:1 ✗ | **6.01:1 ✓** |
+| Reference destructive `#d73337` on page bg | 2.65:1 ✗ | **4.55:1 ✓** |
+| Repo `--primary` `#0b6e34` on white | 2.75:1 ✗ | **6.37:1 ✓** |
+| Repo `--muted-foreground` on white | 2.16:1 ✗ | **4.97:1 ✓** |
+
+**Correction to the entry below:** it states that `--primary` was *deliberately not copied
+from the reference* because that value "is 3.2:1 on white and fails AA for text". It does
+not fail. The reference primary is AA at 4.88:1 as a fill with a white label and 4.67:1 as
+text on the page background, so that exclusion was an accessibility decision taken against
+a number that was never true. The darkening the repo still ships is harmless, but it was
+not required and the reasoning recorded for it should not be trusted again.
+
+### `scripts/audit/audit-contrast.mjs`
+
+A runtime gate over 14 routes. It resolves each element's effective background by
+compositing `background-color` up the ancestor chain, folds in alpha and group `opacity`,
+resolves the threshold from computed size and weight (4.5:1 normal, 3:1 at ≥24px or ≥18.66px
+bold), and skips what WCAG exempts. Text over photography cannot be answered from the DOM
+at all, so those elements get a real-pixel measurement instead.
+
+### Five defects, four of them invisible to a reader
+
+- **Every heading on a dark surface was painted in the wrong colour.** `globals.css` applies
+  `font-display text-navy` to `h1, h2, h3, h4` in the base layer, which is a `color`
+  declaration on the heading itself. The reference colours *containers*
+  (`.service-card-content`, `.final-copy`, `.careers-band`) and lets the heading inherit — so
+  a declaration on the element always won. Measured at **1.00:1** on the careers band (navy
+  on navy), the three service cards, the final-CTA headline and the "why Beepa" headline.
+  These were not low-contrast; they were the same colour as their background.
+- **`/services` body copy at 3.71:1.** `text-slate` with `opacity-90` on a `--color-soft-green`
+  card. The base token at full strength is 4.53:1 there; the ten percent fade is what broke it.
+- **The footer CTA at 3.93:1.** The only marketing CTA resting on brand green rather than
+  `--green-strong`, and the only one whose hover ran the other way — light at rest, dark on
+  hover, the inverse of all six others.
+- **Auth brand-panel copy on raw photography.** The panel faded the photo to white from the
+  left and set the copy in navy and Slate on top. The fade is near-transparent by the time
+  the text block ends — roughly 80% across a panel that is only ~450px wide — so the
+  description sat on a mid-grey photograph at **1.38:1** and the eyebrow on a blue cast at
+  1.00:1. `EmployeeAuthShell` was a byte-identical copy with the same defect.
+- **The photo scrim was a vignette, not a guarantee.** `--lm-photo-scrim` ran
+  `transparent 50% → navy/78% 100%`. `.service-card-content` is pinned to the bottom of a
+  360px card but is ~95px tall, so its first line lands at ~67% down, where that gradient is
+  ~27% opaque — measured 3.86:1 and 4.42:1 for 10px text. The floor is now derived rather
+  than chosen: light copy needs the backdrop at or below 0.173 luminance, which for a bright
+  photograph requires ≥0.82 scrim opacity. It starts there and still ramps to 0.94, so it
+  holds for any crop of the photo, including a future, brighter one.
+
+The auth panels were rebuilt on the brand's own photo language — navy scrim, light copy, lime
+accent — which is what the mobile strip beneath them already did. Fixing the contrast and
+unifying the surface turned out to be the same change.
+
+### Three ways the gate itself lied first
+
+Each produced a confident, wrong answer, and each is now structurally prevented:
+
+- **Glyph exclusion let antialiased edges through.** The first over-photo implementation kept
+  every pixel more than a small distance from the foreground colour and discarded the rest.
+  Antialiased glyph edges are further away than that, so they were treated as backdrop and
+  every case returned 1.00:1 — a number no real text/backdrop pair produces. Since colour is
+  not a layout property, the gate now makes the glyphs transparent and photographs what is
+  actually behind them.
+- **Smooth scrolling corrupted every screenshot.** The landing page sets
+  `html:has(.beepaLanding) { scroll-behavior: smooth }`. Playwright scrolls an element into
+  view before clipping, so the shutter opened mid-animation and captured the wrong region —
+  a white button with near-black text was reported as near-black on near-black at 1.02:1.
+- **A parser that silently skipped the palette.** The colour reader handled `rgb()` only. The
+  landing page's palette is `oklch()`, which Chromium serialises as `lab()`, so the gate
+  skipped it: `/` reported 27 elements measured, then 1 once the headings actually adopted
+  the reference palette, passing both times. Colours are now normalised through a canvas, and
+  **anything the canvas cannot resolve fails the run** — mutating the blind spot back in
+  produces 37 unreadable colours and exit 1.
+
+The per-route `[ok]` flag was also reading only failures and status, so a mutated run printed
+`[ok]` on all fourteen routes directly above `RESULT: FAIL`. A report whose lines and verdict
+disagree is worse than none, because the eye reads the fourteen `ok`s and stops.
+
+Verified: **9/9 fast-tier QA checks**, 651 tests / 87 files, `tsc` clean, production build
+compiles. The contrast gate alone measures **888 elements by DOM composition plus 59
+over-photo probes sampled from rendered pixels** across 14 routes, with 0 failures, 0
+unresolved probes and 0 unreadable colours.
+
 ## The landing page, auth and the whole product were redesigned onto one brand (2026-10-12)
 
 Design and branding only — **no workflow, route, or server-action behaviour changed.**
@@ -31,6 +130,9 @@ applied over them rather than replacing their content model.
 - **`--primary` was deliberately *not* copied from the reference.** That value is 3.2:1 on
   white and fails AA for text; this repo darkened it for that reason. Copying it would have
   been an accessibility regression dressed as fidelity.
+  **Superseded — the 3.2:1 figure was wrong.** See the entry above: the reference primary is
+  4.88:1 on white and passes AA comfortably. The stated reason for excluding it does not
+  hold; the value left in place was not the only one that would have worked.
 
 **Two gates caught what the unit tests could not:**
 

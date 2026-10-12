@@ -40,10 +40,29 @@
   --lm-brand-navy: oklch(0.265 0.09 281);
   --lm-brand-lime: oklch(0.79 0.174 124);
   --lm-destructive: oklch(0.58 0.2 25);
+  /* Photo scrim for light copy over photography.
+   *
+   * The reference shipped `transparent 50% -> navy/78% 100%`, which is a
+   * vignette: it looks right when you look at it, and it is not a guarantee.
+   * `.service-card-content` is pinned to the BOTTOM of a 360px card but is
+   * ~95px tall, so its first line — the counter — lands at roughly 67% down,
+   * where that gradient is only ~27% opaque. Measured on the rendered page,
+   * `--lm-background` #fafaf8 came out at 4.42:1 and 3.86:1 against the real
+   * pixels behind it, under AA for 10px text.
+   *
+   * The floor is arithmetic rather than taste. Light copy (#fafaf8, luminance
+   * 0.955) needs 4.5:1, so the backdrop must stay at or below 0.173. Compositing
+   * the ink scrim (luminance 0.010) over a photograph at luminance Lp gives
+   * `a*0.010 + (1-a)*Lp`; holding that at 0.173 for a bright photograph (Lp
+   * 0.9) needs `a >= 0.82`. The gradient starts there and still ramps to 0.94,
+   * which keeps the reference's darker-toward-the-bottom shape without ever
+   * dropping below the floor — so the scrim holds for any crop of the photo,
+   * including a future one that is much brighter than today's. */
   --lm-photo-scrim: linear-gradient(
     180deg,
-    transparent 50%,
-    oklch(0.13 0.02 265 / 78%) 100%
+    rgb(23 24 43 / 0.82) 0%,
+    rgb(23 24 43 / 0.88) 45%,
+    rgb(23 24 43 / 0.94) 100%
   );
   --lm-panel-shadow: 0 14px 45px oklch(0.2 0.01 265 / 12%);
   --lm-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
@@ -83,6 +102,28 @@
   font-family: var(--lm-display);
   font-weight: 500;
   letter-spacing: 0;
+
+  /* Inherit colour — do not set it.
+   *
+   * The reference colours CONTAINERS, not headings: `.service-card-content`,
+   * `.final-copy`, `.careers-band` and `.photo-caption` each declare a light
+   * `color` for their text to land on, and their h2/h3 have no colour of their
+   * own. Inheritance is the whole mechanism.
+   *
+   * `app/globals.css` breaks it. Its base layer does
+   * `@apply font-display text-navy` on `h1, h2, h3, h4`, which puts a `color`
+   * declaration directly on every heading in the app. A declaration on the
+   * element always beats an inherited one, so the landing page's headings kept
+   * the repo navy no matter what their container said. Measured on the rendered
+   * page: navy #1f2058 on the darkened photo scrim, 1.00:1, on the three service
+   * cards, the final-CTA headline and the careers band — text that is painted
+   * and completely invisible.
+   *
+   * `color: inherit` restores the reference's model. `.beepaLanding` itself
+   * declares `color: var(--lm-foreground)`, so headings on light surfaces get
+   * the right near-black automatically and only containers that genuinely sit
+   * on something dark need to say so. */
+  color: inherit;
 }
 .beepaLanding a {
   color: inherit;
