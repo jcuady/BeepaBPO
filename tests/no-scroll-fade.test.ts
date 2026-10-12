@@ -28,17 +28,27 @@ describe("landing page has no entrance fade", () => {
     expect(css).not.toContain(".reveal {");
     expect(css).not.toContain("translateY(28px)");
 
+    // `useEffect` used to be asserted absent outright. That was a proxy for
+    // "no JS-driven entrance animation", and the proxy turned out to be wrong:
+    // the page uses `useEffect` to close the enquiry dialog once its server
+    // action has returned, which animates nothing. The invariant that actually
+    // matters is that no element *starts* hidden, and that is what the CSS
+    // assertions below check. Animation *drivers* are still banned outright.
     expect(landing).not.toContain("IntersectionObserver");
     expect(landing).not.toContain("gsap");
-    expect(landing).not.toContain("useEffect");
+    expect(landing).not.toContain("framer-motion");
+    expect(landing).not.toContain("animate-[");
 
     // No keyframes and no hidden start state anywhere in the page's CSS.
     // (`animation: none` in the reduced-motion block is a reset, not an
     // entrance animation, so the check is on @keyframes rather than the bare
     // property name — a property-name match flags its own reset.)
     expect(landingCss).not.toContain("@keyframes");
-    expect(landingCss).not.toContain("opacity:0");
-    expect(landingCss).not.toContain("translateY");
+    // Anchored on the value, not a bare substring: `not.toContain("opacity:0")`
+    // also rejects `opacity:0.5`, which is a perfectly good hover dim. The
+    // pattern only matches a literal zero.
+    expect(landingCss).not.toMatch(/opacity:\s*0\s*[;}\s]/);
+    expect(landingCss).not.toMatch(/translateY\s*\(/);
 
     // The hero headline is server-rendered, not client-conditional.
     expect(landing).toContain("Your people.");
