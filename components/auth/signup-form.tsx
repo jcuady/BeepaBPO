@@ -160,9 +160,14 @@ export function SignupForm() {
             required
             className="mt-1 size-5 shrink-0 cursor-pointer rounded-none border-line accent-green-strong focus-visible:ring-2 focus-visible:ring-green-strong"
           />
+          {/* `Label` defaults to `flex items-center gap-2`, which is right for
+              an icon-plus-text label but wrong here: the content is running
+              prose with two links, so every text run becomes its own flex item
+              and the 8px gaps render as phantom separators between words.
+              `block` restores normal inline text flow. */}
           <Label
             htmlFor="acceptTerms"
-            className="text-sm font-normal leading-snug text-slate"
+            className="block text-sm font-normal leading-snug text-slate"
           >
             I agree to the{" "}
             <Link
