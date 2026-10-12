@@ -25,7 +25,7 @@ export function DemoLoginPicker({
 
   return (
     <div
-      className="mt-6 rounded-[16px] border border-dashed border-line bg-mist/40 p-4"
+      className="mt-6 rounded-none border border-dashed border-line bg-mist/40 p-4"
       data-testid="demo-login-picker"
     >
       <p className="font-display text-xs font-semibold uppercase tracking-[0.14em] text-navy">
@@ -68,7 +68,7 @@ export function DemoLoginPicker({
               <Link
                 key={user.email}
                 href={`${otherHref}?demo=${encodeURIComponent(user.email)}`}
-                className="inline-flex min-h-9 items-center rounded-[8px] border border-transparent bg-white/70 px-3 text-xs text-slate hover:border-line hover:text-navy"
+                className="inline-flex min-h-9 items-center rounded-none border border-transparent bg-white/70 px-3 text-xs text-slate hover:border-line hover:text-navy"
                 title={`Open ${otherHref} as ${user.email}`}
               >
                 {user.label} →

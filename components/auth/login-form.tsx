@@ -6,7 +6,7 @@ import { IconArrowRight, IconMail } from "@tabler/icons-react";
 import { loginAction, type ActionState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { AuthInput as Input } from "@/components/auth/auth-input";
 import { Label } from "@/components/ui/label";
 import { PasswordField } from "@/components/auth/password-field";
 import { DemoLoginPicker } from "@/components/auth/demo-login-picker";
@@ -70,7 +70,7 @@ export function LoginForm({
   const showDemo = Boolean(demoUsers?.length && demoPassword);
 
   return (
-    <div className="rounded-[24px] border border-white/80 bg-white p-6 shadow-[0_20px_50px_-28px_rgb(31_32_88/0.35)] ring-1 ring-line/70 sm:p-9">
+    <div className="rounded-none border border-white/80 bg-white p-6 shadow-[0_20px_50px_-28px_rgb(31_32_88/0.35)] ring-1 ring-line/70 sm:p-9">
       <div className="text-center">
         <h2 className="font-display text-2xl font-bold tracking-tight text-navy sm:text-3xl">
           Welcome back
@@ -156,7 +156,7 @@ export function LoginForm({
 
         {state.error && (
           <p
-            className="rounded-[8px] bg-red-50 px-3 py-2 text-sm text-destructive"
+            className="rounded-none bg-red-50 px-3 py-2 text-sm text-destructive"
             role="alert"
           >
             {state.error}
@@ -172,7 +172,7 @@ export function LoginForm({
         >
           {pending ? "Signing in..." : "Sign In"}
           {!pending ? (
-            <span className="flex size-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+            <span className="flex size-7 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
               <IconArrowRight stroke={2} className="size-3.5" />
             </span>
           ) : null}

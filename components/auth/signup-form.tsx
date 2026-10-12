@@ -10,7 +10,7 @@ import {
 } from "@tabler/icons-react";
 import { signupAction, type ActionState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { AuthInput as Input } from "@/components/auth/auth-input";
 import { Label } from "@/components/ui/label";
 import { PasswordField } from "@/components/auth/password-field";
 
@@ -21,13 +21,13 @@ export function SignupForm() {
 
   if (state.ok) {
     return (
-      <div className="rounded-[24px] border border-white/80 bg-white p-6 shadow-[0_20px_50px_-28px_rgb(31_32_88/0.35)] ring-1 ring-line/70 sm:p-9">
+      <div className="rounded-none border border-white/80 bg-white p-6 shadow-[0_20px_50px_-28px_rgb(31_32_88/0.35)] ring-1 ring-line/70 sm:p-9">
         <h2 className="text-center font-display text-2xl font-bold text-navy sm:text-3xl">
           Check your email
         </h2>
         <p className="mt-3 text-center text-base text-slate">{state.message}</p>
         {state.verifyToken && (
-          <p className="mt-4 rounded-[8px] bg-mist p-3 text-center text-sm text-navy">
+          <p className="mt-4 rounded-none bg-mist p-3 text-center text-sm text-navy">
             Dev verification link:{" "}
             <Link
               className="font-semibold text-green-strong underline"
@@ -50,7 +50,7 @@ export function SignupForm() {
   }
 
   return (
-    <div className="rounded-[24px] border border-white/80 bg-white p-6 shadow-[0_20px_50px_-28px_rgb(31_32_88/0.35)] ring-1 ring-line/70 sm:p-9">
+    <div className="rounded-none border border-white/80 bg-white p-6 shadow-[0_20px_50px_-28px_rgb(31_32_88/0.35)] ring-1 ring-line/70 sm:p-9">
       <div className="text-center">
         <h2 className="font-display text-2xl font-bold tracking-tight text-navy sm:text-3xl">
           Create your account
@@ -189,7 +189,7 @@ export function SignupForm() {
 
         {state.error && (
           <p
-            className="rounded-[8px] bg-red-50 px-3 py-2 text-sm text-destructive"
+            className="rounded-none bg-red-50 px-3 py-2 text-sm text-destructive"
             role="alert"
           >
             {state.error}
@@ -204,7 +204,7 @@ export function SignupForm() {
         >
           {pending ? "Creating account..." : "Create account"}
           {!pending ? (
-            <span className="flex size-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+            <span className="flex size-7 items-center justify-center rounded-none bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
               <IconArrowRight stroke={2} className="size-3.5" />
             </span>
           ) : null}

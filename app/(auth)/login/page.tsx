@@ -56,8 +56,8 @@ export default async function LoginPage({
           icon: IconShieldCheck,
         },
       ]}
-      imageSrc="/images/auth/sign-in.png"
-      imageAlt={`${BRAND.displayName} team member with headset`}
+      imageSrc="/images/sections/why-beepa-agent.webp"
+      imageAlt={`${BRAND.displayName} team member working at a desk`}
     >
       <LoginForm
         nextPath={nextPath}

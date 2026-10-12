@@ -92,7 +92,7 @@ export function EmployeeAuthShell({
             render={<Link href="/" />}
           >
             Go to Website
-            <span className="flex size-6 items-center justify-center rounded-full bg-navy/5 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+            <span className="flex size-6 items-center justify-center rounded-none bg-navy/5 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
               →
             </span>
           </Button>
@@ -123,10 +123,10 @@ export function EmployeeAuthShell({
             </div>
           </div>
 
-          <section className="relative hidden overflow-hidden rounded-[28px] bg-white lg:order-1 lg:col-span-7 lg:block">
+          <section className="relative hidden overflow-hidden rounded-none bg-white lg:order-1 lg:col-span-7 lg:block">
             <div className="absolute inset-0">
               <Image
-                src="/images/auth/internal-sign-in.png"
+                src="/images/services/customer-support-floor.webp"
                 alt=""
                 fill
                 priority
@@ -191,10 +191,10 @@ export function EmployeeAuthShell({
         </div>
 
         <div className="mx-auto max-w-[1280px] px-4 pb-8 sm:px-6 lg:hidden">
-          <div className="relative aspect-[16/10] overflow-hidden rounded-[22px]">
+          <div className="relative aspect-[16/10] overflow-hidden rounded-none">
             <Image
-              src="/images/auth/internal-sign-in.png"
-              alt="Beepa employee"
+              src="/images/services/customer-support-floor.webp"
+              alt="Beepa support floor"
               fill
               loading="eager"
               sizes="(max-width: 1024px) 100vw, 42rem"

@@ -65,6 +65,16 @@ export function AuthShell({
   title: string;
   description: string;
   features: AuthFeature[];
+  /**
+   * MUST be a clean photograph with no text baked into the pixels.
+   *
+   * This shell overlays `eyebrow`, `title`, `description` and `features` as
+   * live HTML on top of this image. Pointing it at one of the old poster assets
+   * (`/images/auth/sign-in.png`, `employee-portal.webp`) renders that same copy
+   * twice — once selectable and translatable, once as pixels — so it reads as
+   * ghosting behind the headline. Those posters are still in `public/` because
+   * other surfaces referenced them; do not reintroduce one here.
+   */
   imageSrc: string;
   imageAlt: string;
   values?: readonly {
@@ -106,7 +116,7 @@ export function AuthShell({
           </div>
 
           {/* Brand panel: desktop only — mobile uses photo strip below (mockup) */}
-          <section className="relative hidden overflow-hidden rounded-[28px] bg-white lg:order-1 lg:col-span-7 lg:block">
+          <section className="relative hidden overflow-hidden rounded-none bg-white lg:order-1 lg:col-span-7 lg:block">
             <div className="absolute inset-0">
               <Image
                 src={imageSrc}
@@ -185,7 +195,7 @@ export function AuthShell({
 
         {/* Mobile photo footer accent */}
         <div className="mx-auto max-w-[1280px] px-4 pb-8 sm:px-6 lg:hidden">
-          <div className="relative aspect-[16/10] overflow-hidden rounded-[22px]">
+          <div className="relative aspect-[16/10] overflow-hidden rounded-none">
             <Image
               src={imageSrc}
               alt={imageAlt}

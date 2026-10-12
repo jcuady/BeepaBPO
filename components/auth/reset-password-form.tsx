@@ -20,7 +20,7 @@ export function ResetPasswordForm({
 
   if (state.ok) {
     return (
-      <div className="rounded-[16px] border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8">
+      <div className="rounded-none border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8">
         <h2 className="font-display text-2xl font-bold text-navy">Password updated</h2>
         <p className="mt-3 text-base text-slate">{state.message}</p>
         <Link
@@ -52,7 +52,7 @@ export function ResetPasswordForm({
   // needed it.
   if (!hasRecoverySession) {
     return (
-      <div className="rounded-[16px] border border-line bg-white p-6 sm:p-8">
+      <div className="rounded-none border border-line bg-white p-6 sm:p-8">
         <h2 className="font-display text-2xl font-bold text-navy">Invalid link</h2>
         <p className="mt-3 text-slate">
           This reset link is missing or incomplete. Request a new one.
@@ -65,7 +65,7 @@ export function ResetPasswordForm({
   }
 
   return (
-    <div className="rounded-[16px] border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8">
+    <div className="rounded-none border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8">
       <h2 className="font-display text-2xl font-bold text-navy">Choose a new password</h2>
       <form action={action} className="mt-6 space-y-4" noValidate>
         <input type="hidden" name="token" value={token} />
@@ -90,7 +90,7 @@ export function ResetPasswordForm({
           )}
         </div>
         {state.error && (
-          <p className="rounded-[8px] bg-red-50 px-3 py-2 text-sm text-destructive" role="alert">
+          <p className="rounded-none bg-red-50 px-3 py-2 text-sm text-destructive" role="alert">
             {state.error}
           </p>
         )}

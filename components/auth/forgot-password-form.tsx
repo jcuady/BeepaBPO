@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { forgotPasswordAction, type ActionState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { AuthInput as Input } from "@/components/auth/auth-input";
 import { Label } from "@/components/ui/label";
 
 const initial: ActionState = { ok: false };
@@ -14,11 +14,11 @@ export function ForgotPasswordForm() {
 
   if (state.ok) {
     return (
-      <div className="rounded-[16px] border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8">
+      <div className="rounded-none border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8">
         <h2 className="font-display text-2xl font-bold text-navy">Check your email</h2>
         <p className="mt-3 text-base text-slate">{state.message}</p>
         {state.verifyToken && (
-          <p className="mt-4 rounded-[8px] bg-mist p-3 text-sm text-navy">
+          <p className="mt-4 rounded-none bg-mist p-3 text-sm text-navy">
             Dev reset link:{" "}
             <Link
               className="font-semibold text-green-strong underline"
@@ -39,7 +39,7 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <div className="rounded-[16px] border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8">
+    <div className="rounded-none border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8">
       <h2 className="font-display text-2xl font-bold text-navy">Reset password</h2>
       <p className="mt-2 text-sm text-slate">
         Enter your work email and we will send reset instructions if an account
@@ -54,7 +54,7 @@ export function ForgotPasswordForm() {
           )}
         </div>
         {state.error && (
-          <p className="rounded-[8px] bg-red-50 px-3 py-2 text-sm text-destructive" role="alert">
+          <p className="rounded-none bg-red-50 px-3 py-2 text-sm text-destructive" role="alert">
             {state.error}
           </p>
         )}

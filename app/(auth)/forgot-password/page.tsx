@@ -19,8 +19,8 @@ export default function ForgotPasswordPage() {
         { label: "Proven Processes", icon: IconChartBar },
         { label: "Real Business Impact", icon: IconShieldCheck },
       ]}
-      imageSrc="/images/auth/sign-in.png"
-      imageAlt="Beepa team member with headset"
+      imageSrc="/images/sections/why-beepa-agent.webp"
+      imageAlt="Beepa team member working at a desk"
     >
       <ForgotPasswordForm />
     </AuthShell>

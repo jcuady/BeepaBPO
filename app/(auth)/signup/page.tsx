@@ -64,8 +64,8 @@ export default async function SignupPage() {
           icon: IconHeartHandshake,
         },
       ]}
-      imageSrc="/images/auth/sign-in.png"
-      imageAlt={`${BRAND.displayName} team member with headset`}
+      imageSrc="/images/sections/why-beepa-agent.webp"
+      imageAlt={`${BRAND.displayName} team member working at a desk`}
     >
       <SignupForm />
     </AuthShell>

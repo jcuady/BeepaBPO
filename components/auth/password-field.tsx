@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { IconEye, IconEyeOff, IconLock } from "@tabler/icons-react";
-import { Input } from "@/components/ui/input";
+import { AuthInput as Input } from "@/components/auth/auth-input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +53,7 @@ export function PasswordField({
         variant="ghost"
         size="icon"
         type="button"
-        className="absolute top-1/2 right-0.5 size-11 -translate-y-1/2 text-slate hover:text-navy"
+        className="absolute top-1/2 right-0.5 size-11 -translate-y-1/2 rounded-none text-slate hover:text-navy"
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? "Hide password" : "Show password"}
       >

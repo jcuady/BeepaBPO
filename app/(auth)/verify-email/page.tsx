@@ -31,10 +31,10 @@ export default async function VerifyEmailPage({
         { label: "Proven Processes", icon: IconChartBar },
         { label: "Real Business Impact", icon: IconShieldCheck },
       ]}
-      imageSrc="/images/auth/sign-in.png"
-      imageAlt="Beepa team member with headset"
+      imageSrc="/images/sections/why-beepa-agent.webp"
+      imageAlt="Beepa team member working at a desk"
     >
-      <div className="rounded-[24px] border border-line bg-white p-6 shadow-sm sm:p-10">
+      <div className="rounded-none border border-line bg-white p-6 shadow-sm sm:p-10">
         <div className="text-center">
           <h2 className="font-display text-2xl font-bold text-navy sm:text-3xl">
             {result.ok ? "Email verified" : "Verification needed"}
