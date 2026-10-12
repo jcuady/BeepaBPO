@@ -45,6 +45,49 @@ Verified: **14/14 QA checks**, 667 tests / 94 files, `tsc` clean, production bui
 including `role-sweep` across 13 roles and `responsive-app` across 28 routes × 8 viewports,
 which are what prove the product-side corner change cost nothing.
 
+## The square pass reached the files the primitive sweep could not (2026-10-12)
+
+The previous entry squared the shared primitives and then 28 `app/` pages. That left
+**25 component files** still carrying hardcoded corner radii from the pre-redesign
+design — marketing sections, the layout shell, the install prompt and eight app forms.
+They were invisible to the earlier verification because they are *leaf* components:
+no page file changed, so no page-level check had anything to notice.
+
+- **The calendar was squared by setting one variable, not by editing fourteen call
+  sites.** `rounded-(--cell-radius)` appears on the day cells, the month/year triggers
+  and the selected-range edges; `[--cell-radius:0px]` on the container resolves all of
+  them at once.
+- **`ResponsiveImageFrame` had no callers, and squaring collapsed its three `frame`
+  variants into one.** `interlocking`, `soft` and `blend` differed only in corner radius
+  and a responsive override, so removing the radius made them identical. The variant
+  names are kept so call sites keep compiling; the doc comment, which still described
+  the frames as "brand corners / rounded / large rounded", was corrected.
+- **A sweep of the whole tree now leaves exactly four radius tokens**, all intentional:
+  the calendar variable (reads `0px`), `rounded-[2px]` on the chart and tooltip,
+  `rounded-[inherit]` on the scrollbar thumb, and `rounded-full` for the shapes that
+  are circular *because they mean something* — avatars, the lime bullet dots, the two
+  recruitment status chips.
+
+### A broken sentence that every gate passed
+
+Screenshotting `/signup` after the sweep showed the terms-consent row rendering as
+three ragged lines with what looked like stray `·` separators:
+
+> ☐ I agree to the **Terms of** **Service** and **Privacy** **Policy.**
+
+`components/ui/label.tsx` defaults to `flex items-center gap-2` — correct for the
+common icon-plus-text label. This label's content is *running prose with two links*, so
+`display:flex` made every text run its own flex item and `gap-2` inserted 8px between
+"the", "Terms of Service", "and", "Privacy Policy" and ".". The separators were real
+layout, not decoration. Overridden with `block` at the call site; the primitive default
+is right for every other caller and was left alone.
+
+**Every automated gate was green while this shipped** — typecheck clean, 667 unit tests
+passing, a full 14/14 QA suite, and a design-system contract test asserting the radius
+scale *on that same file*. All of them check that classes are present; none check that a
+sentence still reads as a sentence. A scan for the shape across all 286 files found this
+to be the only instance.
+
 ## 70 server actions returned the driver's raw error text (2026-10-12)
 
 - **Every `error: error?.message ?? "copy"` fallback in the codebase was unreachable

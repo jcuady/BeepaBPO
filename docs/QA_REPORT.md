@@ -41,6 +41,63 @@ the UI that squaring the shared primitives touched, and both are clean.
 
 ---
 
+## 0.1 Addendum — the square pass completed (2026-10-12)
+
+The section above re-ran the suite after the redesign, but at that point the square
+change had only reached the **shared primitives** and 28 `app/` page files. Twenty-five
+**component** files still carried hardcoded radii — invisible to every check, because
+no page file changed, so no page-level gate had anything to notice.
+
+Re-run after `676105e` (component sweep) and `4713126` (signup consent fix):
+
+| Check | Result |
+|---|---|
+| `qa-run-all.mjs --all` | **14/14 passed**, exit 0 |
+| `responsive-public` | 80/80 — 10 routes × 8 viewports |
+| `responsive-app` 1–4 + cms | 56/56 each, 8/8 — 28 routes × 8 viewports |
+| `role-sweep` | 13 roles, **0 page errors** (946s) |
+| `internal-links` | 29/29 |
+| `client-invite` | **17/17** — the environment's one invite was available this run |
+| `not-found` / `dialog-keyboard` / `notification-bell` | 18/18 · 16/16 · 10/10 |
+| `gate` | 667 tests / 94 files, `tsc` clean |
+
+`role-sweep` and `responsive-app` are the checks that carry the product-side risk, and
+both are clean — squaring 25 more leaf components cost the product nothing.
+
+### What the suite could not have found
+
+**A broken sentence on `/signup`.** Screenshotting the page after the sweep showed the
+terms-consent row rendering as three ragged lines with phantom separators between the
+words. `components/ui/label.tsx` defaults to `flex items-center gap-2`; the label's
+content is *running prose with two links*, so every text run became its own flex item
+and `gap-2` put 8px of real space between them.
+
+Every automated gate was green while this shipped:
+
+- `tsc --noEmit` clean
+- 667 unit tests passing
+- a full **14/14** QA suite
+- a design-system contract test asserting the radius scale **on that exact file**
+
+All four check that *classes are present*. None check that *a sentence still reads as a
+sentence*. The fix was a one-word `block` override at the call site; a scan for the same
+shape across all 286 files found this to be the only instance.
+
+### Two measurement traps hit during this pass
+
+- **The full-page screenshot lied about broken images.** Three sections appeared to show
+  empty frames where photos should be. The DOM said `complete:false`, not
+  `naturalWidth:0` — they were simply lazy-loaded below the fold and the capture never
+  scrolled to them. Scrolling the page loaded all **8/8** images; re-capturing confirmed
+  it. The screenshot was the broken instrument, not the page.
+- **An aborted suite run nearly committed its own partial evidence as a result.** A
+  cancelled run had already rewritten 9 evidence JSONs when `git add -A` swept them into
+  a commit — a half-old, half-new mix that looked like a valid result. They were
+  restored from the last complete run (`b4a41a7`) and the commit amended to carry only
+  the source fix. **Evidence is only evidence when the run that wrote it completed.**
+
+---
+
 ## 1. What was run
 
 | Check | Tool | Scope |
