@@ -80,3 +80,6 @@ next-env.d.ts
 # the app's typecheck, which is why tsconfig.json excludes the folder too.
 BeepaBPO new landing design/
 BeepaBPO new landing design.zip
+
+# Local visual-verification screenshots (audit scratch, not source)
+.shots/

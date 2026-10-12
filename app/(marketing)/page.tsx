@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import { AssuranceStrip } from "@/components/marketing/assurance-strip";
 import { CareersBand } from "@/components/marketing/careers-band";
 import { FAQSection, FAQ_ITEMS } from "@/components/marketing/faq-section";
 import { FinalCTA } from "@/components/marketing/final-cta";
 import { HeroSection } from "@/components/marketing/hero-section";
 import { ManpowerModelSection } from "@/components/marketing/manpower-model-section";
 import { ProofStrip } from "@/components/marketing/proof-strip";
+import { PromiseTrio } from "@/components/marketing/promise-trio";
 import { ServicesSection } from "@/components/marketing/services-section";
+import { TimeZoneBand } from "@/components/marketing/time-zone-band";
 import { TrustedBySection } from "@/components/marketing/trusted-by-section";
 import { WhyBeepaSection } from "@/components/marketing/why-beepa-section";
 import { BRAND } from "@/lib/site";
@@ -72,12 +75,15 @@ export default async function HomePage() {
       <JsonLd data={servicesItemListJsonLd()} />
       <JsonLd data={faqJsonLd} />
       <HeroSection />
+      <AssuranceStrip />
       <TrustedBySection />
       <ServicesSection />
       <WhyBeepaSection />
+      <TimeZoneBand />
       <ProofStrip />
       <CareersBand />
       <ManpowerModelSection />
+      <PromiseTrio />
       <FAQSection items={faqItems} />
       <FinalCTA />
     </>
