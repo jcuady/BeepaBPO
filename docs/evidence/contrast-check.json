@@ -1,6 +1,6 @@
 {
   "check": "contrast",
-  "generatedAt": "2026-10-12T12:50:55.278Z",
+  "generatedAt": "2026-10-12T15:03:21.926Z",
   "base": "http://localhost:3100",
   "standard": "WCAG 2.2 SC 1.4.3 (AA)",
   "thresholds": {

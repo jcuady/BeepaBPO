@@ -22,20 +22,31 @@ Do not invent a new style direction.
 
 Use:
 
-- Navy `#1F2058`
-- Green `#119446`
-- Lime `#93C63D` sparingly
-- White `#FFFFFF`
-- Deep Ink `#17182B`
-- Slate `#667085`
-- Soft Gray `#EAECF0`
-- Mist `#F5F7F6`
-- Soft Green `#EEF7E8`
+- Navy `#1F1C4F`
+- Green `#008338` — fill only; text or white labels use `#0B6E34`
+- Lime `#93C63D` sparingly — on navy, never on a light surface
+- White `#FFFFFF` for cards, `#FAFAF8` for the page
+- Deep Ink `#13161C`
+- Slate `#5E6066`
+- Soft Gray `#D8D8D3`
+- Mist `#F2F2EE`
+- Soft Green `#EAF3E2`
+- Error red `#C62B2F`
+
+Colours live in `app/globals.css` as the single token layer. Do not hardcode a
+hex in a component, and do not add a second palette — the landing page used to
+carry its own `--lm-*` set and that duplication is exactly what this rule
+exists to prevent.
 
 Fonts:
 
 - Manrope for display/headings/metrics/buttons
-- Inter for body/forms/tables/product UI
+- DM Sans for body on marketing and auth
+- Inter for body in the product app — forms, tables, CRM, payroll
+
+The body face is split by surface, not by taste: `font-marketing` (DM Sans) is
+applied on the `(marketing)` and `(auth)` layouts, `font-sans` (Inter) is the
+product default. Verify with `scripts/audit/audit-typography.mjs`.
 
 Brand direction:
 

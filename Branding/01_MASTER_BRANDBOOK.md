@@ -158,15 +158,33 @@ Do not introduce unrelated decorative systems when logo geometry can solve the s
 
 | Token | Hex | Role |
 |---|---|---|
-| Beepa Navy | `#1F2058` | Trust, authority, corporate foundation |
-| Beepa Green | `#119446` | Growth, people, progress, primary accent |
-| Beepa Lime | `#93C63D` | Energy, momentum, micro-emphasis |
-| White | `#FFFFFF` | Clarity, openness, primary surface |
-| Deep Ink | `#17182B` | High-readability body text |
-| Slate | `#667085` | Secondary text |
-| Soft Gray | `#EAECF0` | Borders and dividers |
-| Mist | `#F5F7F6` | Alternate surface |
-| Soft Green | `#EEF7E8` | Brand-tinted subtle surface |
+| Beepa Navy | `#1F1C4F` | Trust, authority, corporate foundation |
+| Beepa Green | `#008338` | Growth, people, progress — **fill only**, see below |
+| Interactive Green | `#0B6E34` | Any green a human reads as text or sees under a label |
+| Beepa Lime | `#93C63D` | Energy, momentum — accent on navy; never a mark on light |
+| White | `#FFFFFF` | Clarity, primary card surface |
+| Page | `#FAFAF8` | Warm off-white page. Cards sit white on it |
+| Deep Ink | `#13161C` | High-readability body text |
+| Slate | `#5E6066` | Secondary text |
+| Soft Gray | `#D8D8D3` | Borders and dividers |
+| Mist | `#F2F2EE` | Alternate surface |
+| Soft Green | `#EAF3E2` | Brand-tinted subtle surface |
+
+### The two greens, and the one red that moved
+
+`#008338` is a **fill** colour: 4.88:1 under a white label, but only 4.27:1 as
+text on a tinted surface, which is under AA. Anything a human reads uses
+`#0B6E34` (6.37:1). Lime is the same idea in reverse — a brand accent on navy
+(7.77:1), never a mark on a light surface.
+
+Error red is `#C62B2F`. The reference's `#D73337` is AA on white and on the
+page but falls to 4.16:1 on the critical surface, which is exactly where error
+text is drawn; `#C62B2F` is the same hue one step down, 4.85:1 at worst.
+
+All figures are measured on rendered pages by
+`scripts/audit/audit-contrast.mjs`. Do not recompute them by hand — an earlier
+revision of this table was built from a luminance function that never
+linearised sRGB and understated every value.
 
 ### Recommended Public-Site Balance
 
@@ -198,7 +216,7 @@ Preferred weights: 500 / 600 / 700.
 
 Use for:
 
-- Body copy
+- Body copy **inside the product app** (see DM Sans below for the public site)
 - Forms
 - Tables
 - Dashboards
@@ -212,9 +230,32 @@ Use for:
 
 Preferred weights: 400 / 500 / 600.
 
+## DM Sans
+
+Use for:
+
+- The whole **public surface**: landing page, all marketing routes, and every
+  auth screen (sign in, sign up, forgot password, employee portal)
+- Body copy, labels, buttons and form fields on those surfaces
+
+Preferred weights: 400 / 500 / 600.
+
+DM Sans is the body face of the supplied "BeepaBPO new landing design" reference.
+It is applied by the `(marketing)` and `(auth)` layouts, not per page, so a
+new route in either group inherits it.
+
 ### Principle
 
 Manrope expresses the brand. Inter carries the work.
+
+**Public vs product.** The public site and the product app are allowed to
+speak in different sans faces, and deliberately do. Before this split the
+landing page alone used DM Sans, so navigating from `/` to `/about` changed the
+typeface — a seam any visitor could see. Splitting by *surface* instead of
+picking a winner removes that: DM Sans across the entire public voice, where
+nothing is dense, and Inter in the app, where 12–14px tables, payroll and CRM
+are the working surface and Inter's legibility at those sizes is the reason
+the brandbook names it.
 
 ---
 

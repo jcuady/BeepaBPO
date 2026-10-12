@@ -53,6 +53,7 @@
     "audit:role-pages": "node scripts/audit-role-pages.mjs",
     "audit:runtime-radius": "node scripts/audit/audit-runtime-radius.mjs",
     "audit:contrast": "node scripts/audit/audit-contrast.mjs",
+    "audit:typography": "node scripts/audit/audit-typography.mjs",
     "verify:all": "node scripts/verify-all.mjs",
     "verify:skip-migration": "node scripts/verify-all.mjs --skip-migration"
   },

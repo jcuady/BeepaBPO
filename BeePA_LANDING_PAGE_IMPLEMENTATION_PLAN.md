@@ -187,15 +187,15 @@ Centralize the brand. Do not scatter raw values across components.
 ## Core Colors
 
 ```css
---beepa-navy: #1F2058;
---beepa-green: #119446;
+--beepa-navy: #1F1C4F;
+--beepa-green: #008338;
 --beepa-lime: #93C63D;
 --beepa-white: #FFFFFF;
---beepa-ink: #17182B;
---beepa-slate: #667085;
---beepa-border: #EAECF0;
---beepa-mist: #F5F7F6;
---beepa-soft-green: #EEF7E8;
+--beepa-ink: #13161C;
+--beepa-slate: #5E6066;
+--beepa-border: #D8D8D3;
+--beepa-mist: #F2F2EE;
+--beepa-soft-green: #EAF3E2;
 ```
 
 Recommended marketing balance:

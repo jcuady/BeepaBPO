@@ -165,15 +165,15 @@ Do not introduce unrelated decorative systems when logo geometry can solve the s
 
 | Token | Hex | Role |
 |---|---|---|
-| Beepa Navy | `#1F2058` | Trust, authority, corporate foundation |
-| Beepa Green | `#119446` | Growth, people, progress, primary accent |
+| Beepa Navy | `#1F1C4F` | Trust, authority, corporate foundation |
+| Beepa Green | `#008338` | Growth, people, progress, primary accent |
 | Beepa Lime | `#93C63D` | Energy, momentum, micro-emphasis |
 | White | `#FFFFFF` | Clarity, openness, primary surface |
-| Deep Ink | `#17182B` | High-readability body text |
-| Slate | `#667085` | Secondary text |
-| Soft Gray | `#EAECF0` | Borders and dividers |
-| Mist | `#F5F7F6` | Alternate surface |
-| Soft Green | `#EEF7E8` | Brand-tinted subtle surface |
+| Deep Ink | `#13161C` | High-readability body text |
+| Slate | `#5E6066` | Secondary text |
+| Soft Gray | `#D8D8D3` | Borders and dividers |
+| Mist | `#F2F2EE` | Alternate surface |
+| Soft Green | `#EAF3E2` | Brand-tinted subtle surface |
 
 ### Recommended Public-Site Balance
 
@@ -787,8 +787,8 @@ The visual identity combines professional-services structure, human warmth, and 
 
 | Name | Hex | Usage |
 |---|---:|---|
-| Beepa Navy | `#1F2058` | Primary corporate color; headings, nav, footer, major surfaces |
-| Beepa Green | `#119446` | Primary accent; CTA, active states, links, progress |
+| Beepa Navy | `#1F1C4F` | Primary corporate color; headings, nav, footer, major surfaces |
+| Beepa Green | `#008338` | Primary accent; CTA, active states, links, progress |
 | Beepa Lime | `#93C63D` | Secondary accent; small highlights and momentum cues |
 | White | `#FFFFFF` | Primary background and negative space |
 
@@ -796,11 +796,11 @@ The visual identity combines professional-services structure, human warmth, and 
 
 | Name | Hex | Usage |
 |---|---:|---|
-| Deep Ink | `#17182B` | High-contrast body text |
-| Slate | `#667085` | Secondary copy, metadata |
-| Soft Gray | `#EAECF0` | Borders, dividers |
-| Mist | `#F5F7F6` | Alternate surface |
-| Soft Green | `#EEF7E8` | Subtle brand-highlight surface |
+| Deep Ink | `#13161C` | High-contrast body text |
+| Slate | `#5E6066` | Secondary copy, metadata |
+| Soft Gray | `#D8D8D3` | Borders, dividers |
+| Mist | `#F2F2EE` | Alternate surface |
+| Soft Green | `#EAF3E2` | Subtle brand-highlight surface |
 
 ---
 
@@ -2736,15 +2736,15 @@ Recommended semantic structure:
 
 ```css
 @theme {
-  --color-beepa-navy: #1F2058;
-  --color-beepa-green: #119446;
+  --color-beepa-navy: #1F1C4F;
+  --color-beepa-green: #008338;
   --color-beepa-lime: #93C63D;
 
-  --color-ink: #17182B;
-  --color-slate: #667085;
-  --color-border: #EAECF0;
-  --color-mist: #F5F7F6;
-  --color-soft-green: #EEF7E8;
+  --color-ink: #13161C;
+  --color-slate: #5E6066;
+  --color-border: #D8D8D3;
+  --color-mist: #F2F2EE;
+  --color-soft-green: #EAF3E2;
   --color-white: #FFFFFF;
 }
 ```
@@ -3250,15 +3250,15 @@ Do not invent a new style direction.
 
 Use:
 
-- Navy `#1F2058`
-- Green `#119446`
+- Navy `#1F1C4F`
+- Green `#008338`
 - Lime `#93C63D` sparingly
 - White `#FFFFFF`
-- Deep Ink `#17182B`
-- Slate `#667085`
-- Soft Gray `#EAECF0`
-- Mist `#F5F7F6`
-- Soft Green `#EEF7E8`
+- Deep Ink `#13161C`
+- Slate `#5E6066`
+- Soft Gray `#D8D8D3`
+- Mist `#F2F2EE`
+- Soft Green `#EAF3E2`
 
 Fonts:
 

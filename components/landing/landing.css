@@ -44,7 +44,11 @@
    *
    * Only the two things that are genuinely landing-local remain: the DM Sans
    * body stack, and the display stack. */
-  --lm-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Only the display stack is landing-local now. The body stack resolves to the
+     system `--font-marketing` token, which is DM Sans — the same value the
+     `(marketing)` and `(auth)` layouts apply, so `/` and `/about` speak with
+     one voice instead of two. */
+  --lm-sans: var(--font-marketing), ui-sans-serif, system-ui, sans-serif;
   --lm-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
   min-height: 100%;

@@ -2,6 +2,93 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## The public site now speaks one voice (2026-10-12)
+
+**No workflow, route, or server-action behaviour changed.** Typography, plus the document
+consequences of the palette and typography work.
+
+### The seam, and why the answer was a split rather than a winner
+
+The supplied reference sets its body copy in DM Sans. `Branding/01_MASTER_BRANDBOOK.md`
+assigns Inter to "body copy, forms, tables, dashboards, CRM". Both are in-repo sources and
+they disagreed — and the landing page, being a port of the reference, was the only route that
+followed it. Navigating from `/` to `/about` changed the typeface. Every gate in the repo was
+green throughout.
+
+Picking one winner would have made one of those surfaces wrong. Splitting by *surface* makes
+neither wrong:
+
+- **DM Sans carries marketing and auth.** The whole public voice, where nothing is dense and
+  the reference is the spec. Sign-in is the first screen a prospective client meets, so it
+  belongs to the same voice.
+- **Inter stays in the product app,** where 12–14px tables, payroll and CRM are the working
+  surface and Inter's legibility at those sizes is the reason the brandbook names it.
+
+Headings are Manrope on every surface already, so this was the only axis in play.
+
+Applied as a `--font-marketing` token on the `(marketing)` and `(auth)` layouts rather than
+per page, so a new route in either group inherits it. The `(auth)` group had no layout at all
+— it exists now and carries nothing but the font, because `AuthShell` and
+`EmployeeAuthShell` already own all the chrome. `landing.css` now resolves `--lm-sans` to the
+same token instead of naming `--font-dm-sans` directly.
+
+`Branding/01_MASTER_BRANDBOOK.md` §10 and `docs/DESIGN_SYSTEM.md` §1–2 are updated: both
+carried the old hexes and the old body-font rule, and a design document that disagrees with
+the tokens is the same drift this pass exists to remove.
+
+Three more spec documents still carried the pre-unification hex tables and were rebased in the
+same pass — 42 values across `Branding/BeePA_COMPLETE_BRANDBOOK.md`,
+`BeePA_LANDING_PAGE_IMPLEMENTATION_PLAN.md` and `system/BeePA_MASTER_FULLSTACK_SUPABASE_PROMPT.md`:
+
+| Token | Was | Now |
+|---|---|---|
+| Beepa Navy | `#1F2058` | `#1F1C4F` |
+| Beepa Green | `#119446` | `#008338` |
+| Deep Ink | `#17182B` | `#13161C` |
+| Slate | `#667085` | `#5E6066` |
+| Soft Gray | `#EAECF0` | `#D8D8D3` |
+| Mist | `#F5F7F6` | `#F2F2EE` |
+| Soft Green | `#EEF7E8` | `#EAF3E2` |
+
+Every occurrence was checked to be the same token before the rewrite — these are spec tables
+that describe the brand, not incidental colour samples. `#93C63D` is absent from that list
+because lime did not change. `docs/QA_REPORT.md` and the `principal-system-finish-suite/`
+reports still name the old values and are left as history: they record what a run measured on
+a given day, and rewriting them would make them untrue about that run.
+
+### `scripts/audit/audit-typography.mjs`
+
+Nothing asserted which face a surface uses, which is why the seam survived. This gate walks 9
+routes and requires DM Sans on every body-copy element below 24px that has not opted into the
+display face, with Manrope on headings and `font-display` elements. 344 body-copy elements
+across the landing page, five marketing routes and four auth screens; 0 strays.
+
+Proven by mutation: reverting the marketing layout to `font-sans` produces exactly 123 strays
+and exit 1 — the same 123 body-copy elements the clean run counts for that group.
+
+**It had to be written three times.** Two earlier versions were wrong in the same direction and
+both reported confident, specific failures about a page that was correct:
+
+1. Reading `main p` returned Manrope on `/about` — that was an 11px eyebrow, legitimately in
+   the display face, not body copy.
+2. Filtering to ≥15px returned `Manrope:2 DM Sans:1` on `/login`, because the only paragraph
+   over 15px there is a 21.6px rotated accent, again deliberately `font-display`.
+
+The rule that holds is the one the markup states — an element is display type if it is heading
+text (found by walking ancestors, because `app/globals.css` applies `font-display` to h1–h4 in
+the base layer rather than on the element) or opts in explicitly; ≥24px is display by
+definition; everything else must be the surface's body face. A check that samples one
+"representative" element and calls it the surface's font will be wrong about the surface in
+both directions, and will look authoritative while doing it.
+
+**Same coverage gap as the contrast gate:** the product app is not measured, because `/app`
+routes need a session. The contract it checks is stated in the evidence file rather than left
+implicit.
+
+Verified: **10/10 fast-tier QA checks**, 651 tests / 87 files, `tsc` clean, production build
+compiles, `responsive-public` 80/80, design-system audit clean, contrast gate 888 elements +
+59 over-photo probes with 0 failures, typography gate 344 body-copy elements with 0 strays.
+
 ## One palette: the landing page's brand became the system's brand (2026-10-12)
 
 **No workflow, route, or server-action behaviour changed.** This is a token-layer change plus

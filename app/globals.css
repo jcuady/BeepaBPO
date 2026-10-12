@@ -57,6 +57,23 @@
   --color-ring: var(--ring);
 
   --font-sans: var(--font-inter);
+  /* The public face.
+   *
+   * DM Sans is the body font of the supplied "BeepaBPO new landing design"
+   * reference, and the brandbook assigns Inter to "body copy, forms, tables,
+   * dashboards, CRM". Those two sources disagreed, and the result was a seam a
+   * visitor could see: navigating from `/` to `/about` changed the typeface.
+   *
+   * The decision is to split by surface rather than pick a winner. DM Sans
+   * carries the marketing site and the auth screens — the whole public voice,
+   * where nothing is dense and legibility is not the binding constraint, and
+   * where matching the reference matters. Inter stays the product app, where
+   * 12–14px tables, payroll and CRM are the working surface and Inter's
+   * legibility at those sizes is the point.
+   *
+   * Applied on the `(marketing)` and `(auth)` layouts rather than per page, so
+   * a new route in either group inherits it instead of having to remember. */
+  --font-marketing: var(--font-dm-sans);
   --font-display: var(--font-manrope);
   --font-heading: var(--font-manrope);
   --font-body: var(--font-inter);

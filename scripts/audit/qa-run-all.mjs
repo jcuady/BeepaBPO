@@ -91,6 +91,15 @@ const CHECKS = [
   // model and painted navy text on a navy band.
   { id: "contrast", tier: "fast", cmd: ["scripts/audit/audit-contrast.mjs"], evidence: "docs/evidence/contrast-check.json",  what: "WCAG 2.2 AA text contrast on 14 routes, DOM-composited plus real-pixel sampling over photos" },
 
+  // The site ran two body faces with nothing asserting which face a surface uses:
+  // `/` was DM Sans (from the supplied reference) and every other route was
+  // Inter (from the brandbook), so navigating between them changed the typeface
+  // while every gate here stayed green. The contract is now split by surface —
+  // DM Sans on marketing and auth, Inter in the app — and this is what holds it.
+  // Proven by mutation: reverting the marketing layout to `font-sans` produces
+  // exactly 123 strays and exit 1.
+  { id: "typography", tier: "fast", cmd: ["scripts/audit/audit-typography.mjs"], evidence: "docs/evidence/typography-check.json",  what: "body face per surface on 9 public/auth routes (app not covered — needs a session)" },
+
   // The app layout sweep MUST be chunked: one process over all 28 routes
   // reaches 2.4 GB and takes the app server with it. That constraint used to
   // leak out of the runner as well — only chunk 1 was registered, so `--all`

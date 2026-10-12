@@ -14,19 +14,26 @@ Brand tokens live in `app/globals.css` under `@theme inline`. Light mode only
 
 | Token | Value | Use |
 |-------|-------|-----|
-| `navy` | `#1f2058` | Headings, brand text |
-| `green` | `#119446` | Brand accent, **non-text only** |
-| `green-strong` | `#0b6e34` | Interactive green + text on white (WCAG AA 4.5:1) |
-| `lime` | `#93c63d` | Accent highlight, **non-text only** |
-| `ink` | `#17182b` | Body foreground |
-| `slate` | `#667085` | Secondary text |
-| `line` | `#eaecf0` | Borders |
-| `mist` | `#f5f7f6` | Soft surfaces |
-| `soft-green` | `#eef7e8` | Active nav, accent wash |
+| `navy` | `#1f1c4f` | Headings, brand text |
+| `green` | `#008338` | Interactive green — **fill only** (4.88:1 under a white label) |
+| `green-strong` | `#0b6e34` | Textual green on white or any tint (6.37:1) |
+| `lime` | `#93c63d` | Accent highlight on navy (7.77:1); **never** on a light surface |
+| `ink` | `#13161c` | Body foreground |
+| `slate` | `#5e6066` | Secondary text |
+| `line` | `#d8d8d3` | Borders |
+| `mist` | `#f2f2ee` | Soft surfaces |
+| `soft-green` | `#eaf3e2` | Active nav, accent wash |
+| `background` | `#fafaf8` | Page. Cards stay `#ffffff` against it |
 
-`green` and `lime` fail contrast as text on white. Use them for fills, strokes and
-graph fills; use `green-strong` whenever a human reads it. Primary UI maps to
-`green-strong`; cards and borders use `white` + `line`.
+**The green split is load-bearing, not decorative.** `green` is a *fill* colour:
+4.88:1 against a white label, but only **4.27:1 as text** on a tinted surface,
+which is under AA. Anything a human reads uses `green-strong`. `lime` is the
+same idea in reverse — it is a brand accent on navy, not a mark on white.
+
+Ratios are measured by `scripts/audit/audit-contrast.mjs` on rendered pages,
+not asserted here. An earlier version of this table was built from a luminance
+function that never linearised sRGB, which understated every value; see the
+changelog entry for the corrected figures.
 
 ### 1.2 Semantic status layer
 
@@ -43,9 +50,9 @@ cannot be added without choosing both.
 
 | Foreground token | Surface token | Meaning |
 |---|---|---|
-| `positive` (`#0b6e34`) | `positive-surface` (`#eef7e8`) | Success, approved, present, healthy |
+| `positive` (`#0b6e34`) | `positive-surface` (`#eaf3e2`) | Success, approved, present, healthy |
 | `caution` (`#92610a`) | `caution-surface` (`#fdf3e0`) | Needs attention but not broken |
-| `critical` (`#b42318`) | `critical-surface` (`#fdecea`) | Failed, rejected, overdue |
+| `critical` (`#c62b2f`) | `critical-surface` (`#fdecea`) | Failed, rejected, overdue |
 | `info` (`#1b6ea8`) | `info-surface` (`#e8f2fa`) | Neutral informational state |
 | — | `neutral-surface` (= `mist`) | Inactive / unknown / on-hold |
 
@@ -103,8 +110,20 @@ stays visible rather than becoming a silent hole.
 | Role | Font | CSS |
 |------|------|-----|
 | Display / headings | Manrope | `--font-manrope`, `font-display` |
-| Body | Inter | `--font-inter`, `font-sans` |
+| Public body — marketing + auth | DM Sans | `--font-marketing`, `font-marketing` |
+| Product body — the app | Inter | `--font-inter`, `font-sans` |
 | Editorial pull quotes / hero headline | Instrument Serif | `--font-editorial` |
+
+**Why two body faces.** The supplied reference specifies DM Sans; the brandbook
+assigns Inter to body, forms, tables, dashboards and CRM. Picking one winner
+would have left the other surface wrong. Splitting by surface removes the only
+seam a visitor could see — `/` used DM Sans while every other route used Inter,
+so navigating from one to the other changed the typeface.
+
+`font-marketing` is applied on the `(marketing)` and `(auth)` layouts, not per
+page, so a new route in either group inherits it. The product app keeps
+`font-sans` (Inter) from `app/globals.css`, which is what the dense 12–14px
+tables, payroll and CRM need. Headings are Manrope on every surface already.
 
 Loaded in `app/layout.tsx` via `next/font/google`. `body` is 16px / 1.5 by default;
 do not set a smaller root font size — the 14px density that desktop admin tables

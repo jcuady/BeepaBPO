@@ -1,0 +1,192 @@
+{
+  "check": "typography",
+  "generatedAt": "2026-10-12T15:03:30.996Z",
+  "base": "http://localhost:3100",
+  "contract": {
+    "marketing + auth body (<24px, not font-display)": "DM Sans",
+    "product app body": "Inter — NOT COVERED, routes need a session",
+    "headings, display face, >=24px": "Manrope"
+  },
+  "routes": [
+    {
+      "route": "/",
+      "group": "landing",
+      "status": 200,
+      "bodyCopy": 147,
+      "headline": 4,
+      "displayFace": 3,
+      "stray": 0,
+      "families": {
+        "body": {
+          "DM Sans": 147
+        },
+        "headline": {
+          "Manrope": 4
+        },
+        "displayFace": {
+          "Manrope": 3
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/about",
+      "group": "marketing",
+      "status": 200,
+      "bodyCopy": 34,
+      "headline": 0,
+      "displayFace": 28,
+      "stray": 0,
+      "families": {
+        "body": {
+          "DM Sans": 34
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 28
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/services",
+      "group": "marketing",
+      "status": 200,
+      "bodyCopy": 28,
+      "headline": 0,
+      "displayFace": 25,
+      "stray": 0,
+      "families": {
+        "body": {
+          "DM Sans": 28
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 25
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/why-beepa",
+      "group": "marketing",
+      "status": 200,
+      "bodyCopy": 33,
+      "headline": 0,
+      "displayFace": 28,
+      "stray": 0,
+      "families": {
+        "body": {
+          "DM Sans": 33
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 28
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/contact",
+      "group": "marketing",
+      "status": 200,
+      "bodyCopy": 28,
+      "headline": 0,
+      "displayFace": 16,
+      "stray": 0,
+      "families": {
+        "body": {
+          "DM Sans": 28
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 16
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/login",
+      "group": "auth",
+      "status": 200,
+      "bodyCopy": 20,
+      "headline": 0,
+      "displayFace": 17,
+      "stray": 0,
+      "families": {
+        "body": {
+          "DM Sans": 20
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 17
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/signup",
+      "group": "auth",
+      "status": 200,
+      "bodyCopy": 24,
+      "headline": 0,
+      "displayFace": 17,
+      "stray": 0,
+      "families": {
+        "body": {
+          "DM Sans": 24
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 17
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/forgot-password",
+      "group": "auth",
+      "status": 200,
+      "bodyCopy": 13,
+      "headline": 0,
+      "displayFace": 17,
+      "stray": 0,
+      "families": {
+        "body": {
+          "DM Sans": 13
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 17
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/employee/login",
+      "group": "auth",
+      "status": 200,
+      "bodyCopy": 17,
+      "headline": 0,
+      "displayFace": 9,
+      "stray": 0,
+      "families": {
+        "body": {
+          "DM Sans": 17
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 9
+        }
+      },
+      "straySamples": []
+    }
+  ],
+  "totals": {
+    "routesChecked": 9,
+    "bodyCopyElements": 344,
+    "strays": 0,
+    "non200": []
+  },
+  "status": "PASS"
+}
