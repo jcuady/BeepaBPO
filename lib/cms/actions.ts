@@ -22,6 +22,7 @@ import {
 } from "@/lib/validation/app";
 import type { Database, Json } from "@/types/database";
 import { ABOUT_SETTING_KEY } from "@/lib/cms/about";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 type CmsStatus = Database["public"]["Enums"]["cms_content_status"];
 
@@ -77,7 +78,7 @@ export async function createBlogPost(input: unknown): Promise<ActionResult> {
     if (error.code === "23505") {
       return { ok: false, error: "That slug is already in use." };
     }
-    return { ok: false, error: error.message ?? "Unable to create post." };
+    return { ok: false, error: writeFailed("Unable to create post.") };
   }
 
   revalidateCmsPublic();
@@ -108,7 +109,7 @@ export async function updateBlogPost(input: unknown): Promise<ActionResult> {
     if (error.code === "23505") {
       return { ok: false, error: "That slug is already in use." };
     }
-    return { ok: false, error: error.message ?? "Unable to update post." };
+    return { ok: false, error: writeFailed("Unable to update post.") };
   }
 
   revalidateCmsPublic();
@@ -139,7 +140,7 @@ export async function createService(input: unknown): Promise<ActionResult> {
     if (error.code === "23505") {
       return { ok: false, error: "That slug is already in use." };
     }
-    return { ok: false, error: error.message ?? "Unable to create service." };
+    return { ok: false, error: writeFailed("Unable to create service.") };
   }
 
   revalidateCmsPublic();
@@ -170,7 +171,7 @@ export async function updateService(input: unknown): Promise<ActionResult> {
     if (error.code === "23505") {
       return { ok: false, error: "That slug is already in use." };
     }
-    return { ok: false, error: error.message ?? "Unable to update service." };
+    return { ok: false, error: writeFailed("Unable to update service.") };
   }
 
   revalidateCmsPublic();
@@ -196,7 +197,7 @@ export async function createFaq(input: unknown): Promise<ActionResult> {
   });
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to create FAQ." };
+    return { ok: false, error: writeFailed("Unable to create FAQ.") };
   }
 
   revalidateCmsPublic();
@@ -223,7 +224,7 @@ export async function updateFaq(input: unknown): Promise<ActionResult> {
     .eq("id", parsed.data.id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to update FAQ." };
+    return { ok: false, error: writeFailed("Unable to update FAQ.") };
   }
 
   revalidateCmsPublic();
@@ -252,7 +253,7 @@ export async function createIndustry(input: unknown): Promise<ActionResult> {
     if (error.code === "23505") {
       return { ok: false, error: "That slug is already in use." };
     }
-    return { ok: false, error: error.message ?? "Unable to create industry." };
+    return { ok: false, error: writeFailed("Unable to create industry.") };
   }
 
   revalidateCmsPublic();
@@ -282,7 +283,7 @@ export async function updateIndustry(input: unknown): Promise<ActionResult> {
     if (error.code === "23505") {
       return { ok: false, error: "That slug is already in use." };
     }
-    return { ok: false, error: error.message ?? "Unable to update industry." };
+    return { ok: false, error: writeFailed("Unable to update industry.") };
   }
 
   revalidateCmsPublic();
@@ -319,7 +320,7 @@ export async function createTestimonial(input: unknown): Promise<ActionResult> {
   });
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to create testimonial." };
+    return { ok: false, error: writeFailed("Unable to create testimonial.") };
   }
 
   revalidateCmsPublic();
@@ -357,7 +358,7 @@ export async function updateTestimonial(input: unknown): Promise<ActionResult> {
     .eq("id", parsed.data.id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to update testimonial." };
+    return { ok: false, error: writeFailed("Unable to update testimonial.") };
   }
 
   revalidateCmsPublic();
@@ -388,7 +389,7 @@ export async function createCaseStudy(input: unknown): Promise<ActionResult> {
     if (error.code === "23505") {
       return { ok: false, error: "That slug is already in use." };
     }
-    return { ok: false, error: error.message ?? "Unable to create case study." };
+    return { ok: false, error: writeFailed("Unable to create case study.") };
   }
 
   revalidateCmsPublic();
@@ -421,7 +422,7 @@ export async function updateCaseStudy(input: unknown): Promise<ActionResult> {
     if (error.code === "23505") {
       return { ok: false, error: "That slug is already in use." };
     }
-    return { ok: false, error: error.message ?? "Unable to update case study." };
+    return { ok: false, error: writeFailed("Unable to update case study.") };
   }
 
   revalidateCmsPublic();
@@ -455,7 +456,7 @@ export async function upsertAboutPage(input: unknown): Promise<ActionResult> {
   );
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to save About page." };
+    return { ok: false, error: writeFailed("Unable to save About page.") };
   }
 
   revalidateCmsPublic();
@@ -488,7 +489,7 @@ export async function setCmsContentStatus(
       })
       .eq("id", id);
     if (error) {
-      return { ok: false, error: error.message ?? "Unable to update status." };
+      return { ok: false, error: writeFailed("Unable to update status.") };
     }
     const { data: post } = await supabase
       .from("blog_posts")
@@ -505,7 +506,7 @@ export async function setCmsContentStatus(
       })
       .eq("id", id);
     if (error) {
-      return { ok: false, error: error.message ?? "Unable to update status." };
+      return { ok: false, error: writeFailed("Unable to update status.") };
     }
     const { data: study } = await supabase
       .from("case_studies")
@@ -519,7 +520,7 @@ export async function setCmsContentStatus(
       .update({ status: next })
       .eq("id", id);
     if (error) {
-      return { ok: false, error: error.message ?? "Unable to update status." };
+      return { ok: false, error: writeFailed("Unable to update status.") };
     }
   } else if (entity === "industry") {
     const { error } = await supabase
@@ -527,7 +528,7 @@ export async function setCmsContentStatus(
       .update({ status: next })
       .eq("id", id);
     if (error) {
-      return { ok: false, error: error.message ?? "Unable to update status." };
+      return { ok: false, error: writeFailed("Unable to update status.") };
     }
   } else if (entity === "testimonial") {
     const { error } = await supabase
@@ -535,7 +536,7 @@ export async function setCmsContentStatus(
       .update({ status: next })
       .eq("id", id);
     if (error) {
-      return { ok: false, error: error.message ?? "Unable to update status." };
+      return { ok: false, error: writeFailed("Unable to update status.") };
     }
   } else {
     const { error } = await supabase
@@ -543,7 +544,7 @@ export async function setCmsContentStatus(
       .update({ status: next })
       .eq("id", id);
     if (error) {
-      return { ok: false, error: error.message ?? "Unable to update status." };
+      return { ok: false, error: writeFailed("Unable to update status.") };
     }
   }
 

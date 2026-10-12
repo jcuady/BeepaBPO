@@ -9,6 +9,7 @@ import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { createClient } from "@/lib/supabase/server";
 import { employeeUpdateSchema } from "@/lib/validation/app";
 import type { Database } from "@/types/database";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 type EmploymentStatus = Database["public"]["Enums"]["employment_status"];
 type EmploymentType = Database["public"]["Enums"]["employment_type"];
@@ -61,7 +62,7 @@ export async function updateEmployee(input: unknown): Promise<ActionResult> {
     .eq("id", parsed.data.employee_id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to update employee." };
+    return { ok: false, error: writeFailed("Unable to update employee.") };
   }
 
   await logAudit(supabase, {

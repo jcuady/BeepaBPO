@@ -6,6 +6,7 @@ import { resolveWorkspace, requirePermission } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { invoicePaymentSchema, issueInvoiceSchema } from "@/lib/validation/app";
 import type { Database } from "@/types/database";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 type InvoiceStatus = Database["public"]["Enums"]["invoice_status"];
 
@@ -117,7 +118,7 @@ export async function issueInvoice(input: unknown): Promise<ActionResult> {
     await supabase.from("invoices").delete().eq("id", invoiceId);
     return {
       ok: false,
-      error: itemError.message ?? "Unable to add invoice line item.",
+      error: writeFailed("Unable to add invoice line item."),
     };
   }
 
@@ -204,7 +205,7 @@ export async function recordInvoicePayment(
   if (payError) {
     return {
       ok: false,
-      error: payError.message ?? "Unable to record payment.",
+      error: writeFailed("Unable to record payment."),
     };
   }
 
@@ -231,9 +232,7 @@ export async function recordInvoicePayment(
     if (statusError) {
       return {
         ok: false,
-        error:
-          statusError.message ??
-          "Payment saved but invoice status could not be updated.",
+        error: writeFailed("Payment saved but invoice status could not be updated."),
       };
     }
   }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { resolveWorkspace } from "@/lib/auth/workspace";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 export type NotificationActionResult = {
   ok: boolean;
@@ -24,7 +25,10 @@ export async function markNotificationRead(
     .eq("user_id", workspace.user.id)
     .is("read_at", null);
 
-  if (error) return { ok: false, error: error.message };
+  // There was no `?? "copy"` fallback here — this returned the driver's message
+  // outright, making it the rawest of the three shapes the sweep found. The copy
+  // below is new; there was none here to recover.
+  if (error) return { ok: false, error: writeFailed("Unable to mark that notification as read.") };
 
   revalidatePath("/app");
   revalidatePath("/app/my/notifications");
@@ -43,7 +47,7 @@ export async function markAllRead(): Promise<NotificationActionResult> {
     .eq("user_id", workspace.user.id)
     .is("read_at", null);
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: writeFailed("Unable to mark all notifications as read.") };
 
   revalidatePath("/app");
   revalidatePath("/app/my/notifications");
@@ -69,7 +73,7 @@ export async function updateNotificationPreferences(prefs: {
     { onConflict: "user_id" },
   );
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: writeFailed("Unable to update your notification preferences.") };
 
   revalidatePath("/app/my/notifications");
   return { ok: true };

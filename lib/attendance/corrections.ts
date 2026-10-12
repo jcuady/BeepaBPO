@@ -13,6 +13,7 @@ import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can, canAny } from "@/lib/permissions/can";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { writeFailed } from "@/lib/actions/error-copy";
 import {
   attendanceCorrectionReviewSchema,
   attendanceCorrectionSchema,
@@ -224,7 +225,7 @@ export async function reviewAttendanceCorrection(
     if (recordError) {
       return {
         ok: false,
-        error: recordError.message ?? "Unable to apply attendance times.",
+        error: writeFailed("Unable to apply attendance times."),
       };
     }
   }
@@ -249,7 +250,7 @@ export async function reviewAttendanceCorrection(
   if (correctionError) {
     return {
       ok: false,
-      error: correctionError.message ?? "Unable to update correction.",
+      error: writeFailed("Unable to update correction."),
     };
   }
 

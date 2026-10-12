@@ -12,6 +12,7 @@ import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
+import { writeFailed } from "@/lib/actions/error-copy";
 import {
   leaveApprovalSchema,
   leaveRequestSchema,
@@ -202,7 +203,7 @@ export async function cancelLeaveRequest(
     .eq("id", leaveRequestId);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to cancel request." };
+    return { ok: false, error: writeFailed("Unable to cancel request.") };
   }
 
   await supabase
@@ -280,7 +281,7 @@ export async function reviewLeaveRequest(
     .eq("id", parsed.data.leave_request_id);
 
   if (leaveError) {
-    return { ok: false, error: leaveError.message ?? "Unable to update leave." };
+    return { ok: false, error: writeFailed("Unable to update leave.") };
   }
 
   const { logAudit } = await import("@/lib/audit/log");

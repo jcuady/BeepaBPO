@@ -8,6 +8,7 @@ import { getClientOrganizationId } from "@/lib/organizations/client";
 import { can, canAny } from "@/lib/permissions/can";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { writeFailed } from "@/lib/actions/error-copy";
 import {
   clientTimesheetReviewSchema,
   submitTimesheetForClientReviewSchema,
@@ -124,7 +125,7 @@ export async function reviewClientTimesheet(
     .eq("approval_status", "client_review");
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to update timesheet." };
+    return { ok: false, error: writeFailed("Unable to update timesheet.") };
   }
 
   // The other half of the same gap. The client's decision is the one an attendance dispute
@@ -271,7 +272,7 @@ export async function submitTimesheetForClientReview(
     .eq("id", record.id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to submit for review." };
+    return { ok: false, error: writeFailed("Unable to submit for review.") };
   }
 
   // This hand-off and the client's decision on the far side are the two moments a

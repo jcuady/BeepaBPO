@@ -11,6 +11,7 @@ import { planFunctionalRoleChange, planInternalInviteRoles } from "@/lib/admin/r
 import { notifyUser } from "@/lib/notifications/notify";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { writeFailed } from "@/lib/actions/error-copy";
 import {
   adminInviteSchema,
   adminMembershipRevokeSchema,
@@ -368,7 +369,7 @@ export async function updateInternalMembershipRole(
   if (roleError) {
     return {
       ok: false,
-      error: roleError.message ?? "Unable to update role.",
+      error: writeFailed("Unable to update role."),
     };
   }
 
@@ -435,7 +436,7 @@ export async function revokeMembership(
   if (error) {
     return {
       ok: false,
-      error: error.message ?? "Unable to revoke membership.",
+      error: writeFailed("Unable to revoke membership."),
     };
   }
 

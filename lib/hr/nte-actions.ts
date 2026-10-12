@@ -10,6 +10,7 @@ import { nteCaseSchema, nteResponseSchema, nteResolveSchema } from "@/lib/valida
 import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { naiveDateTimeToZoned } from "@/lib/attendance/corrected-times";
 import { DEFAULT_TIMEZONE } from "@/lib/attendance/zoned-time";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 function caseNumber() {
   const stamp = Date.now().toString(36).toUpperCase();
@@ -156,7 +157,7 @@ export async function submitNteResponse(input: unknown): Promise<ActionResult> {
         error: "Please check the form and try again.",
       };
     }
-    return { ok: false, error: error.message ?? "Unable to submit response." };
+    return { ok: false, error: writeFailed("Unable to submit response.") };
   }
 
   await logAudit(supabase, {
@@ -232,9 +233,7 @@ export async function resolveNteCase(input: unknown): Promise<ActionResult> {
     if (disciplineError) {
       return {
         ok: false,
-        error:
-          disciplineError.message ??
-          "Unable to save disciplinary action.",
+        error: writeFailed("Unable to save disciplinary action."),
       };
     }
   }
@@ -252,7 +251,7 @@ export async function resolveNteCase(input: unknown): Promise<ActionResult> {
     .neq("status", "resolved");
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to resolve NTE case." };
+    return { ok: false, error: writeFailed("Unable to resolve NTE case.") };
   }
 
   await logAudit(supabase, {

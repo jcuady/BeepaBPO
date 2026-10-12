@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveEmployeeForUser } from "@/lib/employees/resolve";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 export type AttendanceActionResult = {
   ok: boolean;
@@ -40,7 +41,7 @@ async function recordClockEvent(
   if (error) {
     return {
       ok: false,
-      error: error.message || "Unable to record clock event.",
+      error: writeFailed("Unable to record clock event."),
     };
   }
 

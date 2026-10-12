@@ -16,6 +16,7 @@ import {
   jobPostUpdateSchema,
 } from "@/lib/validation/app";
 import type { Database } from "@/types/database";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 type JobPostStatus = Database["public"]["Enums"]["job_post_status"];
 type LocationType = Database["public"]["Enums"]["location_type"];
@@ -74,7 +75,7 @@ export async function createJobPost(input: unknown): Promise<ActionResult> {
     .single();
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to create job post." };
+    return { ok: false, error: writeFailed("Unable to create job post.") };
   }
 
   const { logAudit } = await import("@/lib/audit/log");
@@ -141,7 +142,7 @@ export async function updateJobPost(input: unknown): Promise<ActionResult> {
     .eq("id", parsed.data.id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to update job post." };
+    return { ok: false, error: writeFailed("Unable to update job post.") };
   }
 
   const { logAudit } = await import("@/lib/audit/log");
@@ -203,7 +204,7 @@ export async function closeJobPost(input: unknown): Promise<ActionResult> {
     .eq("id", parsed.data.id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to close job post." };
+    return { ok: false, error: writeFailed("Unable to close job post.") };
   }
 
   const { logAudit } = await import("@/lib/audit/log");
@@ -258,7 +259,7 @@ export async function publishJobPost(input: unknown): Promise<ActionResult> {
     .eq("id", parsed.data.id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to publish job post." };
+    return { ok: false, error: writeFailed("Unable to publish job post.") };
   }
 
   const { logAudit } = await import("@/lib/audit/log");
@@ -366,7 +367,7 @@ export async function submitJobApplication(
   if (applicationError) {
     return {
       ok: false,
-      error: applicationError.message ?? "Unable to submit application.",
+      error: writeFailed("Unable to submit application."),
     };
   }
 
@@ -406,7 +407,7 @@ export async function updateApplicationStage(
     .eq("id", parsed.data.application_id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to update stage." };
+    return { ok: false, error: writeFailed("Unable to update stage.") };
   }
 
   await supabase.from("application_stage_history").insert({
@@ -679,7 +680,7 @@ export async function convertApplicantToEmployee(
     if (stageError) {
       return {
         ok: false,
-        error: stageError.message ?? "Employee created but stage update failed.",
+        error: writeFailed("Employee created but stage update failed."),
       };
     }
     await supabase.from("application_stage_history").insert({

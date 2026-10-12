@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { WorkspaceContext } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import type { Database, Json } from "@/types/database";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 export type ApprovalWorkflowCode =
   | "leave"
@@ -190,7 +191,7 @@ export async function advanceApprovalRequest(
   if (actionError) {
     return {
       ok: false,
-      error: actionError.message ?? "Unable to record approval action.",
+      error: writeFailed("Unable to record approval action."),
     };
   }
 
@@ -200,7 +201,7 @@ export async function advanceApprovalRequest(
       .update({ status: "rejected" })
       .eq("id", request.id);
     if (error) {
-      return { ok: false, error: error.message ?? "Unable to reject approval." };
+      return { ok: false, error: writeFailed("Unable to reject approval.") };
     }
     return {
       ok: true,
@@ -221,7 +222,7 @@ export async function advanceApprovalRequest(
     if (error) {
       return {
         ok: false,
-        error: error.message ?? "Unable to advance approval step.",
+        error: writeFailed("Unable to advance approval step."),
       };
     }
     return {
@@ -239,7 +240,7 @@ export async function advanceApprovalRequest(
     .update({ status: "approved" })
     .eq("id", request.id);
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to complete approval." };
+    return { ok: false, error: writeFailed("Unable to complete approval.") };
   }
 
   return {

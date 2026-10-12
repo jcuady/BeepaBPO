@@ -10,6 +10,7 @@ import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { createClient } from "@/lib/supabase/server";
 import { documentMetaSchema } from "@/lib/validation/app";
 import type { Database } from "@/types/database";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 type Visibility = Database["public"]["Enums"]["visibility"];
 
@@ -141,7 +142,7 @@ export async function uploadEmployeeDocument(
   if (uploadError) {
     return {
       ok: false,
-      error: uploadError.message ?? "Upload failed.",
+      error: writeFailed("Upload failed."),
     };
   }
 
@@ -251,7 +252,7 @@ export async function uploadClientDocument(
     });
 
   if (uploadError) {
-    return { ok: false, error: uploadError.message ?? "Upload failed." };
+    return { ok: false, error: writeFailed("Upload failed.") };
   }
 
   const { data: created, error: insertError } = await supabase

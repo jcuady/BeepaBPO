@@ -2,6 +2,54 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## 70 server actions returned the driver's raw error text (2026-10-12)
+
+- **Every `error: error?.message ?? "copy"` fallback in the codebase was unreachable
+  dead code.** `??` applies only when the left side is nullish, and PostgREST always
+  supplies a message — so users read `duplicate key value violates unique constraint
+  "crm_leads_pkey"` and **never the words the author had already chosen**. 66 such
+  strings existed and none of them had ever been displayed.
+- **Three shapes existed, not one**, which is why a single pattern match would have missed
+  most of them:
+
+  | Shape | Sites | Where |
+  | --- | --- | --- |
+  | `error?.message ?? "copy"` | 66 | across 17 `"use server"` modules |
+  | `error.message \|\| "copy"` | 1 | `lib/attendance/actions.ts` |
+  | `error.message`, no fallback at all | 3 | `lib/notifications/actions.ts` |
+
+  The third is the worst: `markNotificationRead`, `markAllRead` and
+  `updateNotificationPreferences` returned the driver message outright with nothing behind
+  it. `scripts/audit/apply-error-copy.mjs` refused those three rather than guessing at copy,
+  and that refusal is what surfaced a shape nobody had noticed.
+- **The fix invented almost no copy.** `lib/actions/error-copy.ts` exports one function:
+
+  ```ts
+  export function writeFailed(copy: string): string {
+    return copy;
+  }
+  ```
+
+  It returns the author's chosen copy and does not consult the error at all — the detail
+  belongs in a server log, not a toast. Sixty-six sites became
+  `error: writeFailed("Unable to create lead.")`, recovering 66 strings the codebase had
+  already written and never used. Three were written by hand, because those actions had none.
+  **No mapping table, deliberately**: classifying Postgres error classes into product copy
+  would mean 70 new copy decisions about screens this change does not own.
+- **The severity was wrong before the fix, and that mattered more.** An earlier commit
+  recorded that these reached anonymous visitors and could leak database schema. It did not:
+  it came from conflating CMS *content* (authored by an admin, rendered to visitors) with CMS
+  *action errors* (shown to the admin editing). `scripts/audit/public-error-surface.mjs`
+  measured it — **0 of the 18 modules sit behind a session gate**, and both genuinely public
+  paths were already safe. Corrected down in the same pass rather than left standing.
+- **Two guards now scan every file in `lib/`**, rejecting both `error: <expr>.message ?? …`
+  and a bare `error: <expr>.message`, so a later module that reintroduces either fails the
+  gate. One guard asserts the scan itself still finds the action modules, because a guard
+  that silently checks nothing is worse than no guard.
+- Verified: `public-error-surface.mjs` reports **0** raw provider messages, tsc clean,
+  **661 tests / 94 files** (was 655 / 93), and the full 14-check suite re-run green against a
+  rebuild touching 19 product modules.
+
 ## The whole suite runs in one command, and every check leaves evidence (2026-10-12)
 
 - **First fully green run: 14/14 checks, exit 0, across all three tiers** — fast probes,

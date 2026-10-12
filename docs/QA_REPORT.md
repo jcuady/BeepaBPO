@@ -1283,66 +1283,85 @@ Gate: **655 tests / 93 files** (was 634), tsc clean. 11 new tests were written r
 across `tests/auth-error-messages.test.ts`, `tests/client-invite.test.ts`,
 `tests/admin-invite.test.ts` and `tests/hire-convert.test.ts`.
 
-### Still open: 68 actions return raw database errors to the user
+### P2 — 70 server actions returned the driver's raw error text. Fixed.
 
 The two invite paths were the only place this report could *observe* a raw provider string
-end to end. The same shape is present across the server actions at scale:
+end to end. The same shape was present across the server actions at scale:
 
 ```ts
 error: error?.message ?? "Unable to create lead."
 ```
 
-Roughly **68 sites across 18 files** return the driver's own message whenever the fallback
-would be wrong — CMS (19), recruitment (7), CRM (6), payroll (5), tickets (4), billing (3),
-NTE (3), notifications (3), and a dozen more. On those surfaces it is PostgREST vocabulary
-("duplicate key value violates unique constraint", "null value in column … violates not-null
-constraint") presented as a user-facing error.
+**The fallback was unreachable.** `??` only applies when the left side is nullish, and PostgREST
+always supplies a message — so what a user actually read was always the driver's own text
+(`duplicate key value violates unique constraint "crm_leads_pkey"`) and **never the words the
+author had already chosen**. Every one of those fallback strings was dead code.
 
-**I initially wrote that these reach the public, and that was wrong.** The claim came from
-reading the CMS path — content authored by an administrator and rendered to visitors — and
-conflating *CMS content* with *CMS action errors*. The action errors are shown to the
-administrator doing the editing, not to a visitor.
+**Three shapes existed, not one**, and finding the other two is why this was swept rather than
+pattern-matched once:
 
-`scripts/audit/public-error-surface.mjs` settles it by measurement rather than by argument:
+| Shape | Sites | Where |
+| --- | --- | --- |
+| `error?.message ?? "copy"` | 66 | across 17 modules |
+| `error.message \|\| "copy"` | 1 | `lib/attendance/actions.ts` — `\|\|` instead of `??` |
+| `error.message`, no fallback at all | 3 | `lib/notifications/actions.ts` |
+
+The third is the worst of the three: `markNotificationRead`, `markAllRead` and
+`updateNotificationPreferences` returned the driver message outright with nothing behind it.
+Those three needed copy written, because there was none to recover.
+
+**I initially claimed these reached the public and could leak schema. That was wrong**, and
+correcting it mattered more than the fix. The claim came from reading the CMS path — content
+authored by an administrator and rendered to visitors — and conflating *CMS content* with
+*CMS action errors*, which are shown to the administrator doing the editing.
+`scripts/audit/public-error-surface.mjs` measured it instead:
 
 ```
 files with "use server": 23
-actions in files with NO session gate: 4 file(s)
-  lib/auth/actions.ts        (10 actions)
-  lib/contact/actions.ts     (contactAction)
-  lib/pagination/fetch-all.ts
-  lib/auth/error-messages.ts
-
+actions in files with NO session gate: 4
 files returning a raw provider message: 18
 ...of which are in files with NO session gate: 0
 ```
 
-**Zero.** Every one of the 68 sites sits in a module that resolves a workspace first. The
-two genuinely public paths are both already safe: `lib/auth/actions.ts` routes through the
-mappers, and `contactAction` discards the raw message and returns `"Unable to save your
-request. Please try again."` (`lib/contact/actions.ts:68`) — the public contact form was never
-exposed, and only the fallback fires there.
+**Zero.** Both genuinely public paths were already safe — `lib/auth/actions.ts` routes through
+the mappers, and `contactAction` discards the raw message at `lib/contact/actions.ts:68`. So
+this was an internal copy problem, not a disclosure, and the severity written into §6 a few
+commits earlier was inflated. It was corrected down rather than left standing.
 
-One honest limitation of the probe: it flags a file as ungated when it lacks
-`resolveWorkspace`, which mischaracterises **helper** modules. It listed
-`lib/pagination/fetch-all.ts`, but that module receives its Supabase client *as a parameter*,
-so the auth decision belongs to the caller and there is nothing ungated about it. The script
-returns a list to inspect, not a verdict.
+**The fix required inventing no copy at all**, which is what made 70 sites safe to change in
+one commit. `lib/actions/error-copy.ts` exports one function:
 
-**So this is an internal copy problem, not a disclosure.** That is a materially lower
-severity than §2's signup row — no anonymous visitor can see a schema name — and saying
-otherwise would have sent whoever picks this up looking for a security incident that does not
-exist. It is still worth doing: PostgREST text in a toast tells a Beepa employee nothing they
-can act on, and it differs from the human copy the rest of the product uses.
+```ts
+export function writeFailed(copy: string): string {
+  return copy;
+}
+```
 
-**Documented, not fixed.** Sixty-eight call sites is a different piece of work from the two
-that were live in front of a user during this pass, and changing all of them in the
-same commit as a defect fix would bury it. The fix is mechanical once decided — one mapper
-per domain, as `lib/auth/error-messages.ts` already does for auth — but the copy decisions
-belong to whoever owns those screens.
+It takes the copy the author already chose and returns it. The database error is not consulted
+— that is the contract, because the detail belongs in a server log and not in a toast. Sixty-six
+sites became `error: writeFailed("Unable to create lead.")`, recovering 66 strings the codebase
+had already written and never used. Three more were written by hand, because those actions had
+never had any.
 
-What is *not* defensible is leaving it undocumented: the same class of defect as §2's
-signup row, repeated sixty-eight times, is invisible until someone hits one.
+**No mapping table, deliberately.** Classifying Postgres error classes into product copy would
+mean 70 new copy decisions about screens this change does not own. The one thing all those
+strings had in common was that they were wrong.
+
+Applied by `scripts/audit/apply-error-copy.mjs`, which reports every site it touches and every
+one it declines. It refused the three bare `notifications` sites rather than guessing at copy
+for them, and that refusal is what surfaced the shape nobody had noticed.
+
+Two guards in `tests/action-error-copy.test.ts` scan **every** file in `lib/`, not a hand-kept
+list, and reject both `error: <expr>.message ?? …` and a bare `error: <expr>.message`. A later
+module that reintroduces either fails the gate instead of quietly leaking again. One guard
+asserts the scan itself still finds the action modules, because a guard that silently checks
+nothing is worse than no guard — a lesson from the mutation harness that lost four of its six
+cases to an anchor that matched zero times.
+
+Verified after the change: `public-error-surface.mjs` reports **0** files returning a raw
+provider message, tsc clean, **661 tests / 94 files**. Behaviour, not just types, was
+re-confirmed by re-running the full 14-check suite against a rebuild that touched 19 product
+modules.
 
 ---
 
@@ -3801,7 +3820,7 @@ employee still sees only their own folder and hr sees all seven.
 | 16 | **Withdrawn — "4 CMS-built `/careers` slugs are link-reachable but absent from the sitemap"** | **Not a real gap.** All five `/careers` slugs are in the sitemap. The reading that said otherwise came from a stale build artifact; see "The sitemap findings below were a measurement error" in §2. Kept in the list so nobody re-derives it from the git history |
 | 17 | **`/app` not-found pages are served with HTTP 200, not 404** | **Pre-existing, documented, deliberately not fixed.** `app/app/loading.tsx` puts a Suspense boundary above every app page, so the response starts streaming, the status is committed as 200, and the later `notFound()` cannot change it. Proven by controlled comparison: `(marketing)` has no `loading.tsx` and `/resources/<bad-slug>` calls the same `notFound()` and correctly returns 404. **Left alone on purpose** — removing `loading.tsx` would trade a correct status code for the slow-TLS hang those files prevent; `/app` is `noindex, nofollow` so no crawler is affected; the page the user sees is correct. Only monitoring would read a soft-404 as a success. `qa-probe-not-found.mjs` records it in an `observations` array rather than dropping the assertion |
 | 18 | ~~**Confirm dialogs lose keyboard focus on Escape**~~ | **WITHDRAWN — the defect was real, the diagnosis and the "still open" status were not.** This row was written after a fix that restored focus on Cancel but still not on Escape, blaming Base UI's `closeOnFocusOut` branch (`FloatingFocusManager.js:591`). That branch is inside `else if (portalContext?.portalNode)` and a modal dialog never reaches it. Instrumenting `finalFocus` showed it was called on **both** paths and returned `null` on Escape because the probe had focused the control *before React registered the capture listener* — a broken instrument, not a library limit. With a fresh context and a settle before the first interaction, **both paths pass: 16/16**. See §2 for the full correction. Kept so nobody re-derives the wrong root cause from the git history |
-| 19 | **68 server actions return the driver's raw error text to the user** | **Documented, not fixed — and measured as LOWER severity than first written.** `error: error?.message ?? "Unable to create lead."` appears in 18 session-gated modules: CMS (19 sites), recruitment (7), CRM (6), payroll (5), tickets (4), billing (3), NTE (3), notifications (3) and a dozen more. **An earlier draft of this row claimed these reach the public and could leak schema to an anonymous visitor. That was wrong** — it confused CMS *content* (authored by an admin, rendered to visitors) with CMS *action errors* (shown to the admin editing). `scripts/audit/public-error-surface.mjs` measures it: **0 of the 18 files sit in a module without a session gate**, and both genuinely public paths are already safe — `lib/auth/actions.ts` routes through the mappers, `contactAction` discards the raw message at `lib/contact/actions.ts:68`. So this is internal copy quality, not disclosure. The two invite paths were fixed in §2 because they were the only ones this pass could observe end to end, and one of them surfaced the failure through a toast rather than a form field |
+| 19 | ~~**68 server actions return the driver's raw error text to the user**~~ | **CLOSED — 70 sites, 0 remaining.** `error: error?.message ?? "Unable to create lead."` appeared in 18 modules, and the fallback was **unreachable dead code**: PostgREST always supplies a message, so users read the driver's text and never the author's words. Three shapes existed — 66 `??`, 1 `||`, and 3 bare `error.message` with no fallback at all in `lib/notifications/actions.ts`, which is where the sweep's refusal to guess uncovered a shape nobody had noticed. `lib/actions/error-copy.ts` adds one function, `writeFailed(copy)`, which returns the author's chosen copy and does not consult the error at all; **no new copy was invented except the three that had none**. Two guards in `tests/action-error-copy.test.ts` scan every file in `lib/` and reject both shapes. Verified: `public-error-surface.mjs` reports 0, tsc clean, 661 tests / 94 files, full 14-check suite re-run against a rebuild touching 19 product modules. **An earlier revision of this row claimed these were publicly reachable and could leak schema — that was wrong**, from conflating CMS *content* with CMS *action errors*; the measured answer was 0 publicly reachable. See §2 |
 
 **The demo tenant is a clock bomb, and it is worth knowing about before you trust
 a red gate.** Several seed scripts wrote relative deadlines with `Date.now()`

@@ -1,6 +1,6 @@
 {
   "check": "qa-suite",
-  "generatedAt": "2026-10-12T00:29:21.623Z",
+  "generatedAt": "2026-10-12T01:14:52.775Z",
   "base": "http://localhost:3100",
   "tiersRun": [
     "fast",
@@ -19,7 +19,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 7,
+      "seconds": 8,
       "evidence": "docs/evidence/not-found-check.json",
       "evidenceWritten": true,
       "tail": "18/18 passed",
@@ -31,7 +31,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 5,
+      "seconds": 6,
       "evidence": "docs/evidence/dialog-keyboard-check.json",
       "evidenceWritten": true,
       "tail": "PASS  changing status opens the confirm dialog | PASS  focus moves into the dialog on open  — activeElement BUTTON# \"Cancel\" | 16/16 passed",
@@ -67,9 +67,9 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 311,
-      "evidence": null,
-      "evidenceWritten": null,
+      "seconds": 307,
+      "evidence": "docs/evidence/internal-links-check.json",
+      "evidenceWritten": true,
       "tail": "PASS  applicant — no internal link lands on a page error  [none] | PASS  public — no internal link lands on a page error  [none] | 29/29 assertions passed",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-internal-links.mjs"
     },
@@ -91,7 +91,7 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 135,
+      "seconds": 136,
       "evidence": "docs/evidence/responsive-app-chunk1.json",
       "evidenceWritten": true,
       "tail": "56/56 viewport-route combinations clean (134s)",
@@ -103,10 +103,10 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 147,
+      "seconds": 145,
       "evidence": "docs/evidence/responsive-app-chunk2.json",
       "evidenceWritten": true,
-      "tail": "56/56 viewport-route combinations clean (145s)",
+      "tail": "56/56 viewport-route combinations clean (143s)",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/my/schedule /app/crm /app/crm/leads /app/crm/deals /app/crm/proposals /app/attendance /app/leave"
     },
     {
@@ -115,10 +115,10 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 149,
+      "seconds": 151,
       "evidence": "docs/evidence/responsive-app-chunk3.json",
       "evidenceWritten": true,
-      "tail": "56/56 viewport-route combinations clean (146s)",
+      "tail": "56/56 viewport-route combinations clean (149s)",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/employees /app/payroll /app/payroll/periods /app/billing /app/recruitment /app/recruitment/jobs /app/recruitment/applicants"
     },
     {
@@ -127,10 +127,10 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 146,
+      "seconds": 145,
       "evidence": "docs/evidence/responsive-app-chunk4.json",
       "evidenceWritten": true,
-      "tail": "56/56 viewport-route combinations clean (144s)",
+      "tail": "56/56 viewport-route combinations clean (143s)",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit-app-responsive.mjs owner@demo.beepabpo.com /app/tickets /app/approvals /app/reports /app/hr /app/admin /app/admin/users /app/clients"
     },
     {
@@ -163,7 +163,7 @@
       "tier": "slow",
       "status": "PASS",
       "code": 0,
-      "seconds": 880,
+      "seconds": 884,
       "evidence": "docs/evidence/role-sweep.json",
       "evidenceWritten": true,
       "tail": "page errors: 0",
@@ -175,10 +175,10 @@
       "tier": "gate",
       "status": "PASS",
       "code": 0,
-      "seconds": 16,
+      "seconds": 17,
       "evidence": null,
       "evidenceWritten": null,
-      "tail": "vitest: 655 tests / 93 files | tsc: clean"
+      "tail": "vitest: 661 tests / 94 files | tsc: clean"
     }
   ]
 }

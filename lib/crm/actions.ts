@@ -17,6 +17,7 @@ import {
 } from "@/lib/validation/app";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import type { Database } from "@/types/database";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 type CrmLeadStatus = Database["public"]["Enums"]["crm_lead_status"];
 type CrmDealStage = Database["public"]["Enums"]["crm_deal_stage"];
@@ -62,7 +63,7 @@ export async function createCrmLead(input: unknown): Promise<ActionResult> {
   });
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to create lead." };
+    return { ok: false, error: writeFailed("Unable to create lead.") };
   }
 
   revalidatePath("/app/crm/leads");
@@ -121,7 +122,7 @@ export async function updateCrmLeadStatus(
     .eq("id", parsed.data.lead_id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to update lead." };
+    return { ok: false, error: writeFailed("Unable to update lead.") };
   }
 
   if (existing.status !== nextStatus || noteLine) {
@@ -373,7 +374,7 @@ export async function updateCrmDealStage(
     .eq("id", parsed.data.deal_id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to update deal." };
+    return { ok: false, error: writeFailed("Unable to update deal.") };
   }
 
   const noteLine = parsed.data.notes?.trim();
@@ -546,7 +547,7 @@ export async function convertWonDealToClient(
     await supabase.from("organizations").delete().eq("id", org.id);
     return {
       ok: false,
-      error: settingsError.message ?? "Unable to create client settings.",
+      error: writeFailed("Unable to create client settings."),
     };
   }
 
@@ -571,7 +572,7 @@ export async function convertWonDealToClient(
     await supabase.from("organizations").delete().eq("id", org.id);
     return {
       ok: false,
-      error: linkError.message ?? "Unable to link deal to client organization.",
+      error: writeFailed("Unable to link deal to client organization."),
     };
   }
 
@@ -783,7 +784,7 @@ export async function updateCrmProposalStatus(
   if (error) {
     return {
       ok: false,
-      error: error.message ?? "Unable to update proposal.",
+      error: writeFailed("Unable to update proposal."),
     };
   }
 

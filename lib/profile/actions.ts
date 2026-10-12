@@ -5,6 +5,7 @@ import type { ActionResult } from "@/lib/actions/types";
 import { resolveWorkspace } from "@/lib/auth/workspace";
 import { createClient } from "@/lib/supabase/server";
 import { profileUpdateSchema } from "@/lib/validation/app";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 export async function updateProfile(
   input: unknown,
@@ -42,7 +43,7 @@ export async function updateProfile(
     .eq("id", workspace.user.id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to update profile." };
+    return { ok: false, error: writeFailed("Unable to update profile.") };
   }
 
   const { logAudit } = await import("@/lib/audit/log");

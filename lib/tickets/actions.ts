@@ -17,6 +17,7 @@ import {
   ticketStatusSchema,
 } from "@/lib/validation/app";
 import type { Database } from "@/types/database";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 type TicketCategory = Database["public"]["Enums"]["ticket_category"];
 type TicketPriority = Database["public"]["Enums"]["ticket_priority"];
@@ -183,7 +184,7 @@ export async function postTicketMessage(
   });
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to post message." };
+    return { ok: false, error: writeFailed("Unable to post message.") };
   }
 
   // First public staff reply starts the first-response clock.
@@ -237,7 +238,7 @@ export async function updateTicketStatus(
     .eq("id", parsed.data.ticket_id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to update ticket." };
+    return { ok: false, error: writeFailed("Unable to update ticket.") };
   }
 
   const { logAudit } = await import("@/lib/audit/log");
@@ -317,7 +318,7 @@ export async function assignTicket(input: unknown): Promise<ActionResult> {
     .eq("id", parsed.data.ticket_id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to assign ticket." };
+    return { ok: false, error: writeFailed("Unable to assign ticket.") };
   }
 
   const { logAudit } = await import("@/lib/audit/log");
@@ -435,7 +436,7 @@ export async function updateTicketSlaPolicy(
     .eq("organization_id", BEEPA_ORG_ID);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to update SLA policy." };
+    return { ok: false, error: writeFailed("Unable to update SLA policy.") };
   }
 
   const { logAudit } = await import("@/lib/audit/log");

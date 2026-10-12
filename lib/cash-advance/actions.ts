@@ -11,6 +11,7 @@ import { resolveWorkspace } from "@/lib/auth/workspace";
 import { can } from "@/lib/permissions/can";
 import { createClient } from "@/lib/supabase/server";
 import { cashAdvanceSchema } from "@/lib/validation/app";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 export async function createCashAdvanceRequest(
   input: unknown,
@@ -142,7 +143,7 @@ export async function reviewCashAdvance(
     .eq("id", requestId);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to update request." };
+    return { ok: false, error: writeFailed("Unable to update request.") };
   }
 
   const { logAudit } = await import("@/lib/audit/log");

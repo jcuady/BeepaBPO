@@ -12,6 +12,7 @@ import { can } from "@/lib/permissions/can";
 import { BEEPA_ORG_ID } from "@/lib/permissions/codes";
 import { listAllActiveEmployees } from "@/lib/pagination/fetch-all";
 import { createClient } from "@/lib/supabase/server";
+import { writeFailed } from "@/lib/actions/error-copy";
 import {
   createPayrollPeriodSchema,
   payrollPeriodReviewSchema,
@@ -147,9 +148,7 @@ export async function createPayrollPeriod(
         await supabase.from("payroll_periods").delete().eq("id", period.id);
         return {
           ok: false,
-          error:
-            seedError.message ??
-            "Unable to seed draft payroll records for this period.",
+          error: writeFailed("Unable to seed draft payroll records for this period."),
         };
       }
       seeded = employees.length;
@@ -200,7 +199,7 @@ export async function recalculatePayrollRecord(
   });
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to recalculate." };
+    return { ok: false, error: writeFailed("Unable to recalculate.") };
   }
 
   await logAudit(supabase, {
@@ -282,7 +281,7 @@ export async function submitPayrollPeriodForApproval(
   if (error) {
     return {
       ok: false,
-      error: error.message ?? "Unable to move period to approval.",
+      error: writeFailed("Unable to move period to approval."),
     };
   }
 
@@ -367,7 +366,7 @@ export async function reviewPayrollPeriod(
   if (error) {
     return {
       ok: false,
-      error: error.message ?? "Unable to update payroll period status.",
+      error: writeFailed("Unable to update payroll period status."),
     };
   }
 
@@ -381,9 +380,7 @@ export async function reviewPayrollPeriod(
     if (recordsError) {
       return {
         ok: false,
-        error:
-          recordsError.message ??
-          "Period finalized but records could not be updated.",
+        error: writeFailed("Period finalized but records could not be updated."),
       };
     }
   }

@@ -13,6 +13,7 @@ import {
 } from "@/lib/validation/app";
 import { DEFAULT_TIMEZONE, zonedWorkDateTime } from "@/lib/attendance/zoned-time";
 import type { Database } from "@/types/database";
+import { writeFailed } from "@/lib/actions/error-copy";
 
 type AttendanceStatus = Database["public"]["Enums"]["attendance_record_status"];
 
@@ -120,7 +121,7 @@ export async function upsertAttendanceRecord(
         .maybeSingle();
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to save attendance." };
+    return { ok: false, error: writeFailed("Unable to save attendance.") };
   }
   if (!data?.id) {
     return { ok: false, error: "Unable to save attendance." };
@@ -174,7 +175,7 @@ export async function deleteAttendanceRecord(
     .eq("id", parsed.data.id);
 
   if (error) {
-    return { ok: false, error: error.message ?? "Unable to delete attendance." };
+    return { ok: false, error: writeFailed("Unable to delete attendance.") };
   }
 
   await logAudit(supabase, {
