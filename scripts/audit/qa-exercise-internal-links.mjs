@@ -47,7 +47,7 @@
 //
 // Usage: node scripts/audit/qa-exercise-internal-links.mjs
 
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
 const env = {};
@@ -434,4 +434,29 @@ if (notes.length) {
   console.log("\nnotes:");
   for (const n of notes) console.log(`  - ${n}`);
 }
+
+// Evidence, not a claim. This was the last check in the suite with no evidence
+// file at all, so a broken internal link existed only as terminal scrollback.
+// The runner reports `evidence: null` for a check, which is how the gap stayed
+// invisible: nothing flagged it, because nothing was asked.
+mkdirSync("docs/evidence", { recursive: true });
+writeFileSync(
+  "docs/evidence/internal-links-check.json",
+  JSON.stringify(
+    {
+      check: "internal-links",
+      generatedAt: new Date().toISOString(),
+      base: BASE,
+      total: results.length,
+      passed,
+      failures: results.length - passed,
+      results,
+      notes,
+    },
+    null,
+    2,
+  ) + "\n",
+);
+console.log("wrote docs/evidence/internal-links-check.json");
+
 process.exitCode = passed === results.length ? 0 : 1;

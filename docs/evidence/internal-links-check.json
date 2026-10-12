@@ -1,0 +1,166 @@
+{
+  "check": "internal-links",
+  "generatedAt": "2026-10-12T00:35:49.664Z",
+  "base": "http://localhost:3100",
+  "total": 29,
+  "passed": 29,
+  "failures": 0,
+  "results": [
+    {
+      "name": "internal — the crawl actually found links to verify",
+      "pass": true,
+      "detail": "102 found, floor is 40"
+    },
+    {
+      "name": "internal — no internal link renders a 404",
+      "pass": true,
+      "detail": "101 link(s) resolved"
+    },
+    {
+      "name": "internal — no internal link bounces this role to /login",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "internal — no internal link redirects somewhere else",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "internal — no internal link dead-ends on \"Access not allowed\"",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "internal — no link points at a record that no longer exists",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "internal — no internal link lands on a page error",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "client — the crawl actually found links to verify",
+      "pass": true,
+      "detail": "32 found, floor is 15"
+    },
+    {
+      "name": "client — no internal link renders a 404",
+      "pass": true,
+      "detail": "32 link(s) resolved"
+    },
+    {
+      "name": "client — no internal link bounces this role to /login",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "client — no internal link redirects somewhere else",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "client — no internal link dead-ends on \"Access not allowed\"",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "client — no link points at a record that no longer exists",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "client — no internal link lands on a page error",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "applicant — the crawl actually found links to verify",
+      "pass": true,
+      "detail": "5 found, floor is 2"
+    },
+    {
+      "name": "applicant — no internal link renders a 404",
+      "pass": true,
+      "detail": "5 link(s) resolved"
+    },
+    {
+      "name": "applicant — no internal link bounces this role to /login",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "applicant — no internal link redirects somewhere else",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "applicant — no internal link dead-ends on \"Access not allowed\"",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "applicant — no link points at a record that no longer exists",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "applicant — no internal link lands on a page error",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "public — the crawl actually found links to verify",
+      "pass": true,
+      "detail": "25 found, floor is 20"
+    },
+    {
+      "name": "public — the sitemap lists something to check",
+      "pass": true,
+      "detail": "22 URL(s)"
+    },
+    {
+      "name": "public — every URL in the sitemap resolves",
+      "pass": true,
+      "detail": "22 URL(s) all resolve"
+    },
+    {
+      "name": "public — no internal link renders a 404",
+      "pass": true,
+      "detail": "25 link(s) resolved"
+    },
+    {
+      "name": "public — no internal link bounces this role to /login",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "public — no internal link redirects somewhere else",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "public — no link points at a record that no longer exists",
+      "pass": true,
+      "detail": "none"
+    },
+    {
+      "name": "public — no internal link lands on a page error",
+      "pass": true,
+      "detail": "none"
+    }
+  ],
+  "notes": [
+    "signed in as owner@demo.beepabpo.com (internal)",
+    "internal: discovered 102 distinct internal link(s)",
+    "internal: 1 download endpoint(s) skipped, not pages: /app/reports/export",
+    "signed in as clientadmin@demo.beepabpo.com (client)",
+    "client: discovered 32 distinct internal link(s)",
+    "signed in as applicant@demo.beepabpo.com (applicant)",
+    "applicant: discovered 5 distinct internal link(s)",
+    "public: not signed in",
+    "public: discovered 25 distinct internal link(s)"
+  ]
+}

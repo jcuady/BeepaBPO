@@ -2,6 +2,38 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## The whole suite runs in one command, and every check leaves evidence (2026-10-12)
+
+- **First fully green run: 14/14 checks, exit 0, across all three tiers** — fast probes,
+  the release gate, and the entire slow tier. `missingEvidence: []`.
+  ```
+  not-found 7s · dialog-keyboard 5s · command-palette 12s · notification-bell 4s
+  internal-links 311s · client-invite 9s (17/17)
+  responsive-app-1..4  135s/147s/149s/146s   (56/56 each, all 28 routes)
+  responsive-app-cms   22s  (8/8)     responsive-public 105s (80/80)
+  role-sweep          880s  (479 visits, 13 roles, 0 page errors)
+  gate                16s  vitest 655 tests / 93 files, tsc clean
+  ```
+- **`--all` used to mean seven routes.** `responsive-app` was registered as a *single*
+  entry carrying chunk 1 of 4, so the "one command to answer is the system ready" verified
+  **7 of 28 app routes and none of the 10 public routes**; the other 21, `/app/cms` and the
+  public surface were reachable only by copying commands out of the report by hand. The
+  memory constraint that forces chunking had leaked into the registry as a half-registered
+  check — the four-chunk rule was documented and enforced by whoever ran it, but the runner
+  did not know there were four chunks. All four chunks, `/app/cms` and the public surface are
+  registered now. Each stays a separate process, so the 2.4 GB ceiling is unchanged.
+- **Three checks were writing no evidence at all.** `audit-app-responsive.mjs`,
+  `audit-responsive.mjs` and `qa-exercise-internal-links.mjs` produced results that existed
+  only as terminal scrollback, while every other check persisted a file. The gap stayed
+  invisible precisely *because* the runner listed them as `evidence: null` — nothing flagged
+  it, because nothing was asked. All three write evidence now; the runner enforces it, and
+  `missingEvidence` is reported rather than tolerated.
+- **`internal-links` is now `docs/evidence/internal-links-check.json`** and registered as the
+  check's evidence, so its 29 link assertions are enforced rather than printed.
+- **Per-check environment support added to `runCheck`** (`QA_CHUNK_LABEL`), giving each
+  responsive chunk a short evidence filename the registry can name in advance instead of a
+  route-derived slug.
+
 ## 83 of 83 server actions are now exercised end to end (2026-10-12)
 
 - **`inviteClientUser` — the last uncovered action — was driven through its real form on

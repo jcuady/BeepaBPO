@@ -49,7 +49,7 @@ const CHECKS = [
   { id: "dialog-keyboard",  tier: "fast",  cmd: ["scripts/audit/qa-probe-dialog-keyboard.mjs"],  evidence: "docs/evidence/dialog-keyboard-check.json", what: "confirm dialogs: focus in, focus back, Escape and Cancel" },
   { id: "command-palette",  tier: "fast",  cmd: ["scripts/audit/qa-probe-command-palette.mjs"],  evidence: "docs/evidence/command-palette-check.json", what: "cmd-K opens, filters, navigates, returns focus" },
   { id: "notification-bell",tier: "fast",  cmd: ["scripts/audit/qa-probe-notification-bell.mjs"],evidence: "docs/evidence/notification-bell-check.json",what: "bell accessible name, AA contrast, keyboard exit" },
-  { id: "internal-links",   tier: "fast",  cmd: ["scripts/audit/qa-exercise-internal-links.mjs"],evidence: null, what: "no internal link lands on an error page" },
+  { id: "internal-links",   tier: "fast",  cmd: ["scripts/audit/qa-exercise-internal-links.mjs"],evidence: "docs/evidence/internal-links-check.json", what: "no internal link lands on an error page" },
 
   // May exit 2. The environment's outbound email budget allows roughly ONE
   // invite per window, and `qa-probe-invite-domains.mjs` spends an invite to

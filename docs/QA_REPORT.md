@@ -977,21 +977,40 @@ node scripts/audit/qa-run-all.mjs --all      # + slow tier      (~30 min, all 14
 node scripts/audit/qa-run-all.mjs --list     # the registry, no execution
 ```
 
-Current state, one run:
+**The first fully green run, all three tiers, every check passing:**
 
 ```
-OK    not-found             6s  every 404 has a working way out
+OK    not-found             7s  every 404 has a working way out
 OK    dialog-keyboard       5s  confirm dialogs: focus in, focus back, Escape and Cancel
 OK    command-palette      12s  cmd-K opens, filters, navigates, returns focus
 OK    notification-bell     4s  bell accessible name, AA contrast, keyboard exit
-OK    internal-links      313s  no internal link lands on an error page
-SKIP  client-invite         5s  the last uncovered action, driven through its real form
-OK    gate                 21s  vitest + tsc --noEmit
+OK    internal-links      311s  no internal link lands on an error page
+OK    client-invite         9s  the last uncovered action, through its real form — 17/17
+OK    responsive-app-1    135s  app layout, 8 viewports (routes 1-7 of 28)
+OK    responsive-app-2    147s  app layout, 8 viewports (routes 8-14 of 28)
+OK    responsive-app-3    149s  app layout, 8 viewports (routes 15-21 of 28)
+OK    responsive-app-4    146s  app layout, 8 viewports (routes 22-28 of 28)
+OK    responsive-app-cms   22s  CMS layout under the account that can actually reach it
+OK    responsive-public   105s  public surface, 10 routes x 8 viewports
+OK    role-sweep          880s  13 roles across their reachable pages — page errors: 0
+OK    gate                 16s  vitest 655 tests / 93 files, tsc clean
 ========================================================================
-6/7 passed, 1 blocked by the environment
+14/14 passed          exit 0          missingEvidence: []
+```
 
-1 check(s) BLOCKED by the environment, not by the code:
-  - client-invite: BLOCKED: the environment's email budget closed again. Re-run later.
+`missingEvidence: []` is the line that matters most. The runner treats a check that passes
+without leaving its file as a finding rather than a pass, and that field is how the two
+responsive audits and `internal-links` were found to be writing nothing at all. All three
+now write evidence, and this run is the first in which that claim is actually enforced
+rather than assumed.
+
+`client-invite` passed 17/17 here because the email window happened to be open. When it is
+not, the same line reads `SKIP` and the run still exits 0:
+
+```
+SKIP  client-invite         5s  the last uncovered action, driven through its real form
+...
+6/7 passed, 1 blocked by the environment
 These are not regressions. Re-run to pick them up when the window opens.
 ```
 
@@ -1000,10 +1019,10 @@ never ran its assertions is the same class of lie as a pass with no evidence fil
 exit code is 0 either way: a closed email budget is not something a code change can fix,
 and a suite that is permanently red for that reason trains people to ignore it.
 
-**That run also exposed a defect of its own, and it is worth reading the two blocks below
-together.** The suite's own `client-invite` invocation ran seconds after the 17/17 run,
-hit the closed window, and overwrote `docs/evidence/client-invite-check.json` with a 6/7
-BLOCKED record — erasing the only proof the action works. Fixed by giving blocked runs
+**An earlier version of this run exposed a defect of its own, and it is worth reading the
+block below with this one.** The suite's `client-invite` invocation had run seconds after a
+17/17 and hit the closed window, overwriting `docs/evidence/client-invite-check.json` with a
+6/7 BLOCKED record — erasing the only proof the action works. Fixed by giving blocked runs
 their own evidence file; see §2, *"The suite deleted the evidence of the run that closed
 it"*.
 
