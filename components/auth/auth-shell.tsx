@@ -147,11 +147,12 @@ export function AuthShell({
               />
             </svg>
 
-            {/* Mockup script accent on photo */}
+            {/* Accent on the photo — set in the display face, not a serif
+                script. Georgia italic was the pre-redesign voice and the
+                brandbook allows Manrope + Inter only. */}
             <p
               aria-hidden
-              className="pointer-events-none absolute right-8 top-10 z-[1] max-w-[12ch] rotate-[-8deg] text-right text-[1.35rem] font-bold leading-tight text-navy/90"
-              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              className="pointer-events-none absolute right-8 top-10 z-[1] max-w-[12ch] rotate-[-8deg] text-right font-display text-[1.35rem] font-semibold leading-tight tracking-[-0.02em] text-navy/90"
             >
               People power better business.
             </p>
@@ -218,10 +219,7 @@ export function AuthShell({
                 strokeLinecap="round"
               />
             </svg>
-            <p
-              className="absolute bottom-5 left-5 right-5 font-display text-xl font-bold italic leading-snug text-white"
-              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-            >
+            <p className="absolute bottom-5 left-5 right-5 font-display text-xl font-semibold leading-snug tracking-[-0.01em] text-white">
               People power better business.
             </p>
           </div>

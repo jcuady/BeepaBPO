@@ -201,10 +201,7 @@ export function EmployeeAuthShell({
               className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-navy/70 via-transparent to-transparent" />
-            <p
-              className="absolute bottom-5 left-5 right-5 font-display text-xl font-bold italic text-white"
-              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-            >
+            <p className="absolute bottom-5 left-5 right-5 font-display text-xl font-semibold tracking-[-0.01em] text-white">
               Same people. Bigger possibilities.
             </p>
           </div>
