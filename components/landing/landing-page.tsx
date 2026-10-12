@@ -31,7 +31,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
@@ -50,6 +50,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  careerInquiryAction,
+  contactAction,
+} from "@/lib/contact/actions";
+import type { ActionState } from "@/lib/auth/actions";
 import { BRAND } from "@/lib/site";
 import { faqs, services } from "./content";
 import "./landing.css";
@@ -59,23 +64,15 @@ const team = "/images/landing/beepa-team.jpg";
 const collaboration = "/images/landing/beepa-collaboration.jpg";
 const logo = "/brand/beepa-logo-horizontal.png";
 
+/** `ok: false` with no message is "nothing submitted yet", not "failed". */
+const INITIAL_ACTION_STATE: ActionState = { ok: false };
+
 function Arrow() {
   return (
     <span className="arrow" aria-hidden="true">
       ↗
     </span>
   );
-}
-
-function downloadBrief(text: string, filename: string) {
-  const url = URL.createObjectURL(
-    new Blob([text], { type: "text/plain;charset=utf-8" }),
-  );
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
 }
 
 export default function LandingPage() {
@@ -86,33 +83,47 @@ export default function LandingPage() {
   const [coverage, setCoverage] = useState("Your business hours");
   const [device, setDevice] = useState<"web" | "mobile">("web");
   const [faq, setFaq] = useState<number | null>(0);
-  const [saved, setSaved] = useState(false);
   const [career, setCareer] = useState("Customer Support");
+
+  // Real submissions. The reference shipped a demo that downloaded a .txt draft
+  // and said "Nothing is sent to Beepa"; these two dialogs now post to the same
+  // server actions the /contact form uses, so a lead actually reaches the CRM.
+  const [teamState, teamAction, teamPending] = useActionState(
+    contactAction,
+    INITIAL_ACTION_STATE,
+  );
+  const [careerState, careerAction, careerPending] = useActionState(
+    careerInquiryAction,
+    INITIAL_ACTION_STATE,
+  );
+
+  const teamSucceeded = teamState.ok === true && !teamPending;
+  const careerSucceeded = careerState.ok === true && !careerPending;
+
+  // Close only once the submission has actually landed, so the confirmation is
+  // never dismissed before the reader has seen it.
+  useEffect(() => {
+    if (teamSucceeded) setModal(null);
+  }, [teamSucceeded]);
+
+  useEffect(() => {
+    if (careerSucceeded) setModal(null);
+  }, [careerSucceeded]);
 
   const openTeam = (service?: string) => {
     if (service) setRole(service);
-    setSaved(false);
     setModal("team");
   };
   const openCareer = (value: string) => {
     setCareer(value);
-    setSaved(false);
     setModal("career");
   };
 
-  const submit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const values = new FormData(event.currentTarget);
-    const content =
-      modal === "team"
-        ? `BEEPA BPO — TEAM CONSULTATION BRIEF\n\nName: ${values.get("name")}\nEmail: ${values.get("email")}\nCompany: ${values.get("company")}\nRole: ${role}\nTeam size: ${size}\nCoverage: ${coverage}\nBusiness needs: ${values.get("message")}\n\nDraft only — not submitted to Beepa.`
-        : `BEEPA BPO — CAREER APPLICATION BRIEF\n\nName: ${values.get("name")}\nEmail: ${values.get("email")}\nCareer area: ${career}\nExperience: ${values.get("message")}\n\nDraft only — not submitted to Beepa. Confirm current vacancies and official application channel.`;
-    downloadBrief(
-      content,
-      modal === "team" ? "beepa-team-brief.txt" : "beepa-career-brief.txt",
-    );
-    setSaved(true);
-  };
+  // The dialog renders both forms from one set of fields, so the pending flag
+  // and the returned state are selected by whichever dialog is open.
+  const activePending = modal === "career" ? careerPending : teamPending;
+  const activeState = modal === "career" ? careerState : teamState;
+
 
   return (
     <div className="beepaLanding">
@@ -975,7 +986,21 @@ export default function LandingPage() {
               ? `Prepare your application brief for ${career}.`
               : `${size} ${size === 1 ? "person" : "people"} · ${role} · ${coverage}`}
           </DialogDescription>
-          <form className="dialog-form" onSubmit={submit}>
+          <form className="dialog-form" action={modal === "career" ? careerAction : teamAction}>
+            <input type="hidden" name="landing_page" value="/" />
+            {modal === "career" && (
+              <input type="hidden" name="career_area" value={career} />
+            )}
+            {/* Honeypot. Hidden from people, irresistible to bots. The action
+                answers "success" without storing anything when it is filled. */}
+            <div className="hp" aria-hidden="true">
+              <Input
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-label="Website"
+              />
+            </div>
             <div className="form-grid">
               <label className="field">
                 <span>Your name</span>
@@ -984,6 +1009,7 @@ export default function LandingPage() {
                   autoComplete="name"
                   required
                   placeholder="Full name"
+                  aria-invalid={!!activeState?.fieldErrors?.name}
                 />
               </label>
               <label className="field">
@@ -994,10 +1020,11 @@ export default function LandingPage() {
                   autoComplete="email"
                   required
                   placeholder="you@example.com"
+                  aria-invalid={!!activeState?.fieldErrors?.email}
                 />
               </label>
             </div>
-            {modal === "team" && (
+            {modal === "team" ? (
               <label className="field">
                 <span>Company</span>
                 <Input
@@ -1005,9 +1032,10 @@ export default function LandingPage() {
                   autoComplete="organization"
                   required
                   placeholder="Your business name"
+                  aria-invalid={!!teamState?.fieldErrors?.company}
                 />
               </label>
-            )}
+            ) : null}
             <label className="field">
               <span>
                 {modal === "career"
@@ -1023,22 +1051,27 @@ export default function LandingPage() {
                     ? "Tell us about your skills and experience."
                     : "A few words about your needs and goals."
                 }
+                aria-invalid={!!activeState?.fieldErrors?.message}
               />
             </label>
-            <Button variant="brand" type="submit">
-              Download my {modal === "career" ? "application" : "team"} brief{" "}
-              <span className="arrow">↓</span>
+            <Button variant="brand" type="submit" disabled={activePending}>
+              {activePending
+                ? "Sending…"
+                : `Send my ${modal === "career" ? "enquiry" : "request"}`}
             </Button>
             <p className="dialog-disclaimer">
-              This saves a private draft to your device. Nothing is sent to
-              Beepa. The official{" "}
-              {modal === "career" ? "application" : "consultation"} contact
-              channel has not been provided yet.
+              {modal === "career"
+                ? "This goes straight to our recruitment team. We will be in touch about opportunities that match your experience."
+                : "This goes straight to our team. We will reply about roles, coverage and pricing for the plan above."}
             </p>
-            {saved && (
+            {activeState?.error && (
+              <p className="dialog-error" role="alert">
+                {activeState.error}
+              </p>
+            )}
+            {activeState?.ok && (
               <p className="dialog-success" role="status">
-                Your brief is ready and downloaded. Keep it for your
-                conversation with Beepa.
+                {activeState.message}
               </p>
             )}
           </form>
