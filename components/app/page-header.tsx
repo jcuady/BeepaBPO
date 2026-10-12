@@ -58,7 +58,7 @@ export function PageHeader({
         {children}
       </div>
       {quote ? (
-        <Card className="max-w-xs shrink-0 rounded-[16px] border-line bg-white shadow-sm">
+        <Card className="max-w-xs shrink-0 rounded-none border-line bg-white shadow-sm">
           <CardContent className="px-4 py-3 text-sm italic text-slate">
             &ldquo;{quote}&rdquo;
           </CardContent>

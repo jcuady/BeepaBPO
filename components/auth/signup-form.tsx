@@ -10,7 +10,7 @@ import {
 } from "@tabler/icons-react";
 import { signupAction, type ActionState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
-import { AuthInput as Input } from "@/components/auth/auth-input";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordField } from "@/components/auth/password-field";
 

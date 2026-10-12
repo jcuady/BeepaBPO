@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
@@ -11,12 +11,13 @@ const buttonVariants = cva(
 
         /* ---- Editorial marketing variants -----------------------------
          *
-         * Square corners are the strongest signal in the new design, and they
-         * are deliberately confined to the three variants below rather than
-         * applied to the base class. The product UI is dense, sits in tables
-         * and toolbars, and reads better at `rounded-lg`; making every button
-         * square to satisfy the marketing site would have degraded the surface
-         * that most employees touch all day.
+         * The base class is square because the whole product UI is square: the
+         * brand decision is one language across marketing, auth and the app
+         * shell, not a marketing-only skin. An earlier revision deliberately
+         * kept `rounded-lg` here on the grounds that dense tables and toolbars
+         * read better with rounded controls; that was reversed, so the three
+         * variants below are no longer distinguished by corner radius and now
+         * differ only in fill and border.
          *
          * Height is NOT set here. `cva` appends the size variant after the
          * variant variant, so an `h-12` in this block would be overridden by
@@ -46,8 +47,8 @@ const buttonVariants = cva(
 // the micro size for inline controls inside dense rows.
         default:
           "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [@media(pointer:coarse)]:min-h-11",
-        xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5 [@media(pointer:coarse)]:min-h-11",
+        xs: "h-6 gap-1 rounded-none px-2 text-xs in-data-[slot=button-group]:rounded-none has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-7 gap-1 rounded-none px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-none has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5 [@media(pointer:coarse)]:min-h-11",
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [@media(pointer:coarse)]:min-h-11",
         /* Marketing scale. 48px clears the touch-target requirement outright
            rather than relying on the `pointer: coarse` escape hatch the product
@@ -58,9 +59,9 @@ const buttonVariants = cva(
         "editorial": "h-10 gap-2 font-display text-[0.9375rem] font-medium",
         icon: "size-8 [@media(pointer:coarse)]:size-11",
         "icon-xs":
-          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3 [@media(pointer:coarse)]:size-11",
+          "size-6 rounded-none in-data-[slot=button-group]:rounded-none [&_svg:not([class*='size-'])]:size-3 [@media(pointer:coarse)]:size-11",
         "icon-sm":
-          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg [@media(pointer:coarse)]:size-11",
+          "size-7 rounded-none in-data-[slot=button-group]:rounded-none [@media(pointer:coarse)]:size-11",
         "icon-lg": "size-9 [@media(pointer:coarse)]:size-11",
       },
     },

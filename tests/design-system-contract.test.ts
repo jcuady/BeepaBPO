@@ -270,8 +270,15 @@ describe("NativeSelect contract", () => {
   });
 
   it("uses the radius scale, not an arbitrary value", () => {
-    expect(cls).toContain("rounded-lg");
+    // The intent is "pick a scale token, never hard-code pixels" — that reason
+    // the 26 raw dropdowns drifted apart in the first place. The brand is now
+    // square throughout, so the scale token is `rounded-none`, but the real
+    // guard is the negative assertion below.
+    expect(cls).toContain("rounded-none");
     expect(cls).not.toMatch(/rounded-\[\d+px\]/);
+    expect(INPUT).not.toMatch(/rounded-\[\d+px\]/);
+    // Input and the native select must not drift apart on radius again.
+    expect(cls).toContain(INPUT.match(/rounded-[a-z0-9-]+/)?.[0] ?? "@@none@@");
   });
 
   it("keeps the 44px coarse-pointer floor", () => {

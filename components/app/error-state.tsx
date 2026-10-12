@@ -20,11 +20,11 @@ export function ErrorState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-[16px] border border-line bg-white px-6 py-12 text-center",
+        "flex flex-col items-center justify-center rounded-none border border-line bg-white px-6 py-12 text-center",
         className,
       )}
     >
-      <div className="flex size-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+      <div className="flex size-12 items-center justify-center rounded-none bg-destructive/10 text-destructive">
         <IconAlertTriangle stroke={1.75} className="size-6" />
       </div>
       <h3 className="mt-4 font-display text-base font-semibold text-navy">

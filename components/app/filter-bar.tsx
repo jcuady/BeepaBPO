@@ -29,7 +29,7 @@ export function FilterBar({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-[16px] border border-line bg-white p-3 shadow-sm sm:flex-row sm:items-center",
+        "flex flex-col gap-3 rounded-none border border-line bg-white p-3 shadow-sm sm:flex-row sm:items-center",
         className,
       )}
     >
@@ -73,7 +73,7 @@ export function FilterSelect({
   options: { value: string; label: string }[];
 }) {
   // Previously this carried its own hand-rolled class string
-  // (`min-h-11 rounded-[12px] border border-line bg-mist/50 px-3 text-sm`),
+  // (`min-h-11 rounded-none border border-line bg-mist/50 px-3 text-sm`),
   // which matched no other control: wrong radius against Input's 16px and no
   // focus ring at all. Delegates to the shared primitive so a filter dropdown
   // and a form dropdown cannot drift apart again.

@@ -29,7 +29,7 @@ export const nativeSelectClassName = [
   // Geometry and colour match `Input` exactly — including the coarse-pointer
   // floor, which was missing: these were 32px on phones while every other
   // control in a form was 44px.
-  "h-8 w-full min-w-0 rounded-lg border border-line bg-white px-3 py-1",
+  "h-8 w-full min-w-0 rounded-none border border-line bg-white px-3 py-1",
   "[@media(pointer:coarse)]:h-11",
   // 16px on phones so the option text is readable without zooming; desktop
   // keeps the dense 14px. Mirrors Input's `text-base ... md:text-sm`.

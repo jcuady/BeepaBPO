@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { IconEye, IconEyeOff, IconLock } from "@tabler/icons-react";
-import { AuthInput as Input } from "@/components/auth/auth-input";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 

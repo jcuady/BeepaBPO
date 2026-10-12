@@ -6,7 +6,7 @@ import { IconArrowRight, IconMail } from "@tabler/icons-react";
 import { loginAction, type ActionState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AuthInput as Input } from "@/components/auth/auth-input";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordField } from "@/components/auth/password-field";
 import { DemoLoginPicker } from "@/components/auth/demo-login-picker";

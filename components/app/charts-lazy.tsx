@@ -11,7 +11,7 @@ export const WeeklyAttendanceChartLazy = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-48 animate-pulse rounded-xl bg-mist" aria-hidden />
+      <div className="h-48 animate-pulse rounded-none bg-mist" aria-hidden />
     ),
   },
 );
@@ -22,7 +22,7 @@ export const TeamStatusDonutLazy = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-48 animate-pulse rounded-xl bg-mist" aria-hidden />
+      <div className="h-48 animate-pulse rounded-none bg-mist" aria-hidden />
     ),
   },
 );

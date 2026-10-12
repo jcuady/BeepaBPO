@@ -48,7 +48,7 @@ function NavLink({
         isActive={isActive}
         tooltip={title}
         className={cn(
-          "min-h-11 rounded-lg [&>svg]:stroke-[1.75]",
+          "min-h-11 rounded-none [&>svg]:stroke-[1.75]",
           isActive && "bg-soft-green font-medium text-green-strong",
         )}
         render={<Link href={href} />}
@@ -158,7 +158,7 @@ export function AppSidebar({ workspace }: AppSidebarProps) {
         <p className="mb-3 text-center font-display text-xs font-semibold tracking-wide text-navy group-data-[collapsible=icon]/sidebar-wrapper:hidden">
           People · Process · Progress
         </p>
-        <div className="rounded-[16px] border border-line bg-soft-green/50 p-3 group-data-[collapsible=icon]/sidebar-wrapper:hidden">
+        <div className="rounded-none border border-line bg-soft-green/50 p-3 group-data-[collapsible=icon]/sidebar-wrapper:hidden">
           <div className="flex items-start gap-2">
             <IconHelp
               stroke={1.75}

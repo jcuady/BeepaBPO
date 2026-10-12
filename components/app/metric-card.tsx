@@ -29,7 +29,7 @@ export function MetricCard({
       )}
     >
       <CardContent className="flex gap-3 p-4">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-soft-green text-green">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-none bg-soft-green text-green">
           <Icon stroke={1.75} className="size-5" />
         </div>
         <div className="min-w-0 flex-1">

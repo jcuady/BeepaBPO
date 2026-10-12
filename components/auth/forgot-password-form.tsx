@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { forgotPasswordAction, type ActionState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
-import { AuthInput as Input } from "@/components/auth/auth-input";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const initial: ActionState = { ok: false };
