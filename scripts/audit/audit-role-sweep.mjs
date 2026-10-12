@@ -141,6 +141,17 @@ async function signIn(page, email) {
 
   if (page.url().includes("/login")) return { ok: false, reason: "still on /login after 20s" };
   if (page.url().includes("access-denied")) return { ok: false, reason: "redirected to access-denied" };
+
+  // Leaving /login is not the same as having landed. The app bounces /login ->
+  // /app and then redirects again to /app/dashboard, and the crawl's first seed
+  // is /app/dashboard. Returning the instant the pathname changed put the
+  // harness's own `goto` into a race with the app's in-flight hop to the very
+  // same URL, and the superseded navigation came back as
+  // `page.goto: net::ERR_ABORTED` — recorded as a page error on a page that had
+  // never loaded. `settle` already exists for exactly this class of race; it was
+  // simply not called here.
+  await settle(page);
+
   return { ok: true, landed: new URL(page.url()).pathname };
 }
 
@@ -214,7 +225,23 @@ for (const role of roles) {
 
     const row = { path, status: "ok", notes: [] };
     try {
-      const r = await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded", timeout: 25000 });
+      // `net::ERR_ABORTED` means the navigation was *superseded* — by the app's
+      // own redirect, or by a competing one. It is a statement about the
+      // browser's navigation queue, not about whether the page is broken, and
+      // counting it as a page error makes this gate untrustworthy: it goes red
+      // for a page that never loaded and would have rendered fine. Settle
+      // first, then retry once, and only surface it if the retry also aborts.
+      let r;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        if (attempt > 0) await settle(page);
+        try {
+          r = await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded", timeout: 25000 });
+          break;
+        } catch (e) {
+          if (attempt === 1 || !/ERR_ABORTED/i.test(String(e))) throw e;
+          row.notes.push("navigation aborted by a competing redirect; retried");
+        }
+      }
       row.http = r?.status();
       await settle(page);
       // A permission redirect is a legitimate outcome, not a failure. Record it.

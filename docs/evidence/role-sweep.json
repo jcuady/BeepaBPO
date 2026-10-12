@@ -1,12 +1,12 @@
 {
   "base": "http://localhost:3100",
-  "startedAt": "2026-10-12T06:08:56.019Z",
+  "startedAt": "2026-10-12T07:32:42.486Z",
   "roles": {
     "owner": {
       "email": "owner@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/dashboard"
       },
       "pages": [
         {
@@ -508,7 +508,7 @@
       "email": "superadmin@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/dashboard"
       },
       "pages": [
         {
@@ -841,7 +841,7 @@
       "email": "hr@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/my"
       },
       "pages": [
         {
@@ -1294,7 +1294,7 @@
       "email": "recruiter@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/my"
       },
       "pages": [
         {
@@ -1588,7 +1588,7 @@
       "email": "sales@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/crm"
       },
       "pages": [
         {
@@ -1986,7 +1986,7 @@
       "email": "marketing@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/cms"
       },
       "pages": [
         {
@@ -2400,7 +2400,7 @@
       "email": "operations@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/my"
       },
       "pages": [
         {
@@ -2709,7 +2709,7 @@
       "email": "teamlead@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/my"
       },
       "pages": [
         {
@@ -2899,7 +2899,7 @@
       "email": "finance@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/my"
       },
       "pages": [
         {
@@ -3208,7 +3208,7 @@
       "email": "employee@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/my"
       },
       "pages": [
         {
@@ -3373,7 +3373,7 @@
       "email": "clientadmin@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/client"
       },
       "pages": [
         {
@@ -3685,7 +3685,7 @@
       "email": "clientviewer@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/client"
       },
       "pages": [
         {
@@ -3997,7 +3997,7 @@
       "email": "applicant@demo.beepabpo.com",
       "login": {
         "ok": true,
-        "landed": "/app"
+        "landed": "/app/applicant"
       },
       "pages": [
         {

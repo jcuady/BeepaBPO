@@ -88,6 +88,24 @@ scale *on that same file*. All of them check that classes are present; none chec
 sentence still reads as a sentence. A scan for the shape across all 286 files found this
 to be the only instance.
 
+### The brand claim had no runtime check behind it at all
+
+That defect is the argument for `scripts/audit/audit-runtime-radius.mjs` (`3ee8e08`).
+Every check above reads class strings; none measures what a browser painted. The new
+gate drives a real browser across the 12 public routes and reads computed
+`border-*-radius` off every painted element, failing at >= 8px. It is the 15th check in
+`qa-run-all.mjs` and `npm run audit:runtime-radius`.
+
+It is mutation-proved, and **the first proof attempt was wrong in a way worth
+recording**: mutating `components/ui/card.tsx` to `rounded-[16px]` left the gate green,
+because `Card` renders nowhere on the public routes. Only after mutating
+`site-header.tsx` — present on every page — did all 12 routes go red.
+
+**Known, not done:** the gate covers public routes only. The auth-gated app UI is out
+of its reach, and while `responsive-app` and `role-sweep` both walk those pages, neither
+measures radius. The five marketing sub-pages are squared and covered by the gate, but
+still import none of the new landing primitives.
+
 ## 70 server actions returned the driver's raw error text (2026-10-12)
 
 - **Every `error: error?.message ?? "copy"` fallback in the codebase was unreachable

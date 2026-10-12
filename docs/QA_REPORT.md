@@ -64,7 +64,39 @@ Re-run after `676105e` (component sweep) and `4713126` (signup consent fix):
 `role-sweep` and `responsive-app` are the checks that carry the product-side risk, and
 both are clean — squaring 25 more leaf components cost the product nothing.
 
-### What the suite could not have found
+### The brand claim was never actually checked at runtime
+
+Everything above verifies the square brand by **reading class strings**. That proves no
+`rounded-[16px]` survives in `app/` or `components/`, and stops there — it cannot see a
+radius arriving through a CSS variable, a cascade, or the browser itself. The only defect
+in this addendum was found by looking at a rendered page, which is a sign the gate
+class is missing rather than merely green.
+
+`scripts/audit/audit-runtime-radius.mjs` (`3ee8e08`) closes it: a real browser walks the
+12 public routes and measures computed `border-*-radius` on every painted element,
+failing on any box with a corner >= 8px. Registered as the 15th check in the fast tier
+and wired to `npm run audit:runtime-radius`.
+
+**Mutation-proved, and the first attempt to prove it was invalid.** Mutating
+`components/ui/card.tsx` to `rounded-[16px]` left the gate green — because `Card`
+renders nowhere on the 12 public routes, so the mutation was invisible by construction.
+Mutating `components/layout/site-header.tsx` (present on every page) turned all 12
+routes FAIL, exit 1, naming the element and its class. Reverting returned PASS.
+
+### Known limitations, stated rather than implied
+
+- **The runtime gate covers public routes only.** The auth-gated app UI is outside its
+  reach, which is exactly what the `Card` mutation demonstrated. `responsive-app` and
+  `role-sweep` both walk those pages and **neither measures radius**, so app-side
+  corners rest on source review plus the commit-level sweep, not on a rendered
+  measurement. This is the one place the "one corner language across the whole system"
+  claim is weaker than it sounds.
+- **The five marketing sub-pages** (`about`, `services`, `careers`, `resources`,
+  `why-beepa`) are fully squared but import **none** of the new landing primitives —
+  they keep bespoke markup. Visually and in corner language they are on-brand, and the
+  runtime gate covers all five, but they are a consolidation opportunity rather than a
+  defect. Recorded as not-done, deliberately: refactoring them onto `MarketingCta` is a
+  separate change with its own regression surface.
 
 **A broken sentence on `/signup`.** Screenshotting the page after the sweep showed the
 terms-consent row rendering as three ragged lines with phantom separators between the
