@@ -8,6 +8,28 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/80",
+
+        /* ---- Editorial marketing variants -----------------------------
+         *
+         * Square corners are the strongest signal in the new design, and they
+         * are deliberately confined to the three variants below rather than
+         * applied to the base class. The product UI is dense, sits in tables
+         * and toolbars, and reads better at `rounded-lg`; making every button
+         * square to satisfy the marketing site would have degraded the surface
+         * that most employees touch all day.
+         *
+         * Height is NOT set here. `cva` appends the size variant after the
+         * variant variant, so an `h-12` in this block would be overridden by
+         * the default size's `h-8`. Marketing call sites pass `size="cta"` or
+         * `size="editorial"` instead, which is also what keeps them reachable
+         * from the size scale rather than hard-coded. */
+        brand:
+          "rounded-none bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:border-primary",
+        editorial:
+          "rounded-none border-t-0 border-r-0 border-l-0 border-b border-foreground/30 bg-transparent px-0 text-foreground hover:border-primary hover:bg-transparent hover:text-primary",
+        inverse:
+          "rounded-none bg-background text-foreground hover:bg-accent hover:text-accent-foreground",
+
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
@@ -27,6 +49,13 @@ const buttonVariants = cva(
         xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5 [@media(pointer:coarse)]:min-h-11",
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [@media(pointer:coarse)]:min-h-11",
+        /* Marketing scale. 48px clears the touch-target requirement outright
+           rather than relying on the `pointer: coarse` escape hatch the product
+           sizes use, because a marketing CTA is read on phones far more often
+           than a toolbar control is. */
+        cta: "h-12 gap-2 px-6 font-display text-[0.9375rem] font-semibold tracking-[-0.01em]",
+        "cta-sm": "h-9 gap-1.5 px-4 font-display text-[0.8125rem] font-semibold",
+        "editorial": "h-10 gap-2 font-display text-[0.9375rem] font-medium",
         icon: "size-8 [@media(pointer:coarse)]:size-11",
         "icon-xs":
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3 [@media(pointer:coarse)]:size-11",

@@ -62,19 +62,64 @@ describe("homepage hero asset", () => {
       join(process.cwd(), "components/marketing/hero-section.tsx"),
       "utf8",
     );
-    expect(source).toContain("beepa-team-hero.png");
     expect(source).toContain("priority");
     expect(source).toContain("quality={82}");
     expect(source).toContain("hero_primary_cta");
     expect(source).toContain("hero_secondary_cta");
-    expect(source).toContain("Let&apos;s Talk");
+
+    // Which *encoding* the hero renders is an implementation choice, so the
+    // copy is matched loosely: `&apos;`, `&rsquo;` and the literal character all
+    // read identically to a user. Asserting one entity made this test fail
+    // every time the apostrophe was re-encoded for no behavioural reason.
+    expect(source).toMatch(/Let(&apos;|&rsquo;|’)s Talk/);
     expect(source).toContain("Explore Our Services");
-    expect(source).toContain("lg:col-span-5");
-    expect(source).toContain("lg:col-span-6");
-    expect(source).toContain("lg:col-start-7");
+
+    // Regression guards from previously fixed defects — kept as they are.
     expect(source).not.toContain("lg:col-start-5");
     expect(source).not.toContain("lg:row-start-1");
     expect(source).not.toContain("hero-photo-mask");
     expect(source).not.toContain('stroke="#93C63D"');
+  });
+
+  /**
+   * The hero renders the WEBP derivative, not the 8.2 MB PNG source.
+   *
+   * This assertion is the inverse of what the previous version of this file
+   * checked. It used to require `beepa-team-hero.png` by name, which meant the
+   * test actively rewarded importing the 8.2 MB master into the page — the
+   * 494 KB webp sitting beside it, and already guarded by the test above, was
+   * never referenced. Switching the hero to the webp is a 16x payload
+   * reduction, and it failed the suite.
+   *
+   * That is a check that had drifted from its own requirement: it pinned which
+   * file was named rather than what was served, so improving the page made the
+   * test red.
+   */
+  it("renders the optimised webp, not the multi-megabyte PNG source", () => {
+    const source = readFileSync(
+      join(process.cwd(), "components/marketing/hero-section.tsx"),
+      "utf8",
+    );
+    expect(source).toContain("beepa-team-hero.webp");
+    expect(source).not.toContain("beepa-team-hero.png");
+  });
+
+  /**
+   * The hero is a split, not a stack.
+   *
+   * Coarse on purpose. The earlier version of this test pinned
+   * `lg:col-span-6` / `lg:col-span-5` / `lg:col-start-7` — the exact columns of
+   * the previous 12-column layout. The redesign replaced that with a 50/50
+   * split, and those three assertions went red without anything a user could
+   * see changing for the worse. This keeps the *intent* — copy beside
+   * photograph at desktop width — without re-pinning whichever grid implements
+   * it next time.
+   */
+  it("keeps copy and photograph side by side at desktop width", () => {
+    const source = readFileSync(
+      join(process.cwd(), "components/marketing/hero-section.tsx"),
+      "utf8",
+    );
+    expect(source).toContain("lg:grid-cols-2");
   });
 });

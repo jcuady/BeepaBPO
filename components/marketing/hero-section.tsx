@@ -1,16 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
-import {
-  IconArrowRight,
-  IconArrowUpRight,
-} from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { Container } from "@/components/beepa/container";
 import { BRAND } from "@/lib/site";
-import heroPhoto from "../../public/images/hero/beepa-team-hero.png";
 import { focusRing } from "@/components/beepa/focus-ring";
 
-/** Honest, verifiable proof points. No invented logos, no fake counts. */
+/**
+ * Honest, verifiable proof points. No invented logos, no fake counts.
+ * Unchanged from the previous hero — these are approved figures, and the
+ * redesign was a design change, not a content one.
+ */
 const PROOF = [
   { k: "Teams staffed", v: "47+" },
   { k: "Retention rate", v: "94.6%" },
@@ -18,158 +16,177 @@ const PROOF = [
 ] as const;
 
 /**
- * BeepaBPO marketing hero — premium editorial minimalism.
+ * BeepaBPO marketing hero — editorial split, per the new landing design.
  *
- * Direction (principal UI/UX, per `minimalist-ui`):
- *   • Typographic contrast carries the design. Editorial serif headline set
- *     large and tight (−0.03em) against a plain sans body — no decorative
- *     shapes, no floating cards, no chips over the photograph.
- *   • The photograph is the only image and it is left completely clear: a
- *     single flat 1px frame, a gentle cinematic crop, nothing overlaid.
- *   • Ultra-flat surfaces. One hairline border per container, one diffuse
- *     shadow at <0.05 alpha. No gradients on cards, no double-bezel nesting.
- *   • Muted pastel tag for the eyebrow. Hairline-ruled proof list instead of
- *     stat cards. Generous macro-whitespace (py-28 → py-32).
- *   • Server Component. No entrance animation, no client JS, so
- *     `prefers-reduced-motion` is honoured by construction.
+ * WHAT CHANGED AND WHY
+ *   • **Split, not stacked.** The photo was a 16:9 band beneath the copy; it
+ *     is now a full-height right column at ≥lg. The reference's strongest move
+ *     is that copy and face are read at the same time, and stacking them forces
+ *     a scroll between the two.
+ *   • **Manrope at weight 500, 67px.** The old hero used the Instrument serif
+ *     at weight 700. The reference direction is lighter and larger — editorial
+ *     through restraint, not through a second typeface.
+ *   • **Square controls.** `rounded-full` pills are gone. The brandbook lists
+ *     "huge pills everywhere" under things to avoid, and the reference's
+ *     buttons are `rounded-none`.
+ *   • **Caption over the photograph.** The scrim exists because the caption
+ *     sits on whatever the subject happens to be wearing; without it the same
+ *     copy fails contrast on a different photo.
+ *
+ * WHAT DELIBERATELY DID NOT CHANGE
+ *   The CTAs still route to `/contact` and `/#services`. The reference opens a
+ *   modal that downloads a draft brief, but that is a new workflow, and this
+ *   change is design-only.
+ *
+ * Server Component, no client JS, so `prefers-reduced-motion` is honoured by
+ * construction rather than by a guard.
  */
 export function HeroSection() {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative isolate overflow-x-clip bg-white pt-20 pb-24 sm:pt-24 sm:pb-28 lg:pt-28 lg:pb-32"
+      className="relative isolate bg-white"
     >
-      {/* Section depth without decoration: one warm radial light spot at 3%
-          opacity plus a hairline rule. Not a gradient on any surface. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px]"
-        style={{
-          background:
-            "radial-gradient(60rem 30rem at 50% -10%, color-mix(in oklab, var(--color-green) 3%, transparent), transparent 70%)",
-        }}
-      />
+      <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 lg:grid-cols-2">
+        {/* ── Copy column ─────────────────────────────────────────────── */}
+        <div className="flex flex-col justify-center px-[clamp(1.25rem,4.5vw,4rem)] pt-12 pb-10 lg:py-20 lg:pr-14">
+          <span className="eyebrow">{BRAND.tagline}</span>
 
-      <Container>
-        {/* ── Editorial header: type left, action right ────────────────── */}
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-end lg:gap-12">
-          <div data-hero="badge" className="lg:col-span-6">
-            {/* Muted pastel tag — uppercase, wide tracking, tiny type. */}
-            <span className="inline-flex items-center rounded-full bg-soft-green px-3 py-1 font-display text-[11px] font-semibold uppercase tracking-[0.14em] text-green-strong">
-              {BRAND.tagline}
-            </span>
+          <h1
+            id="hero-heading"
+            data-hero="title"
+            className="mt-8 font-display text-[clamp(2.75rem,6.4vw,4.1875rem)] font-medium leading-[1.075] tracking-[-0.025em] text-balance text-navy"
+          >
+            People power,
+            <br />
+            <span className="text-green-strong">better business.</span>
+          </h1>
 
-            <h1
-              id="hero-heading"
-              data-hero="title"
-              className="mt-7 font-editorial text-[clamp(2.9rem,7.2vw,5.25rem)] leading-[0.98] tracking-[-0.03em] text-balance text-navy"
-            >
-              People power,
-              <br />
-              <span className="italic text-green-strong">better business.</span>
-            </h1>
-          </div>
+          <p
+            data-hero="lede"
+            className="mt-7 max-w-[46ch] text-[1.0625rem] leading-[1.6] text-pretty text-slate sm:text-lg"
+          >
+            {BRAND.displayName} builds dependable outsourced teams with clear
+            support, so you can scale with confidence — without restarting your
+            hiring from zero.
+          </p>
 
           <div
-            data-hero="lede"
-            className="lg:col-span-5 lg:col-start-7 lg:pb-2"
+            data-hero="ctas"
+            className="mt-9 flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center"
           >
-            <p className="max-w-[42ch] text-base leading-[1.6] text-pretty text-slate sm:text-lg">
-              {BRAND.displayName} builds dependable outsourced teams with clear
-              support, so you can scale with confidence — without restarting
-              your hiring from zero.
-            </p>
-
-            <div
-              data-hero="ctas"
-              className="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:items-center"
+            <Button
+              variant="brand"
+              size="cta"
+              nativeButton={false}
+              render={
+                <Link href="/contact" data-analytics="hero_primary_cta" />
+              }
             >
-              <Button
-                size="lg"
-                className={focusRing +
-                  " group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-green-strong px-7 text-base font-semibold whitespace-nowrap text-white transition-colors duration-200 active:scale-[0.98] motion-reduce:active:scale-100 sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green"
-                }
-                nativeButton={false}
-                render={
-                  <Link href="/contact" data-analytics="hero_primary_cta" />
-                }
-              >
-                Let&apos;s Talk
-                <span className="flex size-7 items-center justify-center rounded-full bg-white/15">
-                  <IconArrowRight
-                    stroke={1.75}
-                    className="size-3.5"
-                    aria-hidden="true"
-                  />
-                </span>
-              </Button>
+              Let&rsquo;s Talk
+            </Button>
 
-              <Link
-                href="/#services"
-                data-analytics="hero_secondary_cta"
-                className={focusRing +
-                  " group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-line bg-white px-7 text-base font-semibold whitespace-nowrap text-navy transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:border-navy/30 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist sm:w-auto"
-                }
-              >
-                Explore Our Services
-                <IconArrowUpRight
-                  stroke={1.75}
-                  className="size-4 shrink-0 transition-transform duration-200 [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 [@media(hover:hover)_and_(pointer:fine)]:group-hover:-translate-y-0.5 motion-reduce:translate-x-0 motion-reduce:translate-y-0"
-                  aria-hidden="true"
-                />
-              </Link>
-            </div>
+            <Button
+              variant="editorial"
+              size="editorial"
+              nativeButton={false}
+              render={<Link href="/#services" data-analytics="hero_secondary_cta" />}
+            >
+              Explore Our Services
+            </Button>
+          </div>
+
+          {/* ── Hero foot: a person, not a stat ─────────────────────────── */}
+          <div
+            data-hero="foot"
+            className="mt-12 flex items-center gap-4 border-t border-line pt-7"
+          >
+            <Image
+              src="/images/hero/testimonial-portrait-256.webp"
+              alt=""
+              width={40}
+              height={40}
+              className="size-10 shrink-0 rounded-full object-cover"
+            />
+            <p className="text-sm leading-[1.5] text-slate">
+              <span className="block font-display font-semibold text-navy">
+                Real people. Fully in your corner.
+              </span>
+              Dedicated to your business, not just your tasks.
+            </p>
           </div>
         </div>
 
-        {/* ── The photograph: full width, clear, one flat frame ─────────── */}
-        <div data-hero="media" className="mt-16 sm:mt-20 lg:mt-24">
-          <figure>
+        {/* ── Photograph column ────────────────────────────────────────── */}
+        <div
+          data-hero="media"
+          className="relative min-h-[380px] overflow-hidden bg-mist sm:min-h-[460px] lg:min-h-full"
+        >
+          <Image
+            src="/images/hero/beepa-team-hero.webp"
+            alt="Beepa team collaborating in a bright Manila office, gathered around a laptop"
+            fill
+            priority
+            quality={82}
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-cover object-[center_42%]"
+          />
+
+          {/* Scrim, referenced from the token layer so it is not re-typed. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[image:var(--scrim-photo)]"
+          />
+
+          {/* A solid navy chip, not floating white text. The first build of
+              this used bare `text-white/85` over the photograph and was
+              unreadable against the bright window behind the subject — the
+              photo's top half is the brightest part of the frame. The chip
+              carries its own background, so the label's contrast does not
+              depend on which photograph ships. */}
+          <p className="absolute right-6 top-6 z-1 bg-navy px-3 py-2 font-display text-[0.5625rem] font-semibold tracking-[0.14em] text-white uppercase sm:right-8 sm:top-8">
+            The people behind your progress
+          </p>
+
+          <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-4 px-6 pb-6 sm:px-8 sm:pb-8">
+            <p className="font-display text-lg leading-[1.25] text-white">
+              <span className="block font-semibold">
+                A little closer to your team.
+              </span>
+              <span className="text-white/80">Even from a world away.</span>
+            </p>
+            <p className="font-display text-[0.625rem] leading-[1.6] tracking-[0.1em] text-white/70 uppercase">
+              Based in the Philippines
+              <br />
+              Connected to your business
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Proof: hairline-ruled list, no cards, no badges ───────────── */}
+      <div className="mx-auto w-full max-w-[1600px] px-[clamp(1.25rem,4.5vw,4rem)] pb-16 lg:pb-20">
+        <dl className="grid grid-cols-1 border-t border-line sm:grid-cols-3">
+          {PROOF.map((item, i) => (
             <div
-            className="relative aspect-[4/3] overflow-hidden rounded-[12px] border border-line bg-mist sm:aspect-[16/10] lg:aspect-[16/9]"
-          >
-              <Image
-                src={heroPhoto}
-                alt="Beepa team collaborating in a bright Manila office, gathered around a laptop"
-                fill
-                priority
-                quality={82}
-                sizes="(max-width: 640px) 92vw, (max-width: 1024px) 90vw, 1280px"
-                className="object-cover object-[center_42%]"
-              />
+              key={item.k}
+              className={
+                "flex items-baseline justify-between gap-4 border-b border-line py-5 " +
+                "sm:border-b-0 sm:py-6 " +
+                (i < PROOF.length - 1 ? "sm:border-r sm:border-line sm:pr-8" : "") +
+                (i > 0 ? "sm:pl-8" : "")
+              }
+            >
+              <dt className="font-display text-[13px] font-medium text-slate">
+                {item.k}
+              </dt>
+              <dd className="font-display text-2xl font-semibold tracking-tight tabular-nums text-navy sm:text-[1.75rem]">
+                {item.v}
+              </dd>
             </div>
-
-            <figcaption className="mt-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 font-mono text-[12px] tracking-[0.04em] text-slate sm:text-[11px]">
-              <span>Beepa operations floor — Makati</span>
-              <span>Search · Place · Pay</span>
-            </figcaption>
-          </figure>
-        </div>
-
-        {/* ── Proof: hairline-ruled list, no cards, no badges ───────────── */}
-        <div data-hero="trust" className="mt-16 sm:mt-20">
-          <dl className="grid grid-cols-1 border-t border-line sm:grid-cols-3">
-            {PROOF.map((item, i) => (
-              <div
-                key={item.k}
-                className={
-                  "flex items-baseline justify-between gap-4 border-b border-line py-5 " +
-                  "sm:border-b-0 sm:py-6 " +
-                  (i < PROOF.length - 1 ? "sm:border-r sm:border-line sm:pr-8" : "") +
-                  (i > 0 ? "sm:pl-8" : "")
-                }
-              >
-                <dt className="font-display text-[13px] font-medium text-slate">
-                  {item.k}
-                </dt>
-                <dd className="font-display text-2xl font-bold tracking-tight tabular-nums text-navy sm:text-[1.75rem]">
-                  {item.v}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </Container>
+          ))}
+        </dl>
+      </div>
     </section>
   );
 }

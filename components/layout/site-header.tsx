@@ -29,15 +29,21 @@ function HeaderCta({ className }: { className?: string }) {
       href="/contact"
       data-analytics="header_cta"
       className={cn(
-        "group inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-green-strong px-5 font-display text-sm font-semibold whitespace-nowrap text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100",
+        // Square, and no circle behind the arrow. Both were pill-era artefacts
+        // that survived into the new hero: the brandbook lists "huge pills
+        // everywhere" under what to avoid, and the reference's CTA is
+        // `rounded-none` with an inline arrow.
+        "group inline-flex min-h-11 items-center justify-center gap-2 rounded-none bg-green-strong px-5 font-display text-sm font-semibold whitespace-nowrap text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green",
         focusRing,
         className,
       )}
     >
       {BRAND.cta}
-      <span className="flex size-6 items-center justify-center rounded-full bg-white/15 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 motion-reduce:translate-x-0">
-        <IconArrowRight stroke={1.75} className="size-3" aria-hidden="true" />
-      </span>
+      <IconArrowRight
+        stroke={1.75}
+        className="size-4 shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:translate-x-0.5 motion-reduce:translate-x-0"
+        aria-hidden="true"
+      />
     </Link>
   );
 }
@@ -79,9 +85,9 @@ export function SiteHeader() {
   return (
     <header
       data-site-header
-      className="site-header sticky top-0 z-40 h-14 pt-[env(safe-area-inset-top)] sm:h-[72px]"
+      className="site-header sticky top-0 z-40 h-16 pt-[env(safe-area-inset-top)] lg:h-[88px]"
     >
-      <Container className="flex h-14 items-center justify-between gap-2 sm:h-[72px] sm:gap-4">
+      <Container className="flex h-16 items-center justify-between gap-2 lg:h-[88px] lg:gap-4">
         <Link
           href="/"
           className={cn(
@@ -95,7 +101,7 @@ export function SiteHeader() {
             alt=""
             width={160}
             height={50}
-            className="h-8 w-auto max-w-[132px] object-contain object-left sm:h-9 sm:max-w-none"
+            className="h-9 w-auto max-w-[132px] object-contain object-left lg:h-11 lg:max-w-none"
             priority
           />
         </Link>
@@ -139,7 +145,7 @@ export function SiteHeader() {
                   type="button"
                   aria-label="Open menu"
                   className={cn(
-                    "size-11 rounded-full text-navy transition-[background-color,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
+                    "size-11 rounded-none text-navy transition-[background-color,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist",
                     focusRing,
                   )}
                 />
@@ -209,7 +215,7 @@ export function SiteHeader() {
                       href="/contact"
                       data-analytics="header_cta"
                       className={cn(
-                        "inline-flex min-h-11 w-full items-center justify-center rounded-full bg-green-strong px-6 font-display text-sm font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100",
+                        "inline-flex min-h-11 w-full items-center justify-center rounded-none bg-green-strong px-6 font-display text-sm font-semibold text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] motion-reduce:active:scale-100 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-green",
                         focusRing,
                       )}
                     />

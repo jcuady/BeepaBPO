@@ -104,6 +104,41 @@
   --color-data-empty: #e8eaee;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
+  /* ---- Editorial surface layer (new landing design) --------------------
+   *
+   * The previous design system had no shadow scale at all: every elevation in
+   * the product was Tailwind's default `shadow-sm`/`shadow-md`, which is a
+   * neutral black at low alpha. On a navy or photo surface that reads as dirt
+   * rather than depth. The new landing design carries its own value —
+   * `0 14px 45px oklch(0.2 0.01 265 / 12%)` — and it is tinted toward the ink
+   * hue rather than toward black, which is why it reads as light falling on a
+   * surface instead of a grey smear under one.
+   *
+   * Three steps only. A larger scale would invite the decorative stacking the
+   * brandbook forbids ("Do not use heavy shadows"). */
+  --shadow-panel: 0 14px 45px rgb(23 24 43 / 0.12);
+  --shadow-raised: 0 4px 16px rgb(23 24 43 / 0.08);
+  --shadow-inset-line: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+
+  /* Photo scrim. Text sits directly on photography in the new design (hero
+   * caption, final CTA), and without a scrim the caption fails contrast on
+   * whatever the subject happens to be wearing. This is the target's exact
+   * value, converted to the ink hue the rest of the palette uses. */
+  --scrim-photo: linear-gradient(180deg, transparent 50%, rgb(23 24 43 / 0.78) 100%);
+
+  /* ---- Display scale ---------------------------------------------------
+   *
+   * The new hero is 67px at weight 500 — noticeably lighter and larger than
+   * the weight-700 display type the old hero used, and the single clearest
+   * signal of the editorial direction. Handlers are declared once here rather
+   * than as arbitrary values per section, so the scale stays a scale. */
+  --text-display: 4.1875rem; /* 67px — hero h1 */
+  --text-display--line-height: 1.075;
+  --text-section: 3rem; /* 48px — section h2 */
+  --text-section--line-height: 1.08;
+  --text-lead: 1.25rem;
+  --text-lead--line-height: 1.6;
 }
 
 :root {
@@ -168,6 +203,50 @@
 
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* ---- Editorial primitives -------------------------------------------
+   *
+   * The new landing design is built on repeated marks: a short green rule
+   * above a small-caps label, and a numbered section label. Each appeared as a
+   * raw style in the reference and would otherwise be re-typed on every
+   * section, which is how a design system drifts back into per-page
+   * improvisation.
+   *
+   * The measure itself is NOT here. It lives in
+   * `components/beepa/container.tsx` as the single `Container`, because two
+   * containers — one per surface — is how a width quietly ends up disagreeing
+   * with itself. */
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-slate);
+  }
+
+  /* The 18x2px green rule is part of the eyebrow's identity, not decoration.
+   * It is drawn as a pseudo-element so it cannot be dropped by editing text. */
+  .eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 18px;
+    height: 2px;
+    flex: none;
+    background-color: var(--color-green-strong);
+  }
+
+  .section-number {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-slate);
   }
 }
 
