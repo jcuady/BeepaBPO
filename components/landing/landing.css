@@ -28,61 +28,28 @@
    ========================================================================== */
 
 .beepaLanding {
-  /* Reference palette (src/styles.css :root), redeclared on the wrapper. */
-  --lm-background: oklch(0.985 0.003 110);
-  --lm-foreground: oklch(0.2 0.012 265);
-  --lm-primary: oklch(0.53 0.156 151);
-  --lm-primary-foreground: oklch(0.99 0 0);
-  --lm-secondary: oklch(0.945 0.006 110);
-  --lm-accent: oklch(0.93 0.036 135);
-  --lm-muted-foreground: oklch(0.49 0.01 265);
-  --lm-border: oklch(0.86 0.006 110);
-  --lm-brand-navy: oklch(0.265 0.09 281);
-  --lm-brand-lime: oklch(0.79 0.174 124);
-  --lm-destructive: oklch(0.58 0.2 25);
-  /* Photo scrim for light copy over photography.
+  /* NO COLOUR TOKENS ARE DECLARED HERE.
    *
-   * The reference shipped `transparent 50% -> navy/78% 100%`, which is a
-   * vignette: it looks right when you look at it, and it is not a guarantee.
-   * `.service-card-content` is pinned to the BOTTOM of a 360px card but is
-   * ~95px tall, so its first line — the counter — lands at roughly 67% down,
-   * where that gradient is only ~27% opaque. Measured on the rendered page,
-   * `--lm-background` #fafaf8 came out at 4.42:1 and 3.86:1 against the real
-   * pixels behind it, under AA for 10px text.
+   * This wrapper used to redeclare the entire reference palette as `--lm-*`
+   * and then re-point `--background`, `--foreground`, `--primary`, `--secondary`,
+   * `--accent`, `--muted-foreground`, `--border`, `--ring` and `--destructive`
+   * at them, so that the shared `Button` and `Dialog` primitives picked up the
+   * reference palette without any of their own class strings changing. That was
+   * a workable trick and it was the wrong shape: the site carried two palettes,
+   * every colour had to be written twice, and nothing reported the second copy.
    *
-   * The floor is arithmetic rather than taste. Light copy (#fafaf8, luminance
-   * 0.955) needs 4.5:1, so the backdrop must stay at or below 0.173. Compositing
-   * the ink scrim (luminance 0.010) over a photograph at luminance Lp gives
-   * `a*0.010 + (1-a)*Lp`; holding that at 0.173 for a bright photograph (Lp
-   * 0.9) needs `a >= 0.82`. The gradient starts there and still ramps to 0.94,
-   * which keeps the reference's darker-toward-the-bottom shape without ever
-   * dropping below the floor — so the scrim holds for any crop of the photo,
-   * including a future one that is much brighter than today's. */
-  --lm-photo-scrim: linear-gradient(
-    180deg,
-    rgb(23 24 43 / 0.82) 0%,
-    rgb(23 24 43 / 0.88) 45%,
-    rgb(23 24 43 / 0.94) 100%
-  );
-  --lm-panel-shadow: 0 14px 45px oklch(0.2 0.01 265 / 12%);
+   * The reference palette now lives in `app/globals.css` as the system
+   * palette, so this file consumes `--primary`, `--border`, `--color-navy` and
+   * the rest directly. One set of values, one name, one place to change.
+   *
+   * Only the two things that are genuinely landing-local remain: the DM Sans
+   * body stack, and the display stack. */
   --lm-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   --lm-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
-  /* Re-point the shared primitives' tokens at the reference palette. */
-  --background: var(--lm-background);
-  --foreground: var(--lm-foreground);
-  --primary: var(--lm-primary);
-  --primary-foreground: var(--lm-primary-foreground);
-  --secondary: var(--lm-secondary);
-  --accent: var(--lm-accent);
-  --muted-foreground: var(--lm-muted-foreground);
-  --border: var(--lm-border);
-  --ring: var(--lm-primary);
-  --destructive: var(--lm-destructive);
-
   min-height: 100%;
-  background: var(--lm-background);
-  color: var(--lm-foreground);
+  background: var(--background);
+  color: var(--foreground);
   font-family: var(--lm-sans);
   -webkit-font-smoothing: antialiased;
 }
@@ -120,7 +87,7 @@
    * and completely invisible.
    *
    * `color: inherit` restores the reference's model. `.beepaLanding` itself
-   * declares `color: var(--lm-foreground)`, so headings on light surfaces get
+   * declares `color: var(--foreground)`, so headings on light surfaces get
    * the right near-black automatically and only containers that genuinely sit
    * on something dark need to say so. */
   color: inherit;
@@ -141,8 +108,8 @@
   object-fit: cover;
 }
 .beepaLanding ::selection {
-  background: var(--lm-brand-lime);
-  color: var(--lm-brand-navy);
+  background: var(--color-lime);
+  color: var(--color-navy);
 }
 
 /* In-page anchors are the whole navigation model of this page, so smooth
@@ -187,7 +154,7 @@ html:has(.beepaLanding) {
   min-height: 44px;
 }
 .beepaLanding .nav a:hover {
-  color: var(--lm-primary);
+  color: var(--primary);
 }
 .beepaLanding .nav .career-link {
   display: flex;
@@ -200,7 +167,7 @@ html:has(.beepaLanding) {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--lm-primary);
+  background: var(--primary);
   display: inline-block;
 }
 .beepaLanding .header-actions {
@@ -237,7 +204,7 @@ html:has(.beepaLanding) {
   content: "";
   width: 18px;
   height: 2px;
-  background: var(--lm-primary);
+  background: var(--primary);
 }
 .beepaLanding .hero {
   display: grid;
@@ -256,13 +223,13 @@ html:has(.beepaLanding) {
   font-weight: 500;
 }
 .beepaLanding .hero h1 span {
-  color: var(--lm-primary);
+  color: var(--primary);
 }
 .beepaLanding .hero-description {
   max-width: 355px;
   font-size: 14px;
   line-height: 1.8;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
 }
 .beepaLanding .hero-buttons {
   display: flex;
@@ -283,7 +250,7 @@ html:has(.beepaLanding) {
   margin-top: auto;
   padding-top: 37px;
   font-size: 10px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
 }
 .beepaLanding .hero-foot .mini-portrait {
   width: 32px;
@@ -296,7 +263,7 @@ html:has(.beepaLanding) {
   display: block;
   font-size: 11px;
   font-weight: 500;
-  color: var(--lm-foreground);
+  color: var(--foreground);
   margin-bottom: 3px;
 }
 .beepaLanding .hero-media {
@@ -312,7 +279,11 @@ html:has(.beepaLanding) {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--lm-photo-scrim);
+  /* The bottom-weighted scrim, not the even one: the hero's only copy is the
+     caption across the bottom ~10%, so an even floor that high would darken the
+     entire photograph for no legibility gain. The caption is why the scrim
+     exists — see `--scrim-caption` in app/globals.css. */
+  background: var(--scrim-caption);
   pointer-events: none;
 }
 .beepaLanding .photo-top {
@@ -321,8 +292,8 @@ html:has(.beepaLanding) {
   top: 24px;
   right: 24px;
   padding: 8px 12px;
-  background: var(--lm-brand-navy);
-  color: var(--lm-background);
+  background: var(--color-navy);
+  color: var(--background);
   font-size: 9px;
   letter-spacing: 1px;
 }
@@ -335,7 +306,7 @@ html:has(.beepaLanding) {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  color: var(--lm-background);
+  color: var(--background);
 }
 .beepaLanding .photo-caption strong {
   font-size: 15px;
@@ -356,7 +327,7 @@ html:has(.beepaLanding) {
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
   padding: 27px 0;
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
 }
 .beepaLanding .assurance div {
   display: flex;
@@ -365,7 +336,7 @@ html:has(.beepaLanding) {
   font-size: 11px;
 }
 .beepaLanding .check {
-  color: var(--lm-primary);
+  color: var(--primary);
   font-weight: 600;
 }
 
@@ -373,11 +344,11 @@ html:has(.beepaLanding) {
 .beepaLanding .section {
   padding-top: 94px;
   padding-bottom: 94px;
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
 }
 .beepaLanding .section-number {
   display: block;
-  color: var(--lm-primary);
+  color: var(--primary);
   font-size: 10px;
   letter-spacing: 1.5px;
   font-weight: 600;
@@ -390,7 +361,7 @@ html:has(.beepaLanding) {
   margin-bottom: 28px;
 }
 .beepaLanding .intro-headline .muted {
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
 }
 .beepaLanding .inline-face {
   display: inline-block;
@@ -410,13 +381,13 @@ html:has(.beepaLanding) {
   max-width: 490px;
   font-size: 13px;
   line-height: 1.8;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
 }
 .beepaLanding .text-link {
   display: inline-flex;
   align-items: center;
   gap: 25px;
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 8px;
   font-size: 12px;
 }
@@ -432,7 +403,7 @@ html:has(.beepaLanding) {
   gap: 28px;
 }
 .beepaLanding .values article {
-  border-top: 1px solid var(--lm-foreground);
+  border-top: 1px solid var(--foreground);
   padding-top: 17px;
 }
 .beepaLanding .values h3 {
@@ -443,13 +414,13 @@ html:has(.beepaLanding) {
 .beepaLanding .values p {
   font-size: 11px;
   line-height: 1.7;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
 }
 
 /* -------------------------------------------------------------- greeting */
 .beepaLanding .greeting {
   overflow: hidden;
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: center;
   gap: 38px;
@@ -459,7 +430,7 @@ html:has(.beepaLanding) {
   font-size: 30px;
 }
 .beepaLanding .greeting span:nth-child(even) {
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
 }
 
 /* -------------------------------------------------------------- services */
@@ -477,7 +448,7 @@ html:has(.beepaLanding) {
 .beepaLanding .section-heading p {
   font-size: 13px;
   line-height: 1.8;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   max-width: 420px;
 }
 .beepaLanding .service-grid {
@@ -502,14 +473,14 @@ html:has(.beepaLanding) {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--lm-photo-scrim);
+  background: var(--scrim-photo);
 }
 .beepaLanding .service-card-content {
   position: absolute;
   bottom: 22px;
   left: 22px;
   right: 22px;
-  color: var(--lm-background);
+  color: var(--background);
   z-index: 1;
 }
 .beepaLanding .service-card-content h3 {
@@ -537,12 +508,12 @@ html:has(.beepaLanding) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
   padding: 18px 0;
   font-size: 12px;
 }
 .beepaLanding .service-list-item span:first-child {
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   margin-right: 12px;
   font-size: 9px;
 }
@@ -568,7 +539,7 @@ html:has(.beepaLanding) {
   max-width: 350px;
 }
 .beepaLanding .time-section p {
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   font-size: 13px;
   line-height: 1.8;
   margin-top: 20px;
@@ -582,7 +553,7 @@ html:has(.beepaLanding) {
   justify-content: space-between;
   align-items: center;
   padding: 17px 0;
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
 }
 .beepaLanding .time-row span {
   font-size: 12px;
@@ -594,12 +565,12 @@ html:has(.beepaLanding) {
 }
 .beepaLanding .time-row small {
   display: block;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   font-size: 9px;
   margin-top: 5px;
 }
 .beepaLanding .time-row:first-child strong {
-  color: var(--lm-primary);
+  color: var(--primary);
 }
 .beepaLanding .time-photo {
   height: 100%;
@@ -616,7 +587,7 @@ html:has(.beepaLanding) {
 .beepaLanding .process-step {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  background: var(--lm-secondary);
+  background: var(--secondary);
   min-height: 245px;
 }
 .beepaLanding .process-step-copy {
@@ -626,7 +597,7 @@ html:has(.beepaLanding) {
 }
 .beepaLanding .process-step-copy > span {
   font-size: 10px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
 }
 .beepaLanding .process-step-copy h3 {
   font-size: 22px;
@@ -635,7 +606,7 @@ html:has(.beepaLanding) {
 }
 .beepaLanding .process-step-copy p {
   font-size: 11px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   line-height: 1.7;
 }
 .beepaLanding .process-step img {
@@ -644,7 +615,7 @@ html:has(.beepaLanding) {
 
 /* ---------------------------------------------------------- transparency */
 .beepaLanding .transparency-band {
-  background: var(--lm-secondary);
+  background: var(--secondary);
 }
 .beepaLanding .transparency {
   border: 0;
@@ -662,7 +633,7 @@ html:has(.beepaLanding) {
 }
 .beepaLanding .platform-copy p {
   font-size: 12px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   line-height: 1.8;
   margin-top: 18px;
 }
@@ -670,7 +641,7 @@ html:has(.beepaLanding) {
   margin: 25px 0;
 }
 .beepaLanding .platform-item {
-  border-top: 1px solid var(--lm-border);
+  border-top: 1px solid var(--border);
   padding: 16px 0;
   font-size: 12px;
   display: flex;
@@ -678,14 +649,14 @@ html:has(.beepaLanding) {
   justify-content: space-between;
 }
 .beepaLanding .platform-item span {
-  color: var(--lm-primary);
+  color: var(--primary);
   font-size: 16px;
 }
 .beepaLanding .device-switch {
   display: inline-flex;
   padding: 3px;
-  background: var(--lm-background);
-  border: 1px solid var(--lm-border);
+  background: var(--background);
+  border: 1px solid var(--border);
   gap: 4px;
 }
 .beepaLanding .device-switch button {
@@ -695,13 +666,13 @@ html:has(.beepaLanding) {
   height: 30px;
 }
 .beepaLanding .device-switch button[aria-pressed="true"] {
-  background: var(--lm-brand-navy);
-  color: var(--lm-background);
+  background: var(--color-navy);
+  color: var(--background);
 }
 .beepaLanding .dashboard {
-  border: 1px solid var(--lm-border);
-  background: var(--lm-background);
-  box-shadow: var(--lm-panel-shadow);
+  border: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: var(--shadow-panel);
   padding: 21px;
   transition: width 0.3s;
   width: 100%;
@@ -711,14 +682,14 @@ html:has(.beepaLanding) {
 .beepaLanding .dashboard.mobile {
   max-width: 280px;
   border-radius: 22px;
-  border: 7px solid var(--lm-foreground);
+  border: 7px solid var(--foreground);
   padding: 17px;
 }
 .beepaLanding .dashboard-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 18px;
   font-size: 9px;
 }
@@ -732,11 +703,11 @@ html:has(.beepaLanding) {
 }
 .beepaLanding .dashboard .demo-label {
   font-size: 8px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
 }
 .beepaLanding .dashboard-sub {
   font-size: 10px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   margin: 7px 0 20px;
 }
 .beepaLanding .dashboard-stats {
@@ -744,11 +715,11 @@ html:has(.beepaLanding) {
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding-bottom: 20px;
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
 }
 .beepaLanding .dashboard-stats small {
   font-size: 8px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   display: block;
   margin-bottom: 6px;
 }
@@ -759,7 +730,7 @@ html:has(.beepaLanding) {
 .beepaLanding .dashboard-stats strong em {
   font-size: 10px;
   font-style: normal;
-  color: var(--lm-primary);
+  color: var(--primary);
 }
 .beepaLanding .dashboard-table {
   width: 100%;
@@ -769,18 +740,18 @@ html:has(.beepaLanding) {
   font-size: 9px;
 }
 .beepaLanding .dashboard-table th {
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   font-weight: 400;
   padding-bottom: 12px;
 }
 .beepaLanding .dashboard-table td {
   padding: 11px 0;
-  border-top: 1px solid var(--lm-border);
+  border-top: 1px solid var(--border);
 }
 .beepaLanding .status {
   font-size: 8px;
-  background: var(--lm-accent);
-  color: var(--lm-primary);
+  background: var(--accent);
+  color: var(--primary);
   padding: 4px 6px;
   display: inline-block;
 }
@@ -812,37 +783,37 @@ html:has(.beepaLanding) {
 .beepaLanding .report-copy p {
   font-size: 13px;
   line-height: 1.8;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   margin: 22px 0 24px;
 }
 .beepaLanding .report-list div {
   display: flex;
   justify-content: space-between;
   padding: 15px 0;
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
   font-size: 12px;
 }
 .beepaLanding .report-list div span:last-child {
-  color: var(--lm-primary);
+  color: var(--primary);
 }
 
 /* --------------------------------------------------------------- promise */
 .beepaLanding .promise {
   padding: 60px 0;
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 40px;
 }
 .beepaLanding .promise article + article {
-  border-left: 1px solid var(--lm-border);
+  border-left: 1px solid var(--border);
   padding-left: 40px;
 }
 .beepaLanding .promise strong {
   display: block;
   font-size: 33px;
   font-family: var(--lm-display);
-  color: var(--lm-primary);
+  color: var(--primary);
   font-weight: 500;
   margin-bottom: 12px;
 }
@@ -852,7 +823,7 @@ html:has(.beepaLanding) {
   font-weight: 600;
 }
 .beepaLanding .promise p {
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   font-size: 11px;
   line-height: 1.8;
 }
@@ -870,7 +841,7 @@ html:has(.beepaLanding) {
 .beepaLanding .planner-description {
   margin: 20px 0 30px;
   font-size: 12px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   line-height: 1.8;
   max-width: 400px;
 }
@@ -882,24 +853,24 @@ html:has(.beepaLanding) {
   display: block;
   font-size: 10px;
   margin-bottom: 9px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
 }
 .beepaLanding .field select,
 .beepaLanding .field input,
 .beepaLanding .field textarea {
   width: 100%;
-  border: 1px solid var(--lm-border);
-  background: var(--lm-background);
+  border: 1px solid var(--border);
+  background: var(--background);
   padding: 11px 12px;
   font-size: 12px;
   border-radius: 0;
-  color: var(--lm-foreground);
+  color: var(--foreground);
   outline: none;
 }
 .beepaLanding .field select:focus,
 .beepaLanding .field input:focus,
 .beepaLanding .field textarea:focus {
-  border-color: var(--lm-primary);
+  border-color: var(--primary);
 }
 .beepaLanding .range-label {
   display: flex;
@@ -907,17 +878,17 @@ html:has(.beepaLanding) {
   font-size: 11px;
 }
 .beepaLanding input[type="range"] {
-  accent-color: var(--lm-primary);
+  accent-color: var(--primary);
   padding: 0;
   margin-top: 14px;
 }
 .beepaLanding .planner-summary {
   padding: 35px 0 0;
-  border-top: 1px solid var(--lm-foreground);
+  border-top: 1px solid var(--foreground);
 }
 .beepaLanding .planner-summary .summary-title {
   font-size: 10px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
 }
 .beepaLanding .planner-summary h3 {
   font-size: 36px;
@@ -925,7 +896,7 @@ html:has(.beepaLanding) {
   line-height: 1.15;
 }
 .beepaLanding .planner-summary h3 span {
-  color: var(--lm-primary);
+  color: var(--primary);
 }
 .beepaLanding .summary-details {
   margin: 28px 0;
@@ -935,15 +906,15 @@ html:has(.beepaLanding) {
   justify-content: space-between;
   gap: 24px;
   padding: 13px 0;
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
   font-size: 11px;
 }
 .beepaLanding .summary-details span {
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
 }
 .beepaLanding .planner-summary p {
   font-size: 10px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   line-height: 1.7;
   margin-top: 16px;
   max-width: 320px;
@@ -951,8 +922,8 @@ html:has(.beepaLanding) {
 
 /* --------------------------------------------------------------- careers */
 .beepaLanding .careers-band {
-  background: var(--lm-brand-navy);
-  color: var(--lm-background);
+  background: var(--color-navy);
+  color: var(--background);
 }
 .beepaLanding .careers {
   display: grid;
@@ -962,7 +933,7 @@ html:has(.beepaLanding) {
   padding-bottom: 66px;
 }
 .beepaLanding .careers .section-number {
-  color: var(--lm-brand-lime);
+  color: var(--color-lime);
 }
 .beepaLanding .careers h2 {
   font-size: 40px;
@@ -980,7 +951,7 @@ html:has(.beepaLanding) {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid
-    color-mix(in oklab, var(--lm-background) 20%, transparent);
+    color-mix(in oklab, var(--background) 20%, transparent);
   padding: 21px 0;
   gap: 18px;
 }
@@ -994,7 +965,7 @@ html:has(.beepaLanding) {
   margin-top: 6px;
 }
 .beepaLanding .career-row button {
-  color: var(--lm-brand-lime);
+  color: var(--color-lime);
 }
 .beepaLanding .career-note {
   font-size: 9px;
@@ -1014,13 +985,13 @@ html:has(.beepaLanding) {
 }
 .beepaLanding .faq-layout p {
   font-size: 12px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   margin-top: 20px;
   max-width: 280px;
   line-height: 1.8;
 }
 .beepaLanding .faq-item {
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
 }
 .beepaLanding .faq-item button {
   width: 100%;
@@ -1037,7 +1008,7 @@ html:has(.beepaLanding) {
   cursor: pointer;
 }
 .beepaLanding .faq-item button span:last-child {
-  color: var(--lm-primary);
+  color: var(--primary);
   margin-left: 15px;
   font-size: 18px;
 }
@@ -1073,7 +1044,7 @@ html:has(.beepaLanding) {
   z-index: 1;
   left: 48px;
   top: 85px;
-  color: var(--lm-background);
+  color: var(--background);
 }
 .beepaLanding .final-copy h2 {
   font-size: 43px;
@@ -1099,11 +1070,11 @@ html:has(.beepaLanding) {
   justify-content: space-between;
   gap: 40px;
   padding-bottom: 40px;
-  border-bottom: 1px solid var(--lm-border);
+  border-bottom: 1px solid var(--border);
 }
 .beepaLanding .footer-tagline {
   font-size: 12px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   margin-top: 15px;
 }
 .beepaLanding .footer-links {
@@ -1118,7 +1089,7 @@ html:has(.beepaLanding) {
 }
 .beepaLanding .footer-links strong {
   font-size: 10px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   font-weight: 400;
   margin-bottom: 4px;
 }
@@ -1127,12 +1098,12 @@ html:has(.beepaLanding) {
   justify-content: space-between;
   margin-top: 22px;
   font-size: 9px;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
 }
 .beepaLanding .footer-brand {
   font-size: 112px;
   font-family: var(--lm-display);
-  color: var(--lm-brand-navy);
+  color: var(--color-navy);
   font-weight: 650;
   line-height: 1.3;
   margin-top: 25px;
@@ -1143,7 +1114,7 @@ html:has(.beepaLanding) {
 .beepaLanding .footer-brand span {
   width: 65px;
   height: 65px;
-  border: 9px solid var(--lm-primary);
+  border: 9px solid var(--primary);
   border-radius: 36px 0 36px 0;
 }
 
@@ -1162,21 +1133,21 @@ html:has(.beepaLanding) {
 .beepaLanding .dialog-disclaimer {
   font-size: 11px;
   line-height: 1.7;
-  color: var(--lm-muted-foreground);
+  color: var(--muted-foreground);
   margin-top: 16px;
 }
 .beepaLanding .dialog-success {
-  background: var(--lm-accent);
+  background: var(--accent);
   padding: 15px;
   font-size: 12px;
-  color: var(--lm-primary);
+  color: var(--primary);
   margin-top: 18px;
 }
 .beepaLanding .dialog-error {
   background: oklch(0.96 0.03 25);
   padding: 15px;
   font-size: 12px;
-  color: var(--lm-destructive);
+  color: var(--destructive);
   margin-top: 18px;
 }
 
@@ -1294,12 +1265,12 @@ html:has(.beepaLanding) {
     left: 0;
     right: 0;
     z-index: 10;
-    background: var(--lm-background);
+    background: var(--background);
     padding: 25px;
     flex-direction: column;
     align-items: flex-start;
-    border-bottom: 1px solid var(--lm-border);
-    box-shadow: var(--lm-panel-shadow);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-panel);
   }
   .beepaLanding .nav.open a {
     font-size: 14px;
@@ -1452,7 +1423,7 @@ html:has(.beepaLanding) {
   }
   .beepaLanding .promise article + article {
     border-left: 0;
-    border-top: 1px solid var(--lm-border);
+    border-top: 1px solid var(--border);
     padding: 24px 0 0;
   }
   .beepaLanding .promise strong {

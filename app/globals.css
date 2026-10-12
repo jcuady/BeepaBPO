@@ -5,16 +5,36 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-navy: #1f2058;
-  --color-green: #119446;
-  /* Interactive/text green darkened for WCAG AA 4.5:1 on white; brand #119446 kept for accents */
+  /* ---- Brand palette ----------------------------------------------------
+   *
+   * Rebased onto the supplied "BeepaBPO new landing design" reference so there
+   * is ONE palette, not a system palette and a landing page that disagrees with
+   * it. The landing page previously redeclared the whole set as `--lm-*` on its
+   * wrapper and re-pointed `--primary`, `--background` and friends at them, so
+   * that the shared primitives adopted the reference while the rest of the site
+   * kept the old values. Two palettes in one codebase is the opposite of one
+   * brand, and it meant a colour change had to be made twice with nothing
+   * reporting the second one.
+   *
+   * Every value below is the reference's, converted to hex. The one deliberate
+   * deviation is documented on `--destructive`.
+   *
+   * All figures are measured by scripts/audit/audit-contrast.mjs, not asserted
+   * here. The earlier changelog recorded the reference primary as failing AA;
+   * it does not — 4.88:1 against a white label. */
+  --color-navy: #1f1c4f;
+  --color-green: #008338;
+  /* The accessible step of the green. `--color-green` is a FILL colour: 4.88:1
+     against a white label, but only 4.27:1 as text on a tinted surface, which is
+     under AA. Anything textual uses this instead. The split is the whole reason
+     two green tokens exist. */
   --color-green-strong: #0b6e34;
   --color-lime: #93c63d;
-  --color-ink: #17182b;
-  --color-slate: #667085;
-  --color-line: #eaecf0;
-  --color-mist: #f5f7f6;
-  --color-soft-green: #eef7e8;
+  --color-ink: #13161c;
+  --color-slate: #5e6066;
+  --color-line: #d8d8d3;
+  --color-mist: #f2f2ee;
+  --color-soft-green: #eaf3e2;
   --color-white: #ffffff;
 
   --color-background: var(--background);
@@ -98,7 +118,17 @@
   --color-series-2: #1b6ea8;
   --color-series-3: #92610a;
   --color-series-4: var(--color-slate);
-  --color-series-5: var(--color-lime);
+  /* NOT `--color-lime`, which is where this used to point. Lime measures 1.68:1
+     against a white card and under 2:1 against every light surface in the
+     system, so as the fifth chart series it was invisible — a documented ramp
+     entry that could not be drawn. Lime stays a brand accent on navy, where it
+     is 7.77:1; it is only useless as a mark on a light surface.
+     *
+     * Nothing assigns series-5 today (attendance uses 1-4, the weekly chart
+     * uses 1), so this was a trap rather than a visible bug. Plum clears the
+     * 3:1 non-text floor at 5.76:1 and sits in a hue none of the first four
+     * occupy. */
+  --color-series-5: #7a3f9d;
 
   /* Neutral scale for empty / inactive / unknown data cells. */
   --color-data-empty: #e8eaee;
@@ -121,11 +151,50 @@
   --shadow-raised: 0 4px 16px rgb(23 24 43 / 0.08);
   --shadow-inset-line: inset 0 0 0 1px rgb(255 255 255 / 0.16);
 
-  /* Photo scrim. Text sits directly on photography in the new design (hero
-   * caption, final CTA), and without a scrim the caption fails contrast on
-   * whatever the subject happens to be wearing. This is the target's exact
-   * value, converted to the ink hue the rest of the palette uses. */
-  --scrim-photo: linear-gradient(180deg, transparent 50%, rgb(23 24 43 / 0.78) 100%);
+  /* Photo scrim. Light copy sits directly on photography on the auth brand
+   * panel and on several landing sections, and without a scrim the copy
+   * inherits whatever the subject happens to be wearing.
+   *
+   * The floor is derived, not chosen. Light copy (luminance 0.955) needs 4.5:1,
+   * so the backdrop must stay at or below 0.173. Compositing this ink scrim
+   * (luminance 0.010) over a photograph at luminance Lp gives
+   * `a*0.010 + (1-a)*Lp`; holding that at 0.173 for a bright photograph
+   * (Lp 0.9) needs `a >= 0.82`. The ramp starts there and still deepens to
+   * 0.94, so the darker-toward-the-bottom shape survives and the scrim holds
+   * for any crop of a future, brighter photograph.
+   *
+   * The reference shipped `transparent 50% -> navy/78% 100%`, which is a
+   * vignette rather than a guarantee: the landing service cards put their first
+   * line at ~67% down a 360px card, where that gradient is ~27% opaque, and
+   * 10px text measured 3.86:1 against the real pixels behind it. */
+  --scrim-photo: linear-gradient(
+    180deg,
+    rgb(23 24 43 / 0.82) 0%,
+    rgb(23 24 43 / 0.88) 45%,
+    rgb(23 24 43 / 0.94) 100%
+  );
+
+  /* Bottom-weighted scrim, for photos whose copy sits in a caption band rather
+     than spread across the lower half.
+     *
+     * Two scrims rather than one because the guarantee has to hold *where the
+     text is*, and the two landing photo surfaces place it differently. The
+     service cards start their content at ~67% down a 360px card, so the floor
+     has to be met that high and the scrim is effectively even. The hero carries
+     its only copy in a caption across the bottom ~10%, and running the same
+     even scrim over it darkened the whole photograph for no legibility gain —
+     the top 55% has no text on it at all.
+     *
+     * The ramp still clears 0.82 by 85%, which is where the caption's first
+     * line begins, so the floor holds for the pixels that carry text. */
+  --scrim-caption: linear-gradient(
+    180deg,
+    rgb(23 24 43 / 0.16) 0%,
+    rgb(23 24 43 / 0.22) 50%,
+    rgb(23 24 43 / 0.62) 72%,
+    rgb(23 24 43 / 0.9) 88%,
+    rgb(23 24 43 / 0.94) 100%
+  );
 
   /* ---- Display scale ---------------------------------------------------
    *
@@ -143,24 +212,32 @@
 
 :root {
   color-scheme: light;
-  --background: #ffffff;
-  --foreground: #17182b;
+  --background: #fafaf8;
+  --foreground: #13161c;
+  /* Cards stay white against the warm page rather than inheriting it. The
+     reference draws every card as a white plane on `#fafaf8`, and dropping that
+     contrast is what made the surfaces read as one flat field. */
   --card: #ffffff;
-  --card-foreground: #17182b;
+  --card-foreground: #13161c;
   --popover: #ffffff;
-  --popover-foreground: #17182b;
-  --primary: #0b6e34;
+  --popover-foreground: #13161c;
+  --primary: #008338;
   --primary-foreground: #ffffff;
-  --secondary: #f5f7f6;
-  --secondary-foreground: #1f2058;
-  --muted: #f5f7f6;
-  --muted-foreground: #667085;
-  --accent: #eef7e8;
-  --accent-foreground: #1f2058;
-  --destructive: #b42318;
-  --border: #eaecf0;
-  --input: #eaecf0;
-  --ring: #0b6e34;
+  --secondary: #f2f2ee;
+  --secondary-foreground: #1f1c4f;
+  --muted: #f2f2ee;
+  --muted-foreground: #5e6066;
+  --accent: #eaf3e2;
+  --accent-foreground: #1f1c4f;
+  /* The reference red is `#d73337`, which is AA on white (4.75) and on the page
+     background (4.55) but drops to 4.16 on `--color-critical-surface` — and error
+     text lands on exactly that surface. `#c62b2f` is the same red taken one step
+     down: 4.85:1 at worst across white, page, secondary, accent and the critical
+     surface. Hue and chroma family are preserved; only the value moves. */
+  --destructive: #c62b2f;
+  --border: #d8d8d3;
+  --input: #d8d8d3;
+  --ring: #008338;
   --radius: 8px;
 }
 
@@ -250,10 +327,13 @@
   }
 }
 
-/* Sharp solid header — no frosted glass / backdrop blur on marketing */
+/* Sharp solid header — no frosted glass / backdrop blur on marketing.
+   Tokens, not literals: the header was carrying its own copies of the surface
+   and border colours, so a palette change left it behind. It is the one
+   element every marketing page renders, so that drift was on all of them. */
 .site-header {
-  background-color: #ffffff;
-  border-bottom: 1px solid #eaecf0;
+  background-color: var(--card);
+  border-bottom: 1px solid var(--border);
 }
 
 @supports (animation-timeline: scroll()) {
@@ -268,13 +348,13 @@
 
 @keyframes header-solid {
   from {
-    background-color: #ffffff;
+    background-color: var(--card);
     border-bottom-color: transparent;
     box-shadow: none;
   }
   to {
-    background-color: #ffffff;
-    border-bottom-color: #eaecf0;
+    background-color: var(--card);
+    border-bottom-color: var(--border);
     box-shadow: none;
   }
 }

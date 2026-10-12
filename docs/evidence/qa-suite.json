@@ -1,15 +1,15 @@
 {
   "check": "qa-suite",
-  "generatedAt": "2026-10-12T12:16:34.468Z",
+  "generatedAt": "2026-10-12T12:51:18.767Z",
   "base": "http://localhost:3100",
   "tiersRun": [
     "fast",
     "gate"
   ],
   "total": 9,
-  "passed": 9,
+  "passed": 8,
   "failures": 0,
-  "blocked": 0,
+  "blocked": 1,
   "missingEvidence": [],
   "results": [
     {
@@ -30,7 +30,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 7,
+      "seconds": 6,
       "evidence": "docs/evidence/dialog-keyboard-check.json",
       "evidenceWritten": true,
       "tail": "PASS  changing status opens the confirm dialog | PASS  focus moves into the dialog on open  — activeElement BUTTON# \"Cancel\" | 16/16 passed",
@@ -54,7 +54,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 5,
+      "seconds": 4,
       "evidence": "docs/evidence/notification-bell-check.json",
       "evidenceWritten": true,
       "tail": "PASS  Enter on the focused bell opens the popover | PASS  focus moves into the popover when it opens  — activeElement BUTTON | 10/10 passed",
@@ -66,7 +66,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 354,
+      "seconds": 344,
       "evidence": "docs/evidence/internal-links-check.json",
       "evidenceWritten": true,
       "tail": "PASS  applicant — no internal link lands on a page error  [none] | PASS  public — no internal link lands on a page error  [none] | 29/29 assertions passed",
@@ -76,13 +76,14 @@
       "id": "client-invite",
       "what": "the last uncovered action, driven through its real form (BLOCKED when mail is rate limited)",
       "tier": "fast",
-      "status": "PASS",
-      "code": 0,
-      "seconds": 15,
+      "status": "BLOCKED",
+      "code": 2,
+      "seconds": 6,
       "evidence": "docs/evidence/client-invite-check.json",
       "evidenceWritten": true,
-      "tail": "PASS  cleanup left no membership behind  — 0 row(s) | PASS  cleanup removed the invited auth user  — gone | 17/17 passed",
-      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-client-invite.mjs"
+      "tail": "evidence: this attempt was BLOCKED and is recorded in docs/evidence/client-invite-blocked.json. | 6/7 passed | BLOCKED: the environment's email budget closed ag",
+      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-client-invite.mjs",
+      "rawOutput": " been sent from this network. Wait a moment, then try again.\"\nFAIL  invite succeeds  — no auth user was created — toast: Too many invites have been sent from this network. Wait a moment, then try again.\ncleanup: \nPASS  cleanup left no membership behind  — 0 row(s)\nPASS  cleanup removed the invited auth user  — gone\nevidence: this attempt was BLOCKED and is recorded in docs/evidence/client-invite-blocked.json.\n          docs/evidence/client-invite-check.json still holds the last run that measured the action (17/17).\n\n6/7 passed\nBLOCKED: the environment's email budget closed again. Re-run later."
     },
     {
       "id": "runtime-radius",
@@ -114,7 +115,7 @@
       "tier": "gate",
       "status": "PASS",
       "code": 0,
-      "seconds": 38,
+      "seconds": 23,
       "evidence": null,
       "evidenceWritten": null,
       "tail": "vitest: 651 tests / 87 files | tsc: clean"

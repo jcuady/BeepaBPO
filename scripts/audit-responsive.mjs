@@ -11,7 +11,7 @@
  * Usage: node scripts/audit-responsive.mjs [baseUrl] [route ...]
  */
 import { chromium } from "@playwright/test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 
 // Base URL resolution, in the order: `QA_BASE_URL` (matching every other probe
 // here), then a positional base URL, then the production port.
@@ -31,6 +31,46 @@ const POSITIONAL_BASE = argv[0] && /^https?:\/\//i.test(argv[0]) ? argv[0] : nul
 const BASE = process.env.QA_BASE_URL ?? POSITIONAL_BASE ?? "http://localhost:3100";
 const ROUTES = POSITIONAL_BASE ? argv.slice(1) : argv;
 const routes = ROUTES.length ? ROUTES : ["/"];
+
+// Refuse to narrow the evidence — checked HERE, before any browser work, so a
+// bad invocation costs a second rather than the eight minutes the full matrix
+// takes.
+//
+// With no route arguments this script defaults to `["/"]`, which is a perfectly
+// good default for "is the landing page fine on a phone" and a terrible one for
+// regenerating a committed evidence file. It is registered in qa-run-all.mjs
+// with all ten public routes spelled out, so the committed file holds 80
+// route-viewport combinations. Running it bare produced 8, wrote them to the
+// same path, and shrank a thousand lines of committed evidence — with a clean
+// "8/8 clean" printed at the bottom and nothing saying the file had just lost
+// nine routes.
+//
+// So: if the file on disk already covers routes this run does not, name them and
+// exit non-zero. Restoring coverage then has to be a deliberate act, instead of
+// something a later reader notices by diffing a JSON file.
+const EVIDENCE_PATH = "docs/evidence/responsive-public.json";
+if (existsSync(EVIDENCE_PATH)) {
+  try {
+    const prior = JSON.parse(readFileSync(EVIDENCE_PATH, "utf8"));
+    const priorRoutes = [...new Set((prior.results || []).map((r) => r.route))];
+    const dropped = priorRoutes.filter((r) => !routes.includes(r));
+    if (dropped.length) {
+      console.error(
+        `\nREFUSING TO NARROW THE EVIDENCE.\n` +
+          `  ${EVIDENCE_PATH} currently covers ${priorRoutes.length} route(s); this run covers ${routes.length}.\n` +
+          `  Would drop: ${dropped.join(", ")}\n` +
+          `  No routes were passed, so this defaulted to ["/"] — fine for a spot check,\n` +
+          `  wrong for regenerating the file. Pass them explicitly:\n` +
+          `    node scripts/audit-responsive.mjs "/" "/about" "/services" "/why-beepa" "/contact" "/privacy" "/terms" "/case-studies" "/careers" "/resources"\n` +
+          `  (qa-run-all.mjs already registers exactly that.)`,
+      );
+      process.exit(1);
+    }
+  } catch (e) {
+    // An unreadable prior file is not a reason to refuse to write a fresh one.
+    console.log(`note: could not read prior evidence (${e.message}) — writing fresh.`);
+  }
+}
 
 const MATRIX = [
   { name: "iPhone SE", w: 375, h: 667, touch: true },
@@ -256,8 +296,9 @@ console.log(`\n${passed}/${summary.length} viewport-route combinations clean`);
 // existed only as terminal scrollback while every other check in the suite
 // persisted a record.
 mkdirSync("docs/evidence", { recursive: true });
+
 writeFileSync(
-  "docs/evidence/responsive-public.json",
+  EVIDENCE_PATH,
   JSON.stringify(
     {
       check: "responsive-public",

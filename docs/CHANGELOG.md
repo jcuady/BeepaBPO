@@ -2,6 +2,125 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## One palette: the landing page's brand became the system's brand (2026-10-12)
+
+**No workflow, route, or server-action behaviour changed.** This is a token-layer change plus
+the documentation it corrects.
+
+### The site had two palettes, and the landing page's was the reference
+
+`components/landing/landing.css` declared the entire reference palette as `--lm-*` on its
+wrapper and then re-pointed `--background`, `--foreground`, `--primary`, `--secondary`,
+`--accent`, `--muted-foreground`, `--border`, `--ring` and `--destructive` at them — so the
+shared `Button` and `Dialog` primitives adopted the reference palette without any of their
+own class strings changing. It worked, and it was the wrong shape:
+
+- Every colour had to be written twice, and nothing reported the second copy.
+- The landing page was not *using* the system brand; it was running a parallel one that
+  happened to look right on one route.
+- A contrast fix applied to `--primary` would have moved the landing page and left the other
+  thirteen routes, auth, and the entire product app exactly where they were.
+
+The reference values now live in `app/globals.css` as the system values. `landing.css`
+consumes `--primary`, `--border`, `--color-navy`, `--muted-foreground` and the rest directly —
+all ~100 references — and declares no colour of its own. Only the DM Sans body stack and the
+display stack remain landing-local.
+
+| Token | Was | Now |
+|---|---|---|
+| `--background` | `#ffffff` | `#fafaf8` |
+| `--foreground` / `--color-ink` | `#17182b` | `#13161c` |
+| `--primary` | `#0b6e34` | `#008338` |
+| `--color-navy` | `#1f2058` | `#1f1c4f` |
+| `--color-green` | `#119446` | `#008338` |
+| `--color-slate` / `--muted-foreground` | `#667085` | `#5e6066` |
+| `--border`, `--input`, `--color-line` | `#eaecf0` | `#d8d8d3` |
+| `--color-mist`, `--secondary`, `--muted` | `#f5f7f6` | `#f2f2ee` |
+| `--accent`, `--color-soft-green` | `#eef7e8` | `#eaf3e2` |
+| `--destructive` | `#b42318` | `#c62b2f` |
+
+Cards stay `#ffffff` against the warm page, which is what the reference draws and what
+stopped the surfaces reading as one flat field.
+
+### The one deliberate deviation
+
+`--destructive` is `#c62b2f`, not the reference's `#d73337`. The reference red is AA on
+white (4.75:1) and on the page background (4.55:1) but drops to **4.16:1** on
+`--color-critical-surface` — which is precisely the surface error text is drawn on. One step
+down the same hue gives 4.85:1 at worst across white, page, secondary, accent and the
+critical surface.
+
+`--color-green` vs `--color-green-strong` is the same kind of split, and the rebase makes it
+load-bearing rather than decorative: `#008338` is 4.88:1 as a fill under a white label but
+only **4.27:1 as text** on a tinted surface. It is a fill colour. Textual green is
+`--color-green-strong` at 6.37:1.
+
+### Two scrims, because the guarantee has to hold where the text is
+
+`--scrim-photo` is an even floor starting at 0.82 opacity, which is where arithmetic puts
+it: light copy needs the backdrop at or below 0.173 luminance, and holding that against a
+bright photograph requires `a >= 0.82`. The landing service cards need it that high because
+their content starts ~67% down a 360px card.
+
+The hero does not. Its only copy is a caption across the bottom ~10%, and running the same
+even scrim over it darkened the entire photograph for no legibility gain. `--scrim-caption`
+is bottom-weighted instead — 0.16 at the top, clearing 0.82 by 85%, where the caption
+begins. The hero photograph is bright again and its caption is still AA.
+
+### A documented ramp entry that could not be drawn
+
+`--color-series-5` pointed at `--color-lime`, which measures **1.68:1** on a white card and
+under 2:1 on every light surface in the system. The fifth entry of the categorical ramp was
+undrawable. Nothing assigns it today (attendance uses series 1–4, the weekly chart uses 1),
+so this was a trap rather than a visible bug — but it is exactly the drift this pass exists
+to remove. It is now `#7a3f9d`, 5.76:1 at worst. Lime stays a brand accent, where it is
+7.77:1 on navy; it is only useless as a mark on a light field.
+
+### The header had its own copy of the palette
+
+`.site-header` — the one element every marketing page renders — hardcoded `#ffffff` and
+`#eaecf0` in the rule *and* in the `header-solid` keyframes. It is a token now. The
+design-system audit only scans `app/` and `components/`, so it never saw this; the colour
+change is what made it visible.
+
+Verified: **9/9 fast-tier QA checks**, 651 tests / 87 files, `tsc` clean, production build
+compiles, `responsive-public` 8/8 viewports, design-system audit clean. The contrast gate
+re-measured every surface against the new palette: 888 elements plus 59 over-photo probes
+across 14 routes, 0 failures.
+
+**One coverage gap worth naming:** the contrast gate's route list includes `/app/dashboard`,
+but that route redirects to `/login` when unauthenticated — so the product app's own surfaces
+are not covered by it. Status and series colours were checked arithmetically against the new
+surfaces instead, which is how the series-5 finding surfaced. Extending the gate to sign in
+first is the real fix and is not done.
+
+### A gate that quietly deleted its own evidence
+
+`audit-responsive.mjs` defaults to `["/"]` when no route arguments are given — correct for
+"is the landing page fine on a phone", wrong for regenerating a committed file. Run bare
+during this pass, it produced 8 route-viewport combinations, wrote them to
+`responsive-public.json`, and replaced an 80-combination file. It printed **"8/8 clean"** at
+the bottom. Nothing said nine routes had just been dropped, and the diff read as
+`4 insertions, 1021 deletions`.
+
+It now refuses before opening a browser: if the file on disk covers routes the run does not,
+it names them and exits 1 in under a second. Proven both ways — bare invocation against the
+80-result file names `/about, /services, /why-beepa, /contact, /privacy, /terms,
+/case-studies, /careers, /resources` and exits 1; the explicit ten-route invocation restores
+80/80.
+
+`qa-run-all.mjs` already registered this check with all ten routes spelled out, so the
+registry was right and the ad-hoc invocation was the anomaly. That is the general shape of
+this class of bug: a check result written to a file is a claim, and a claim that covers less
+than the one it replaces is worse than no claim, because it reads as fresh evidence.
+
+Verified: **8/9 fast-tier QA checks with `client-invite` BLOCKED** by the environment's
+single-invite email budget (not a regression; the runner diverted that attempt to
+`client-invite-blocked.json` and left the earlier passing evidence untouched), 651 tests /
+87 files, `tsc` clean, production build compiles, `responsive-public` **80/80** across ten
+routes × 8 viewports on the new palette, design-system audit clean, contrast gate 888
+elements + 59 over-photo probes with 0 failures.
+
 ## Contrast is now measured, and five defects it found were invisible (2026-10-12)
 
 **No workflow, route, or server-action behaviour changed.** This is a measurement and

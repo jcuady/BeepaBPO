@@ -66,7 +66,12 @@ Chart series need colours that stay distinguishable *next to each other*, which
 navy/green/lime do not guarantee. Separate scale, in assignment order:
 
 `series-1` green-strong · `series-2` `#1b6ea8` · `series-3` `#92610a` ·
-`series-4` slate · `series-5` lime
+`series-4` slate · `series-5` `#7a3f9d`
+
+Every step clears the 3:1 non-text floor on every light surface in the system (worst case
+5.76:1). `series-5` was `--color-lime` until it was measured: lime is 1.68:1 on a white
+card, so the fifth entry of a documented ramp could not actually be drawn. Lime remains a
+brand accent on navy, where it is 7.77:1 — it is only unusable as a mark on a light field.
 
 Assign in index order and never re-order between views, so the same colour means the
 same series everywhere. Empty/inactive/unknown data cells use `--color-data-empty`

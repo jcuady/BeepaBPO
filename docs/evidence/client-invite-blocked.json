@@ -1,8 +1,8 @@
 {
   "check": "client-invite",
-  "generatedAt": "2026-10-12T06:45:08.906Z",
+  "generatedAt": "2026-10-12T12:50:20.457Z",
   "base": "http://localhost:3100",
-  "marker": "qa-invite-mv4w0m5j",
+  "marker": "qa-invite-mv59290s",
   "total": 7,
   "passed": 6,
   "failures": 1,
@@ -27,7 +27,7 @@
     {
       "name": "the form accepts the invite address",
       "pass": true,
-      "detail": "qa-invite-mv4w0m5j@beepabpo.com"
+      "detail": "qa-invite-mv59290s@beepabpo.com"
     },
     {
       "name": "invite succeeds",
