@@ -38,6 +38,7 @@ import { chromium } from "@playwright/test";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { APP_ROUTES, openSignedIn, settle } from "./lib/app-session.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const BASE = process.argv[2] || "http://localhost:3100";
@@ -59,7 +60,11 @@ const ROUTES = [
   "/employee/login",
   "/terms",
   "/privacy",
-  "/app/dashboard",
+  // `/app/dashboard` used to sit here anonymously. It cannot render as itself
+  // without a session — it redirects to `/login` — so that row was measuring the
+  // login page under an app route's name, and duplicating the `/login` row above
+  // it. The product app is now crawled properly in the signed-in phase, so the
+  // placeholder is removed rather than left to report a redirect as a page.
 ];
 
 // WCAG 2.2 SC 1.4.3 Contrast (Minimum), AA.
@@ -76,7 +81,27 @@ const page = await ctx.newPage();
 
 const results = [];
 
-for (const route of ROUTES) {
+// Extracted so the public crawl and the signed-in app crawl run through
+// byte-identical measurement code. Two implementations of "is this text
+// readable" would be two separate things to be subtly wrong about — the same
+// trap this file already documents for its own colour parser.
+// Retry a page-side step across a client-side redirect. The app navigates on
+// mount, and a redirect landing between two `evaluate` calls destroys the
+// execution context of whichever one is in flight — an error that says nothing
+// about the thing being measured, so retrying after the URL settles is correct
+// rather than a way of hiding a real fault.
+async function withRetry(page, fn, tries = 3) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt >= tries - 1) throw err;
+      await settle(page);
+    }
+  }
+}
+
+async function measureRoute(page, route, group) {
   const pageErrors = [];
   const onErr = (e) => pageErrors.push(String(e).slice(0, 200));
   page.on("pageerror", onErr);
@@ -84,28 +109,48 @@ for (const route of ROUTES) {
   const resp = await page.goto(BASE + route, { waitUntil: "domcontentloaded" });
   const status = resp ? resp.status() : 0;
 
+  // The app redirects on permission boundaries, and its own navigation can
+  // overtake this one: `/app` bounces to `/app/dashboard` after the goto has
+  // already returned. Sampling mid-redirect destroys the execution context and
+  // throws "Execution context was destroyed" out of the page prepare step
+  // below — which killed the whole run at the first app route. `settle()`
+  // waits for the URL to stop moving; the retry covers a redirect that starts
+  // after the wait.
+  await settle(page);
+
   // Photographs on the page must be decoded before anything can be judged as
   // "text over an image", and lazy content must be on the page at all.
-  await page.evaluate(async () => {
-    document.querySelectorAll('img[loading="lazy"]').forEach((i) => {
-      i.loading = "eager";
+  const prepare = () =>
+    page.evaluate(async () => {
+      document.querySelectorAll('img[loading="lazy"]').forEach((i) => {
+        i.loading = "eager";
+      });
+      await Promise.all(
+        Array.from(document.images)
+          .filter((i) => !i.complete)
+          .map((i) => new Promise((r) => {
+            i.addEventListener("load", r, { once: true });
+            i.addEventListener("error", r, { once: true });
+          })),
+      );
+      const h = document.body.scrollHeight;
+      for (let y = 0; y < h; y += 700) {
+        window.scrollTo(0, y);
+        await new Promise((r) => setTimeout(r, 60));
+      }
+      window.scrollTo(0, 0);
+      await new Promise((r) => setTimeout(r, 300));
     });
-    await Promise.all(
-      Array.from(document.images)
-        .filter((i) => !i.complete)
-        .map((i) => new Promise((r) => {
-          i.addEventListener("load", r, { once: true });
-          i.addEventListener("error", r, { once: true });
-        })),
-    );
-    const h = document.body.scrollHeight;
-    for (let y = 0; y < h; y += 700) {
-      window.scrollTo(0, y);
-      await new Promise((r) => setTimeout(r, 60));
+
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await prepare();
+      break;
+    } catch (err) {
+      if (attempt >= 2) throw err;
+      await settle(page);
     }
-    window.scrollTo(0, 0);
-    await new Promise((r) => setTimeout(r, 300));
-  });
+  }
   await page.waitForLoadState("networkidle").catch(() => {});
 
   // Kill smooth scrolling for the rest of this route.
@@ -119,7 +164,7 @@ for (const route of ROUTES) {
   // that was actually photographed was somewhere else on the page entirely.
   await page.addStyleTag({ content: "html, body { scroll-behavior: auto !important; }" });
 
-  const measured = await page.evaluate(
+  const measured = await withRetry(page, () => page.evaluate(
     ({ aaNormal, aaLarge, largePx, largeBoldPx }) => {
       /* ---------- colour maths, all in sRGB 0..1 ---------- */
 
@@ -406,7 +451,7 @@ for (const route of ROUTES) {
       };
     },
     { aaNormal: AA_NORMAL, aaLarge: AA_LARGE, largePx: LARGE_PX, largeBoldPx: LARGE_BOLD_PX },
-  );
+  ));
 
   // ---- Text painted over photography / gradients -------------------------
   //
@@ -583,9 +628,22 @@ for (const route of ROUTES) {
 
   results.push({
     route,
+    group,
     status,
     pageErrors,
-    failures: sampled.filter((s) => s.sampled && !s.pass),
+    // `measured.failures` — the DOM-composited half of this gate — used to be
+    // dropped on the floor. `sampled` is populated only from `measured.unresolved`
+    // (the over-photo probes), and `failures` was assigned from `sampled` alone,
+    // so every ratio the DOM walk had already computed below its threshold was
+    // computed and then discarded. The gate could only ever report failures it
+    // found through photography sampling; plain text on a solid background could
+    // fail at 1.66:1 and the run would print PASS.
+    //
+    // Found by mutation, not by reading: setting `--color-slate` to #c9c9c4 painted
+    // 99 elements at 1.66:1 on white across a single app route, and the gate
+    // reported 0 failures with `unreadable colours: 0` — a clean report produced
+    // by measuring nothing it could not see.
+    failures: [...measured.failures, ...sampled.filter((s) => s.sampled && !s.pass)],
     unresolved: sampled.filter((s) => !s.sampled),
     checked: measured.checked,
     skippedExempt: measured.skippedExempt,
@@ -593,6 +651,40 @@ for (const route of ROUTES) {
     unparsed: measured.unparsed,
   });
   page.off("pageerror", onErr);
+}
+
+for (const route of ROUTES) await measureRoute(page, route, "public");
+
+// The product app is the densest surface in the product, and until now it was
+// measured by no contrast gate at all. Missing demo credentials are an
+// environment fact and are declared as a gap; credentials that exist but do not
+// land are a hard failure, because a gate must never quietly measure less than
+// it used to.
+const appSession = await openSignedIn(browser, BASE);
+let appCoverage = { covered: false, reason: "not attempted" };
+
+if (appSession.hardFail) {
+  await browser.close();
+  console.error(`\nFAIL: product app not measured — ${appSession.reason}`);
+  process.exit(1);
+}
+
+if (appSession.covered) {
+  for (const route of APP_ROUTES) {
+    await measureRoute(appSession.page, route, "app");
+    // A signed-in crawl thrown back to /login has lost the session. Measuring
+    // the login page again and filing it as app coverage would be worse than
+    // stopping.
+    if (appSession.page.url().includes("/login")) {
+      await browser.close();
+      console.error(`\nFAIL: session lost at ${route} — the app redirected back to /login`);
+      process.exit(1);
+    }
+  }
+  appCoverage = { covered: true, role: appSession.email, routes: APP_ROUTES.length };
+  await appSession.ctx.close();
+} else {
+  appCoverage = { covered: false, reason: appSession.reason };
 }
 
 await browser.close();
@@ -653,6 +745,9 @@ const totalOverPhoto = results.reduce((a, r) => a + r.overPhoto.length, 0);
 const non200 = results.filter((r) => r.status !== 200);
 const unparsedTotal = results.reduce((a, r) => a + r.unparsed.length, 0);
 
+const appRows = results.filter((r) => r.group === "app");
+const appChecked = appRows.reduce((a, r) => a + r.checked, 0);
+
 // A gate that measured nothing is not a pass. This is the assertion that stops
 // "0 failures" from ever meaning "0 elements found". The over-photo side needs
 // its own version: a screenshot step that silently fails would report zero
@@ -665,8 +760,12 @@ const unparsedTotal = results.reduce((a, r) => a + r.unparsed.length, 0);
 const vacuous = totalChecked === 0;
 const probes = results.reduce((a, r) => a + r.overPhoto.length + r.failures.length, 0);
 
+// A fourth vacuity case: the app was crawled but contributed no elements. That
+// is a broken measurement reading as clean, so it cannot pass.
+const appVacuous = appCoverage.covered && appRows.length > 0 && appChecked === 0;
+
 const pass =
-  !vacuous && unparsedTotal === 0 && totalFailures === 0 && totalUnresolved === 0 &&
+  !vacuous && !appVacuous && unparsedTotal === 0 && totalFailures === 0 && totalUnresolved === 0 &&
   non200.length === 0 && results.every((r) => r.pageErrors.length === 0);
 
 const report = {
@@ -675,8 +774,10 @@ const report = {
   base: BASE,
   standard: "WCAG 2.2 SC 1.4.3 (AA)",
   thresholds: { normal: AA_NORMAL, large: AA_LARGE },
+  appCoverage,
   routes: results.map((r) => ({
     route: r.route,
+    group: r.group,
     status: r.status,
     checked: r.checked,
     failures: r.failures.length,
@@ -688,7 +789,10 @@ const report = {
   signatures,
   totals: {
     routesChecked: results.length,
+    publicRoutes: results.length - appRows.length,
+    appRoutes: appRows.length,
     elementsMeasured: totalChecked,
+    elementsMeasuredApp: appChecked,
     overPhotoProbes: probes,
     overPhotoResolved: totalOverPhoto,
     failures: totalFailures,
@@ -722,7 +826,7 @@ for (const r of results) {
     r.failures.length === 0 && r.status === 200 && r.unparsed.length === 0;
   const flag = clean ? "ok   " : "FAIL ";
   console.log(
-    `[${flag}] ${r.route.padEnd(18)} status=${r.status} dom=${String(r.checked).padStart(4)} photo=${String(r.overPhoto.length + r.failures.length).padStart(3)} fail=${String(r.failures.length).padStart(3)}${r.unparsed.length ? ` unreadable=${r.unparsed.length}` : ""}`,
+    `[${flag}] ${r.route.padEnd(30)} ${r.group.padEnd(7)} status=${r.status} dom=${String(r.checked).padStart(4)} photo=${String(r.overPhoto.length + r.failures.length).padStart(3)} fail=${String(r.failures.length).padStart(3)}${r.unparsed.length ? ` unreadable=${r.unparsed.length}` : ""}`,
   );
 }
 
@@ -756,12 +860,15 @@ if (unparsedTotal) {
 }
 
 console.log("=".repeat(78));
-console.log(`elements measured (DOM)  : ${totalChecked}`);
+console.log(`routes                    : ${results.length} (${results.length - appRows.length} public, ${appRows.length} app)`);
+console.log(`elements measured (DOM)  : ${totalChecked} (${appChecked} in the app)`);
 console.log(`over-photo probes       : ${probes} (${totalOverPhoto} resolved and passing, ${totalUnresolved} unresolved)`);
 console.log(`proven failures         : ${totalFailures}`);
 console.log(`unreadable colours      : ${unparsedTotal}`);
 console.log(`non-200                 : ${non200.length}`);
 if (vacuous) console.log("VACUOUS           : no text elements were measured — gate is meaningless");
+if (appVacuous) console.log("VACUOUS           : app crawled but measured no elements");
+if (!appCoverage.covered) console.log(`NOT COVERED (app) : ${appCoverage.reason}`);
 console.log(`\nRESULT: ${pass ? "PASS" : "FAIL"}`);
 console.log(`wrote docs/evidence/contrast-check.json`);
 

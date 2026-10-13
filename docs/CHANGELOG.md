@@ -2,6 +2,104 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## The contrast gate was reporting nothing it had measured (2026-10-12)
+
+**The previous entry's contrast and typography figures were produced by a gate that could not
+fail.** Everything below follows from that, and it is the most consequential defect found in
+this pass.
+
+### The blind spot
+
+`scripts/audit/audit-contrast.mjs` measured every text element in the browser, computed a ratio,
+and pushed anything under threshold into `measured.failures`. It then assigned:
+
+```js
+failures: sampled.filter((s) => s.sampled && !s.pass),
+```
+
+`sampled` is populated **only** from `measured.unresolved` — the over-photo probes. So every
+DOM-composited failure was computed and then discarded on the floor. `measured.failures` was
+never referenced anywhere in the file. The gate could only ever report failures it discovered by
+sampling pixels behind text over photography; plain text on a solid background could sit at
+**1.66:1** and the run would print `PASS`, `proven failures: 0`, and
+`unreadable colours: 0`.
+
+This survived the previous entry, which reported the gate finding five real contrast defects
+here. Those five were all text over photographs — the one path that worked.
+
+### How it was found
+
+By mutation, not by reading. Setting `--color-slate` to `#c9c9c4` paints the app sidebar and its
+nav links at **1.66:1 on white**, 99 elements on `/app/admin/users` alone. The gate reported zero
+failures. Instrumenting it showed the ratio was computed correctly and correctly discarded.
+
+**The first mutation attempt proved nothing, and nearly got mistaken for the gate being fixed.**
+`--muted-foreground` was mutated first. It shipped, and the gate still reported zero failures —
+because nothing in the product app paints that token. The app's secondary text uses
+`text-slate` → `--color-slate`. A mutation that changes a value the code does not read proves
+nothing about the check; "the mutation did not fail" is only evidence when the mutation is
+confirmed to have reached the thing under test.
+
+### What the fixed gate found
+
+Two real defects on the landing page, both the same mistake: **`#008338` used as a text colour
+on a tint.** It measures 4.88:1 on white and 4.67:1 on the page — a good *fill* — but 4.35:1 on
+mist and 4.28:1 on `--accent`, under the 4.5 that 8–16px text requires.
+
+| Element | Was | Now |
+|---|---|---|
+| `.status` (8px, on `--accent`) | `#008338` → 4.28:1 | `--color-green-strong` |
+| `.section-number` (10px, on mist) | `#008338` → 4.35:1 | `--color-green-strong` |
+| `.platform-item span` (16px, on mist) | `#008338` → 4.35:1 | `--color-green-strong` |
+| `.dialog-success` (12px, on `--accent`) | `#008338` → 4.28:1 | `--color-green-strong` |
+
+`.dialog-success` is fixed by inspection rather than by evidence: it renders inside a dialog that
+is closed during a crawl, so no gate can see it. It is the identical pattern on the identical
+tint, and leaving it would have been shipping a known failure one interaction away.
+
+### The product app is now measured
+
+Both gates previously walked public and auth routes only, and both wrote `NOT COVERED — routes
+need a session` into their own evidence. Honest, but it left the densest surface in the product
+unguarded by any gate. `scripts/audit/lib/app-session.mjs` signs in through the real `/login`
+form as `owner` and crawls all 44 static app routes.
+
+- **Contrast:** 13 public + 44 app = 57 routes, 5283 elements (4425 in the app), 50 over-photo
+  probes, 0 failures.
+- **Typography:** 9 public + 44 app = 53 routes, 4007 body-copy elements (344 public, 3663 app),
+  0 strays.
+
+The two greens' split — which is load-bearing, not cosmetic — held across the whole app: Inter
+everywhere in the product, Manrope on every display-face element.
+
+`/app/dashboard` was removed from the contrast gate's anonymous route list. It cannot render as
+itself without a session, so that row was measuring the login page under an app route's name and
+duplicating the `/login` row above it. It is now measured properly, signed in.
+
+### Coverage that is declared, not implied
+
+Absent `DEMO_PASSWORD` is an environment fact, recorded as a gap in the evidence and printed as
+`NOT COVERED`. Credentials that exist but do not land are a **hard failure**, and a signed-in
+crawl that gets thrown back to `/login` stops the run rather than measuring the login page again
+and filing it as app coverage. A crawl that fetched app routes but found no elements is treated
+as the broken measurement it is.
+
+### Mutation-proved, both directions
+
+- `--color-slate` → `#c9c9c4`: **1394 elements** named at 1.66:1 across the app, exit 1.
+- `font-marketing` added to the app shell: **1990** wrong-face elements, exit 1.
+- Both reverted and rebuilt; both gates green.
+
+One race had to be fixed to get there: the app redirects on mount, and `/app` bouncing to
+`/app/dashboard` destroys the execution context of whatever `evaluate` is in flight, which killed
+the run at the first app route. Measurement now waits for the URL to settle and retries.
+
+Verified: **10/10 fast-tier QA**, 651 tests / 87 files, `tsc` clean, production build compiles.
+Contrast 5283 elements / 0 failures / 0 unreadable; typography 4007 body-copy elements /
+0 strays; both with `appCoverage.covered: true` for 44 routes.
+
+No workflow, route, or server-action behaviour changed.
+
 ## The public site now speaks one voice (2026-10-12)
 
 **No workflow, route, or server-action behaviour changed.** Typography, plus the document

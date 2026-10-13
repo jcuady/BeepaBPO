@@ -352,7 +352,11 @@ html:has(.beepaLanding) {
 }
 .beepaLanding .section-number {
   display: block;
-  color: var(--primary);
+  /* `--primary` measures 4.35:1 on the mist sections and 4.28:1 on `--accent`,
+     against 4.5 required for text this size. `--primary` is a FILL colour — it
+     is the right choice under a white label and the wrong one as type on a
+     tint. `--color-green-strong` clears every surface here. */
+  color: var(--color-green-strong);
   font-size: 10px;
   letter-spacing: 1.5px;
   font-weight: 600;
@@ -653,7 +657,8 @@ html:has(.beepaLanding) {
   justify-content: space-between;
 }
 .beepaLanding .platform-item span {
-  color: var(--primary);
+  /* Green text on the mist platform panel measures 4.35:1. See `.section-number`. */
+  color: var(--color-green-strong);
   font-size: 16px;
 }
 .beepaLanding .device-switch {
@@ -755,7 +760,8 @@ html:has(.beepaLanding) {
 .beepaLanding .status {
   font-size: 8px;
   background: var(--accent);
-  color: var(--primary);
+  /* Green text on `--accent` measures 4.28:1. See `.section-number`. */
+  color: var(--color-green-strong);
   padding: 4px 6px;
   display: inline-block;
 }
@@ -1144,7 +1150,10 @@ html:has(.beepaLanding) {
   background: var(--accent);
   padding: 15px;
   font-size: 12px;
-  color: var(--primary);
+  /* Same green-on-accent case as `.status`. The gate cannot see this one — the
+     dialog is closed during a crawl — so it is fixed by inspection, not by
+     evidence. */
+  color: var(--color-green-strong);
   margin-top: 18px;
 }
 .beepaLanding .dialog-error {

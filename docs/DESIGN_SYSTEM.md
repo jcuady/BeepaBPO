@@ -35,6 +35,12 @@ not asserted here. An earlier version of this table was built from a luminance
 function that never linearised sRGB, which understated every value; see the
 changelog entry for the corrected figures.
 
+That gate covers **13 public routes plus all 44 static app routes**, signed in
+as `owner`, so the rule above is checked against the dense 12–14px tables and
+payroll screens rather than only the marketing pages. `scripts/audit-typography.mjs`
+does the same for the body face, and both declare their coverage in the evidence
+file — a missing demo credential is recorded as a gap, never as a pass.
+
 ### 1.2 Semantic status layer
 
 The palette above said nothing about what "a warning surface" *is*, so three
@@ -342,3 +348,5 @@ Audited hubs (CRM, tickets, client portal, my workspace, CMS) should:
 |------|--------|
 | 2026-09-13 | Token table, layout primitives, QA bar |
 | 2026-10-08 | `NativeSelect` primitive created; 26 raw dropdowns across 22 files migrated; raw `<table>` eliminated; semantic status + series + sidebar token layers added; 12 hardcoded-colour files tokenised; `scripts/audit-design-system.mjs` created and wired into `verify-all`; `[@media(pointer:coarse)]:h-11` restored to `NativeSelect` |
+| 2026-10-12 | Palette rebased onto the reference brand; `audit-contrast.mjs` created (sRGB-corrected ratios, real-pixel sampling over photos); `audit-typography.mjs` created and the body face split by surface — DM Sans on marketing/auth, Inter in the app |
+| 2026-10-12 | Contrast gate fixed: `measured.failures` was assigned from the photo-sampling list only, so every DOM-composited failure was computed and then discarded. Both gates extended to the 44 signed-in app routes |

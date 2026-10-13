@@ -1,11 +1,16 @@
 {
   "check": "typography",
-  "generatedAt": "2026-10-12T15:03:30.996Z",
+  "generatedAt": "2026-10-13T03:05:12.360Z",
   "base": "http://localhost:3100",
   "contract": {
     "marketing + auth body (<24px, not font-display)": "DM Sans",
-    "product app body": "Inter — NOT COVERED, routes need a session",
+    "product app body (<24px, not font-display)": "Inter",
     "headings, display face, >=24px": "Manrope"
+  },
+  "appCoverage": {
+    "covered": true,
+    "role": "owner@demo.beepabpo.com",
+    "routes": 44
   },
   "routes": [
     {
@@ -180,11 +185,851 @@
         }
       },
       "straySamples": []
+    },
+    {
+      "route": "/app/dashboard",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 53,
+      "headline": 0,
+      "displayFace": 5,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 53
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 5
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 53,
+      "headline": 0,
+      "displayFace": 5,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 53
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 5
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/my",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 73,
+      "headline": 0,
+      "displayFace": 7,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 73
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 7
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/my/attendance",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 109,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 109
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/my/schedule",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 43,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 43
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/my/leave",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 81,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 81
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/my/payroll",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 43,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 43
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/my/cash-advances",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 50,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 50
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/my/nte",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 43,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 43
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/my/requests",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 59,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 59
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/my/documents",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 50,
+      "headline": 0,
+      "displayFace": 2,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 50
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 2
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/my/notifications",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 97,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 97
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/my/profile",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 54,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 54
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/my/support",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 44,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 44
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/hr",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 49,
+      "headline": 0,
+      "displayFace": 4,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 49
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 4
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/hr/nte",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 59,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 59
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/attendance",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 81,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 81
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/attendance/corrections",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 45,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 45
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/payroll",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 46,
+      "headline": 0,
+      "displayFace": 3,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 46
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 3
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/payroll/settings",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 91,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 91
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/payroll/periods",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 60,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 60
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/billing",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 82,
+      "headline": 0,
+      "displayFace": 8,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 82
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 8
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/recruitment",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 46,
+      "headline": 0,
+      "displayFace": 3,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 46
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 3
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/recruitment/jobs",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 90,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 90
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/recruitment/applicants",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 75,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 75
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/applicant",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 53,
+      "headline": 0,
+      "displayFace": 5,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 53
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 5
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/crm",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 62,
+      "headline": 0,
+      "displayFace": 13,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 62
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 13
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/crm/leads",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 80,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 80
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/crm/deals",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 92,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 92
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/crm/proposals",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 88,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 88
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/clients",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 58,
+      "headline": 0,
+      "displayFace": 2,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 58
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 2
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/tickets",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 154,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 154
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/tickets/sla",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 71,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 71
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/reports",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 52,
+      "headline": 0,
+      "displayFace": 5,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 52
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 5
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/cms",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 311,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 311
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/admin",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 49,
+      "headline": 0,
+      "displayFace": 3,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 49
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 3
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/admin/users",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 136,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 136
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/admin/organizations",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 52,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 52
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/admin/audit",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 446,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 446
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/admin/workflows",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 75,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 75
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/employees",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 84,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 84
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/approvals",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 117,
+      "headline": 0,
+      "displayFace": 26,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 117
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 26
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/leave",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 49,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 49
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
+    },
+    {
+      "route": "/app/cash-advances",
+      "group": "app",
+      "status": 200,
+      "bodyCopy": 58,
+      "headline": 0,
+      "displayFace": 1,
+      "stray": 0,
+      "families": {
+        "body": {
+          "Inter": 58
+        },
+        "headline": {},
+        "displayFace": {
+          "Manrope": 1
+        }
+      },
+      "straySamples": []
     }
   ],
   "totals": {
-    "routesChecked": 9,
-    "bodyCopyElements": 344,
+    "routesChecked": 53,
+    "publicRoutes": 9,
+    "appRoutes": 44,
+    "bodyCopyElements": 4007,
+    "bodyCopyPublic": 344,
+    "bodyCopyApp": 3663,
     "strays": 0,
     "non200": []
   },
