@@ -1,0 +1,20 @@
+# Line endings are part of the contract, not a per-machine preference.
+#
+# This repo had `core.autocrlf=true` and no attributes file, so Git rewrote LF to
+# CRLF on checkout. That is invisible until something reads a file literally: the
+# storage-RLS test asserts on exact SQL substrings (`"public.has_permission(...)\n"`),
+# so a CRLF checkout made the mutation silently match nothing and the guard
+# reported a content failure that had nothing to do with content.
+#
+# `text=auto eol=lf` makes the working tree identical on Windows, macOS and Linux
+# and in CI, so a green suite here means the same thing there.
+* text=auto eol=lf
+
+# Generated artefacts that must never be diffed as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary

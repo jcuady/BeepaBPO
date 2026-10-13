@@ -2,6 +2,65 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## The header logo was still the old brand (2026-10-13)
+
+**Found while verifying the deploy, not by reading the code.** With the redesign live I
+screenshot `beepabpo.com` and sampled the shipped rasters instead of trusting the pipeline that
+produced them. Same defect as the favicon, one order of magnitude more visible.
+
+### What was actually on every page
+
+`public/brand/beepa-logo-horizontal.png` is the logo in the header of every marketing page and
+the sidebar of the product app. Sampled: **46.8% `#1f2058`** and **11.4% `#119446`** — Beepa
+Navy and Beepa Green as they were *before* the palette was rebased onto the reference brand.
+Also still on the dead palette:
+
+| Asset | Where it shows |
+|---|---|
+| `beepa-logo-horizontal.png` | header of every marketing page, app sidebar |
+| `beepa-logo-alt.png` | app sidebar mark, 32px |
+| `google-organization-logo.png` / `-112.png` | Google Organization data → Knowledge Panel |
+| `images/og.png` | LinkedIn / X / Slack / iMessage share card |
+
+The rebase changed `app/globals.css` and `landing.css`. It never touched a single raster, so the
+CSS-driven surfaces moved to the new brand while every image-driven logo stayed behind. This is
+the blind spot of doing a palette migration in the token layer alone.
+
+### `scripts/recolor-brand-assets.mjs`
+
+A colour substitution, not a redraw — the artwork is unchanged. Pixels near a retired brand colour
+are moved toward its replacement, partially, in proportion to distance, so antialiased edges keep
+their coverage instead of banding. Everything further than 26 per channel from every retired
+colour is left alone: the photography, the greys, and the antialiased halos.
+
+Lime is deliberately absent — it did not change between palettes. 339 of ~82,000 pixels in the
+wordmark remain within tolerance of the old navy; they are edge halos, not visible colour.
+
+`--preview` writes to `.shots/brand-preview/` instead of in place, so the result can be looked at
+before it replaces the shipped asset.
+
+Worth noting: `google-organization-logo.png` turned out to be the **same "connected growth" mark
+geometry as the favicon**, now on the same tokens — so the tab icon, the Knowledge Panel and the
+app sidebar icon finally agree instead of being three separate crops of one idea.
+
+### The checkout that caused it
+
+The failure that surfaced this was in `tests/storage-rls-safe-cast.test.ts`, which asserts on
+exact SQL substrings. It passed on the feature branch and failed on `main` with a content-shaped
+error message about a migration that had not changed.
+
+`core.autocrlf=true` with no `.gitattributes` meant `git checkout main` re-materialised files with
+CRLF. `"public.has_permission('billing.read')\n"` no longer matched anything, so the test's
+`expect(regressed).not.toBe(fixRaw)` guard reported that its own mutation had not applied. The
+guard was right and the environment was wrong — a good outcome, because that assertion exists
+precisely to catch a mutation that silently does nothing.
+
+`.gitattributes` now pins `* text=auto eol=lf`, so the working tree is identical on Windows,
+macOS, Linux and CI. `git add --renormalize .` confirmed no blob in the repository actually needed
+changing — the corruption was purely in the working tree.
+
+No workflow, route, or server-action behaviour changed.
+
 ## The contrast gate was reporting nothing it had measured (2026-10-12)
 
 **The previous entry's contrast and typography figures were produced by a gate that could not
