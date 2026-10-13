@@ -108,8 +108,14 @@ reason. Turn it on only to demo, and turn it off again.
 | `/terms`, `/privacy` | Legal |
 | `/app/*` | Product app — redirects to `/login` when signed out |
 
-The "Build my team" and "Careers" dialogs submit to real server actions; a
-success closes the dialog and creates a lead.
+The "Build my team" and "Careers" dialogs submit to real server actions and
+create a lead. On success the form is replaced by a confirmation the reader
+dismisses with **Done** — it does not close on its own. Reopening always shows
+an empty form.
+
+The planner settings shown in the dialog (size, role, coverage) are **not**
+stored on the lead: the actions read a fixed field list, so capturing them
+needs a schema change.
 
 ---
 
