@@ -24,22 +24,32 @@
  *
  *   - The planner, the FAQ accordion and the web/mobile preview are live state,
  *     exactly as in the reference.
- *   - The two dialogs still produce a client-side .txt draft and submit
- *     nothing. This was confirmed with the user: the reference is being
- *     adopted as-is, placeholder channel and all. See `docs/CHANGELOG.md`.
+ *
+ * What did change after the port:
+ *
+ *   - The two dialogs no longer produce a client-side .txt draft. That WAS the
+ *     reference's behaviour and was confirmed with the user when the reference
+ *     was adopted as-is, but a download that says "Nothing is sent to Beepa" is
+ *     not a lead funnel; both dialogs now post to the same server actions the
+ *     /contact form uses. The planner configuration the dialog describes is NOT
+ *     yet part of the stored lead — the actions read a fixed field list, so it
+ *     would need a schema change. See the note on <LeadForm>.
  */
 
 import Image from "next/image";
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import {
   Table,
@@ -64,6 +74,9 @@ const team = "/images/landing/beepa-team.jpg";
 const collaboration = "/images/landing/beepa-collaboration.jpg";
 const logo = "/brand/beepa-logo-horizontal.png";
 
+/** Links the dialog's footer button to the form above it — see the footer. */
+const DIALOG_FORM_ID = "landing-lead-form";
+
 /** `ok: false` with no message is "nothing submitted yet", not "failed". */
 const INITIAL_ACTION_STATE: ActionState = { ok: false };
 
@@ -72,6 +85,224 @@ function Arrow() {
     <span className="arrow" aria-hidden="true">
       ↗
     </span>
+  );
+}
+
+/**
+ * The body and footer of both lead dialogs.
+ *
+ * It owns `useActionState` itself, and that placement is the point. Base UI's
+ * `Dialog.Portal` unmounts its subtree when the dialog closes, so this
+ * component's action state is discarded on close and every open starts clean —
+ * no reset helper, no "has this already succeeded" flag that has to be cleared
+ * by hand on every entry point that can open the dialog.
+ *
+ * It also removes the two `useEffect`s this used to need. Those read
+ *
+ *     if (teamSucceeded) setModal(null);
+ *
+ * under a comment promising the confirmation is "never dismissed before the
+ * reader has seen it". The code did the opposite: it closed the dialog in the
+ * same commit that produced `state.ok`, so the success panel they were written
+ * to protect was unmounted before it could be read. Deducing the confirmation
+ * from state during render — and letting the reader dismiss it with their own
+ * click — is both what the comment described and what
+ * `react-hooks/set-state-in-effect` asks for.
+ *
+ * Everything here renders inside the dialog's PORTAL, so it sits outside
+ * `.beepaLanding` and every `.beepaLanding .field` / `.dialog-form` /
+ * `.hp` rule in landing.css cannot reach it. That is why this used to look
+ * plain: the two-column field grid, the caption labels, the disclaimer and the
+ * success panel were all CSS that structurally cannot apply here — and the
+ * honeypot, scoped the same way, rendered as a visible empty input at the top
+ * of the form. So it depends on no page-scoped class and styles itself from the
+ * token layer alone.
+ */
+function LeadForm({
+  kind,
+  career,
+  onDone,
+}: {
+  kind: "team" | "career";
+  career: string;
+  onDone: () => void;
+}) {
+  const [state, action, pending] = useActionState(
+    kind === "career" ? careerInquiryAction : contactAction,
+    INITIAL_ACTION_STATE,
+  );
+
+  const done = state.ok === true;
+
+  return (
+    <>
+      <div className="px-6 pt-7 pb-6 sm:px-8 sm:pt-8">
+        {done ? (
+          <div
+            role="status"
+            className="mt-7 border border-primary/20 bg-accent px-4 py-4"
+          >
+            <p className="font-display text-base font-semibold text-foreground">
+              {kind === "career" ? "Application brief received." : "Request received."}
+            </p>
+            <p className="mt-1.5 text-sm leading-relaxed text-slate">
+              {state.message ??
+                "Thank you — we will be in touch shortly."}
+            </p>
+          </div>
+        ) : (
+          <form
+            id={DIALOG_FORM_ID}
+            className="mt-7 flex flex-col gap-5"
+            action={action}
+          >
+            <input type="hidden" name="landing_page" value="/" />
+            {kind === "career" && (
+              <input type="hidden" name="career_area" value={career} />
+            )}
+            {/* Honeypot. Off-screen rather than `display: none`, because some
+                bots skip hidden fields and this one is meant to be filled in.
+                Inline classes, not `.hp` — see the portal note above. */}
+            <div
+              className="absolute -left-[9999px] h-px w-px overflow-hidden"
+              aria-hidden="true"
+            >
+              <Input
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-label="Website"
+              />
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label
+                  htmlFor="team-name"
+                  className="block text-[13px] font-semibold text-navy"
+                >
+                  Your name
+                </Label>
+                <Input
+                  id="team-name"
+                  name="name"
+                  autoComplete="name"
+                  required
+                  placeholder="Full name"
+                  aria-invalid={!!state.fieldErrors?.name}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label
+                  htmlFor="team-email"
+                  className="block text-[13px] font-semibold text-navy"
+                >
+                  Email address
+                </Label>
+                <Input
+                  id="team-email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  placeholder="you@example.com"
+                  aria-invalid={!!state.fieldErrors?.email}
+                />
+              </div>
+            </div>
+
+            {kind === "team" ? (
+              <div className="flex flex-col gap-2">
+                <Label
+                  htmlFor="team-company"
+                  className="block text-[13px] font-semibold text-navy"
+                >
+                  Company
+                </Label>
+                <Input
+                  id="team-company"
+                  name="company"
+                  autoComplete="organization"
+                  required
+                  placeholder="Your business name"
+                  aria-invalid={!!state.fieldErrors?.company}
+                />
+              </div>
+            ) : null}
+
+            <div className="flex flex-col gap-2">
+              <Label
+                htmlFor="team-message"
+                className="block text-[13px] font-semibold text-navy"
+              >
+                {kind === "career"
+                  ? "Your experience & interests"
+                  : "What would you like your team to take care of?"}
+              </Label>
+              <Textarea
+                id="team-message"
+                name="message"
+                rows={3}
+                required
+                placeholder={
+                  kind === "career"
+                    ? "Tell us about your skills and experience."
+                    : "A few words about your needs and goals."
+                }
+                aria-invalid={!!state.fieldErrors?.message}
+              />
+            </div>
+
+            {state.error ? (
+              <p
+                role="alert"
+                className="border border-destructive/25 bg-destructive/8 px-4 py-3 text-sm text-destructive"
+              >
+                {state.error}
+              </p>
+            ) : null}
+          </form>
+        )}
+      </div>
+
+      {/* A sibling of the form so it can sit on the dialog's own background
+          strip. `form=` is what keeps the button wired to it — a
+          `type="submit"` button outside its form submits nothing. */}
+      <DialogFooter
+        className={
+          done
+            ? "mx-0 mb-0 border-line bg-mist/60 px-6 py-5 sm:flex-row sm:items-center sm:px-8"
+            : "mx-0 mb-0 flex-col gap-3 border-line bg-mist/60 px-6 py-5 sm:flex-row sm:items-center sm:px-8"
+        }
+      >
+        {done ? (
+          <Button
+            variant="brand"
+            className="w-full sm:w-auto"
+            onClick={onDone}
+          >
+            Done
+          </Button>
+        ) : (
+          <Button
+            variant="brand"
+            type="submit"
+            form={DIALOG_FORM_ID}
+            className="w-full sm:w-auto"
+            disabled={pending}
+          >
+            {pending
+              ? "Sending…"
+              : `Send my ${kind === "career" ? "enquiry" : "request"}`}
+          </Button>
+        )}
+        <p className="max-w-[34ch] text-[11px] leading-relaxed text-slate sm:text-right">
+          {kind === "career"
+            ? "This goes straight to our recruitment team. We will be in touch about opportunities that match your experience."
+            : "This goes straight to our team. We will reply about roles, coverage and pricing for the plan above."}
+        </p>
+      </DialogFooter>
+    </>
   );
 }
 
@@ -86,29 +317,10 @@ export default function LandingPage() {
   const [career, setCareer] = useState("Customer Support");
 
   // Real submissions. The reference shipped a demo that downloaded a .txt draft
-  // and said "Nothing is sent to Beepa"; these two dialogs now post to the same
-  // server actions the /contact form uses, so a lead actually reaches the CRM.
-  const [teamState, teamAction, teamPending] = useActionState(
-    contactAction,
-    INITIAL_ACTION_STATE,
-  );
-  const [careerState, careerAction, careerPending] = useActionState(
-    careerInquiryAction,
-    INITIAL_ACTION_STATE,
-  );
-
-  const teamSucceeded = teamState.ok === true && !teamPending;
-  const careerSucceeded = careerState.ok === true && !careerPending;
-
-  // Close only once the submission has actually landed, so the confirmation is
-  // never dismissed before the reader has seen it.
-  useEffect(() => {
-    if (teamSucceeded) setModal(null);
-  }, [teamSucceeded]);
-
-  useEffect(() => {
-    if (careerSucceeded) setModal(null);
-  }, [careerSucceeded]);
+  // and said "Nothing is sent to Beepa". Both dialogs post to the same server
+  // actions the /contact form uses, so a lead actually reaches the CRM. The
+  // action state itself lives in <LeadForm> — see the note there for why it is
+  // not held up here.
 
   const openTeam = (service?: string) => {
     if (service) setRole(service);
@@ -118,12 +330,6 @@ export default function LandingPage() {
     setCareer(value);
     setModal("career");
   };
-
-  // The dialog renders both forms from one set of fields, so the pending flag
-  // and the returned state are selected by whichever dialog is open.
-  const activePending = modal === "career" ? careerPending : teamPending;
-  const activeState = modal === "career" ? careerState : teamState;
-
 
   return (
     <div className="beepaLanding">
@@ -975,106 +1181,31 @@ export default function LandingPage() {
           if (!open) setModal(null);
         }}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogTitle>
-            {modal === "career"
-              ? "Your next chapter with Beepa."
-              : "Let’s shape your team."}
-          </DialogTitle>
-          <DialogDescription>
-            {modal === "career"
-              ? `Prepare your application brief for ${career}.`
-              : `${size} ${size === 1 ? "person" : "people"} · ${role} · ${coverage}`}
-          </DialogDescription>
-          <form className="dialog-form" action={modal === "career" ? careerAction : teamAction}>
-            <input type="hidden" name="landing_page" value="/" />
-            {modal === "career" && (
-              <input type="hidden" name="career_area" value={career} />
-            )}
-            {/* Honeypot. Hidden from people, irresistible to bots. The action
-                answers "success" without storing anything when it is filled. */}
-            <div className="hp" aria-hidden="true">
-              <Input
-                name="website"
-                tabIndex={-1}
-                autoComplete="off"
-                aria-label="Website"
-              />
-            </div>
-            <div className="form-grid">
-              <label className="field">
-                <span>Your name</span>
-                <Input
-                  name="name"
-                  autoComplete="name"
-                  required
-                  placeholder="Full name"
-                  aria-invalid={!!activeState?.fieldErrors?.name}
-                />
-              </label>
-              <label className="field">
-                <span>Email address</span>
-                <Input
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  placeholder="you@example.com"
-                  aria-invalid={!!activeState?.fieldErrors?.email}
-                />
-              </label>
-            </div>
-            {modal === "team" ? (
-              <label className="field">
-                <span>Company</span>
-                <Input
-                  name="company"
-                  autoComplete="organization"
-                  required
-                  placeholder="Your business name"
-                  aria-invalid={!!teamState?.fieldErrors?.company}
-                />
-              </label>
-            ) : null}
-            <label className="field">
-              <span>
-                {modal === "career"
-                  ? "Your experience & interests"
-                  : "What would you like your team to take care of?"}
+        <DialogContent className="max-h-[92dvh] gap-0 overflow-y-auto p-0 sm:max-w-xl">
+          <div className="px-6 pt-7 pb-6 sm:px-8 sm:pt-8">
+            <DialogHeader className="gap-2.5">
+              <span className="font-display text-[11px] font-semibold tracking-[0.18em] text-primary uppercase">
+                {modal === "career" ? "Careers" : "Get started"}
               </span>
-              <Textarea
-                name="message"
-                rows={3}
-                required
-                placeholder={
-                  modal === "career"
-                    ? "Tell us about your skills and experience."
-                    : "A few words about your needs and goals."
-                }
-                aria-invalid={!!activeState?.fieldErrors?.message}
-              />
-            </label>
-            <Button variant="brand" type="submit" disabled={activePending}>
-              {activePending
-                ? "Sending…"
-                : `Send my ${modal === "career" ? "enquiry" : "request"}`}
-            </Button>
-            <p className="dialog-disclaimer">
-              {modal === "career"
-                ? "This goes straight to our recruitment team. We will be in touch about opportunities that match your experience."
-                : "This goes straight to our team. We will reply about roles, coverage and pricing for the plan above."}
-            </p>
-            {activeState?.error && (
-              <p className="dialog-error" role="alert">
-                {activeState.error}
-              </p>
-            )}
-            {activeState?.ok && (
-              <p className="dialog-success" role="status">
-                {activeState.message}
-              </p>
-            )}
-          </form>
+              <DialogTitle className="font-display text-2xl leading-tight font-semibold text-ink sm:text-[28px]">
+                {modal === "career" ? "Your next chapter with Beepa." : "Let’s shape your team."}
+              </DialogTitle>
+              <DialogDescription className="text-sm leading-relaxed text-slate">
+                {modal === "career"
+                  ? `Prepare your application brief for ${career}.`
+                  : `${size} ${size === 1 ? "person" : "people"} · ${role} · ${coverage}`}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          {modal !== null ? (
+            <LeadForm
+              key={modal}
+              kind={modal}
+              career={career}
+              onDone={() => setModal(null)}
+            />
+          ) : null}
         </DialogContent>
       </Dialog>
     </div>

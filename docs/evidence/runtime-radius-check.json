@@ -1,6 +1,6 @@
 {
   "check": "runtime-radius",
-  "generatedAt": "2026-10-13T03:01:37.318Z",
+  "generatedAt": "2026-10-13T07:08:03.861Z",
   "base": "http://localhost:3100",
   "threshold": "8px on any corner",
   "excluded": "rounded-full",

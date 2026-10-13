@@ -11,6 +11,22 @@ type DemoLoginPickerProps = {
   onFill: (email: string, password: string) => void;
 };
 
+/**
+ * One-click role sign-in for QA.
+ *
+ * A card per role rather than a strip of small buttons: the whole point is to
+ * be readable at a glance while testing, and a thirteen-button row is neither.
+ * Each card names the role AND where it lands, so picking a role also tells you
+ * the route you are about to exercise — `docs/TESTING.md` is the long version.
+ *
+ * Clicking fills the form rather than submitting it. An autofill that also
+ * submits would make a mis-click a real sign-in, and the confirm step is one
+ * extra click for something that is otherwise two.
+ *
+ * This is gated at the call site by `getDemoLoginConfig`, which returns null in
+ * production unless `ALLOW_DEMO_LOGIN=true`. Do not render it unconditionally —
+ * these are real accounts in the real auth project.
+ */
 export function DemoLoginPicker({
   users,
   portal,
@@ -25,28 +41,32 @@ export function DemoLoginPicker({
 
   return (
     <div
-      className="mt-6 rounded-none border border-dashed border-line bg-mist/40 p-4"
+      className="mt-6 rounded-none border border-dashed border-line bg-mist/40 p-4 sm:p-5"
       data-testid="demo-login-picker"
     >
-      <p className="font-display text-xs font-semibold uppercase tracking-[0.14em] text-navy">
-        Demo users
-      </p>
-      <p className="mt-1 text-xs text-slate">
-        Click a role to autofill email + shared demo password (Supabase Auth).
-      </p>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <p className="font-display text-xs font-semibold tracking-[0.14em] text-navy uppercase">
+          Demo users
+        </p>
+        <p className="text-[11px] text-slate">
+          Click a role to fill the form, then Sign in.
+        </p>
+      </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {matching.map((user) => (
           <Button
             key={user.email}
             variant="outline"
-            size="sm"
             type="button"
-            className="min-h-9 text-xs"
+            className="h-auto min-h-11 flex-col items-start justify-center gap-0.5 rounded-none border-line bg-white px-3 py-2 text-left hover:border-primary hover:bg-white"
             onClick={() => onFill(user.email, password)}
-            title={user.email}
+            title={`${user.email} — lands on ${user.landing}`}
           >
-            {user.label}
+            <span className="text-sm font-semibold text-navy">{user.label}</span>
+            <span className="text-[11px] font-normal text-slate">
+              {user.landing}
+            </span>
           </Button>
         ))}
       </div>
@@ -54,7 +74,8 @@ export function DemoLoginPicker({
       {other.length ? (
         <div className="mt-4 border-t border-line pt-3">
           <p className="text-xs text-slate">
-            Other demo roles use{" "}
+            {matching.length} {portal} role{matching.length === 1 ? "" : "s"}{" "}
+            above. The rest use{" "}
             <Link
               href={otherHref}
               className="font-medium text-green-strong hover:underline"
@@ -63,12 +84,12 @@ export function DemoLoginPicker({
             </Link>
             :
           </p>
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {other.map((user) => (
               <Link
                 key={user.email}
                 href={`${otherHref}?demo=${encodeURIComponent(user.email)}`}
-                className="inline-flex min-h-9 items-center rounded-none border border-transparent bg-white/70 px-3 text-xs text-slate hover:border-line hover:text-navy"
+                className="inline-flex min-h-9 items-center rounded-none border border-transparent bg-white/70 px-2.5 text-xs text-slate hover:border-line hover:text-navy"
                 title={`Open ${otherHref} as ${user.email}`}
               >
                 {user.label} →
