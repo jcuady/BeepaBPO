@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LandingPage from "@/components/landing/landing-page";
-import { faqs } from "@/components/landing/content";
+import { faqs, type ProofCaseStudy, type ProofPost } from "@/components/landing/content";
+import { createClient } from "@/lib/supabase/server";
 import { pageMetadata } from "@/lib/seo/metadata";
 import {
   JsonLd,
@@ -8,6 +9,42 @@ import {
   servicesItemListJsonLd,
   websiteJsonLd,
 } from "@/lib/seo/json-ld";
+
+/**
+ * Read the real published proof.
+ *
+ * The brandbook forbids fabricated client logos, testimonials, metrics and
+ * awards, so the landing page cannot invent social proof — it can only point at
+ * what has genuinely been published. That makes this query the section's source
+ * of truth: if nothing is published the section renders nothing, which is the
+ * correct outcome and not a failure to hide.
+ *
+ * Fetched here rather than in the client component because `LandingPage` is
+ * `"use client"` and cannot reach Supabase, and because this keeps the section's
+ * content in the server-rendered HTML where a crawler can read it.
+ */
+async function readProof(): Promise<{ caseStudies: ProofCaseStudy[]; posts: ProofPost[] }> {
+  const supabase = await createClient();
+  const [studies, posts] = await Promise.all([
+    supabase
+      .from("case_studies")
+      .select("slug, title, summary, client_name, industry")
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .limit(3),
+    supabase
+      .from("blog_posts")
+      .select("slug, title, excerpt")
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .limit(3),
+  ]);
+
+  return {
+    caseStudies: (studies.data ?? []) as ProofCaseStudy[],
+    posts: (posts.data ?? []) as ProofPost[],
+  };
+}
 
 /**
  * The landing page.
@@ -53,14 +90,16 @@ const faqJsonLd = {
   })),
 };
 
-export default function Page() {
+export default async function Page() {
+  const proof = await readProof();
+
   return (
     <>
       <JsonLd data={organizationJsonLd()} />
       <JsonLd data={websiteJsonLd()} />
       <JsonLd data={servicesItemListJsonLd()} />
       <JsonLd data={faqJsonLd} />
-      <LandingPage />
+      <LandingPage proof={proof} />
     </>
   );
 }

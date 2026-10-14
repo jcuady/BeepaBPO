@@ -11,6 +11,29 @@
  * Copy is verbatim from the reference in `BeepaBPO new landing design`.
  */
 
+/**
+ * Shape of a published case study as the proof section needs it.
+ *
+ * Declared here rather than in `app/page.tsx` because both sides need it: the
+ * server component reads the rows, and the client component renders them. The
+ * obvious alternative — exporting the types from `app/page.tsx` — makes a
+ * circular import, because that file already imports the component.
+ */
+export type ProofCaseStudy = {
+  slug: string;
+  title: string;
+  summary: string | null;
+  client_name: string | null;
+  industry: string | null;
+};
+
+/** Shape of a published resource as the proof section needs it. */
+export type ProofPost = {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+};
+
 export const services = [
   "Customer Support",
   "Back Office Support",

@@ -306,7 +306,13 @@ function LeadForm({
   );
 }
 
-export default function LandingPage() {
+import type { ProofCaseStudy, ProofPost } from "@/components/landing/content";
+
+export default function LandingPage({
+  proof,
+}: {
+  proof: { caseStudies: ProofCaseStudy[]; posts: ProofPost[] };
+}) {
   const [menu, setMenu] = useState(false);
   const [modal, setModal] = useState<"team" | "career" | null>(null);
   const [role, setRole] = useState("Customer Support");
@@ -1107,6 +1113,74 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* --------------------------------------------------------- 10 proof */}
+        {/* Sits after the FAQ and before the closing CTA: the reader has just
+            finished the argument, and this is the moment they want evidence
+            rather than more persuasion.
+
+            The brandbook forbids fabricated client logos, testimonials, metrics
+            and awards — five documents in this repo repeat it, including
+            "do not show 'trusted by' fake companies" and "use a neutral proof
+            statement or omit the logo strip". So this section shows no logos,
+            quotes or invented numbers. It links to work that has actually been
+            published, which is both honest and more persuasive than a logo wall
+            nobody can check.
+
+            Renders nothing when nothing is published. An empty "proof" section
+            would be worse than none. */}
+        {proof.caseStudies.length + proof.posts.length > 0 ? (
+          <section className="section proof" id="proof">
+            <span className="section-number">10 / PROOF, NOT PROMISES</span>
+            <div className="section-heading">
+              <h2>Work you can go and check.</h2>
+              <p>
+                We would rather point you at the detail than ask you to take our
+                word for it. Real engagements, written up properly — including
+                the parts we would do differently next time.
+              </p>
+            </div>
+
+            <div className="proof-grid">
+              {proof.caseStudies.map((study) => (
+                <Link
+                  key={`cs-${study.slug}`}
+                  href={`/case-studies/${study.slug}`}
+                  className="proof-card"
+                >
+                  <span className="proof-kind">Case study</span>
+                  <h3>{study.title}</h3>
+                  {study.summary ? <p>{study.summary}</p> : null}
+                  {[study.client_name, study.industry]
+                    .filter(Boolean)
+                    .join(" · ") ? (
+                    <span className="proof-meta">
+                      {[study.client_name, study.industry]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  ) : null}
+                </Link>
+              ))}
+
+              {proof.posts.map((post) => (
+                <Link
+                  key={`rp-${post.slug}`}
+                  href={`/resources/${post.slug}`}
+                  className="proof-card"
+                >
+                  <span className="proof-kind">Resource</span>
+                  <h3>{post.title}</h3>
+                  {post.excerpt ? <p>{post.excerpt}</p> : null}
+                </Link>
+              ))}
+            </div>
+
+            <Link href="/case-studies" className="proof-more text-link">
+              Every case study and resource <Arrow />
+            </Link>
+          </section>
+        ) : null}
+
         {/* ------------------------------------------------------ final cta */}
         <section className="final-cta">
           <Image
@@ -1155,7 +1229,39 @@ export default function LandingPage() {
                 <strong>OUR PEOPLE</strong>
                 <a href="#why-beepa">Why Beepa</a>
                 <a href="#careers">Careers</a>
-                <a href="#questions">Questions & answers</a>
+                <a href="#questions">Questions &amp; answers</a>
+              </div>
+              {/* These routes existed and were in the sitemap, but the landing
+                  page — the highest-authority page on the site — linked to
+                  none of them. Every other marketing page gets them from the
+                  shared `SiteFooter`; this page renders the reference design's
+                  own footer, which only ever pointed at on-page anchors. That
+                  left /case-studies, /resources and /about reachable only from
+                  each other, and left /privacy and /terms unreachable from the
+                  homepage entirely. */}
+              <div>
+                <strong>PROOF &amp; COMPANY</strong>
+                <Link href="/case-studies">Case studies</Link>
+                <Link href="/resources">Resources</Link>
+                <Link href="/why-beepa">About Beepa</Link>
+                <Link href="/services">All services</Link>
+              </div>
+              {/* Two buyer questions the landing page could not answer and that
+                  had no destination anywhere on the site. Both are now real
+                  pages, so the links are real. */}
+              <div>
+                <strong>WORKING TOGETHER</strong>
+                <Link href="/pricing">Pricing</Link>
+                <Link href="/security">Security</Link>
+                <Link href="/contact">Request a team</Link>
+                <Link href="/case-studies">See the outcomes</Link>
+              </div>
+              <div>
+                <strong>LEGAL</strong>
+                <Link href="/privacy">Privacy</Link>
+                <Link href="/terms">Terms</Link>
+                <Link href="/login">Client sign in</Link>
+                <Link href="/employee/login">Employee sign in</Link>
               </div>
             </div>
           </div>

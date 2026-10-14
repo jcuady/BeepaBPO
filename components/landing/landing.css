@@ -1074,6 +1074,107 @@ html:has(.beepaLanding) {
   font-size: 12px;
 }
 
+/* --------------------------------------------------------------- proof */
+/* The honest answer to the question this page cannot answer with a logo wall.
+   The brandbook forbids fabricated client logos, testimonials, metrics and
+   awards — five documents repeat that rule — so this section links to work that
+   is actually published instead of inventing proof. Same editorial language as
+   the rest of the page: hairline rules, display face, green only on the kind
+   label and the arrow. */
+.beepaLanding .proof-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.beepaLanding .proof-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 30px 28px 34px;
+  background: var(--background);
+  transition: background-color 240ms var(--ease-out);
+}
+.beepaLanding .proof-card:hover,
+.beepaLanding .proof-card:focus-visible {
+  background: var(--accent);
+}
+.beepaLanding .proof-kind {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--primary);
+  font-weight: 600;
+}
+.beepaLanding .proof-card h3 {
+  font-family: var(--lm-display);
+  font-size: 19px;
+  line-height: 1.25;
+  color: var(--foreground);
+  font-weight: 600;
+}
+/* Damped so a long CMS summary cannot push the grid rows out of alignment. */
+.beepaLanding .proof-card p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.beepaLanding .proof-meta {
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+.beepaLanding .proof-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 26px;
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .beepaLanding .proof-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 900px) and (min-width: 601px) {
+  .beepaLanding .proof-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+/* Mobile type floor. The card summary and the meta line are running body copy,
+   so they follow the same 16px rule as every other paragraph on this page --
+   `audit:responsive` fails them below 768px. Desktop keeps 13/11px because that
+   is the editorial scale of the rest of the page (the .promise line is 13px too),
+   and at one column the summary is the only thing being read, so shrinking it
+   further is the wrong trade. The title steps up to keep the hierarchy legible
+   next to a 16px meta line.
+   Breakpoint is 767px, not the 760px used by the block further down: the gate
+   measures `innerWidth < 768`, and a 760px query would leave 761-767 uncovered. */
+@media (max-width: 767px) {
+  .beepaLanding .proof-card {
+    padding: 24px 22px 28px;
+  }
+  .beepaLanding .proof-card h3 {
+    font-size: 21px;
+  }
+  .beepaLanding .proof-card p {
+    font-size: 16px;
+  }
+  .beepaLanding .proof-meta {
+    font-size: 16px;
+  }
+}
+
 /* ---------------------------------------------------------------- footer */
 .beepaLanding .footer {
   padding-top: 46px;
@@ -1095,6 +1196,12 @@ html:has(.beepaLanding) {
   display: flex;
   gap: 50px;
   font-size: 11px;
+  /* Four columns (two anchor columns + Proof & Legal) will not fit on one
+     line at every desktop width, and `justify-content` on the parent is not
+     enough to stop the flex row overflowing. Wrapping keeps the extra routes
+     the footer now carries without introducing a horizontal scrollbar — the
+     one responsive defect this page has already had once. */
+  flex-wrap: wrap;
 }
 .beepaLanding .footer-links div {
   display: flex;
