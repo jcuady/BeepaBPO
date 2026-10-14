@@ -1047,9 +1047,24 @@ export default function LandingPage({
               career connecting Filipino talent with businesses around the
               world.
             </p>
-            <Button variant="inverse" onClick={() => openCareer("General interest")}>
-              Explore a career with Beepa <Arrow />
-            </Button>
+            <div className="career-ctas">
+              <Button
+                variant="inverse"
+                onClick={() => openCareer("General interest")}
+              >
+                Explore a career with Beepa <Arrow />
+              </Button>
+              {/* Every other control in this section opens the lead dialog, so
+                  a candidate who wanted an actual vacancy had no way to reach
+                  one: /careers holds the live roles with location, type and
+                  salary, and nothing on the homepage linked to it. The note
+                  below already admits these are career areas rather than a
+                  vacancy list — which is exactly why the escape hatch has to
+                  be right there. */}
+              <Link href="/careers" className="career-list-link">
+                See all open roles <Arrow />
+              </Link>
+            </div>
           </div>
           <div>
             {[

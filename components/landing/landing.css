@@ -986,6 +986,33 @@ html:has(.beepaLanding) {
   opacity: 0.55;
   margin-top: 18px;
 }
+/* The route to the live vacancy list. Set as a block under the primary button
+   rather than beside it: the button is the inverse (white on navy) treatment
+   and a second filled control beside it would compete with it, while this is
+   a quiet secondary route that still has to be reachable by thumb — hence
+   `min-height: 44px`, matching every other control on the page. */
+.beepaLanding .career-ctas {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.beepaLanding .career-list-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 2px;
+  font-family: var(--lm-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-lime);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.beepaLanding .career-list-link:hover {
+  color: var(--color-white);
+}
 
 /* ------------------------------------------------------------------- faq */
 .beepaLanding .faq-layout {
