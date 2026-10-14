@@ -200,7 +200,7 @@ export function AuthShell({
                           {feature.label}
                         </p>
                         {feature.description ? (
-                          <p className="mt-0.5 text-sm text-white/80">
+                          <p className="mt-0.5 text-base md:text-sm text-white/80">
                             {feature.description}
                           </p>
                         ) : null}
@@ -250,7 +250,7 @@ export function AuthShell({
 
       <footer className="border-t border-line/80 bg-white">
         <div className="mx-auto flex max-w-[1280px] flex-col items-center justify-between gap-4 px-4 py-5 sm:flex-row sm:px-6 lg:px-8">
-          <p className="text-sm text-slate">
+          <p className="text-base md:text-sm text-slate">
             &copy; {year} {SITE.legalName}. All rights reserved.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-slate">
@@ -309,7 +309,7 @@ export function AuthShell({
                     <p className="font-display text-sm font-bold text-navy">
                       {item.title}
                     </p>
-                    <p className="text-xs leading-relaxed text-slate">
+                    <p className="text-base md:text-xs leading-relaxed text-slate">
                       {item.description}
                     </p>
                   </div>

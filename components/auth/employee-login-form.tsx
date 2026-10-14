@@ -40,7 +40,7 @@ export function EmployeeLoginForm({
         <h2 className="font-display text-2xl font-bold tracking-tight text-navy sm:text-3xl">
           Employee &amp; Admin Access
         </h2>
-        <p className="mt-3 text-sm leading-relaxed text-slate">
+        <p className="mt-3 text-base md:text-sm leading-relaxed text-slate">
           Sign in to your internal portal to access your tools, resources, and
           company services.
         </p>
@@ -155,14 +155,14 @@ export function EmployeeLoginForm({
         sign up?", and it routes the person who is actually stuck to IT Support.
       */}
       <div className="mt-8 rounded-none bg-mist p-4 ring-1 ring-line">
-        <p className="text-sm leading-relaxed text-navy">
+        <p className="text-base md:text-sm leading-relaxed text-navy">
           <span className="font-semibold">Employee and admin accounts are
           created by People Ops</span> when your contract starts — there is no
           self-service sign-up. Beepa employs its team directly, so access is
           granted to a specific person rather than claimed by anyone who finds
           this page.
         </p>
-        <p className="mt-3 text-sm text-slate">
+        <p className="mt-3 text-base md:text-sm text-slate">
           New starter or locked out?{" "}
           <a
             href="mailto:it@beepabpo.com"

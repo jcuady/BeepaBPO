@@ -75,7 +75,7 @@ export function LoginForm({
         <h2 className="font-display text-2xl font-bold tracking-tight text-navy sm:text-3xl">
           Welcome back
         </h2>
-        <p className="mt-3 text-sm leading-relaxed text-slate">
+        <p className="mt-3 text-base md:text-sm leading-relaxed text-slate">
           Sign in to your Beepa account to continue building what&apos;s next,
           together.
         </p>
@@ -180,7 +180,7 @@ export function LoginForm({
       </form>
 
       {/* OAuth deferred — email/password only (no decoy Google CTA). */}
-      <p className="mt-5 text-center text-xs text-slate">
+      <p className="mt-5 text-center text-base md:text-xs text-slate">
         Email and password sign-in. Social login is not enabled yet.
       </p>
 

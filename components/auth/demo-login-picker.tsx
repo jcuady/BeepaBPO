@@ -48,7 +48,10 @@ export function DemoLoginPicker({
         <p className="font-display text-xs font-semibold tracking-[0.14em] text-navy uppercase">
           Demo users
         </p>
-        <p className="text-[11px] text-slate">
+        {/* 11px was below the mobile body-copy floor. The instruction is the
+            one line that tells a first-time tester what the grid does, so it
+            is running copy, not a caption. */}
+        <p className="text-base md:text-[11px] text-slate">
           Click a role to fill the form, then Sign in.
         </p>
       </div>
@@ -89,7 +92,11 @@ export function DemoLoginPicker({
               <Link
                 key={user.email}
                 href={`${otherHref}?demo=${encodeURIComponent(user.email)}`}
-                className="inline-flex min-h-9 items-center rounded-none border border-transparent bg-white/70 px-2.5 text-xs text-slate hover:border-line hover:text-navy"
+                // `min-h-9 [@media(pointer:coarse)]:min-h-11` is the convention
+                // recorded in docs/SYSTEM_AUDIT.md for role-switch links: 36px
+                // for a pointer, 44px for a finger. A bare `min-h-9` here is
+                // what the responsive gate flags as a touch-target failure.
+                className="inline-flex min-h-9 [@media(pointer:coarse)]:min-h-11 items-center rounded-none border border-transparent bg-white/70 px-2.5 text-xs text-slate hover:border-line hover:text-navy"
                 title={`Open ${otherHref} as ${user.email}`}
               >
                 {user.label} →

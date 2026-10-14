@@ -166,15 +166,26 @@ const probe = (opts) => {
         }
         continue;
       }
-      if (r.width < 44 || r.height < 44) {
-        results.smallTargets.push({
-          tag: el.tagName.toLowerCase(),
-          text: (el.textContent || "").trim().slice(0, 40),
-          w: Math.round(r.width),
-          h: Math.round(r.height),
-          cls: (el.className || "").toString().slice(0, 70),
-        });
-      }
+      // WCAG 2.5.8 "Equivalent". The rule and the reasoning live in
+      // scripts/audit/touch-target-rule.mjs, which has its own unit tests;
+      // this probe only supplies the measured geometry.
+      const label =
+        el.id && document.querySelector(`label[for="${CSS.escape(el.id)}"]`);
+      const labelEl = label || el.closest("label");
+      const activates = !!(labelEl && (
+        (labelEl.getAttribute("for") || "") === el.id ||
+        (el.id && labelEl.contains(el))
+      ));
+      const labelRect = labelEl ? labelEl.getBoundingClientRect() : null;
+      if (window.__passesTouchTarget({ width: r.width, height: r.height }, { labelRect, activates }))
+        continue;
+      results.smallTargets.push({
+        tag: el.tagName.toLowerCase(),
+        text: (el.textContent || "").trim().slice(0, 40),
+        w: Math.round(r.width),
+        h: Math.round(r.height),
+        cls: (el.className || "").toString().slice(0, 70),
+      });
     }
   }
 
@@ -228,6 +239,17 @@ const browser = await chromium.launch();
 let failures = 0;
 const summary = [];
 
+// The touch-target rule lives in its own module so it can be unit-tested
+// without importing this file — importing it would run the entire audit. The
+// probe runs inside the page, where `import` does not exist, so the same
+// source is injected as an init script. One definition, two consumers.
+const touchRuleSource = readFileSync(
+  new URL("./audit/touch-target-rule.mjs", import.meta.url),
+  "utf8",
+)
+  .replace(/^export\s+/gm, "")
+  .concat("\nwindow.__passesTouchTarget = passesTouchTarget;");
+
 for (const route of routes) {
   for (const vp of MATRIX) {
     const ctx = await browser.newContext({
@@ -237,6 +259,7 @@ for (const route of routes) {
       deviceScaleFactor: vp.w < 768 ? 3 : 1,
     });
     const page = await ctx.newPage();
+    await page.addInitScript({ content: touchRuleSource });
     const consoleErrors = [];
     page.on("console", (m) => {
       if (m.type() === "error") consoleErrors.push(m.text().slice(0, 120));

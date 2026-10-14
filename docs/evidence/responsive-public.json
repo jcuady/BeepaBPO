@@ -1,6 +1,6 @@
 {
   "check": "responsive-public",
-  "generatedAt": "2026-10-14T10:23:59.878Z",
+  "generatedAt": "2026-10-14T11:18:07.227Z",
   "base": "http://localhost:3100",
   "routes": [
     "/",
@@ -14,10 +14,13 @@
     "/careers",
     "/resources",
     "/security",
-    "/pricing"
+    "/pricing",
+    "/login",
+    "/signup",
+    "/employee/login"
   ],
-  "total": 96,
-  "passed": 96,
+  "total": 120,
+  "passed": 120,
   "failures": 0,
   "results": [
     {
@@ -1352,6 +1355,342 @@
     },
     {
       "route": "/pricing",
+      "viewport": "1920x1080",
+      "name": "Wide Desktop",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/login",
+      "viewport": "375x667",
+      "name": "iPhone SE",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/login",
+      "viewport": "393x852",
+      "name": "iPhone 15",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/login",
+      "viewport": "430x932",
+      "name": "iPhone 15 Pro Max",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/login",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/login",
+      "viewport": "1024x1366",
+      "name": "iPad Pro 12.9",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/login",
+      "viewport": "1280x800",
+      "name": "Laptop",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/login",
+      "viewport": "1440x900",
+      "name": "Desktop",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/login",
+      "viewport": "1920x1080",
+      "name": "Wide Desktop",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/signup",
+      "viewport": "375x667",
+      "name": "iPhone SE",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/signup",
+      "viewport": "393x852",
+      "name": "iPhone 15",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/signup",
+      "viewport": "430x932",
+      "name": "iPhone 15 Pro Max",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/signup",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/signup",
+      "viewport": "1024x1366",
+      "name": "iPad Pro 12.9",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/signup",
+      "viewport": "1280x800",
+      "name": "Laptop",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/signup",
+      "viewport": "1440x900",
+      "name": "Desktop",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/signup",
+      "viewport": "1920x1080",
+      "name": "Wide Desktop",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/employee/login",
+      "viewport": "375x667",
+      "name": "iPhone SE",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/employee/login",
+      "viewport": "393x852",
+      "name": "iPhone 15",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/employee/login",
+      "viewport": "430x932",
+      "name": "iPhone 15 Pro Max",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/employee/login",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/employee/login",
+      "viewport": "1024x1366",
+      "name": "iPad Pro 12.9",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/employee/login",
+      "viewport": "1280x800",
+      "name": "Laptop",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/employee/login",
+      "viewport": "1440x900",
+      "name": "Desktop",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/employee/login",
       "viewport": "1920x1080",
       "name": "Wide Desktop",
       "verdict": "PASS",

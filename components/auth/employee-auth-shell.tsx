@@ -181,7 +181,7 @@ export function EmployeeAuthShell({
                         <p className="font-display text-sm font-bold text-white">
                           {feature.label}
                         </p>
-                        <p className="mt-0.5 text-sm text-white/80">
+                        <p className="mt-0.5 text-base md:text-sm text-white/80">
                           {feature.description}
                         </p>
                       </div>
@@ -213,7 +213,7 @@ export function EmployeeAuthShell({
 
       <footer className="mt-auto border-t border-line/80 bg-white py-5">
         <div className="mx-auto flex max-w-[1280px] flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6 lg:px-8">
-          <p className="text-sm text-slate">
+          <p className="text-base md:text-sm text-slate">
             &copy; {year} {SITE.legalName}. All rights reserved.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-slate">

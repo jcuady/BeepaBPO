@@ -91,7 +91,7 @@ export function SignupForm() {
         <h2 className="font-display text-2xl font-bold tracking-tight text-navy sm:text-3xl">
           {isClient ? "Register your company" : "Create your account"}
         </h2>
-        <p className="mt-3 text-sm leading-relaxed text-slate">
+        <p className="mt-3 text-base md:text-sm leading-relaxed text-slate">
           {isClient
             ? "Tell us who you are and an account manager will set up your workspace."
             : "Create an account to apply for an open role at Beepa."}
@@ -272,19 +272,30 @@ export function SignupForm() {
               `block` restores normal inline text flow. */}
           <Label
             htmlFor="acceptTerms"
-            className="block text-sm font-normal leading-snug text-slate"
+            // `min-h-11` because this label IS the touch target for the
+            // checkbox. At iPad Mini widths the consent sentence fits on one
+            // line and the label collapsed to ~20px, so the checkbox's only
+            // ≥44px equivalent target disappeared on exactly the tablet.
+            className="block min-h-11 py-0.5 text-sm font-normal leading-snug text-slate"
           >
             I agree to the{" "}
+            {/*
+              `inline-block` + `min-h-11` + a cancelling `-my-2` gives the link a
+              real 44px hit area without changing the line box it sits in. The
+              audit exempts `display:inline` links inside `p`/`li`/headings;
+              these sit inside the consent `label`, which its selector list does
+              not include, so they are measured at their natural 18px height.
+            */}
             <Link
               href="/terms"
-              className="font-semibold text-green-strong hover:underline"
+              className="inline-block min-h-11 -my-2 py-2 font-semibold text-green-strong hover:underline"
             >
               Terms of Service
             </Link>{" "}
             and{" "}
             <Link
               href="/privacy"
-              className="font-semibold text-green-strong hover:underline"
+              className="inline-block min-h-11 -my-2 py-2 font-semibold text-green-strong hover:underline"
             >
               Privacy Policy
             </Link>
@@ -321,7 +332,7 @@ export function SignupForm() {
         </Button>
       </form>
 
-      <p className="mt-5 text-center text-xs text-slate">
+      <p className="mt-5 text-center text-base md:text-xs text-slate">
         Email and password only. Social login is not enabled yet.
       </p>
 
