@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   IconArrowRight,
+  IconBriefcase,
   IconBuilding,
   IconMail,
   IconUser,
@@ -13,11 +14,46 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordField } from "@/components/auth/password-field";
+import { cn } from "@/lib/utils";
 
 const initial: ActionState = { ok: false };
 
+type Intent = "applicant" | "client";
+
+/**
+ * The two audiences are stated before any field is asked for, because the
+ * fields differ. An applicant has no company and a work-email placeholder
+ * ("you@company.com") is a small lie told to every person who came here to
+ * apply for a job; a client who never gets asked which company they are
+ * registering produces a lead an account manager cannot act on.
+ *
+ * Defaults to `applicant` because /careers is the highest-traffic entry point
+ * and says "create an account to apply". Client intent is a deliberate click.
+ */
+const INTENTS: {
+  value: Intent;
+  label: string;
+  hint: string;
+  icon: typeof IconBriefcase;
+}[] = [
+  {
+    value: "applicant",
+    label: "Looking for work",
+    hint: "Apply for an open role",
+    icon: IconUser,
+  },
+  {
+    value: "client",
+    label: "Hiring talent",
+    hint: "Register your company",
+    icon: IconBuilding,
+  },
+];
+
 export function SignupForm() {
   const [state, action, pending] = useActionState(signupAction, initial);
+  const [intent, setIntent] = useState<Intent>("applicant");
+  const isClient = intent === "client";
 
   if (state.ok) {
     return (
@@ -53,14 +89,64 @@ export function SignupForm() {
     <div className="rounded-none border border-white/80 bg-white p-6 shadow-[0_20px_50px_-28px_rgb(31_32_88/0.35)] ring-1 ring-line/70 sm:p-9">
       <div className="text-center">
         <h2 className="font-display text-2xl font-bold tracking-tight text-navy sm:text-3xl">
-          Create your account
+          {isClient ? "Register your company" : "Create your account"}
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-slate">
-          Join Beepa and start building what&apos;s next, together.
+          {isClient
+            ? "Tell us who you are and an account manager will set up your workspace."
+            : "Create an account to apply for an open role at Beepa."}
         </p>
       </div>
 
       <form action={action} className="mt-8 space-y-4" noValidate>
+        <fieldset>
+          <legend className="text-sm font-semibold text-navy">
+            What brings you here?
+          </legend>
+          <input type="hidden" name="intent" value={intent} />
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {INTENTS.map((option) => {
+              const Icon = option.icon;
+              const selected = intent === option.value;
+              return (
+                <Button
+                  key={option.value}
+                  type="button"
+                  size="lg"
+                  onClick={() => setIntent(option.value)}
+                  aria-pressed={selected}
+                  className={cn(
+                    // The shared Button is a centred, non-shrinking, no-wrap
+                    // control; this is a two-line stacked card, so those three
+                    // defaults are overridden rather than fought with a wrapper.
+                    "h-auto min-h-11 w-full flex-col items-start gap-1 whitespace-normal rounded-none border px-3 py-2.5 text-left",
+                    selected
+                      ? "border-green-strong bg-soft-green"
+                      : "border-line bg-white [@media(hover:hover)_and_(pointer:fine)]:hover:border-navy/25",
+                  )}
+                >
+                  <span className="flex items-center gap-2">
+                    <Icon
+                      stroke={1.5}
+                      className={cn(
+                        "size-4 shrink-0",
+                        selected ? "text-green-strong" : "text-slate",
+                      )}
+                      aria-hidden
+                    />
+                    <span className="text-sm font-semibold text-navy">
+                      {option.label}
+                    </span>
+                  </span>
+                  <span className="text-xs leading-snug text-slate">
+                    {option.hint}
+                  </span>
+                </Button>
+              );
+            })}
+          </div>
+        </fieldset>
+
         <div className="space-y-2">
           <Label htmlFor="fullName">Full name</Label>
           <div className="relative">
@@ -84,7 +170,7 @@ export function SignupForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Work email</Label>
+          <Label htmlFor="email">{isClient ? "Work email" : "Email address"}</Label>
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate">
               <IconMail stroke={1.5} className="size-5" />
@@ -93,7 +179,9 @@ export function SignupForm() {
               id="email"
               name="email"
               type="email"
-              placeholder="you@company.com"
+              placeholder={
+                isClient ? "you@company.com" : "you@email.com"
+              }
               autoComplete="email"
               required
               className="min-h-11 pl-10"
@@ -106,21 +194,38 @@ export function SignupForm() {
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="company">Company name</Label>
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate">
-              <IconBuilding stroke={1.5} className="size-5" />
+        {/*
+          Shown only for a company registration. The schema enforces it in that
+          case too — hiding the field is the half that makes sense to a person,
+          and the server rule is the half that actually guarantees the invariant.
+        */}
+        {isClient ? (
+          <div className="space-y-2">
+            <Label htmlFor="company">Company name</Label>
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate">
+                <IconBuilding stroke={1.5} className="size-5" />
+              </div>
+              <Input
+                id="company"
+                name="company"
+                placeholder="Your company name"
+                autoComplete="organization"
+                required
+                className="min-h-11 pl-10"
+              />
             </div>
-            <Input
-              id="company"
-              name="company"
-              placeholder="Your company name"
-              autoComplete="organization"
-              className="min-h-11 pl-10"
-            />
+            {state.fieldErrors?.company && (
+              <p className="text-sm text-destructive">
+                {state.fieldErrors.company[0]}
+              </p>
+            )}
+            <p className="text-xs leading-snug text-slate">
+              We create your account now and have an account manager contact you.
+              Portal access is enabled once your company is set up.
+            </p>
           </div>
-        </div>
+        ) : null}
 
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>

@@ -144,14 +144,33 @@ export function EmployeeLoginForm({
         />
       ) : null}
 
-      <div className="mt-8 flex flex-col items-center justify-center gap-2 text-sm text-slate sm:flex-row">
-        <span>Need help?</span>
-        <a
-          href="mailto:it@beepabpo.com"
-          className="inline-flex min-h-11 items-center font-semibold text-green-strong hover:underline"
-        >
-          Contact IT Support →
-        </a>
+      {/*
+        No self-service sign-up here, and the reason is stated rather than left
+        as an absence. Beepa employs its own people, so a staff account is
+        created by People Ops when the contract starts; a public "create your
+        employee account" form would let anyone claim to be Beepa staff, and an
+        admin one would be worse — `attendance.approve`, `payroll.manage` and
+        `users.manage` are all permissions the system is built to grant
+        deliberately. Saying so is the only honest answer to "where do staff
+        sign up?", and it routes the person who is actually stuck to IT Support.
+      */}
+      <div className="mt-8 rounded-none bg-mist p-4 ring-1 ring-line">
+        <p className="text-sm leading-relaxed text-navy">
+          <span className="font-semibold">Employee and admin accounts are
+          created by People Ops</span> when your contract starts — there is no
+          self-service sign-up. Beepa employs its team directly, so access is
+          granted to a specific person rather than claimed by anyone who finds
+          this page.
+        </p>
+        <p className="mt-3 text-sm text-slate">
+          New starter or locked out?{" "}
+          <a
+            href="mailto:it@beepabpo.com"
+            className="inline-flex min-h-11 items-center font-semibold text-green-strong hover:underline"
+          >
+            Contact IT Support →
+          </a>
+        </p>
       </div>
     </div>
   );

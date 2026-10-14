@@ -18,10 +18,24 @@ export const employeeLoginSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters."),
 });
 
+/**
+ * Who is signing up. The two audiences are not variations of one form.
+ *
+ * An applicant is looking for a job and has no company; a client is a business
+ * registering to hire. Before this field existed the form was client-shaped for
+ * both -- "Work email", a `you@company.com` placeholder, and a Company name
+ * field -- while the server assigned every single signup the `applicant` role.
+ * A client registering through that form got an applicant account and the
+ * applicant portal, with no way to reach the client portal they had just
+ * registered for.
+ */
+export const signupIntentSchema = z.enum(["applicant", "client"]);
+
 export const signupSchema = z
   .object({
+    intent: signupIntentSchema.default("applicant"),
     fullName: z.string().min(1, "Full name is required.").max(160),
-    email: z.string().email("Enter a valid work email."),
+    email: z.string().email("Enter a valid email address."),
     company: z.string().max(120).optional(),
     password: z.string().min(8, "Password must be at least 8 characters."),
     confirmPassword: z.string().min(8, "Confirm your password."),
@@ -34,6 +48,14 @@ export const signupSchema = z
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match.",
     path: ["confirmPassword"],
+  })
+  // A company name is required to register a company, and meaningless for
+  // someone applying for a job -- which is why it is now conditional rather
+  // than merely optional. Optional meant it could be silently absent for the
+  // one audience where it is the whole point of the form.
+  .refine((data) => data.intent !== "client" || !!data.company?.trim(), {
+    message: "Company name is required.",
+    path: ["company"],
   });
 
 export const forgotPasswordSchema = z.object({

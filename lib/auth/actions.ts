@@ -185,6 +185,49 @@ async function assignApplicantMembership(userId: string) {
   }
 }
 
+/**
+ * A client registration becomes a CRM lead, not a portal account.
+ *
+ * `client_admin` and `client_viewer` carry org-scoped permissions
+ * (`clients.employee_visibility`, `attendance.read`, `billing.read`), so
+ * granting one requires a client organization to exist. Creating an
+ * organization here would let anyone who can reach /signup mint themselves a
+ * client tenant and read every employee, attendance row and invoice attached to
+ * it -- a self-service privilege escalation, not a signup feature.
+ *
+ * So the account is created, the intent is recorded, and a lead lands in the
+ * CRM for someone who already holds `clients.manage` to provision. The buyer
+ * keeps the email confirmation they were promised; what they do not get is
+ * portal access they were never granted.
+ *
+ * Uses the admin client because the user is not authenticated yet: the RLS path
+ * that governs `crm_leads` writes requires a session this request does not have.
+ */
+async function recordClientRegistration(input: {
+  email: string;
+  fullName: string;
+  company: string;
+  userId: string | undefined;
+}) {
+  try {
+    const admin = createAdminClient();
+    await admin.from("crm_leads").insert({
+      company_name: input.company,
+      contact_name: input.fullName,
+      contact_email: input.email,
+      source: "website_signup",
+      status: "new",
+      notes: input.userId
+        ? `Registered through /signup (intent=client). Portal access not granted — provision a client organization and assign client_admin before this contact can sign in.`
+        : "Registered through /signup (intent=client). Portal access not granted — provision a client organization and assign client_admin before this contact can sign in.",
+    });
+  } catch {
+    // The account exists either way; a missing lead is an operational gap an
+    // admin can see, not a reason to tell the registrant their signup failed
+    // after their password was already set.
+  }
+}
+
 export async function signupAction(
   _prev: ActionState,
   formData: FormData,
@@ -201,17 +244,22 @@ export async function signupAction(
   }
 
   const { firstName, lastName } = splitFullName(parsed.data.fullName);
+  const isClient = parsed.data.intent === "client";
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      emailRedirectTo: authCallbackUrl("/app"),
+      // A client is not sent to `/app`: they have no organization and therefore
+      // no portal to enter, so the confirmation would land them on a page that
+      // rejects them. They go to the page that can actually help them.
+      emailRedirectTo: authCallbackUrl(isClient ? "/contact" : "/app/applicant"),
       data: {
         full_name: parsed.data.fullName,
         first_name: firstName,
         last_name: lastName,
         display_name: parsed.data.fullName,
+        signup_intent: parsed.data.intent,
         company: parsed.data.company ?? null,
       },
     },
@@ -234,7 +282,17 @@ export async function signupAction(
     // two cases. Do not "fix" the swallowed error by treating a missing or
     // phantom id as a failure — that rebuilds the account-existence oracle this
     // whole branch exists not to have.
-    await assignApplicantMembership(data.user.id);
+    if (isClient) {
+      // Deliberately no membership. See `recordClientRegistration`.
+      await recordClientRegistration({
+        email: parsed.data.email,
+        fullName: parsed.data.fullName,
+        company: parsed.data.company ?? "",
+        userId: data.user.id,
+      });
+    } else {
+      await assignApplicantMembership(data.user.id);
+    }
   }
 
   return {
