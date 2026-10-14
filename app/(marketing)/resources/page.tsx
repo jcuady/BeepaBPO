@@ -13,6 +13,7 @@ import { FinalCTA } from "@/components/marketing/final-cta";
 import { PageHero } from "@/components/marketing/page-hero";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/site";
+import { BreadcrumbJsonLd } from "@/components/marketing/breadcrumb-json-ld";
 
 export const metadata: Metadata = {
   title: "Resources",
@@ -34,6 +35,12 @@ export default async function ResourcesPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "Resources", path: "/resources" },
+        ]}
+      />
       <PageHero
         eyebrow="Resources"
         title="Practical notes for teams that need people."

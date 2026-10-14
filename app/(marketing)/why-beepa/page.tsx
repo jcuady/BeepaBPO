@@ -16,6 +16,7 @@ import { FinalCTA } from "@/components/marketing/final-cta";
 import { PageHero } from "@/components/marketing/page-hero";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/site";
+import { BreadcrumbJsonLd } from "@/components/marketing/breadcrumb-json-ld";
 
 export const metadata: Metadata = {
   title: "Why Beepa",
@@ -73,6 +74,12 @@ const SPLIT = [
 export default function WhyBeepaPage() {
   return (
     <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "Why Beepa", path: "/why-beepa" },
+        ]}
+      />
       <PageHero
         eyebrow="Why Beepa"
         title="A manpower partner invested in your team."

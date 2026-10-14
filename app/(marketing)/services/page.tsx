@@ -24,6 +24,7 @@ import { PageHero } from "@/components/marketing/page-hero";
 import { resolveMarketingServices } from "@/lib/marketing/services-catalog";
 import { BRAND } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { BreadcrumbJsonLd } from "@/components/marketing/breadcrumb-json-ld";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -94,6 +95,12 @@ export default async function ServicesPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "Services", path: "/services" },
+        ]}
+      />
       <PageHero
         eyebrow="Services"
         title="Roles filled. Payroll handled."

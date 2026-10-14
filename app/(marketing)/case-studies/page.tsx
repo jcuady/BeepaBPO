@@ -4,10 +4,15 @@ import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/beepa/container";
 import { SectionHeading } from "@/components/beepa/section-heading";
+import { BreadcrumbJsonLd } from "@/components/marketing/breadcrumb-json-ld";
 
 export const metadata: Metadata = {
   title: "Case Studies",
-  description: "Outcomes from teams built with Beepa.",
+  // Was 37 characters — roughly half the space Google gives before it truncates,
+  // so it rendered as a stub next to every competitor listing. Descriptions are
+  // the cheapest CTR lever on the page and this one was left nearly empty.
+  description:
+    "Real outcomes from teams built with Beepa BPO — client, industry and the measurable result, from support coverage to payroll accuracy.",
   alternates: { canonical: "/case-studies" },
 };
 
@@ -22,6 +27,12 @@ export default async function CaseStudiesPage() {
 
   return (
     <section className="bg-white py-20 md:py-28">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "Case studies", path: "/case-studies" },
+        ]}
+      />
       <Container className="max-w-3xl">
         <SectionHeading as="h1">Case studies</SectionHeading>
         <p className="mt-6 text-base leading-relaxed text-slate">

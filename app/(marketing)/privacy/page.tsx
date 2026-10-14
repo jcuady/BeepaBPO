@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/beepa/container";
 import { SectionHeading } from "@/components/beepa/section-heading";
+import { BreadcrumbJsonLd } from "@/components/marketing/breadcrumb-json-ld";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -14,6 +15,12 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <section className="bg-white py-20 md:py-28">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "Privacy", path: "/privacy" },
+        ]}
+      />
       <Container className="prose-beepa max-w-3xl">
         <SectionHeading as="h1">Privacy Policy</SectionHeading>
         {/* 16px on phones, back to 14px from md up. `md:` is a min-width breakpoint,

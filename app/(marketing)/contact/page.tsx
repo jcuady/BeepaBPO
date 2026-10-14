@@ -4,16 +4,22 @@ import { Container } from "@/components/beepa/container";
 import { SectionHeading } from "@/components/beepa/section-heading";
 import { createClient } from "@/lib/supabase/server";
 import { BRAND } from "@/lib/site";
+import { BreadcrumbJsonLd } from "@/components/marketing/breadcrumb-json-ld";
+import { pageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+/**
+ * Built by `pageMetadata()`, not a literal `openGraph`.
+ *
+ * This page declared `openGraph: { title, description }` directly. Next.js
+ * replaces nested metadata objects rather than merging them, so that silently
+ * discarded the root layout's `url` and `images` — the page shipped with no
+ * `og:image` at all. The helper has no way to express a partial `openGraph`.
+ */
+export const metadata: Metadata = pageMetadata({
   title: `${BRAND.cta} — Start Your BPO Team`,
   description: `Tell ${BRAND.displayName} what your business needs. Share roles, timing, and goals — we'll follow up to start discovery for your outsourced team.`,
-  alternates: { canonical: "/contact" },
-  openGraph: {
-    title: `${BRAND.cta} — Start Your BPO Team | ${BRAND.name}`,
-    description: `Share roles, timing, and goals. ${BRAND.displayName} follows up to start discovery for your outsourced team.`,
-  },
-};
+  path: "/contact",
+});
 
 const TRUST = [
   "People-first hiring",
@@ -32,6 +38,12 @@ export default async function ContactPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "Contact", path: "/contact" },
+        ]}
+      />
       <section className="relative bg-mist/50 py-16 md:py-24">
         <Container className="relative">
           <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-16">

@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/beepa/container";
 import { SectionHeading } from "@/components/beepa/section-heading";
+import { BreadcrumbJsonLd } from "@/components/marketing/breadcrumb-json-ld";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "Terms governing use of Beepa BPO websites and related services.",
+    "The terms that govern your use of the Beepa BPO website and the outsourcing, staffing and support services delivered under a signed agreement.",
   alternates: { canonical: "/terms" },
   robots: { index: true, follow: true },
 };
@@ -14,6 +15,12 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <section className="bg-white py-20 md:py-28">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "Terms", path: "/terms" },
+        ]}
+      />
       <Container className="max-w-3xl">
         <SectionHeading as="h1">Terms of Service</SectionHeading>
         {/* 16px on phones, 14px from md up; see the note on the Privacy page. */}

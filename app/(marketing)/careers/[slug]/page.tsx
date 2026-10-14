@@ -7,6 +7,7 @@ import { Container } from "@/components/beepa/container";
 import { JobApplyForm } from "@/components/app/careers/job-apply-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { pageMetadata } from "@/lib/seo/metadata";
 import {
   JsonLd,
   breadcrumbJsonLd,
@@ -27,18 +28,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!job) return { title: "Careers" };
 
-  const description = job.description.slice(0, 160);
-  return {
+  // `pageMetadata()` rather than a literal `openGraph`, which had no `images`
+  // and therefore published every job share with no preview image.
+  return pageMetadata({
     title: `${job.title} — Careers`,
-    description,
-    alternates: { canonical: `/careers/${slug}` },
-    openGraph: {
-      title: `${job.title} — Careers`,
-      description,
-      url: `/careers/${slug}`,
-      type: "article",
-    },
-  };
+    description: job.description,
+    path: `/careers/${slug}`,
+  });
 }
 
 export default async function CareerDetailPage({ params }: Props) {

@@ -141,6 +141,49 @@ export function jobPostingJsonLd(input: {
   };
 }
 
+/**
+ * `Article` for the editorial routes (resources, case studies).
+ *
+ * These pages had no structured data at all, so they could not qualify for
+ * article or breadcrumb rich results despite carrying a publish date, an author
+ * and a real body. `datePublished` is required for an Article to validate — it
+ * is optional in the helper only because a not-yet-dated draft is a legitimate
+ * state for a CMS record, and omitting the key is valid; publishing a null one
+ * is not.
+ */
+export function articleJsonLd(input: {
+  headline: string;
+  description: string;
+  path: string;
+  datePublished?: string | null;
+  dateModified?: string | null;
+  authorName?: string;
+  section?: string;
+  wordCount?: number;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${BRAND.url}${input.path}#article`,
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${BRAND.url}${input.path}` },
+    headline: input.headline,
+    description: input.description,
+    ...(input.datePublished ? { datePublished: input.datePublished } : {}),
+    ...(input.dateModified ? { dateModified: input.dateModified } : {}),
+    ...(input.section ? { articleSection: input.section } : {}),
+    ...(input.wordCount ? { wordCount: input.wordCount } : {}),
+    author: {
+      "@type": "Organization",
+      name: input.authorName ?? BRAND.name,
+      url: BRAND.url,
+      logo: `${BRAND.url}${BRAND.iconUrl}`,
+    },
+    publisher: { "@id": `${BRAND.url}/#organization` },
+    image: [`${BRAND.url}${BRAND.ogImageUrl}`],
+    inLanguage: "en-US",
+  };
+}
+
 export function JsonLd({ data }: { data: Record<string, unknown> | object }) {
   return (
     <script

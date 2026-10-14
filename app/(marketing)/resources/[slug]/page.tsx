@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/beepa/container";
+import { pageMetadata, clampDescription } from "@/lib/seo/metadata";
+import { JsonLd, articleJsonLd } from "@/lib/seo/json-ld";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -19,11 +21,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!post) return { title: "Resources" };
 
-  return {
-    title: `${post.title} — Resources`,
-    description: (post.excerpt || post.body).slice(0, 160),
-    alternates: { canonical: `/resources/${slug}` },
-  };
+  // The title used to be `${post.title} — Resources`, which the root layout's
+  // `%s | BeepoBPO` template then suffixed again. The two together shipped
+  // 84-character titles that Google truncates mid-word. The brand is already in
+  // the template; the page needs only its own name.
+  return pageMetadata({
+    title: post.title,
+    description: post.excerpt || post.body,
+    path: `/resources/${slug}`,
+    type: "article",
+  });
 }
 
 export default async function ResourceArticlePage({ params }: Props) {
@@ -40,6 +47,15 @@ export default async function ResourceArticlePage({ params }: Props) {
 
   return (
     <section className="bg-white py-16 md:py-24">
+      <JsonLd
+        data={articleJsonLd({
+          headline: post.title,
+          description: clampDescription(post.excerpt || post.body),
+          path: `/resources/${slug}`,
+          datePublished: post.published_at,
+          section: "Resources",
+        })}
+      />
       <Container className="max-w-3xl">
         <Link
           href="/resources"

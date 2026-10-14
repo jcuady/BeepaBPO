@@ -15,6 +15,7 @@ import { PageHero } from "@/components/marketing/page-hero";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { BreadcrumbJsonLd } from "@/components/marketing/breadcrumb-json-ld";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -57,6 +58,12 @@ export default async function CareersPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "Careers", path: "/careers" },
+        ]}
+      />
       <PageHero
         eyebrow="Careers"
         title="Build your career with people who value your growth."

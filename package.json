@@ -36,7 +36,6 @@
     "fix:payroll-finalization": "node scripts/fix-premature-finalization.mjs",
     "fix:payroll-overlap": "node scripts/reconcile-payroll-period-overlap.mjs",
     "fix:demo-timeline": "node scripts/refresh-demo-timeline.mjs",
-    "seed:demo:leave": "node scripts/seed-demo-leave.mjs",
     "audit:payslip-exposure": "node scripts/audit/audit-unapproved-payslip-exposure.mjs",
     "audit:migrations": "node scripts/audit/preflight-pending-migrations.mjs",
     "audit:attendance-tz": "node scripts/audit/verify-attendance-tz.mjs",
@@ -46,16 +45,16 @@
     "audit:responsive": "node scripts/audit-responsive.mjs",
     "audit:app-responsive": "node scripts/audit-app-responsive.mjs",
     "audit:perf": "node scripts/audit-performance.mjs",
-    "audit:touch": "node scripts/audit-targets.mjs",
-    "audit:design": "node scripts/audit-design-system.mjs",
     "audit:touch": "node scripts/audit/audit-touch-overrides.mjs",
+    "audit:design": "node scripts/audit-design-system.mjs",
     "audit:filters": "node scripts/audit-filter-persistence.mjs",
     "audit:role-pages": "node scripts/audit-role-pages.mjs",
     "audit:runtime-radius": "node scripts/audit/audit-runtime-radius.mjs",
     "audit:contrast": "node scripts/audit/audit-contrast.mjs",
     "audit:typography": "node scripts/audit/audit-typography.mjs",
     "verify:all": "node scripts/verify-all.mjs",
-    "verify:skip-migration": "node scripts/verify-all.mjs --skip-migration"
+    "verify:skip-migration": "node scripts/verify-all.mjs --skip-migration",
+    "audit:seo": "node scripts/audit/audit-seo-metadata.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
