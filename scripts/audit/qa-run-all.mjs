@@ -118,7 +118,7 @@ const CHECKS = [
   // marketing, so asking owner asks a question with a guaranteed "denied"
   // answer and buries real layout findings under a permanent red.
   { id: "responsive-app-cms", tier: "slow", env: { QA_CHUNK_LABEL: "cms" }, cmd: ["scripts/audit-app-responsive.mjs", "marketing@demo.beepabpo.com", "/app/cms"], evidence: "docs/evidence/responsive-app-cms.json", what: "CMS layout under the account that can actually reach it" },
-  { id: "responsive-public", tier: "slow", cmd: ["scripts/audit-responsive.mjs", "/", "/about", "/services", "/why-beepa", "/contact", "/privacy", "/terms", "/case-studies", "/careers", "/resources"], evidence: "docs/evidence/responsive-public.json", what: "public surface, 10 routes x 8 viewports" },
+  { id: "responsive-public", tier: "slow", cmd: ["scripts/audit-responsive.mjs", "/", "/about", "/services", "/why-beepa", "/contact", "/privacy", "/terms", "/case-studies", "/careers", "/resources", "/security", "/pricing"], evidence: "docs/evidence/responsive-public.json", what: "public surface, 12 routes x 8 viewports" },
 
   { id: "role-sweep",       tier: "slow",  cmd: ["scripts/audit/audit-role-sweep.mjs"],         evidence: "docs/evidence/role-sweep.json",             what: "13 roles across their reachable pages" },
 

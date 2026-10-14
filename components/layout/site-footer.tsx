@@ -18,6 +18,8 @@ const EXPLORE = [
   { href: "/careers", label: "Careers" },
   { href: "/resources", label: "Resources" },
   { href: "/case-studies", label: "Case studies" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/security", label: "Security" },
 ] as const;
 
 const ROLES = [
