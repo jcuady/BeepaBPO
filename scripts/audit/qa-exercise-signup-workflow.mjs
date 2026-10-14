@@ -31,6 +31,7 @@
 // Nothing outside this run's unique marker is touched.
 
 import { readFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
@@ -48,7 +49,10 @@ for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
 const BASE = process.env.QA_BASE_URL ?? "http://localhost:3100";
 const MARK = Date.now().toString(36);
 const EMAIL = `qasignup${MARK}@beepabpo.com`;
-const PASSWORD = "QaSignup!2026x";
+// Generated per run, not committed. The account is created and removed by this
+// same script, so there is nothing for a fixed password to protect — and a
+// hardcoded one here is a credential in a public repository for no benefit.
+const PASSWORD = `Qa!${randomBytes(18).toString("base64url")}`;
 const NAME = "QA Signup Probe";
 
 const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);

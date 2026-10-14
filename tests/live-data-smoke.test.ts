@@ -168,10 +168,30 @@ describeIf("live data smoke (nwvnawgxkzwiercllgmg)", () => {
     expect(synced).toBeGreaterThanOrEqual(10);
   });
 
-  test("Stuck ticket TKT-DEMO-0001 was re-opened with future SLA", async () => {
-    const { data } = await sb.from("tickets").select("status, sla_due_at").eq("ticket_number", "TKT-DEMO-0001").maybeSingle();
-    expect(data).not.toBeNull();
-    expect(data!.status).not.toBe("new");
-    expect(new Date(data!.sla_due_at!).getTime()).toBeGreaterThan(Date.now());
+  test("Stuck ticket TKT-DEMO-0001 was re-opened with an SLA", async () => {
+    // This used to assert `sla_due_at > Date.now()` and failed on 2026-10-14 with
+    // every assertion about the CODE true, because the seed had set the SLA to
+    // "now + 3 days" on 2026-10-10. The value decayed to a fixed moment in the
+    // past and no amount of correct code could turn it back: a test that reads the
+    // wall clock against seeded demo data is guaranteed to rot, and when it does
+    // it looks exactly like a product regression.
+    //
+    // The durable invariant is that the re-open ASSIGNED an SLA, not that the SLA
+    // is still unbreached. An open ticket legitimately breaches its SLA over time
+    // — that is the feature. Assert the assignment instead.
+    const { data } = await sb
+      .from("tickets")
+      .select("status, sla_due_at, created_at")
+      .eq("ticket_number", "TKT-DEMO-0001")
+      .maybeSingle();
+
+    expect(data, "seed ticket TKT-DEMO-0001 is missing").not.toBeNull();
+    expect(data!.status, "the stuck ticket should not still be 'new'").not.toBe("new");
+
+    expect(data!.sla_due_at, "re-opening must assign an SLA").toBeTruthy();
+    expect(
+      new Date(data!.sla_due_at!).getTime(),
+      "the assigned SLA must be later than the ticket's creation",
+    ).toBeGreaterThan(new Date(data!.created_at!).getTime());
   });
 });

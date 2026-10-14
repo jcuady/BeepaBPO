@@ -75,11 +75,12 @@ ALLOW_DEMO_LOGIN=true
 ```
 
 **2. Quote the demo password.** An unquoted value containing `#` is truncated by
-Next's env loader at the `#`:
+Next's env loader at the `#`. Both lines below are the *same* secret, shown with
+a placeholder value:
 
 ```dotenv
-DEMO_PASSWORD=[REDACTED]     # ❌ arrives as "BeepaDemo!2026" (14 chars)
-DEMO_PASSWORD="[REDACTED]"   # ✅ arrives whole (18 chars)
+DEMO_PASSWORD=example#fragment     # ❌ arrives as "example" — everything from # is gone
+DEMO_PASSWORD="example#fragment"   # ✅ arrives whole
 ```
 
 The symptom is misleading: every demo sign-in returns *"Invalid email or
@@ -87,6 +88,11 @@ password"* while the direct Supabase path — which parses the file itself —
 authenticates fine, because the password is a different, shorter string by the
 time it reaches the form. If demo sign-in fails and the credential looks right,
 check this first.
+
+> The real value lives in `.env.local` (gitignored) and in your password manager.
+> **Never write it into this repo** — a value committed to a public repository is
+> compromised the moment it is pushed, and deleting the line afterwards does not
+> undo that. See `docs/SECURITY.md`.
 
 ### Do not enable demo login in production
 
