@@ -10,7 +10,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const BASE = process.env.BASE_URL ?? "http://localhost:3100";
+const BASE = process.env.QA_BASE_URL ?? process.env.BASE_URL ?? "http://localhost:3100";
 const EMAIL = process.argv[2] ?? "employee@demo.beepabpo.com";
 const ROUTES = process.argv.slice(3);
 const WIDTH = Number(process.env.WIDTH ?? 390);

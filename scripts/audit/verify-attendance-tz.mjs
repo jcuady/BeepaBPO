@@ -12,7 +12,7 @@ import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, existsSync } from "node:fs";
 
-const BASE = process.env.BASE_URL ?? "http://localhost:3100";
+const BASE = process.env.QA_BASE_URL ?? process.env.BASE_URL ?? "http://localhost:3100";
 const EMAIL = process.argv[2] ?? "employee@demo.beepabpo.com";
 
 function env() {

@@ -56,6 +56,12 @@ const CHECKS = [
   // it because nothing asked what Reset *does*.
   { id: "form-reset-defaults", tier: "fast", cmd: ["scripts/audit/audit-form-reset-defaults.mjs"], evidence: null, what: "every form that calls reset() defaults every field it registers" },
 
+  // Static, no browser. Two scripts defaulted to port 3000 while 44 used 3100, so
+  // `pnpm audit:role-pages` reported "0/13 nav-reachable role pages clean" and
+  // "13 page(s) a role can SEE but cannot USE" -- thirteen connection errors
+  // reported as thirteen broken roles.
+  { id: "suite-base-url", tier: "fast", cmd: ["scripts/audit/audit-suite-base-url.mjs"], evidence: null, what: "every audit script agrees on QA_BASE_URL and port 3100" },
+
   // May exit 2. The environment's outbound email budget allows roughly ONE
   // invite per window, and `qa-probe-invite-domains.mjs` spends an invite to
   // find out whether the window is open — so probing and then exercising burns

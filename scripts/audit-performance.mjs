@@ -19,7 +19,12 @@ import { join, resolve } from "node:path";
 // for backwards compatibility. Previously only argv[2] was read, so setting
 // BASE_URL silently pointed the whole run at http://localhost:3000 — and the
 // resulting total measurement outage still reported "7/7 within budget".
-const BASE = process.env.BASE_URL ?? process.argv[2] ?? "http://localhost:3000";
+// `QA_BASE_URL` first, matching the other audit scripts in this repo, and
+// defaulting to 3100 rather than 3000. This defaulted to `BASE_URL` and port
+// 3000, so a run against the documented `next start -p 3100` measured a
+// connection-refused for every route and reported it as a performance result.
+// `BASE_URL` and a positional argument are still honoured.
+const BASE = process.env.QA_BASE_URL ?? process.env.BASE_URL ?? process.argv[2] ?? "http://localhost:3100";
 const ROUTES = process.argv.slice(3);
 const routes = ROUTES.length
   ? ROUTES

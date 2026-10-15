@@ -26,7 +26,12 @@ import { chromium } from "@playwright/test";
 import { webcrypto } from "node:crypto";
 import { readFileSync, existsSync } from "node:fs";
 
-const BASE = process.env.PLAY_BASE_URL ?? "http://localhost:3000";
+// QA_BASE_URL first, defaulting to 3100 like every other browser script here.
+//
+// This read `PLAY_BASE_URL` only and defaulted to port 3000, so run against the
+// documented `next start -p 3100` it would report a connection error per route as
+// though it were a push-delivery result. The old names are still honoured.
+const BASE = process.env.QA_BASE_URL ?? process.env.PLAY_BASE_URL ?? process.env.BASE_URL ?? "http://localhost:3100";
 const MARKER = `push-roundtrip-${Date.now()}`;
 
 function env() {

@@ -27,7 +27,17 @@ import { existsSync, readFileSync } from "node:fs";
 // scripts/audit-app-responsive.mjs.
 import { chromium } from "@playwright/test";
 
-const BASE = process.env.BASE_URL ?? "http://localhost:3000";
+// `QA_BASE_URL` first, matching the other 44 audit scripts in this repo.
+//
+// This read `BASE_URL` only, defaulting to port 3000, while every other audit
+// defaults to 3100 — the port `npx next start -p 3100` serves, which is what the
+// docs tell an operator to run. The result was a confident, entirely fictional
+// report: "0/13 nav-reachable role pages clean" and "13 page(s) a role can SEE
+// but cannot USE", all thirteen produced by ERR_CONNECTION_REFUSED against a
+// server that was running the whole time on a different port.
+//
+// `BASE_URL` is still honoured so any existing caller keeps working.
+const BASE = process.env.QA_BASE_URL ?? process.env.BASE_URL ?? "http://localhost:3100";
 
 function loadEnv() {
   try {
