@@ -1,9 +1,9 @@
 {
   "base": "http://localhost:3100",
-  "when": "2026-10-15T05:29:53.215Z",
+  "when": "2026-10-15T06:05:46.786Z",
   "registryTotal": 21,
   "ranThisInvocation": [
-    "sitemap"
+    "signup"
   ],
   "totals": {
     "pass": 19,
@@ -12,7 +12,7 @@
     "fail": 0,
     "noEvidence": 0
   },
-  "totalAssertions": 468,
+  "totalAssertions": 472,
   "unregisteredScripts": [],
   "results": [
     {
@@ -27,11 +27,11 @@
     {
       "id": "signup",
       "verdict": "BLOCKED",
-      "assertions": 0,
+      "assertions": 4,
       "what": "applicant and client registration reach verification",
       "evidence": "docs/evidence/workflow-signup.json",
-      "when": "2026-10-15T05:07:05.313Z",
-      "ranThisRun": false
+      "when": "2026-10-15T06:05:46.779Z",
+      "ranThisRun": true
     },
     {
       "id": "payroll",
@@ -193,7 +193,7 @@
       "what": "unpublish leaves the sitemap and republish restores it",
       "evidence": "docs/evidence/workflow-sitemap.json",
       "when": "2026-10-15T05:29:53.188Z",
-      "ranThisRun": true
+      "ranThisRun": false
     },
     {
       "id": "uncovered-roles",

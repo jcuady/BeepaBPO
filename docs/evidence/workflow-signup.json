@@ -3,11 +3,32 @@
   "script": "scripts/audit/qa-exercise-signup-workflow.mjs",
   "claim": "applicant and client registration reach verification",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T05:07:05.313Z",
+  "when": "2026-10-15T06:05:46.779Z",
   "exitCode": 2,
   "verdict": "BLOCKED",
-  "assertions": 0,
-  "checks": [],
+  "assertions": 4,
+  "checks": [
+    {
+      "pass": true,
+      "name": "a refused signup still tells the user something went wrong  — Too many sign-up attempts from this network. Wait a minute, then try again. |",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a refused signup does not claim success  — no success copy",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a refused signup creates no auth user  — no user created",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a refused signup creates no membership  — 0 membership row(s) left behind",
+      "detail": null
+    }
+  ],
   "failedAssertions": [],
   "notes": [
     "action error report: \"Too many sign-up attempts from this network. Wait a minute, then try again. |\"",
@@ -16,9 +37,12 @@
   ],
   "other": [
     "BLOCKED — this environment refused to send the signup email (\"Too many sign-up attempts from this network. Wait a minute, then try again. |\").",
-    "That is an environment rate limit, not a product result: no assertion below is meaningful.",
-    "Re-run when the budget allows. `node scripts/audit/check-auth-email-rate-limit.mjs` probes it.",
-    "RUN ERROR: BLOCKED: signup email rate limited",
-    "0/0 assertions passed"
+    "That is an environment rate limit, not a product result: the SUCCESS path is",
+    "unproven and is not counted as passing. The refusal path above WAS exercised.",
+    "Do NOT run check-auth-email-rate-limit.mjs first -- it calls auth.signUp for real,",
+    "consumes the very budget this exercise needs, and has been observed burning it.",
+    "Wait out the project's signup limit, then run this file on its own.",
+    "RUN ERROR: BLOCKED: signup email rate limited (refusal path asserted above)",
+    "4/4 assertions passed"
   ]
 }

@@ -91,19 +91,23 @@ async function membershipsFor(userId) {
  * The form asks which audience is registering before it asks for any field, so
  * the Company field only exists for a company registration.
  *
- * This helper filled `#company` unconditionally. That was correct when the form
- * was client-shaped for everyone, and it became a false failure the moment the
- * audience selector landed: Playwright timed out waiting for a field the
- * applicant path deliberately does not render. It failed with a fill timeout
- * rather than an assertion, which is the shape of "the page is broken" and is
- * why it needed reading rather than re-running.
+ * `fillSignup` requires an explicit audience. It used to fill `#company`
+ * unconditionally, which was correct when the form was client-shaped for
+ * everyone and became a false failure the moment the audience selector landed:
+ * Playwright timed out waiting for a field the applicant path deliberately does
+ * not render, failing with a fill timeout rather than an assertion — the shape of
+ * "the page is broken", which is why it needed reading rather than re-running.
  *
- * Both audiences are now exercised, because they take different paths through
- * the action: an applicant is assigned the `applicant` membership, a client
- * becomes a CRM lead. Asserting only one would leave the other branch
- * unexercised.
+ * The audience is now a required argument rather than a default so that a call
+ * site which forgets it fails loudly instead of silently taking the applicant
+ * path. `fillSignup(page2)` used to omit it, which made the comment below
+ * ("both audiences are exercised") untrue: the duplicate leg ran the applicant
+ * path again and the client branch was never driven at all.
  */
 async function fillSignup(page, intent) {
+  if (intent !== "applicant" && intent !== "client") {
+    throw new Error(`fillSignup: audience must be "applicant" or "client", got ${JSON.stringify(intent)}`);
+  }
   if (intent === "client") {
     await page.getByRole("button", { name: /hiring talent/i }).click();
     await page.locator("#company").waitFor({ state: "visible", timeout: 10000 });
@@ -142,12 +146,50 @@ try {
   const alertText = (await page.locator("[role=alert]").allInnerTexts()).join(" | ").trim();
   const rateLimited = /too many|rate limit|try again later/i.test(alertText);
   note(`action error report: ${alertText ? `"${alertText}"` : "(none)"}`);
+
+  /**
+   * A rate-limited run is not a dead run.
+   *
+   * This file reported BLOCKED with 0 assertions, which reads as "nothing was
+   * learned" -- but when the environment refuses to send the signup email, the
+   * product still has a contract to keep, and it is checkable:
+   *
+   *   1. it says something to the user (no silent failure)
+   *   2. it does NOT claim success (anti-enumeration must not become
+   *      "everything is fine" when nothing happened)
+   *   3. no auth user was created
+   *   4. no membership row was created
+   *
+   * 3 and 4 are the important pair. A server action that renders an error and
+   * still leaves a half-made account behind is a real defect, and it is exactly
+   * the one an environment-blocked run would otherwise never get to check --
+   * because the run gives up before looking. Measured repeatedly here: the
+   * refusal path leaves 0 users and 0 memberships.
+   *
+   * So the run still exits BLOCKED (the success path remains unproven and must
+   * not be scored), but it stops being zero-information.
+   */
   if (rateLimited && !headingShown) {
+    check("a refused signup still tells the user something went wrong", alertText.length > 0,
+      alertText ? alertText.slice(0, 120) : "no error was surfaced at all");
+    check("a refused signup does not claim success", !/Account created|If that address/i.test(body),
+      /Account created/i.test(body) ? "CLAIMED SUCCESS while failing" : "no success copy");
+
+    const ghost = await findUser(EMAIL);
+    check("a refused signup creates no auth user", !ghost, ghost ? `LEAKED user ${ghost.id}` : "no user created");
+
+    const ghostMs = ghost ? await membershipsFor(ghost.id) : [];
+    check("a refused signup creates no membership", ghostMs.length === 0,
+      `${ghostMs.length} membership row(s) left behind`);
+
     console.log(`\nBLOCKED — this environment refused to send the signup email ("${alertText}").`);
-    console.log("That is an environment rate limit, not a product result: no assertion below is meaningful.");
-    console.log("Re-run when the budget allows. `node scripts/audit/check-auth-email-rate-limit.mjs` probes it.");
+    console.log("That is an environment rate limit, not a product result: the SUCCESS path is");
+    console.log("unproven and is not counted as passing. The refusal path above WAS exercised.");
+    console.log("Do NOT run check-auth-email-rate-limit.mjs first -- it calls auth.signUp for real,");
+    console.log("consumes the very budget this exercise needs, and has been observed burning it.");
+    console.log("Wait out the project's signup limit, then run this file on its own.");
     process.exitCode = 2;
-    throw new Error("BLOCKED: signup email rate limited");
+    throw new Error("BLOCKED: signup email rate limited (refusal path asserted above)");
   }
   // The action used to say "Account created" here, which was a lie for an address that
   // was already registered. It now uses anti-enumeration wording that asserts neither
@@ -187,7 +229,7 @@ try {
   const page2 = await browser.newPage();
   await page2.goto(`${BASE}/signup`, { waitUntil: "domcontentloaded" });
   await page2.locator("#fullName").waitFor({ state: "visible", timeout: 20000 });
-  await fillSignup(page2);
+  await fillSignup(page2, "applicant");
   await page2.getByRole("button", { name: /create account/i }).click();
   await page2.waitForTimeout(6000);
   const body2 = await page2.locator("body").innerText();

@@ -1,10 +1,15 @@
 # Feature Verification Checklist — BeepoBPO
 
-**Result: 21 exercises, 468 assertions (460 distinct behaviours), 19 PASS, 2 BLOCKED, 0 FAIL, 0 SKIPPED.**
+**Result: 21 exercises, 472 assertions (464 distinct behaviours), 19 PASS, 2 BLOCKED, 0 FAIL, 0 SKIPPED.**
 Payroll, attendance and notifications all work; every one of the 13 demo roles is now
 driven by at least one real workflow; and one genuine product defect was found and fixed
 — the sitemap was being served frozen from the build, so newly published articles could
 never reach search engines (§5a).
+
+**On "every button works":** rather than assert it, it is measured. Across 130 pages and all
+13 roles the app exposes **58 action controls** (buttons and fields, excluding nav chrome);
+**47 of them (81%)** have a matching behavioural assertion. The 11 that do not are listed
+in §2, and two of them — `Cancel` and `Reset` on the leave screen — are a real gap.
 
 **What this document is.** A per-feature answer to "does this work", each row backed by an
 executable check that was actually run against a production build with real database state.
@@ -21,13 +26,15 @@ node scripts/audit/qa-run-workflows.mjs --list
 node scripts/audit/qa-run-workflows.mjs --only=payroll,attendance
 node scripts/audit/qa-run-workflows.mjs --batch=5    # chunked, if the server is dying
 node scripts/audit/qa-workflow-assertion-index.mjs   # distinct behaviours
+node scripts/audit/qa-control-surface-census.mjs      # button surface vs. assertions
 node scripts/audit/qa-run-all.mjs --all       # presentation + role sweep + gates
 ```
 
 Evidence lands in `docs/evidence/workflow-<id>.json` (every assertion, not only the failures),
 `docs/evidence/workflow-summary.json` (a **rollup over all 21 registered exercises** — each
 row carries the `when` of the run that produced it, so a verdict is never presented as
-fresher than the measurement behind it), and `docs/evidence/workflow-assertion-index.json`.
+fresher than the measurement behind it), `docs/evidence/workflow-assertion-index.json`, and
+`docs/evidence/control-surface-census.json`.
 
 **Verdict vocabulary.** `PASS` / `FAIL` / `BLOCKED` (environment refused — email budget, not a
 product result) / `SKIPPED` (server stopped answering mid-run; the exercise never ran).
@@ -44,13 +51,13 @@ product result) / `SKIPPED` (server stopped answering mid-run; the exercise neve
 
 ## 2. Every exercise, with its real count
 
-21 registered exercises, **468 assertions, 460 of them distinct named behaviours**,
+21 registered exercises, **472 assertions, 464 of them distinct named behaviours**,
 in a single run against a production build on real database state.
 
 | Exercise | Verdict | Assertions | What it drives |
 |---|---|---|---|
 | auth | PASS | 35 | sign in/out, sign-out-everywhere, access-denied, no account leakage |
-| **signup** | **BLOCKED** | 0 | applicant and client registration reach verification |
+| **signup** | **BLOCKED** | 4 | applicant registration reaches verification — **success path unproven**; the 4 assertions cover the *refusal* path, which is proven |
 | payroll | PASS | 19 | salary edit, period, recalculate, 2-step approval to finalized |
 | attendance | PASS | 31 | clock in/out, corrections, HR approval, delete |
 | leave | PASS | 13 | request, approve/deny, balance impact |
@@ -79,7 +86,7 @@ assertions before it hit the wall.
 
 468 assertions could be one button pressed 468 ways, or 468 different controls.
 `qa-workflow-assertion-index.mjs` deduplicates them from the evidence files, so the
-number that matters is **460 distinct named behaviours**, each listed per exercise in
+number that matters is **distinct named behaviours**, each listed per exercise in
 `docs/evidence/workflow-assertion-index.json`.
 
 Cross-exercise overlap is reported too: only **2** behaviours are asserted by more than
@@ -87,9 +94,44 @@ one exercise — `"no page errors"` and `"no unexpected console errors"`, each a
 exercises. Those are per-session hygiene checks and legitimately repeat. No product
 behaviour is double-counted to pad the total.
 
-**What this still does not prove.** The exercises drive the flows a daily user takes.
-They do not press every button on every screen; a control with no behavioural assertion
-behind it is uncovered, and this document does not claim otherwise.
+### Measuring the button surface instead of hedging about it
+
+"Every button works" deserves a denominator. `qa-control-surface-census.mjs` walks every
+route the role sweep proved reachable, inventories every visible interactive control on
+each, and cross-references the labels against the assertion names:
+
+- **Action controls** (buttons and fields, excluding nav chrome) are the primary figure.
+- **Navigation links** are reported separately and deliberately *not* added in — they are
+  covered by a stronger gate, `qa-exercise-internal-links.mjs`, which asserts every link
+  resolves.
+- The label match is **word-level against assertion names only**, with URLs and JSON
+  stripped out of the haystack.
+
+**Measured (130 pages across all 13 roles, 0 page failures, 0 sign-outs):**
+
+| | found | label matched | |
+|---|---|---|---|
+| **Action controls** (buttons + fields, nav excluded) | **58** | **47** | **81% — the number to quote** |
+| Navigation links (covered by `qa-exercise-internal-links.mjs` instead) | 42 | 30 | 71.4% |
+
+172 distinct controls in total, and **0 with no accessible name**.
+
+**Treat 81% as an upper bound on coverage, not a measurement of it.** A "match" means some
+assertion's name mentions that label as a word; it does not prove the control was pressed,
+nor pressed in every state it can occupy. The opposite error is just as available and was made
+here three times before being caught — see §5b.
+
+**The 11 unmatched action controls, which is the actionable list:**
+
+- `Cancel` and `Reset` on `/app/my/leave` — the only two unmatched *buttons*. A user can click
+  these and nothing asserts what happens.
+- 9 form fields whose labels are the raw field names: `reason`, `category`, `description`,
+  `to`, `on`, `currentPassword`, `confirmPassword`, `linkedin_url`, `notes`.
+
+The fields are a labelling artefact of this metric rather than a coverage hole — the
+attendance correction, the profile write and the job application are all exercised, just
+under behaviour names rather than field names. **The two buttons are a genuine gap**, and the
+honest next step is a leave exercise that presses them.
 
 ## 3. Roles
 
@@ -133,14 +175,29 @@ page-level coverage and **zero** functional coverage.
 
 Stated plainly, because a checklist that only lists passes is a marketing document.
 
-- **Signup is BLOCKED, not proven.** The exercise spends the shared Supabase email budget, and
-  this environment has spent it. The form fill and the action's validation path are covered by
-  `tests/signup-intent.test.ts` (real zod execution); account creation end-to-end is not.
-  Probe with `node --env-file=.env.local scripts/audit/check-auth-email-rate-limit.mjs`.
+- **Signup is BLOCKED, not proven.** Supabase answers every `auth.signUp` from this network with
+  *"Too many sign-up attempts from this network"*. Despite that copy, this is **not** a one-minute
+  window: it was still refusing 5 minutes later. The form fill and the action's validation path are
+  covered by `tests/signup-intent.test.ts` (real zod execution); account creation end-to-end is not.
+
+  What *is* proven is the refusal path — 4 assertions, all passing: the user is told something
+  went wrong, the action does not claim success, and it creates **no** auth user and **no**
+  membership row. A server action that renders an error and still leaves a half-made account behind
+  is a real defect, and this is the run that gets to check it.
+
+- **Do not run `check-auth-email-rate-limit.mjs` before retrying signup.** It calls `auth.signUp`
+  for real and deletes the user afterwards, so it **consumes the very budget the exercise needs**.
+  It reported `signUp (apex domain)` as *accepted* and then the exercise was refused immediately
+  afterwards and stayed refused. Its old header claimed it was "safe to re-run as often as you
+  like", and it was the documented recovery step — it was burning the window being waited for. The
+  script now says this on every run, derives its conclusions from its own measurement instead of
+  hardcoding "signUp is rate limited", and warns when it consumed budget. **Wait, then run
+  `qa-exercise-signup-workflow.mjs` on its own.**
 - **Admin invite is BLOCKED** for the same reason — one invite per email window.
   `qa-exercise-client-invite.mjs` and `qa-exercise-reset-password.mjs` are registered nowhere
   for the same reason and are listed in the runner's "not registered" report so the omission
-  reads as deliberate rather than forgotten.
+  reads as deliberate rather than forgotten. **Reset-password is blocked by a different cause**:
+  it needs a recovery token from an inbox, and there is no mail provider in this environment.
 - **The exercises share one database.** They must run serially; two at once corrupt each
   other's cleanup and the failure looks like a product bug. A notification raised by the leave
   exercise can land while the notifications exercise is running, so those assertions are scoped
@@ -186,6 +243,13 @@ without a rebuild — because it had been asserting the old build-frozen contrac
 | `--only=payrol,attendance` ran attendance alone and exited green | a request for two areas quietly became a request for one | unknown ids are an error (exit 2), checked before the empty-selection case |
 | `pnpm lint` reported **7 errors** from `BeepaBPO new landing design/` | `.gitignore:81` excludes that sandbox from the repo, but ESLint's flat config does not read `.gitignore` — so the gate was permanently red for a directory that is not this project's code, and stayed red after any correct fix to app code | added the path to `globalIgnores`; `pnpm lint` is green again. The 7 violations are real *in that sandbox* and are left visible to whoever owns it |
 | Twenty workflow exercises were registered nowhere and wrote no evidence | they ran only when someone remembered the command; "is payroll functional?" was answerable only by knowing a filename | `qa-run-workflows.mjs`: registry, per-exercise evidence files, orphan detection, `--batch` for surviving the server limit |
+| `check-auth-email-rate-limit.mjs` calls `auth.signUp` for real, then deletes the user | **it consumed the very budget the signup exercise needed**, and its header claimed it was "safe to re-run as often as you like". It was the documented recovery step for a blocked exercise — it was burning the window being waited for | header now says so on every run; conclusions derived from its own measurement instead of hardcoded "signUp is rate limited"; warns when it consumed budget |
+| `qa-workflow-assertion-index.mjs` stored behaviour names **only under `--verbose`** | `workflow-assertion-index.json` shipped counts with no list, so the census matched against an empty haystack and reported a confident, fictional **0% coverage** with a 117-item "actionable list" attached | names always stored; the census now aborts rather than cross-referencing an empty list |
+| The index also matched **its own output file** (`workflow-assertion-index.json` matches `workflow-*.json`) | every run indexed the previous run as a 22nd "exercise", and the exercise count crept upward on each invocation | self excluded by name |
+| `qa-control-surface-census.mjs` returned from `signIn` immediately after clicking submit | sign-in is a live Supabase round trip, so every page was fetched while unauthenticated and bounced to `/login`. It inventoried **the sign-in page 13 times** and reported "0% coverage, 0 pages failed", because every navigation had technically succeeded — the exact trap `audit-role-sweep.mjs` documents | waits for the condition, not a duration; records the **actual landed URL**, not the requested path; a bounce to `/login` counts as a failure; the run aborts if it never left the login page |
+| The census matched labels against full assertion strings including their **detail** | `"Dashboard"` matched an assertion whose detail was the URL `.../app/dashboard`, and `"Recruitment"` matched a JSON blob — producing a flattering **84.3% coverage** built mostly on incidental text | haystack is the assertion name only, URLs and JSON stripped; navigation links reported separately and excluded from the primary figure. Real figure: **81%** |
+| The census extractor read only `textContent` for a control's name | the sidebar's brand link wraps `<Image alt="BEEPA">`, and an `alt` contributes nothing to `textContent` — so the link was reported as **an icon-only control with no accessible name at all**. A defect in the measurement was about to be written up as an a11y defect in the product | extractor reads descendant `img[alt]`; the finding disappeared on its own, which is the correct outcome |
+| A rate-limited signup run reported BLOCKED with **0 assertions** | "nothing was learned" — but when the environment refuses to send, the product still owes the user an error, owes them *not* a success claim, and must not leave a half-made account behind. The run gave up before checking any of it | 4 assertions now run on the refusal path, all passing: error shown, no success claimed, **no auth user created, no membership created** |
 
 **The recurring lesson.** Every item in 5b produced a confident, specific, wrong
 statement. None would have been caught by reading the code, and the two most
@@ -213,12 +277,18 @@ Held by the presentation tier (`qa-run-all.mjs`), unchanged by this work:
 | `pnpm typecheck` | **0 errors** |
 | `pnpm lint` | **0 errors, 15 warnings** (warnings are `@next/next/no-img-element`, pre-existing) |
 | `pnpm audit:design` | clean |
-| `qa-run-workflows.mjs` | 21 exercises, 468 assertions, 19 PASS / 2 BLOCKED / 0 FAIL |
+| `qa-run-workflows.mjs` | 21 exercises, 472 assertions, 19 PASS / 2 BLOCKED / 0 FAIL |
+| `qa-workflow-assertion-index.mjs` | 464 distinct named behaviours; only 2 asserted by more than one exercise |
+| `qa-control-surface-census.mjs` | 130 pages, 13 roles, 0 failed; 58 action controls, 81% label overlap |
 
 **Still outstanding, and needing you rather than a code change:**
 
 - **VAPID push-notification keys are only in local `.env.local`.** Vercel does not have them set,
   so web push will not fire in production until you add them. Every other notification surface
   (in-app, email digest) is verified working.
-- **Signup and admin-invite cannot be proven until the Supabase email budget resets.** They are
-  reported BLOCKED, not passed.
+- **Signup's success path and the admin invite cannot be proven until the Supabase project's
+  signup/invite limit clears.** They are reported BLOCKED, not passed — and note the limit is
+  much longer-lived than its own "wait a minute" message suggests. **Do not run the rate-limit
+  probe first**; it consumes the budget (§4).
+- **`Cancel` and `Reset` on `/app/my/leave` are asserted by nothing.** The only two unmatched
+  buttons on the measured surface. Closing that gap means a leave exercise that presses them.

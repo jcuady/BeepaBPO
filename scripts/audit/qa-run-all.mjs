@@ -144,6 +144,15 @@ const CHECKS = [
 
   { id: "role-sweep",       tier: "slow",  cmd: ["scripts/audit/audit-role-sweep.mjs"],         evidence: "docs/evidence/role-sweep.json",             what: "13 roles across their reachable pages" },
 
+  // Turns "every button works" from a hedge into a measurement: inventories every
+  // interactive control on every route the role sweep reached, then reports how
+  // many the suite asserts anything about -- and lists the ones nothing covers.
+  //
+  // Placed AFTER `role-sweep` because it reads that tier's route list; running it
+  // first would silently measure the previous run's routes. (It was briefly
+  // registered above `role-sweep` while a comment claimed otherwise.)
+  { id: "control-census", tier: "slow",  cmd: ["scripts/audit/qa-control-surface-census.mjs"], evidence: "docs/evidence/control-surface-census.json", what: "interactive-control surface vs. what the suite asserts" },
+
   { id: "gate",             tier: "gate",  cmd: ["__GATE__"],                                   evidence: null, what: "vitest + tsc --noEmit" },
 ];
 

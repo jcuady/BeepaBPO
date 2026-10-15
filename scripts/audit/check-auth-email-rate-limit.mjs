@@ -1,31 +1,51 @@
 // Is the Supabase auth-email rate limit still blocking the last 3 unexercised actions?
 //
+// READ THIS BEFORE YOU RUN IT
+// ---------------------------
+// THIS PROBE CONSUMES THE BUDGET IT IS MEASURING.
+//
+// A probe that is answered `accepted` has really called `auth.signUp`, which really
+// consumed rate-limit budget, before it deletes the user it made. So this script
+// cannot tell you "safe to run the exercises now" and then be innocent of the
+// exercise being blocked a moment later. Observed directly: a probe run reported
+// `signUp (apex domain)` as accepted and `signUp (demo subdomain)` + invite as
+// limited; the signup exercise run immediately afterwards was refused with
+// "Too many sign-up attempts from this network", and was still refused after a
+// further 100 seconds of waiting.
+//
+// The old header claimed it was "safe to re-run as often as you like". That was
+// wrong and it mattered: the documented recovery procedure was itself the thing
+// burning the window being waited for.
+//
+// So: use this to learn the SHAPE of the limit, then leave the environment alone
+// long enough for it to recover, then run the real exercise. A green probe is not
+// a green light for the exercise.
+//
 // WHY THIS EXISTS
 // `signupAction`, `resetPasswordAction` and `inviteClientUser` are the only three of
 // 83 server actions that no committed script has driven end to end, and all three are
 // blocked by the same thing: each asks Supabase to send an email, and this project
-// currently answers HTTP 429 "email rate limit exceeded" for every such request.
+// currently answers HTTP 429 for every such request.
 // Without this script the way to find out is to start a full server, sign in through
 // a browser, fill a form and read the error off the page.
 //
 // WHAT IT ACTUALLY DOES
-// Two probes, one for each API the product calls:
-//   - `auth.signUp` on the ANON key -- the exact call `signupAction` makes.
+// Probes, one per API the product calls:
+//   - `auth.signUp` on the ANON key, on two address shapes -- the exact call
+//     `signupAction` makes.
 //   - `auth.admin.inviteUserByEmail` on the service-role key -- the call
 //     `inviteClientUser` makes.
 // Each probe prints the status and message, and DELETES any user it managed to create.
-// It never leaves an account behind, so it is safe to re-run as often as you like.
+// It never leaves an account behind.
 //
 // A note on the probe address: the domain matters. Supabase validates the address
 // BEFORE it reaches the rate limiter, so a reserved TLD such as `.invalid` comes back
 // as 400 "Email address is invalid" -- which proves nothing about the 429 and looks
-// superficially like the blocker clearing. These probes use `demo.beepabpo.com`, the
-// same domain the existing QA harness signs in with, so the request actually reaches
-// the limiter.
+// superficially like the blocker clearing. Both domain shapes are therefore probed.
 //
 // Usage: node scripts/audit/check-auth-email-rate-limit.mjs
-// Exit 0 = not rate limited (the remaining 3 actions can be driven).
-// Exit 1 = still rate limited (HTTP 429).
+// Exit 0 = no probe was limited. NOT a guarantee that an exercise will pass — see above.
+// Exit 1 = at least one probe was limited.
 
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
@@ -138,12 +158,37 @@ if (limited.length) {
   console.log(`COULD NOT DETERMINE. Every probe was rejected as an invalid address before the limiter: ${inconclusive.join(", ")}`);
 }
 
-console.log("\nWhy each of the 3 actions is still unexercised, and what would unblock it:");
-console.log("  signupAction      needs auth.signUp to be accepted AND the confirmation email");
-console.log("                    to arrive. Both are gated: signUp is rate limited above.");
-console.log("  inviteClientUser  needs admin.inviteUserByEmail accepted. Rate limited above.");
+console.log("\nWhy each of the 3 actions is unexercised, and what would unblock it:");
+
+// Derived from the measurement, not asserted. The previous wording hardcoded
+// "signUp is rate limited above", which contradicted this script's own output
+// whenever an apex-domain signUp came back accepted — the reader was told the
+// limiter was blocking something the same run had just shown was not blocked.
+const signUpApex = results.find(([n]) => n === "signUp (apex domain)")?.[1];
+const signUpVerdict =
+  signUpApex === "limited" ? "refused by the limiter in this run"
+  : signUpApex === "accepted" ? "ACCEPTED in this run — the limiter did not block it, but this run spent budget doing so"
+  : "could not be determined (address rejected before the limiter)";
+
+console.log(`  signupAction      needs auth.signUp to be accepted AND the confirmation email`);
+console.log(`                    to arrive. Measured: ${signUpVerdict}.`);
+console.log("  inviteClientUser  needs admin.inviteUserByEmail accepted." +
+  (limited.includes("inviteUserByEmail")
+    ? " Measured: refused by the limiter in this run."
+    : accepted.includes("inviteUserByEmail")
+      ? " Measured: ACCEPTED in this run, at the cost of budget."
+      : " Measured: could not be determined."));
 console.log("  resetPasswordAction does NOT need the rate limit cleared — it consumes a");
 console.log("                    recovery token from an inbox. There is no mail provider in");
 console.log("                    this environment, so this one stays blocked either way.");
-console.log("\nNothing was created by this run; every account it made was deleted again.");
+
+console.log("\nNothing was left behind: every account this run created was deleted again.");
+if (accepted.length) {
+  console.log(
+    "\n!! This run was ANSWERED on: " + accepted.join(", ") + "\n" +
+      "   Those calls consumed real rate-limit budget before their users were deleted.\n" +
+      "   Do NOT run the exercises immediately after this probe -- they will be refused\n" +
+      "   and the refusal will look like a product fault. Wait first.",
+  );
+}
 process.exitCode = limited.length ? 1 : 0;

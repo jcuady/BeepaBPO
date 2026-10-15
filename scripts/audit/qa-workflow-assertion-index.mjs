@@ -36,8 +36,13 @@ if (!existsSync(EVIDENCE_DIR)) {
   process.exit(2);
 }
 
+// Excludes its own output. Without the second name this file indexed ITSELF --
+// `workflow-assertion-index.json` matches `workflow-.*\.json`, so every run
+// picked up the previous run's index as a 22nd "exercise" with zero assertions,
+// and the reported exercise count silently crept upward with every invocation.
+const SELF = "workflow-assertion-index.json";
 const files = readdirSync(EVIDENCE_DIR)
-  .filter((f) => /^workflow-.*\.json$/.test(f) && f !== "workflow-summary.json")
+  .filter((f) => /^workflow-.*\.json$/.test(f) && f !== "workflow-summary.json" && f !== SELF)
   .sort();
 
 if (!files.length) {
@@ -114,7 +119,16 @@ const out = {
     assertionCount: e.assertionCount,
     distinctBehaviours: e.behaviours.length,
     failed: e.failed,
-    behaviours: verbose ? e.behaviours : undefined,
+    // ALWAYS stored. `verbose` controls what is printed to the terminal, never
+    // what the evidence file contains.
+    //
+    // These names were omitted unless --verbose was passed, which left
+    // workflow-assertion-index.json holding counts with no list -- and the
+    // control-surface census, which matches button labels against these names,
+    // therefore read an empty haystack and reported a confident, entirely
+    // fictional "0% of buttons are covered". An evidence file whose entire
+    // purpose is to BE the list must not ship the list only sometimes.
+    behaviours: e.behaviours,
   })),
 };
 
