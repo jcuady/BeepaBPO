@@ -39,23 +39,25 @@ Two columns are kept deliberately separate:
 | 17 | **Unit tests** | ✅ Verified today | **680/680 across 90 files** | — |
 | 18 | **Typecheck / lint** | ✅ Verified today | `tsc --noEmit` 0 errors; `eslint` 0 errors | — |
 | 19 | **Notification delivery** | ✅ Verified today | 16 assertions incl. per-user isolation — another user's notification is neither shown nor touched by mark-all | **Web push will not fire in production**: VAPID keys are in local `.env.local` only, not Vercel |
-| 20 | **Role × page reachability** | 📋 Inherited | 219/219 clean across 13 roles, recorded 2026-10-09 | Not re-run today |
+| 20 | **Role × page reachability** | ✅ Verified today | `audit:role-pages` **222/222** nav-reachable pages clean across 13 roles, exit 0 | — |
 | 21 | **Responsive** | 📋 Inherited | 224/224 owner routes; 100/100 across roles; 56/56 marketing, recorded 2026-10-09 | Not re-run today |
 | 22 | **E2E (Playwright)** | 📋 Inherited | 100 passed, 4 skipped, recorded 2026-10-09 | Needs `RUN_E2E=true` + secrets in CI |
-| 23 | **Documentation** | ⚠️ Partial | 24 docs in `docs/` + `AGENTS.md`, `PROJECT_STATUS.md` | Reconciled this session; see below. Still no single index a reader can trust without knowing the history |
-| 24 | **Realtime** | 📋 Inherited | PASS — authenticated subscriber received a live INSERT, recorded 2026-10-09 | Not re-run today |
+| 23 | **Documentation** | ✅ Verified today | 24 docs + 5 root files; `docs/README.md` is now a single index mapping **one authority per subject**, with each doc's verification date and the two historical contradictions recorded where a reader meets them | — |
+| 24 | **Realtime** | ✅ Verified today | `audit:realtime` — authenticated subscriber received a live `notifications` INSERT in **418ms** | — |
 
 ## The honest summary
 
-**Proven and current: rows 1–11, 15–19.** Every one of those was executed in this
+**Proven and current: rows 1–11, 15–20, 23, 24.** Every one of those was executed in this
 session against a production build and the real database.
 
 **Blocked by the environment, not by the code: rows 12–14.** These are not
 "probably fine". They are unproven, and reporting them as anything else is the
 failure this matrix exists to prevent.
 
-**Inherited, and therefore not current evidence: rows 20–22, 24.** Real results
-from six days ago. They should be re-run before anyone quotes them as today's.
+**Inherited, and therefore not current evidence: rows 21–22.** Real results from
+six days ago — responsive (224/224, 100/100, 56/56) and Playwright E2E (100
+passed, 4 skipped). They should be re-run before anyone quotes them as today's.
+They are labelled rather than quietly promoted into the current column.
 
 **Known gap: row 19's web push.** The in-app and email-digest paths are proven.
 The push path is configured correctly locally and simply has nowhere to send from
