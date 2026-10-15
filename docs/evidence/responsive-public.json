@@ -1,6 +1,6 @@
 {
   "check": "responsive-public",
-  "generatedAt": "2026-10-15T14:32:32.097Z",
+  "generatedAt": "2026-10-15T14:42:23.410Z",
   "base": "http://localhost:3100",
   "routes": [
     "/",
@@ -20,48 +20,17 @@
     "/employee/login"
   ],
   "total": 120,
-  "passed": 118,
-  "failures": 2,
+  "passed": 120,
+  "failures": 0,
   "results": [
     {
       "route": "/",
       "viewport": "375x667",
       "name": "iPhone SE",
-      "verdict": "FAIL",
-      "issues": "BLEED 13",
+      "verdict": "PASS",
+      "issues": "—",
       "detail": {
-        "bleeders": [
-          {
-            "tag": "table",
-            "cls": "w-full caption-bottom text-sm dashboard-table",
-            "right": 396
-          },
-          {
-            "tag": "thead",
-            "cls": "[&_tr]:border-b",
-            "right": 396
-          },
-          {
-            "tag": "tr",
-            "cls": "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=sel",
-            "right": 396
-          },
-          {
-            "tag": "th",
-            "cls": "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([rol",
-            "right": 396
-          },
-          {
-            "tag": "tbody",
-            "cls": "[&_tr:last-child]:border-0",
-            "right": 396
-          },
-          {
-            "tag": "tr",
-            "cls": "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=sel",
-            "right": 396
-          }
-        ],
+        "bleeders": [],
         "smallTargets": [],
         "tinyText": [],
         "console": [],
@@ -72,41 +41,10 @@
       "route": "/",
       "viewport": "393x852",
       "name": "iPhone 15",
-      "verdict": "FAIL",
-      "issues": "BLEED 13",
+      "verdict": "PASS",
+      "issues": "—",
       "detail": {
-        "bleeders": [
-          {
-            "tag": "table",
-            "cls": "w-full caption-bottom text-sm dashboard-table",
-            "right": 396
-          },
-          {
-            "tag": "thead",
-            "cls": "[&_tr]:border-b",
-            "right": 396
-          },
-          {
-            "tag": "tr",
-            "cls": "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=sel",
-            "right": 396
-          },
-          {
-            "tag": "th",
-            "cls": "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([rol",
-            "right": 396
-          },
-          {
-            "tag": "tbody",
-            "cls": "[&_tr:last-child]:border-0",
-            "right": 396
-          },
-          {
-            "tag": "tr",
-            "cls": "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=sel",
-            "right": 396
-          }
-        ],
+        "bleeders": [],
         "smallTargets": [],
         "tinyText": [],
         "console": [],

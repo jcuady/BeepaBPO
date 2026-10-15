@@ -1822,4 +1822,16 @@ html:has(.beepaLanding) {
   .beepaLanding .service-list {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  /* The platform-preview mock's table puts `whitespace-nowrap` on every cell,
+     and the mobile type floor above raises it to 16px, so its four columns need
+     ~396px inside a ~331px container. `.dashboard` clips, which is why the page
+     itself never scrolled — the Performance column was simply cut off. Letting
+     the cells wrap lets the table take the width it actually has. */
+  .beepaLanding .dashboard-table th,
+  .beepaLanding .dashboard-table td {
+    white-space: normal;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
 }

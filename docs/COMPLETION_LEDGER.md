@@ -21,8 +21,10 @@ Behavioural proof and the full per-feature breakdown: `docs/FEATURE_CHECKLIST.md
 | Workflow suite | **21 exercises, 488 assertions, 19 PASS / 2 BLOCKED / 0 FAIL** against a production build on real DB state, with the build proven current by `audit:server-fresh` |
 | Button surface | 13 roles / 444 page visits, **0 page failures**; 339 action controls, 84.7% label overlap, **0 without an accessible name**. Every unmatched *button* chased: 3 flagged, **1 real hole** (cash-advance `Reject`, never pressed — reject leg had zero executions) now covered; 2 artefacts (`Save`, `Continue`, both exercised and working) |
 | Role × page reachability | **479** role-page visits across 13 roles, **0 page errors** |
-| Responsive — owner, all routes | **232/232** (224 route × viewport + 8 for `/app/cms`), 28 routes × 8 viewports, re-run on a build proven current |
-| Responsive — all roles | 100/100 at 390 + 768 across 7 roles |
+| Responsive — public + auth | **120/120** across 15 routes × 8 viewports, exit 0, on a build proven current — measured *after* the two homepage fixes it previously hid |
+| Playwright E2E | **102 passed, 2 skipped, 0 failed** in 3.3 min against the current build (replaces the inherited "100 passed, 4 skipped") |
+| Responsive — owner, product app | **232/232** (224 route × viewport + 8 for `/app/cms`), 28 routes × 8 viewports, re-run on a build proven current |
+| Responsive — all roles | 100/100 at 390 + 768 across 7 roles — **inherited 2026-10-09**, not re-run today |
 | Responsive — marketing | 56/56 across 7 routes × 8 viewports |
 | Design system | **exit 0 — 0 raw primitives, 0 hardcoded colours** |
 | Filter persistence | exit 0 — 32 paginated pages, 0 dropped filters, 0 unverified |
