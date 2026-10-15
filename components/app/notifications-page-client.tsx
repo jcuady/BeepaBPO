@@ -212,7 +212,17 @@ export function NotificationsPageClient({
                       {" · "}
                       <Link
                         href={n.action_url}
-                        className="text-green-strong hover:underline"
+                        // `underline`, not `hover:underline`.
+                        //
+                        // This link sits inside a <p> of body text, so WCAG 1.4.1
+                        // requires it to be distinguishable without colour alone.
+                        // `text-green-strong` against `text-slate` measures
+                        // 1.01:1 — axe calls it out as a serious
+                        // `link-in-text-block` violation — and the only other
+                        // affordance was an underline that appears on hover.
+                        // A touch device has no hover, so on a phone this read as
+                        // plain text with no indication it was tappable.
+                        className="text-green-strong underline"
                       >
                         Open
                       </Link>

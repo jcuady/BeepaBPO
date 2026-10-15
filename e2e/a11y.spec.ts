@@ -195,9 +195,31 @@ test.describe("notification switches on a touch device", () => {
         const cs = getComputedStyle(el);
         if (cs.display === "none" || cs.visibility === "hidden") continue;
 
+        // Two things must be true before a box is a touch target: it is laid out,
+        // and it has AREA.
+        //
+        // `/app/my/notifications` renders each preference switch twice. The
+        // second copy measures `box: 0x0`, so the arithmetic below turned it into
+        // a fictitious "24x30" and failed a control that is in fact 56x48 — the
+        // visible switch was passing all along. The previous guard only skipped
+        // `display:none` and `visibility:hidden`, both of which a laid-out but
+        // zero-sized element passes.
+        //
+        // A control with no area has no touch target by definition; nobody can
+        // tap it. Counting it makes the check report a product defect that does
+        // not exist, which is the failure mode this whole file was written to
+        // avoid.
+        const rect = el.getBoundingClientRect();
+        if (rect.width === 0 && rect.height === 0) continue;
+        if (
+          typeof el.checkVisibility === "function" &&
+          !el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
+        ) {
+          continue;
+        }
+
         // The tappable area is the ::after overlay, not the painted switch.
         const after = getComputedStyle(el, "::after");
-        const rect = el.getBoundingClientRect();
         let h = rect.height;
         let w = rect.width;
         if (after && after.content !== "none" && after.position === "absolute") {

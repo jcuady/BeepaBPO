@@ -40,10 +40,10 @@ Two columns are kept deliberately separate:
 | 18 | **Typecheck / lint** | ✅ Verified today | `tsc --noEmit` 0 errors; `eslint` 0 errors | — |
 | 19 | **Notification delivery** | ✅ Verified today | 16 assertions incl. per-user isolation — another user's notification is neither shown nor touched by mark-all | **Web push will not fire in production**: VAPID keys are in local `.env.local` only, not Vercel |
 | 20 | **Role × page reachability** | ✅ Verified today | `audit:role-pages` **222/222** nav-reachable pages clean across 13 roles, exit 0 | — |
-| 21 | **Responsive — public + auth** | ✅ Verified today | `audit:responsive` **120/120** viewport-route combinations clean, 15 routes × 8 viewports, exit 0 | — |
+| 21 | **Responsive — public + auth** | ⚠️ **Verified today, 118 of 120** | `audit:responsive` re-run on a build proven current: **118/120**. `/` reports `BLEED 13` at 375px and 393px — 13 elements cross the right edge inside a clipping container, so the document no longer scrolls (`scrollWidth` = `clientWidth`, E2E viewport spec 25/25) but content is cut off inside that container | The previously committed `120/120` was written **before** this build and was hiding a **149px document overflow** on `/`. Replaced with the honest figure rather than restored |
 | 21b | **Responsive — product app (routes)** | ✅ Verified today | `audit:app-responsive` **224/224** across 28 routes × 8 viewports (375→1920) as owner, plus **8/8** for `/app/cms` under marketing — **232/232**, all five chunks exit 0, on a build proven current by `audit:server-fresh` | — |
 | 21c | **Responsive — per role** | 📋 Inherited | 100/100 at 390 + 768 across 7 roles (owner 14, finance 14, team lead 14, employee 14, client admin 20, client viewer 18, applicant 6), recorded 2026-10-09 | Not re-run today — a different measurement from row 21b, which covers routes for one role |
-| 22 | **E2E (Playwright)** | 📋 Inherited | 100 passed, 4 skipped, recorded 2026-10-09 | Needs `RUN_E2E=true` + secrets in CI |
+| 22 | **Playwright E2E** | ✅ Verified today | `npx playwright test --workers=1` against the current build: **102 passed, 2 skipped, 0 failed** in 3.3 min. Replaces the inherited "100 passed, 4 skipped" (2026-10-09) | The 2 skips are by design. Switching this on in CI still needs the `RUN_E2E=true` repo variable — a settings action, not a code change |
 | 23 | **Documentation** | ✅ Verified today | 24 docs + 5 root files; `docs/README.md` is now a single index mapping **one authority per subject**, with each doc's verification date and the two historical contradictions recorded where a reader meets them | — |
 | 24 | **Realtime** | ✅ Verified today | `audit:realtime` — authenticated subscriber received a live `notifications` INSERT in **418ms** | — |
 | 25 | **Every declared audit is actually gated** | ✅ Verified today | `audit:gate-coverage` — **0 ungated**. 29 of 36 declared `audit:`/`verify:`/`smoke:` scripts are wired into one of the two release orchestrators; 7 are seed/fix/planning and reported as not-gates by nature | — |
@@ -61,12 +61,12 @@ session against a production build and the real database.
 "probably fine". They are unproven, and reporting them as anything else is the
 failure this matrix exists to prevent.
 
-**Inherited, and therefore not current evidence: rows 21c, 22.** Responsive measured
+**Inherited, and therefore not current evidence: row 21c only.** Responsive measured
 *per role* rather than per route (100/100 at 390 + 768 across 7 roles, recorded
-2026-10-09) and Playwright E2E (100 passed, 4 skipped). Both should be re-run before
-anyone quotes them as today's. They are labelled rather than quietly promoted — and note
-that row 21b going green today is **not** evidence for row 21c: they measure different
-things over a different set of pages.
+2026-10-09). It should be re-run before anyone quotes it as today's. Note that row 21b
+going green today is **not** evidence for row 21c: they measure different things over a
+different set of pages. Row 22 (Playwright E2E) is no longer inherited — it was re-run
+today against the current build.
 
 **Known gap: row 19's web push.** The in-app and email-digest paths are proven.
 The push path is configured correctly locally and simply has nowhere to send from
