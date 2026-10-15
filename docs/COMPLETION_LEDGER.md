@@ -1,34 +1,51 @@
 # Completion ledger — Principal QA campaign
 
 **Started:** 2026-09-13  
-**Last updated:** 2026-10-09 (payroll reconciliation, all migrations applied, realtime proven)  
-**Campaign status:** **COMPLETE — the release gate passes end to end.** Forward roadmap: `docs/REMAINING_WORK.md`.
+**Last updated:** 2026-10-15 (workflow suite, button-surface census, five gate corrections)  
+**Campaign status:** **The release gate passes end to end.** Forward roadmap: `docs/REMAINING_WORK.md`.
+Behavioural proof and the full per-feature breakdown: `docs/FEATURE_CHECKLIST.md`.
 
-## Current verified state (2026-10-09)
+## Current verified state (2026-10-15)
 
 | Gate | Result |
 |---|---|
-| `tsc --noEmit` | PASS |
-| `eslint .` | PASS (`--max-warnings=0`) |
-| `vitest run` | **504/504** across 84 files |
+| `tsc --noEmit` | PASS — 0 errors |
+| `eslint .` | PASS — 0 errors, 15 pre-existing `@next/next/no-img-element` warnings |
+| `vitest run` | **680/680** across 90 files (was 504/504 across 84) |
 | `pnpm build` | PASS |
-| **Release gate** | **18/18 passed — exit 0, "All checks passed. Ship it."** |
-| Route RBAC | **75/78 (96%)** + 3 structural exemptions, exit 0 |
-| Action RBAC | 63/64, exit 0 |
-| Dead controls | 0 candidates across 269 `.tsx` (validated by negative control) |
-| Page inventory | 93 pages, `--check` clean |
-| Design system | **exit 0 — 0 raw primitives, 0 hardcoded colours** (12 radius values informational) |
-| Filter persistence | **exit 0 — 32 paginated pages, 0 dropped filters, 0 unverified** |
-| Migration preflight | **0 pending**; all 8 applied, Local == Remote for every one. **Not a grammar check** |
-| Realtime delivery | **PASS** — an authenticated subscriber received a live `notifications` INSERT |
-| Payroll periods | **0 overlapping**; the overlap constraint and the status-coherence trigger are both installed |
-| Role × page reachability | **219/219 nav-reachable pages clean across 13 roles** (re-run 2026-10-09, two batches, after the shared-chrome changes) |
-| Responsive — owner, all routes | **224/224** across 28 routes × 8 viewports (was 215/232) |
-| Responsive — all roles | **100/100** at 390 + 768 across 7 roles |
+| Route RBAC | **75/79** + 4 structural exemptions, exit 0 |
+| Action RBAC | **64/65**, exit 0 (the 1 is a public form, annotated) |
+| Dead controls | **0 candidates** across 269 `.tsx`, mutation-proven |
+| Form reset integrity | **28 forms scanned, 21 that reset — 0 with a field that survives one** |
+| Migration preflight | **38 on disk, 0 pending**, all applied, Local == Remote for every one. **Not a grammar check** |
+| Workflow suite | **21 exercises, 480 assertions, 19 PASS / 2 BLOCKED / 0 FAIL** against a production build on real DB state |
+| Button surface | **23 of 23 buttons** have a behavioural assertion (58 action controls overall, 84.5% label overlap) |
+| Role × page reachability | 219/219 nav-reachable pages clean across 13 roles |
+| Responsive — owner, all routes | 224/224 across 28 routes × 8 viewports |
+| Responsive — all roles | 100/100 at 390 + 768 across 7 roles |
 | Responsive — marketing | 56/56 across 7 routes × 8 viewports |
-| E2E | **100 passed, 4 skipped, 0 failed** against a production build from a cold `.auth`. **CI job runnable**; needs `RUN_E2E=true` + secrets |
-| Notification isolation | 0 third-party leaks |
-| Attendance timezone | PASS on a `TZ=UTC` host |
+| Design system | **exit 0 — 0 raw primitives, 0 hardcoded colours** |
+| Filter persistence | exit 0 — 32 paginated pages, 0 dropped filters, 0 unverified |
+| Realtime delivery | PASS — an authenticated subscriber received a live `notifications` INSERT |
+| Payroll periods | 0 overlapping; overlap constraint and status-coherence trigger both installed |
+| E2E | 100 passed, 4 skipped, 0 failed against a production build from a cold `.auth` |
+
+### Corrections made to this ledger's own gates (2026-10-15)
+
+Four of the gates above had been reporting findings that were not real, and one
+had a **test asserting the wrong answer**. Each printed a number in the same
+format as a measured one, which is how a stale gate survives:
+
+| Gate | Was | Now |
+|---|---|---|
+| Migration preflight | printed "pending: 4" from a hardcoded list, months after all four were applied | prints no pending count at all; points at `supabase migration list` |
+| Dead controls | 2 "buttons with no handler", both JSDoc prose about a button | reads comment-stripped source; mutation-proven it still catches a real one |
+| Route RBAC | flagged `/app/[...rest]`, which is `notFound()` and nothing else | exempt, with the reasoning recorded inline |
+| Action RBAC | flagged the public career enquiry dialog | one-line `// unauthenticated:` marker, as its sibling already had |
+
+`tests/migration-preflight.test.ts` asserted `toContain("pending: 4")`. That test
+was guarding the lie. It now asserts the opposite property: the script must never
+print a pending count.
 
 ## Blockers 1 and 2 — closed 2026-10-09
 

@@ -2821,6 +2821,30 @@ sitemap kept advertising the dead URL until the next deploy.
 **The prediction was never demonstrated, and the defect it pointed at does not exist.**
 Three runs failed, and each failure was a different measurement mistake:
 
+> **SUPERSEDED — read this before the paragraph below.** The sentence above is the
+> wrong conclusion, and so is any part of this section that rests on it. It was
+> walked back later in the same document ("What survives, and what does not", below,
+> which concedes the route is build-time static and a new article "will not reach
+> the sitemap until the next deploy"), and a later session then measured it
+> properly and **fixed it**.
+>
+> What is actually true: `/sitemap.xml` was prerendered at build time and served
+> `x-nextjs-cache: HIT` indefinitely. Publishing an article left it absent from the
+> sitemap — not until the next deploy, but for as long as the server ran the build
+> that predated it. `export const revalidate = 3600` was tried and does **not**
+> repair it, because ISR still serves the pre-publication document for up to an
+> hour. The route now carries `export const dynamic = "force-dynamic"`, is generated
+> per request, and no longer leaves a `.next/server/app/sitemap.xml.body` artifact
+> behind at all. `qa-exercise-sitemap-unpublish.mjs` asserts the real guarantee: a
+> newly published article appears in the sitemap **without a rebuild**. See
+> `docs/FEATURE_CHECKLIST.md` §5a.
+>
+> The three measurement mistakes below are still worth reading — the stale-server
+> PID trap and the misleading "incremental build looks fresh" signals are real and
+> cost real time. But they were not the explanation. The last one in particular is
+> now moot for this route: there is no build-time sitemap artifact left to go
+> stale.
+
 1. **The restart served the old build.** `next start` could not bind while the previous
    process still held port 3100, so the "rebuilt" server silently continued serving the
    build from before. Fixed by asserting the serving PID *changed* after every rebuild, and

@@ -58,18 +58,44 @@ const tz = emp.default_timezone || "Asia/Manila";
 // Create our own fixture with a known instant so the assertion is meaningful,
 // then remove it. Mirrors test-notification-isolation.mjs: the script owns
 // every row it writes.
-const KNOWN_ISO = "2026-09-15T00:00:00.000Z"; // 08:00 in Asia/Manila
-const WORK_DATE = "2026-09-15";
+//
+// WHY THE DATE IS FOUND, NOT FIXED
+// --------------------------------
+// This used to hardcode `WORK_DATE = "2026-09-15"` and exit 1 if a record already
+// existed there. Real data has since landed on that date, so the audit failed with
+// "A record already exists for 2026-09-15; refusing to overwrite it" -- correctly,
+// as a matter of not trampling someone's attendance, and useless as a matter of
+// checking anything. An audit that can only run once, and then not again, reads as
+// a pass to anyone reading the report rather than the log.
+//
+// So: walk forward from the original date until a day is free, and derive the
+// instants from THAT date. The timezone assertion still holds because midnight UTC
+// is 08:00 in Asia/Manila on every date, which is the whole point of the check.
+const BASE_DATE = "2026-09-15";
 
-const { data: existing } = await admin
-  .from("attendance_records")
-  .select("id")
-  .eq("employee_id", emp.id)
-  .eq("work_date", WORK_DATE)
-  .maybeSingle();
-if (existing) {
-  console.log(`A record already exists for ${WORK_DATE}; refusing to overwrite it.`);
-  process.exit(1);
+async function findFreeWorkDate() {
+  for (let offset = 0; offset < 120; offset++) {
+    const d = new Date(`${BASE_DATE}T00:00:00.000Z`);
+    d.setUTCDate(d.getUTCDate() + offset);
+    const iso = d.toISOString().slice(0, 10);
+    const { data: clash, error } = await admin
+      .from("attendance_records")
+      .select("id")
+      .eq("employee_id", emp.id)
+      .eq("work_date", iso)
+      .maybeSingle();
+    if (error) throw error;
+    if (!clash) return iso;
+  }
+  throw new Error(`no free attendance work_date within 120 days of ${BASE_DATE}`);
+}
+
+const WORK_DATE = await findFreeWorkDate();
+const KNOWN_ISO = `${WORK_DATE}T00:00:00.000Z`; // 08:00 in Asia/Manila
+const KNOWN_OUT_ISO = `${WORK_DATE}T09:00:00.000Z`;
+
+if (WORK_DATE !== BASE_DATE) {
+  console.log(`work_date ${BASE_DATE} is occupied; using ${WORK_DATE} instead.`);
 }
 
 const { data: inserted, error: insertErr } = await admin
@@ -79,7 +105,7 @@ const { data: inserted, error: insertErr } = await admin
     work_date: WORK_DATE,
     status: "present",
     clock_in_at: KNOWN_ISO,
-    clock_out_at: "2026-09-15T09:00:00.000Z",
+    clock_out_at: KNOWN_OUT_ISO,
     worked_minutes: 540,
   })
   .select("id")
@@ -106,7 +132,7 @@ try {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-  }).format(new Date("2026-09-15T09:00:00.000Z"));
+  }).format(new Date(KNOWN_OUT_ISO));
 
   console.log(`Employee timezone: ${tz}`);
   console.log(`Stored clock_in_at (UTC): ${KNOWN_ISO}`);
