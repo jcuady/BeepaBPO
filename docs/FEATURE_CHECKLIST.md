@@ -7,11 +7,17 @@ fixed — the sitemap was being served frozen from the build, so newly published
 could never reach search engines, and `reset()` silently did nothing on most fields in
 five forms (§5a).
 
-**On "every button works":** rather than assert it, it is measured. Across 130 pages and all
-13 roles the app exposes **58 action controls** (buttons and fields, excluding nav chrome);
-**49 of them (84.5%)** have a matching behavioural assertion — and of the 23 that are actually
-buttons, **all 23 are covered**. The 9 remaining are form fields identified by raw field name,
-not gaps in behaviour.
+**On "every button works":** rather than assert it, it is measured. Across 13 roles and 444
+page visits the app exposes **340 action controls** (buttons and fields, excluding nav chrome);
+**287 of them (84.4%)** have a label that appears in some assertion's name.
+
+That number is a **proxy, not a measurement**, and it is wrong in both directions — see the
+long note below. The important part is not the percentage: it is that every unmatched
+*button* is chased to ground. Three were flagged on the current build and all three were
+resolved by reading the code and the run evidence, not by adjusting the figure. One of them
+was a genuine hole — the cash-advance **Reject** button had **never once been pressed**, and
+the reject leg of a money workflow had zero executions. It is now covered, end to end
+through the real UI.
 
 **What this document is.** A per-feature answer to "does this work", each row backed by an
 executable check that was actually run against a production build with real database state.
@@ -113,25 +119,40 @@ each, and cross-references the labels against the assertion names:
 
 | | found | label matched | |
 |---|---|---|---|
-| **Action controls** (buttons + fields, nav excluded) | **58** | **49** | **84.5% — the number to quote** |
-| of which **buttons** | 23 | **23** | **100% — no button is left unasserted** |
-| Navigation links (covered by `qa-exercise-internal-links.mjs` instead) | 42 | 30 | 71.4% |
+| **Action controls** (buttons + fields, nav excluded) | **339** | **287** | **84.7% — re-measured on the current build, 13 roles / 444 page visits** |
+| of which **buttons** | — | — | 2 flagged, both artefacts (`Save`, `Continue`) — both are pressed and work; see below |
+| Navigation links (covered by `qa-exercise-internal-links.mjs` instead) | 45 | 32 | 71.1% |
 
-172 distinct controls in total, and **0 with no accessible name**.
+538 distinct controls in total, and **0 with no accessible name**.
 
-**Treat 84.5% as an upper bound on coverage, not a measurement of it.** A "match" means some
-assertion's name mentions that label as a word; it does not prove the control was pressed,
-nor pressed in every state it can occupy. The opposite error is just as available and was made
-here three times before being caught — see §5b.
+**The metric is wrong in BOTH directions, so it is a proxy and not a measurement.** A
+"match" means some assertion's *name* mentions that label as a word.
 
-**The 9 unmatched controls are all form fields, not buttons:**
+- It **over**-reports: a label appearing in an assertion name does not prove the control
+  was pressed, nor pressed in every state it can occupy. The opposite error was made here
+  three times before being caught — see §5b.
+- It **under**-reports, and this is the direction that hides real gaps. Measured on the
+  current build it flagged three buttons:
+  - **`Reject` on `/app/cash-advances` was a genuine hole.** `CashAdvanceReviewButtons`
+    renders Approve *and* Reject, both calling `reviewCashAdvance`, and only Approve had
+    ever been pressed — the reject leg of a money workflow had **zero** executions, while
+    an assertion listed `"rejected"` among acceptable end states. Now covered: 6 new
+    assertions, 33 → 39, and the census no longer flags it.
+  - **`Save` on `/app/payroll/settings` and `Continue` on `/app/payroll/periods` are
+    artefacts**, and remain flagged. Both are pressed and both work — proved from the run,
+    not from the code: `salary change persisted — 120000 -> 120111` is the Save click, and
+    `a new payroll period was created` is the Continue click. The assertions are named for
+    the *outcome*, not the control.
 
-`reason`, `category`, `description`, `to`, `on`, `currentPassword`, `confirmPassword`,
-`linkedin_url`, `notes`.
+So an unmatched control is a **question**, never a finding. Each of these three was chased
+to ground before anything was written down.
 
-That is a labelling artefact of this metric rather than a coverage hole — the attendance
-correction, the profile write and the job application are all exercised, just under behaviour
-names rather than field names.
+**The 50 unmatched controls are otherwise form fields**, which are the expected artefact of
+this metric: `reason`, `description`, `notes`, `slug`, `currentPassword`, `linkedin_url`,
+`visibility`, and the status/option values in `<select>`s (`won`, `lost`, `screening`).
+
+The attendance correction, the profile write and the job application are all exercised,
+under behaviour names rather than field names.
 
 **The two buttons this list originally contained are now closed.** `Cancel` and `Reset` on
 `/app/my/leave` were asserted by nothing; the leave exercise now clicks Reset on a deliberately
@@ -260,7 +281,7 @@ and the reason is general: a button's existence is not its behaviour.
 | `qa-workflow-assertion-index.mjs` stored behaviour names **only under `--verbose`** | `workflow-assertion-index.json` shipped counts with no list, so the census matched against an empty haystack and reported a confident, fictional **0% coverage** with a 117-item "actionable list" attached | names always stored; the census now aborts rather than cross-referencing an empty list |
 | The index also matched **its own output file** (`workflow-assertion-index.json` matches `workflow-*.json`) | every run indexed the previous run as a 22nd "exercise", and the exercise count crept upward on each invocation | self excluded by name |
 | `qa-control-surface-census.mjs` returned from `signIn` immediately after clicking submit | sign-in is a live Supabase round trip, so every page was fetched while unauthenticated and bounced to `/login`. It inventoried **the sign-in page 13 times** and reported "0% coverage, 0 pages failed", because every navigation had technically succeeded — the exact trap `audit-role-sweep.mjs` documents | waits for the condition, not a duration; records the **actual landed URL**, not the requested path; a bounce to `/login` counts as a failure; the run aborts if it never left the login page |
-| The census matched labels against full assertion strings including their **detail** | `"Dashboard"` matched an assertion whose detail was the URL `.../app/dashboard`, and `"Recruitment"` matched a JSON blob — producing a flattering **84.3% coverage** built mostly on incidental text | haystack is the assertion name only, URLs and JSON stripped; navigation links reported separately and excluded from the primary figure. Real figure then: **81%**, now **84.5%** once the two unmatched buttons were covered |
+| The census matched labels against full assertion strings including their **detail** | `"Dashboard"` matched an assertion whose detail was the URL `.../app/dashboard`, and `"Recruitment"` matched a JSON blob — producing a flattering **84.3% coverage** built mostly on incidental text | haystack is the assertion name only, URLs and JSON stripped; navigation links reported separately and excluded from the primary figure. It had also been flattering the product for a *second* reason — it flagged no buttons at all, on a role list two days stale (see the census staleness row below). Both directions of that error were eventually corrected |
 | The census extractor read only `textContent` for a control's name | the sidebar's brand link wraps `<Image alt="BEEPA">`, and an `alt` contributes nothing to `textContent` — so the link was reported as **an icon-only control with no accessible name at all**. A defect in the measurement was about to be written up as an a11y defect in the product | extractor reads descendant `img[alt]`; the finding disappeared on its own, which is the correct outcome |
 | A rate-limited signup run reported BLOCKED with **0 assertions** | "nothing was learned" — but when the environment refuses to send, the product still owes the user an error, owes them *not* a success claim, and must not leave a half-made account behind. The run gave up before checking any of it | 4 assertions now run on the refusal path, all passing: error shown, no success claimed, **no auth user created, no membership created** |
 | **`audit:migrations` printed "pending: 4" from a hardcoded filename list** and never queried anything | it had been right once and then went stale silently. `supabase migration list` shows all 38 migrations in **both** the Local and Remote columns, and `db push --dry-run` answers "Remote database is up to date". `docs/REMAINING_WORK.md` had said "zero pending" the whole time — the documentation was right and the gate was wrong | the script no longer prints a pending count it cannot know, points at the command that can, and preflights all 38 structurally. `tests/migration-preflight.test.ts` asserted `toContain("pending: 4")` — a test *guarding the lie* — and now pins "never prints a pending count" |
@@ -276,6 +297,8 @@ and the reason is general: a button's existence is not its behaviour.
 | the staleness rule was **written inverted** (`uptime < buildAge`) | every correctly restarted server reported itself stale one second after `next start`, because by then the build is older than the process. Reading the live `/api/health` response caught it; reasoning about it had not | extracted to `lib/server/build-freshness.ts` so a table test can pin the direction, and `tests/server-build-freshness.test.ts` asserts both directions plus the boundary and the cannot-tell case. The first draft of the "fresh" fixture asserted `false` for a genuinely stale pair — the fixture was wrong, not the function |
 | `audit:server-fresh` called `process.exit()` after a top-level `await fetch` | it printed `VERDICT: the server is running the build on disk` and then aborted with `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` (Windows libuv, 0xC0000409). A gate that reports correctly and exits on a crash code is one whose result cannot be trusted, because the runner only ever sees the number | sets `process.exitCode` and returns on every path. Verified: an unreachable server exits **2**, never 0 |
 | `qa-exercise-admin-workflow.mjs` waited a **fixed 4000ms** for the cron dry-run summary | it FAILED a full-suite run with *"no summary line found"* and passed minutes later on an idle server — a flake wearing a product defect's clothes. The dry-run walks three real jobs, and a 4s budget that passes when the box is quiet and fails when busy measures the box | waits on the condition (60s ceiling) and, on timeout, reports what the page actually said. The test-push assertion, which read the database after a fixed 3500ms, now polls to a bound instead |
+| **The cash-advance `Reject` button had never been pressed** | `CashAdvanceReviewButtons` renders Approve **and** Reject, both calling `reviewCashAdvance(requestId, action)`, but the money exercise only ever drove the approve leg — so the reject leg of a money workflow had **zero** executions. Meanwhile an assertion listed `"rejected"` among acceptable end states, which is how an unexercised path reads as covered. Found by the census, then confirmed in the product source rather than assumed | a second request is created and rejected through the real UI: the row is scoped by marker, the destructive confirm dialog's copy is asserted, the status must land on `rejected`, and the engine must have written a `reject` action row — not an approval. 33 → **39 assertions, all passing** |
+| **The control census measured the previous build's pages** | it does not discover which pages to walk — it reads `role-sweep.json`. The census written at 06:45 UTC today read a `role-sweep.json` last written **2026-10-13**, so its headline "84.5% of action controls covered" was computed over two-day-old routes. Nothing reported it: the script's own header names the failure (*"running it first would silently measure the previous run's routes"*) and then relies on registry ordering alone, which does nothing when the script is run directly — which is how every audit here is normally run | aborts (exit 2) when `role-sweep.json` is older than `.next/BUILD_ID`, before launching a browser, and records both input ages in its own evidence. Same rule as `audit-server-fresh`, applied to an evidence input instead of a process. Proven live: it fired on the real stale pair and named both timestamps |
 | **`generate-page-inventory.mjs` never listed the homepage** | its matcher was `/^(.*)\/(page|route)\.tsx?$/`, which requires a `/` before `page.tsx`. The homepage is `app/page.tsx`, whose relative path is `page.tsx` with no directory — so it did not match and the one route every visitor lands on was dropped. Two things hid it: `--check` only compares the committed file against what the function produces, so a subject the function cannot see is never reported missing; and the stale file still listed `/` pointing at `app/(marketing)/page.tsx`, which no longer exists, so the wrong row read as ordinary staleness. Found only because the ship gate failed on an unrelated new route and forced the file to be regenerated | directory part made optional. `93 → 96` pages, and `/` now resolves to `app/page.tsx` |
 | `tests/realtime-probe-contract.test.ts` required the fabricated excuse to exist | `expect(verifyCode).toMatch(/marker === "DELIVERY_FAILED" && SKIP_MIGRATION/)` pinned the very branch that turned a failed delivery probe into a skip citing an **applied** migration. A test guarding a lie — the same shape as `migration-preflight.test.ts` asserting `"pending: 4"` | rewritten to assert the opposite: the excuse is absent and `--skip-migration` skips a real migration check. The invariant it was protecting (a skip is never counted as passed) is asserted in `release-gate-honesty.test.ts`, against the accounting rather than one branch |
 
@@ -305,9 +328,9 @@ Held by the presentation tier (`qa-run-all.mjs`), unchanged by this work:
 | `pnpm typecheck` | **0 errors** |
 | `pnpm lint` | **0 errors, 15 warnings** (warnings are `@next/next/no-img-element`, pre-existing) |
 | `pnpm audit:design` | clean |
-| `qa-run-workflows.mjs` | 21 exercises, **482 assertions, 19 PASS / 2 BLOCKED / 0 FAIL**, on a build verified current by `audit:server-fresh` |
-| `qa-workflow-assertion-index.mjs` | 472 distinct named behaviours; only 2 asserted by more than one exercise |
-| `qa-control-surface-census.mjs` | 130 pages, 13 roles, 0 failed; 58 action controls, 84.5% label overlap, **0 unmatched buttons** |
+| `qa-run-workflows.mjs` | 21 exercises, **488 assertions, 19 PASS / 2 BLOCKED / 0 FAIL**, on a build verified current by `audit:server-fresh` |
+| `qa-workflow-assertion-index.mjs` | **480** distinct named behaviours; only 2 asserted by more than one exercise |
+| `qa-control-surface-census.mjs` | 444 page visits, 13 roles, **0 pages failed**; 339 action controls, 84.7% label overlap, **0 controls without an accessible name** |
 | `audit:form-reset-defaults` | 28 forms scanned, 21 that reset — every one defaults every field it registers |
 | `audit:gate-coverage` | **0 of 36** declared audit/verify/smoke scripts ungated; 7 seed/fix/planning reported as not-gates |
 | `audit:suite-base-url` | 58 HTTP-performing scripts, 0 disagree on origin |

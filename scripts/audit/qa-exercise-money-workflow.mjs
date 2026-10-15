@@ -372,6 +372,119 @@ try {
   }
   await empCtx.close();
 
+  // ------------------------------------------------------- cash advance: REJECT leg
+  //
+  // `CashAdvanceReviewButtons` renders Approve **and** Reject, and both call
+  // `reviewCashAdvance(requestId, action)`. Only Approve had ever been pressed, so
+  // the reject leg of a money workflow had **zero** executions — while the
+  // assertion above listed `"rejected"` among acceptable end states. That is the
+  // exact shape of an unexercised path that reads as covered: the test names the
+  // outcome it never causes.
+  //
+  // Found by `qa-control-surface-census.mjs`, which reports Reject as a button no
+  // assertion matches. A destructive transition on a money workflow with no
+  // execution is the kind of thing that breaks quietly — rejecting the row but
+  // leaving the approval request open, say.
+  const REJ_MARK = `qamoneyrj${Date.now().toString(36)}`;
+  const rejEmpCtx = await browser.newContext();
+  try {
+    const rejEmpPage = await signIn(rejEmpCtx, EMPLOYEE_EMAIL);
+    await rejEmpPage.goto(`${BASE}/app/my/cash-advances`, { waitUntil: "domcontentloaded" });
+    await rejEmpPage.waitForTimeout(1800);
+    await rejEmpPage.fill("#requested_amount", "1200");
+    await rejEmpPage.fill("#requested_repayment_periods", "1");
+    await rejEmpPage.fill("#reason", `QA cash advance ${REJ_MARK}.`);
+    await rejEmpPage.getByRole("button", { name: /request|submit/i }).first().click();
+    await rejEmpPage.waitForTimeout(3000);
+
+    const rejRow = (
+      await must(
+        db
+          .from("cash_advance_requests")
+          .select("id, status")
+          .ilike("reason", `%${REJ_MARK}%`)
+          .limit(1),
+        "reject-leg advance lookup",
+      )
+    )[0];
+    check("a second request exists to be rejected", rejRow !== undefined, rejRow?.id.slice(0, 8) ?? "none");
+    if (rejRow) createdAdvanceIds.add(rejRow.id);
+
+    const rejHrCtx = await browser.newContext();
+    try {
+      const rejHrPage = await signIn(rejHrCtx, HR_EMAIL);
+      await rejHrPage.goto(`${BASE}/app/cash-advances`, { waitUntil: "domcontentloaded" });
+      await rejHrPage.waitForTimeout(2000);
+
+      // Scope to this run's row for the same reason the approve leg does: the
+      // queue lists every open request and every row carries an identical
+      // "Reject", so `.first()` would reject whichever sorts first.
+      const rejTableRow = rejHrPage.locator("tr").filter({ hasText: REJ_MARK }).first();
+      check("HR sees the rejection candidate in the queue", await rejTableRow.isVisible().catch(() => false));
+
+      const rejectBtn = rejTableRow.getByRole("button", { name: "Reject" });
+      const rejectVisible = await rejectBtn.isVisible().catch(() => false);
+      check("a Reject control is offered on that row", rejectVisible);
+
+      if (rejectVisible) {
+        await rejectBtn.click();
+        // Waiting on the condition, not a duration — the dialog is the thing
+        // under test and the server is carrying the rest of this run.
+        const rejDialog = rejHrPage.getByRole("dialog");
+        await rejDialog.waitFor({ state: "visible", timeout: 20000 }).catch(() => {});
+        const rejDialogText = (await rejDialog.innerText().catch(() => "")).replace(/\s+/g, " ");
+        check(
+          "rejecting asks for confirmation that names the consequence",
+          /reject cash advance/i.test(rejDialogText),
+          rejDialogText.slice(0, 110) || "no dialog text",
+        );
+        await rejDialog.getByRole("button", { name: "Reject" }).click();
+      }
+      await rejHrPage.waitForTimeout(3500);
+
+      const rejAfter = (
+        await must(
+          db.from("cash_advance_requests").select("id, status").eq("id", rejRow?.id ?? "").limit(1),
+          "reject-leg status",
+        )
+      )[0];
+      check(
+        "reviewCashAdvance('reject') moves the request to rejected",
+        rejAfter?.status === "rejected",
+        `hr_review -> ${rejAfter?.status ?? "row gone"}`,
+      );
+
+      const rejApprovalId = rejRow
+        ? (
+            await must(
+              db
+                .from("approval_requests")
+                .select("id, status")
+                .eq("entity_type", "cash_advance")
+                .eq("entity_id", rejRow.id)
+                .limit(1),
+              "reject-leg approval lookup",
+            )
+          )[0] ?? null
+        : null;
+      const rejActions = rejApprovalId
+        ? await must(
+            db.from("approval_actions").select("id, action, step_order").eq("request_id", rejApprovalId.id),
+            "reject-leg actions",
+          )
+        : [];
+      check(
+        "the approval engine recorded the rejection, not an approval",
+        rejActions.some((a) => /reject/i.test(String(a.action ?? ""))),
+        `${rejActions.map((a) => a.action).join(",") || "no action rows"}; request ${rejApprovalId?.status ?? "none"}`,
+      );
+    } finally {
+      await rejHrCtx.close();
+    }
+  } finally {
+    await rejEmpCtx.close();
+  }
+
   const realErrors = consoleErrors.filter((e) => !/favicon|404 \(Not Found\)/i.test(e));
   check("no unexpected console errors", realErrors.length === 0, realErrors.slice(0, 2).join(" | "));
   check("no page errors", pageErrors.length === 0, pageErrors.slice(0, 2).join(" | "));

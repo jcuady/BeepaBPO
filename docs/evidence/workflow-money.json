@@ -3,10 +3,10 @@
   "script": "scripts/audit/qa-exercise-money-workflow.mjs",
   "claim": "cash advances and billing across the lifecycle",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:16:37.732Z",
+  "when": "2026-10-15T13:31:07.687Z",
   "exitCode": 0,
   "verdict": "PASS",
-  "assertions": 33,
+  "assertions": 39,
   "checks": [
     {
       "pass": true,
@@ -16,7 +16,7 @@
     {
       "pass": true,
       "name": "issueInvoice creates an invoice",
-      "detail": "INV-20261015-6009"
+      "detail": "INV-20261015-3954"
     },
     {
       "pass": true,
@@ -86,7 +86,7 @@
     {
       "pass": true,
       "name": "createCashAdvanceRequest writes a request",
-      "detail": "04e8ba92"
+      "detail": "8ac37c49"
     },
     {
       "pass": true,
@@ -145,6 +145,36 @@
     },
     {
       "pass": true,
+      "name": "a second request exists to be rejected",
+      "detail": "675194c7"
+    },
+    {
+      "pass": true,
+      "name": "HR sees the rejection candidate in the queue",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a Reject control is offered on that row",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "rejecting asks for confirmation that names the consequence",
+      "detail": "Reject cash advance? This request will be marked rejected. Cancel Reject"
+    },
+    {
+      "pass": true,
+      "name": "reviewCashAdvance('reject') moves the request to rejected",
+      "detail": "hr_review -> rejected"
+    },
+    {
+      "pass": true,
+      "name": "the approval engine recorded the rejection, not an approval",
+      "detail": "reject; request rejected"
+    },
+    {
+      "pass": true,
       "name": "no unexpected console errors",
       "detail": null
     },
@@ -183,10 +213,10 @@
     "client: CloudPeak (1a91499c)",
     "employee: BEE-00020",
     "before: invoices=7 items=27 payments=4 advances=2",
-    "(cleanup) approval rows created by this run and removed: 1",
+    "(cleanup) approval rows created by this run and removed: 2",
     "(cleanup) invoices 7->7, items 27->27, payments 4->4, advances 2->2",
     "the sweep left the demo data as it found it: yes",
-    "33/33 assertions passed",
+    "39/39 assertions passed",
     "notes:",
     "  - paid_at is type=date, so the value is a bare YYYY-MM-DD parsed as UTC midnight, which stays on the same day for hosts between UTC-12 and UTC+11. This is the shape the NTE deadline got WRONG: that field carried a time component.",
     "  - Cash advance approval produced 'finance_review'. advanceApprovalRequest decides whether the two-step workflow completes; the run asserts the status it produced rather than assuming 'approved'."

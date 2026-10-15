@@ -1,9 +1,9 @@
 {
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:34:23.362Z",
+  "when": "2026-10-15T13:31:07.694Z",
   "registryTotal": 21,
   "ranThisInvocation": [
-    "admin-workflow"
+    "money"
   ],
   "totals": {
     "pass": 19,
@@ -12,7 +12,7 @@
     "fail": 0,
     "noEvidence": 0
   },
-  "totalAssertions": 482,
+  "totalAssertions": 488,
   "unregisteredScripts": [],
   "results": [
     {
@@ -108,11 +108,11 @@
     {
       "id": "money",
       "verdict": "PASS",
-      "assertions": 33,
+      "assertions": 39,
       "what": "cash advances and billing across the lifecycle",
       "evidence": "docs/evidence/workflow-money.json",
-      "when": "2026-10-15T12:16:37.732Z",
-      "ranThisRun": false
+      "when": "2026-10-15T13:31:07.687Z",
+      "ranThisRun": true
     },
     {
       "id": "recruitment",
@@ -157,7 +157,7 @@
       "what": "admin actions behind their permission",
       "evidence": "docs/evidence/workflow-admin-workflow.json",
       "when": "2026-10-15T12:34:23.345Z",
-      "ranThisRun": true
+      "ranThisRun": false
     },
     {
       "id": "profile",

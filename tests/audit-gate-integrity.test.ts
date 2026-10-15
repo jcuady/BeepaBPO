@@ -267,3 +267,47 @@ describe("the ship gate's --skip-migration means what it says", () => {
     expect(src).not.toMatch(/DELIVERY_FAILED[\s\S]{0,200}?skipped:\s*true/);
   });
 });
+
+/**
+ * Evidence older than the build describes a build that is gone.
+ *
+ * The control-surface census does not discover which pages to walk — it reads
+ * `role-sweep.json` and walks whatever that lists. A census written at 06:45 UTC
+ * on 2026-10-15 read a role-sweep.json last written 2026-10-13, so its
+ * "84.5% of action controls covered" figure was computed over the previous
+ * build's pages. Nothing reported it: the census's own header names the failure
+ * ("running it first would silently measure the previous run's routes") and then
+ * relies on registry ordering to prevent it, which does nothing when the script is
+ * run directly — which is how every audit here is normally run.
+ *
+ * The same class as `audit-server-fresh`, applied to an evidence input rather
+ * than to a process.
+ */
+describe("the control census refuses a stale role list", () => {
+  const census = readFileSync(
+    join(ROOT, "scripts", "audit", "qa-control-surface-census.mjs"),
+    "utf8",
+  );
+
+  it("compares the role sweep's age against the build", () => {
+    expect(census).toContain('".next/BUILD_ID"');
+    expect(census).toMatch(/statSync\(BUILD_ID\)\.mtimeMs/);
+    expect(census).toMatch(/statSync\(ROLE_SWEEP\)\.mtimeMs/);
+  });
+
+  it("aborts rather than reporting a coverage figure over old pages", () => {
+    // Exit 2, not 0 and not 1. There is no defect to fail; there is an input
+    // that cannot support the claim being made about it.
+    expect(census).toMatch(/sweepAt\s*<\s*builtAt[\s\S]{0,600}?process\.exit\(2\)/);
+    // And it must happen BEFORE the browser launches, or the abort costs a
+    // full walk of every role before anyone learns the input was unusable.
+    expect(census.indexOf("sweepAt < builtAt")).toBeLessThan(census.indexOf("chromium.launch"));
+  });
+
+  it("records the age of both inputs in its own evidence", () => {
+    // Otherwise a reader has to go and stat the files to tell a fresh rollup
+    // from one built on yesterday's routes.
+    expect(census).toMatch(/rolesWhen:\s*[^,\n]*statSync\(ROLE_SWEEP\)/);
+    expect(census).toMatch(/assertionsWhen:\s*[^,\n]*statSync\(ASSERTION_INDEX\)/);
+  });
+});

@@ -1,6 +1,6 @@
 {
   "base": "http://localhost:3100",
-  "startedAt": "2026-10-12T09:31:04.093Z",
+  "startedAt": "2026-10-15T12:59:19.998Z",
   "roles": {
     "owner": {
       "email": "owner@demo.beepabpo.com",
@@ -3700,12 +3700,11 @@
           "path": "/app/my",
           "status": "redirected",
           "notes": [
-            "-> /app",
-            "8 skeleton(s) still mounted"
+            "-> /app/client"
           ],
           "http": 200,
-          "landed": "/app",
-          "heading": null
+          "landed": "/app/client",
+          "heading": "Good evening, Demo."
         },
         {
           "path": "/app/approvals",
@@ -3729,8 +3728,7 @@
           "path": "/app",
           "status": "redirected",
           "notes": [
-            "-> /app/client",
-            "10 skeleton(s) still mounted"
+            "-> /app/client"
           ],
           "http": 200,
           "landed": "/app/client",

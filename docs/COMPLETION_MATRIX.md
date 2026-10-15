@@ -27,9 +27,9 @@ Two columns are kept deliberately separate:
 | 6 | **Wiring — dead controls** | ✅ Verified today | `audit:wiring` **0 candidates** across 269 `.tsx`, mutation-proven | — |
 | 7 | **Forms — reset integrity** | ✅ Verified today | `audit:form-reset-defaults` 28 forms scanned, 21 that reset, **0** with a field that survives a reset | — |
 | 7b | **Audit suite — self-consistency** | ✅ Verified today | `audit:suite-base-url` 58 HTTP-performing scripts, all agree on `QA_BASE_URL` and port 3100 | See row 26 — this row's first version read 41 and was wrong |
-| 8 | **Every workflow** | ✅ Verified today | 21 exercises, **480 assertions, 19 PASS / 2 BLOCKED / 0 FAIL**, production build, real DB | 2 BLOCKED — rows 12–13 |
+| 8 | **Every workflow** | ✅ Verified today | 21 exercises, **488 assertions, 19 PASS / 2 BLOCKED / 0 FAIL**, production build, real DB, build proven current | 2 BLOCKED — rows 12–13 |
 | 9 | **Every user / role** | ✅ Verified today | 13 demo roles; 3 previously uncovered (sales, finance, client_viewer) now driven | — |
-| 10 | **Buttons** | ✅ Verified today | Census of 130 pages × 13 roles: **23 of 23 buttons** have a behavioural assertion | — |
+| 10 | **Buttons** | ✅ Verified today | Census of 13 roles / 444 page visits: 339 action controls, **0 without an accessible name**. Every unmatched *button* is chased to ground: 3 flagged, **1 was a real hole** — the cash-advance `Reject` had never been pressed, so the reject leg of a money workflow had zero executions. Now covered end to end, and the census no longer flags it | The remaining 2 (`Save`, `Continue`) are **artefacts** of label-matching, not gaps — both are pressed and work, proved from the run evidence. Label overlap is wrong in **both** directions |
 | 11 | **Filters** | ✅ Verified today | `audit:filters` 33 paginated pages, every filter carried into its pager, exit 0; `list-filters` exercise 33 assertions | — |
 | 12 | **Signup — success path** | ⛔ **BLOCKED** | Supabase refuses `auth.signUp` from this network, durably (still refusing after 300s idle) | Needs the project's signup limit to clear |
 | 13 | **Admin invite** | ⛔ **BLOCKED** | Same limiter | Same |
@@ -41,7 +41,8 @@ Two columns are kept deliberately separate:
 | 19 | **Notification delivery** | ✅ Verified today | 16 assertions incl. per-user isolation — another user's notification is neither shown nor touched by mark-all | **Web push will not fire in production**: VAPID keys are in local `.env.local` only, not Vercel |
 | 20 | **Role × page reachability** | ✅ Verified today | `audit:role-pages` **222/222** nav-reachable pages clean across 13 roles, exit 0 | — |
 | 21 | **Responsive — public + auth** | ✅ Verified today | `audit:responsive` **120/120** viewport-route combinations clean, 15 routes × 8 viewports, exit 0 | — |
-| 21b | **Responsive — product app** | 📋 Inherited | 224/224 across 28 routes × 8 viewports; 100/100 across roles at 390 + 768, recorded 2026-10-09 | Not re-run today |
+| 21b | **Responsive — product app (routes)** | ✅ Verified today | `audit:app-responsive` **224/224** across 28 routes × 8 viewports (375→1920) as owner, plus **8/8** for `/app/cms` under marketing — **232/232**, all five chunks exit 0, on a build proven current by `audit:server-fresh` | — |
+| 21c | **Responsive — per role** | 📋 Inherited | 100/100 at 390 + 768 across 7 roles (owner 14, finance 14, team lead 14, employee 14, client admin 20, client viewer 18, applicant 6), recorded 2026-10-09 | Not re-run today — a different measurement from row 21b, which covers routes for one role |
 | 22 | **E2E (Playwright)** | 📋 Inherited | 100 passed, 4 skipped, recorded 2026-10-09 | Needs `RUN_E2E=true` + secrets in CI |
 | 23 | **Documentation** | ✅ Verified today | 24 docs + 5 root files; `docs/README.md` is now a single index mapping **one authority per subject**, with each doc's verification date and the two historical contradictions recorded where a reader meets them | — |
 | 24 | **Realtime** | ✅ Verified today | `audit:realtime` — authenticated subscriber received a live `notifications` INSERT in **418ms** | — |
@@ -60,10 +61,12 @@ session against a production build and the real database.
 "probably fine". They are unproven, and reporting them as anything else is the
 failure this matrix exists to prevent.
 
-**Inherited, and therefore not current evidence: rows 21b, 22.** Real results from
-six days ago — responsive across the product app (224/224; 100/100 across roles)
-and Playwright E2E (100 passed, 4 skipped). They should be re-run before anyone
-quotes them as today's. They are labelled rather than quietly promoted.
+**Inherited, and therefore not current evidence: rows 21c, 22.** Responsive measured
+*per role* rather than per route (100/100 at 390 + 768 across 7 roles, recorded
+2026-10-09) and Playwright E2E (100 passed, 4 skipped). Both should be re-run before
+anyone quotes them as today's. They are labelled rather than quietly promoted — and note
+that row 21b going green today is **not** evidence for row 21c: they measure different
+things over a different set of pages.
 
 **Known gap: row 19's web push.** The in-app and email-digest paths are proven.
 The push path is configured correctly locally and simply has nowhere to send from

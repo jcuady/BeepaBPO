@@ -43,7 +43,7 @@
 // confident 0% -- that would be the same class of bug as the summary file that
 // reported one exercise as the whole suite.
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, statSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
 const BASE = process.env.QA_BASE_URL ?? "http://localhost:3100";
@@ -82,6 +82,39 @@ for (const f of [ROLE_SWEEP, ASSERTION_INDEX]) {
 
 const sweep = JSON.parse(readFileSync(ROLE_SWEEP, "utf8"));
 const index = JSON.parse(readFileSync(ASSERTION_INDEX, "utf8"));
+
+// The page list this census measures is `role-sweep.json`'s, not this script's.
+// If that file predates the build on disk, the pages walked belong to the
+// PREVIOUS build, and every control, match and percentage below describes code
+// that is no longer here.
+//
+// Not hypothetical: a census written at 06:45 UTC on 2026-10-15 read a
+// role-sweep.json last written 2026-10-13 — the routes were two days stale. The
+// header of this file calls the failure out by name ("running it first would
+// silently measure the previous run's routes") and then relied on registry
+// ordering alone to prevent it, which does nothing when the script is run
+// directly, which is how every one of these audits is normally run.
+//
+// Same rule as `audit-server-fresh`, applied to an evidence input instead of a
+// process: an artefact older than the build describes a build that is gone.
+const BUILD_ID = ".next/BUILD_ID";
+if (existsSync(BUILD_ID)) {
+  const builtAt = statSync(BUILD_ID).mtimeMs;
+  const sweepAt = statSync(ROLE_SWEEP).mtimeMs;
+  if (sweepAt < builtAt) {
+    console.error(
+      `ABORT: ${ROLE_SWEEP} is older than the current build.\n\n` +
+        `  role sweep  ${new Date(sweepAt).toISOString()}\n` +
+        `  build       ${new Date(builtAt).toISOString()}\n\n` +
+        "The pages this census would walk are the previous build's pages, so the\n" +
+        "control counts and coverage percentage below would describe code that is\n" +
+        "no longer on disk. Regenerate it first — it also confirms the server is\n" +
+        "serving the current build:\n\n" +
+        "  node scripts/audit/audit-role-sweep.mjs\n",
+    );
+    process.exit(2);
+  }
+}
 
 const env = readEnv();
 const PW = env.DEMO_PASSWORD;
@@ -453,7 +486,14 @@ if (!walkedSomething) {
 const out = {
   base: BASE,
   when: new Date().toISOString(),
-  sources: { roles: ROLE_SWEEP, assertions: ASSERTION_INDEX },
+  // The inputs' own ages, so a reader can tell a fresh rollup from one built on
+  // yesterday's routes without having to go and stat the files.
+  sources: {
+    roles: ROLE_SWEEP,
+    assertions: ASSERTION_INDEX,
+    rolesWhen: existsSync(ROLE_SWEEP) ? statSync(ROLE_SWEEP).mtime.toISOString() : null,
+    assertionsWhen: existsSync(ASSERTION_INDEX) ? statSync(ASSERTION_INDEX).mtime.toISOString() : null,
+  },
   rolesWalked: roleNames.length,
   pagesVisited,
   pagesFailed,
@@ -477,7 +517,7 @@ const out = {
   unnamedControls: unnamed.length,
 
   caveat:
-    "A 'matched' control means some assertion's NAME mentions its label as a word. It does NOT mean the control was pressed, nor pressed in every state. Matching is word-level against assertion names only (URLs and JSON details stripped), which under-reports rather than flatters -- but it still counts an assertion that merely mentions a word in passing. Treat this as an upper bound on coverage, not a measurement of it.",
+    "A 'matched' control means some assertion's NAME mentions its label as a word. It does NOT mean the control was pressed, nor pressed in every state. This metric is wrong in BOTH directions, so it is a proxy and not a measurement. It OVER-reports: a label appearing in an assertion name does not prove the control was pressed. It UNDER-reports, which is the direction that hides real gaps -- on the current build it flagged three buttons, and only one was real. 'Save' on /app/payroll/settings and 'Continue' on /app/payroll/periods are both pressed and both work (the assertions are named for the outcome, 'salary change persisted' and 'a new payroll period was created', not for the control). The third, 'Reject' on /app/cash-advances, was a genuine hole: the reject leg of a money workflow had zero executions while an assertion listed 'rejected' as an acceptable end state. Treat an unmatched control as a QUESTION, never as a finding.",
   perRole,
   controls: controls.sort((a, b) => String(a.name).localeCompare(String(b.name))),
   unmatchedActionControls: actionUncovered.map((c) => ({ name: c.name, kind: c.kind, exampleRoute: c.exampleRoute })),
