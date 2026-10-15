@@ -40,7 +40,8 @@ Two columns are kept deliberately separate:
 | 18 | **Typecheck / lint** | ✅ Verified today | `tsc --noEmit` 0 errors; `eslint` 0 errors | — |
 | 19 | **Notification delivery** | ✅ Verified today | 16 assertions incl. per-user isolation — another user's notification is neither shown nor touched by mark-all | **Web push will not fire in production**: VAPID keys are in local `.env.local` only, not Vercel |
 | 20 | **Role × page reachability** | ✅ Verified today | `audit:role-pages` **222/222** nav-reachable pages clean across 13 roles, exit 0 | — |
-| 21 | **Responsive** | 📋 Inherited | 224/224 owner routes; 100/100 across roles; 56/56 marketing, recorded 2026-10-09 | Not re-run today |
+| 21 | **Responsive — public + auth** | ✅ Verified today | `audit:responsive` **120/120** viewport-route combinations clean, 15 routes × 8 viewports, exit 0 | — |
+| 21b | **Responsive — product app** | 📋 Inherited | 224/224 across 28 routes × 8 viewports; 100/100 across roles at 390 + 768, recorded 2026-10-09 | Not re-run today |
 | 22 | **E2E (Playwright)** | 📋 Inherited | 100 passed, 4 skipped, recorded 2026-10-09 | Needs `RUN_E2E=true` + secrets in CI |
 | 23 | **Documentation** | ✅ Verified today | 24 docs + 5 root files; `docs/README.md` is now a single index mapping **one authority per subject**, with each doc's verification date and the two historical contradictions recorded where a reader meets them | — |
 | 24 | **Realtime** | ✅ Verified today | `audit:realtime` — authenticated subscriber received a live `notifications` INSERT in **418ms** | — |
@@ -54,10 +55,10 @@ session against a production build and the real database.
 "probably fine". They are unproven, and reporting them as anything else is the
 failure this matrix exists to prevent.
 
-**Inherited, and therefore not current evidence: rows 21–22.** Real results from
-six days ago — responsive (224/224, 100/100, 56/56) and Playwright E2E (100
-passed, 4 skipped). They should be re-run before anyone quotes them as today's.
-They are labelled rather than quietly promoted into the current column.
+**Inherited, and therefore not current evidence: rows 21b, 22.** Real results from
+six days ago — responsive across the product app (224/224; 100/100 across roles)
+and Playwright E2E (100 passed, 4 skipped). They should be re-run before anyone
+quotes them as today's. They are labelled rather than quietly promoted.
 
 **Known gap: row 19's web push.** The in-app and email-digest paths are proven.
 The push path is configured correctly locally and simply has nowhere to send from

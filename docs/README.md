@@ -2,10 +2,10 @@
 
 Index for the Beepa BPO platform (`beepabpo.com`): Next.js App Router + Supabase Auth/RLS/Postgres.
 
-**One subject, one authority.** This repository has 24 documents here plus five at the root,
-~600KB in total. The reader's real problem is not *finding* a document — it is working out
-**which one to believe** when two disagree. Both contradictions found in the 2026-10-15 audit
-came from two documents making the same claim:
+**One subject, one authority.** This directory holds two dozen documents plus five more at the
+repo root, ~600KB in total. The reader's real problem is not *finding* a document — it is
+working out **which one to believe** when two disagree. Both contradictions found in the
+2026-10-15 audit came from two documents making the same claim:
 
 | Contradiction | What happened |
 |---|---|

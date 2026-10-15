@@ -3,10 +3,10 @@
   "script": "scripts/audit/qa-exercise-tickets-workflow.mjs",
   "claim": "ticket list, create, status transitions",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T05:11:50.422Z",
-  "exitCode": 0,
-  "verdict": "PASS",
-  "assertions": 33,
+  "when": "2026-10-15T11:15:43.329Z",
+  "exitCode": 1,
+  "verdict": "FAIL",
+  "assertions": 20,
   "checks": [
     {
       "pass": true,
@@ -14,74 +14,9 @@
       "detail": null
     },
     {
-      "pass": true,
+      "pass": false,
       "name": "a ticket exists for this run",
-      "detail": "e3b2acab"
-    },
-    {
-      "pass": true,
-      "name": "the ticket detail page shows a reply box",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "a brand-new ticket has no first response yet",
-      "detail": "null"
-    },
-    {
-      "pass": true,
-      "name": "the first staff reply stamps first_response_at",
-      "detail": "2026-10-15T05:11:05.905+00:00"
-    },
-    {
-      "pass": true,
-      "name": "exactly one message row exists",
-      "detail": "1 row(s)"
-    },
-    {
-      "pass": true,
-      "name": "the message is stored as public, not internal",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "a SECOND staff reply does not move the first-response clock",
-      "detail": "2026-10-15T05:11:05.905+00:00 -> 2026-10-15T05:11:05.905+00:00"
-    },
-    {
-      "pass": true,
-      "name": "both messages are stored",
-      "detail": "2 row(s)"
-    },
-    {
-      "pass": true,
-      "name": "the status control is present",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "updateTicketStatus sets the status to resolved",
-      "detail": "resolved"
-    },
-    {
-      "pass": true,
-      "name": "resolving stamps resolved_at",
-      "detail": "2026-10-15T05:11:15.712+00:00"
-    },
-    {
-      "pass": true,
-      "name": "the status change writes an audit row",
-      "detail": "1 row(s)"
-    },
-    {
-      "pass": true,
-      "name": "the ticket can be moved back to an open status",
-      "detail": "in_progress"
-    },
-    {
-      "pass": true,
-      "name": "reopening CLEARS resolved_at rather than leaving a stale resolution date",
-      "detail": "null"
+      "detail": "none"
     },
     {
       "pass": true,
@@ -90,7 +25,7 @@
     },
     {
       "pass": true,
-      "name": "a create form is offered once the 'urgent' priority is free",
+      "name": "a create form is offered once the 'low' priority is free",
       "detail": null
     },
     {
@@ -101,7 +36,7 @@
     {
       "pass": true,
       "name": "createTicketSlaPolicy writes a policy",
-      "detail": "bf55c37a"
+      "detail": "04013a4e"
     },
     {
       "pass": true,
@@ -174,17 +109,23 @@
       "detail": "gone"
     }
   ],
-  "failedAssertions": [],
+  "failedAssertions": [
+    {
+      "pass": false,
+      "name": "a ticket exists for this run",
+      "detail": "none"
+    }
+  ],
   "notes": [
-    "parked policy e95d2050 (priority 'urgent') under a scratch org to free that slot; the move is undone in the finally block"
+    "parked policy 510ba190 (priority 'low') under a scratch org to free that slot; the move is undone in the finally block"
   ],
   "other": [
     "before: tickets=13 messages=37 policies=4",
     "(cleanup) tickets 13->13, messages 37->37, policies 4->4",
     "(cleanup) rows still carrying the marker: 0 ticket(s), 0 policy(ies)",
     "the sweep left the demo data as it found it: yes",
-    "33/33 assertions passed",
+    "19/20 assertions passed",
     "notes:",
-    "  - parked policy e95d2050 (priority 'urgent') under a scratch org to free that slot; the move is undone in the finally block"
+    "  - parked policy 510ba190 (priority 'low') under a scratch org to free that slot; the move is undone in the finally block"
   ]
 }
