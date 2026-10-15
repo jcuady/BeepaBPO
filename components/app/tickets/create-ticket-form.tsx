@@ -27,7 +27,20 @@ const CATEGORIES = [
   "technical",
 ] as const;
 
-const defaults = { priority: "normal" as const };
+// Every registered field needs a default, not only the optional ones.
+//
+// `form.reset(defaults)` writes into an UNCONTROLLED input only for fields it has
+// a value for. With `{ priority: "normal" }` alone, the Reset button cleared
+// nothing a user could see: subject, category and description all survived, and
+// the same reset runs after a successful create -- so the next ticket inherited
+// the last one's text. Found by audit-form-reset-defaults.mjs, after the same
+// bug was measured on the leave form.
+const defaults = {
+  subject: "",
+  category: "",
+  description: "",
+  priority: "normal" as const,
+};
 
 export function CreateTicketForm() {
   const [pending, setPending] = useState(false);

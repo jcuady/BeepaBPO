@@ -1,15 +1,17 @@
 # Feature Verification Checklist — BeepoBPO
 
-**Result: 21 exercises, 472 assertions (464 distinct behaviours), 19 PASS, 2 BLOCKED, 0 FAIL, 0 SKIPPED.**
+**Result: 21 exercises, 480 assertions (472 distinct behaviours), 19 PASS, 2 BLOCKED, 0 FAIL, 0 SKIPPED.**
 Payroll, attendance and notifications all work; every one of the 13 demo roles is now
-driven by at least one real workflow; and one genuine product defect was found and fixed
-— the sitemap was being served frozen from the build, so newly published articles could
-never reach search engines (§5a).
+driven by at least one real workflow; and two genuine product defects were found and
+fixed — the sitemap was being served frozen from the build, so newly published articles
+could never reach search engines, and `reset()` silently did nothing on most fields in
+five forms (§5a).
 
 **On "every button works":** rather than assert it, it is measured. Across 130 pages and all
 13 roles the app exposes **58 action controls** (buttons and fields, excluding nav chrome);
-**47 of them (81%)** have a matching behavioural assertion. The 11 that do not are listed
-in §2, and two of them — `Cancel` and `Reset` on the leave screen — are a real gap.
+**49 of them (84.5%)** have a matching behavioural assertion — and of the 23 that are actually
+buttons, **all 23 are covered**. The 9 remaining are form fields identified by raw field name,
+not gaps in behaviour.
 
 **What this document is.** A per-feature answer to "does this work", each row backed by an
 executable check that was actually run against a production build with real database state.
@@ -84,7 +86,7 @@ assertions before it hit the wall.
 
 ### Why a pass count is not the answer to "every button works"
 
-468 assertions could be one button pressed 468 ways, or 468 different controls.
+480 assertions could be one button pressed 480 ways, or 480 different controls.
 `qa-workflow-assertion-index.mjs` deduplicates them from the evidence files, so the
 number that matters is **distinct named behaviours**, each listed per exercise in
 `docs/evidence/workflow-assertion-index.json`.
@@ -111,27 +113,30 @@ each, and cross-references the labels against the assertion names:
 
 | | found | label matched | |
 |---|---|---|---|
-| **Action controls** (buttons + fields, nav excluded) | **58** | **47** | **81% — the number to quote** |
+| **Action controls** (buttons + fields, nav excluded) | **58** | **49** | **84.5% — the number to quote** |
+| of which **buttons** | 23 | **23** | **100% — no button is left unasserted** |
 | Navigation links (covered by `qa-exercise-internal-links.mjs` instead) | 42 | 30 | 71.4% |
 
 172 distinct controls in total, and **0 with no accessible name**.
 
-**Treat 81% as an upper bound on coverage, not a measurement of it.** A "match" means some
+**Treat 84.5% as an upper bound on coverage, not a measurement of it.** A "match" means some
 assertion's name mentions that label as a word; it does not prove the control was pressed,
 nor pressed in every state it can occupy. The opposite error is just as available and was made
 here three times before being caught — see §5b.
 
-**The 11 unmatched action controls, which is the actionable list:**
+**The 9 unmatched controls are all form fields, not buttons:**
 
-- `Cancel` and `Reset` on `/app/my/leave` — the only two unmatched *buttons*. A user can click
-  these and nothing asserts what happens.
-- 9 form fields whose labels are the raw field names: `reason`, `category`, `description`,
-  `to`, `on`, `currentPassword`, `confirmPassword`, `linkedin_url`, `notes`.
+`reason`, `category`, `description`, `to`, `on`, `currentPassword`, `confirmPassword`,
+`linkedin_url`, `notes`.
 
-The fields are a labelling artefact of this metric rather than a coverage hole — the
-attendance correction, the profile write and the job application are all exercised, just
-under behaviour names rather than field names. **The two buttons are a genuine gap**, and the
-honest next step is a leave exercise that presses them.
+That is a labelling artefact of this metric rather than a coverage hole — the attendance
+correction, the profile write and the job application are all exercised, just under behaviour
+names rather than field names.
+
+**The two buttons this list originally contained are now closed.** `Cancel` and `Reset` on
+`/app/my/leave` were asserted by nothing; the leave exercise now clicks Reset on a deliberately
+dirty form and drives Cancel through its confirmation dialog. Doing so is what uncovered the
+form-reset defect in §5a — the gap in the checklist found a real bug in the product.
 
 ## 3. Roles
 
@@ -230,6 +235,14 @@ Correctness-on-read was chosen over saving three indexed queries. The `sitemap` 
 rewritten to assert the real guarantee — a newly published article appears in the sitemap
 without a rebuild — because it had been asserting the old build-frozen contract.
 
+| Defect | Impact | Fix |
+|---|---|---|
+| **Five forms' `reset()` silently failed on some of their fields.** `react-hook-form` only writes into an *uncontrolled* input when it has a value to write, and every field in these forms is registered uncontrolled — so any field absent from the `defaults` object kept whatever the user had typed. | `leave-request-form` had `defaults = { reason: "" }`, so **Reset cleared the reason and left both dates and the leave type in place** (measured: `start=2026-11-05` after clicking Reset). The same reset runs *after a successful submit*, so a second leave request could inherit the first one's dates. `create-lead-form` is the worst shape: `company_name`, `contact_email`, `contact_name`, `contact_phone` and `industry` survived, so **creating a second lead silently inherits the first company's details**. Also affected `create-ticket-form`, `cash-advance-form` and `correction-request-form`. | every registered field now has an explicit default. `pnpm audit:form-reset-defaults` fails the build if a form regresses to partial defaults. |
+
+**Why this survived until now:** nothing asserted what Reset *does*, only that it exists.
+The defect was found by measuring the button — clicking Reset on a deliberately dirty form —
+and the reason is general: a button's existence is not its behaviour.
+
 ### 5b. Defects in the QA harness (the checks were lying, not the product)
 
 | Defect | How it lied | Fix |
@@ -247,7 +260,7 @@ without a rebuild — because it had been asserting the old build-frozen contrac
 | `qa-workflow-assertion-index.mjs` stored behaviour names **only under `--verbose`** | `workflow-assertion-index.json` shipped counts with no list, so the census matched against an empty haystack and reported a confident, fictional **0% coverage** with a 117-item "actionable list" attached | names always stored; the census now aborts rather than cross-referencing an empty list |
 | The index also matched **its own output file** (`workflow-assertion-index.json` matches `workflow-*.json`) | every run indexed the previous run as a 22nd "exercise", and the exercise count crept upward on each invocation | self excluded by name |
 | `qa-control-surface-census.mjs` returned from `signIn` immediately after clicking submit | sign-in is a live Supabase round trip, so every page was fetched while unauthenticated and bounced to `/login`. It inventoried **the sign-in page 13 times** and reported "0% coverage, 0 pages failed", because every navigation had technically succeeded — the exact trap `audit-role-sweep.mjs` documents | waits for the condition, not a duration; records the **actual landed URL**, not the requested path; a bounce to `/login` counts as a failure; the run aborts if it never left the login page |
-| The census matched labels against full assertion strings including their **detail** | `"Dashboard"` matched an assertion whose detail was the URL `.../app/dashboard`, and `"Recruitment"` matched a JSON blob — producing a flattering **84.3% coverage** built mostly on incidental text | haystack is the assertion name only, URLs and JSON stripped; navigation links reported separately and excluded from the primary figure. Real figure: **81%** |
+| The census matched labels against full assertion strings including their **detail** | `"Dashboard"` matched an assertion whose detail was the URL `.../app/dashboard`, and `"Recruitment"` matched a JSON blob — producing a flattering **84.3% coverage** built mostly on incidental text | haystack is the assertion name only, URLs and JSON stripped; navigation links reported separately and excluded from the primary figure. Real figure then: **81%**, now **84.5%** once the two unmatched buttons were covered |
 | The census extractor read only `textContent` for a control's name | the sidebar's brand link wraps `<Image alt="BEEPA">`, and an `alt` contributes nothing to `textContent` — so the link was reported as **an icon-only control with no accessible name at all**. A defect in the measurement was about to be written up as an a11y defect in the product | extractor reads descendant `img[alt]`; the finding disappeared on its own, which is the correct outcome |
 | A rate-limited signup run reported BLOCKED with **0 assertions** | "nothing was learned" — but when the environment refuses to send, the product still owes the user an error, owes them *not* a success claim, and must not leave a half-made account behind. The run gave up before checking any of it | 4 assertions now run on the refusal path, all passing: error shown, no success claimed, **no auth user created, no membership created** |
 
@@ -277,9 +290,10 @@ Held by the presentation tier (`qa-run-all.mjs`), unchanged by this work:
 | `pnpm typecheck` | **0 errors** |
 | `pnpm lint` | **0 errors, 15 warnings** (warnings are `@next/next/no-img-element`, pre-existing) |
 | `pnpm audit:design` | clean |
-| `qa-run-workflows.mjs` | 21 exercises, 472 assertions, 19 PASS / 2 BLOCKED / 0 FAIL |
-| `qa-workflow-assertion-index.mjs` | 464 distinct named behaviours; only 2 asserted by more than one exercise |
-| `qa-control-surface-census.mjs` | 130 pages, 13 roles, 0 failed; 58 action controls, 81% label overlap |
+| `qa-run-workflows.mjs` | 21 exercises, 480 assertions, 19 PASS / 2 BLOCKED / 0 FAIL |
+| `qa-workflow-assertion-index.mjs` | 472 distinct named behaviours; only 2 asserted by more than one exercise |
+| `qa-control-surface-census.mjs` | 130 pages, 13 roles, 0 failed; 58 action controls, 84.5% label overlap, **0 unmatched buttons** |
+| `audit:form-reset-defaults` | 28 forms scanned, 21 that reset — every one defaults every field it registers |
 
 **Still outstanding, and needing you rather than a code change:**
 
@@ -290,5 +304,7 @@ Held by the presentation tier (`qa-run-all.mjs`), unchanged by this work:
   signup/invite limit clears.** They are reported BLOCKED, not passed — and note the limit is
   much longer-lived than its own "wait a minute" message suggests. **Do not run the rate-limit
   probe first**; it consumes the budget (§4).
-- **`Cancel` and `Reset` on `/app/my/leave` are asserted by nothing.** The only two unmatched
-  buttons on the measured surface. Closing that gap means a leave exercise that presses them.
+- **`Cancel` and `Reset` on `/app/my/leave` were asserted by nothing.** They were the only two
+  unmatched buttons on the measured surface. **This is now closed** — the leave exercise clicks
+  Reset on a deliberately dirty form and drives Cancel through its confirmation dialog, and doing
+  so is what surfaced the form-reset defect in §5a.

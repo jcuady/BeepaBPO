@@ -51,6 +51,11 @@ const CHECKS = [
   { id: "notification-bell",tier: "fast",  cmd: ["scripts/audit/qa-probe-notification-bell.mjs"],evidence: "docs/evidence/notification-bell-check.json",what: "bell accessible name, AA contrast, keyboard exit" },
   { id: "internal-links",   tier: "fast",  cmd: ["scripts/audit/qa-exercise-internal-links.mjs"],evidence: "docs/evidence/internal-links-check.json", what: "no internal link lands on an error page" },
 
+  // Static, no browser. Added because a form's Reset button existed in five
+  // components and silently did nothing on most of its fields -- nothing caught
+  // it because nothing asked what Reset *does*.
+  { id: "form-reset-defaults", tier: "fast", cmd: ["scripts/audit/audit-form-reset-defaults.mjs"], evidence: null, what: "every form that calls reset() defaults every field it registers" },
+
   // May exit 2. The environment's outbound email budget allows roughly ONE
   // invite per window, and `qa-probe-invite-domains.mjs` spends an invite to
   // find out whether the window is open — so probing and then exercising burns

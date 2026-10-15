@@ -30,8 +30,19 @@ export function AttendanceCorrectionForm({
   records: RecordOption[];
 }) {
   const [pending, setPending] = useState(false);
+  // Explicit defaults so the `reset()` after a successful submission has a value
+  // to write into each registered input. Without them the corrected clock-in and
+  // clock-out the user just submitted stayed on screen behind the success toast,
+  // which is exactly the state you do not want someone to submit a second time.
+  // Found by audit-form-reset-defaults.mjs.
   const form = useForm<CorrectionInput>({
     resolver: zodResolver(attendanceCorrectionSchema),
+    defaultValues: {
+      attendance_record_id: "",
+      requested_clock_in_at: "",
+      requested_clock_out_at: "",
+      reason: "",
+    },
   });
 
   async function onSubmit(values: CorrectionInput) {

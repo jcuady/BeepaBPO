@@ -18,7 +18,28 @@ type LeaveRequestInput = z.infer<typeof leaveRequestSchema>;
 
 type LeaveTypeOption = { id: string; name: string };
 
-const defaults = { reason: "" } as const;
+/**
+ * Every field the form owns needs a default, not just the optional ones.
+ *
+ * This was `{ reason: "" }`, which made `form.reset({ ...defaults })` a lie.
+ * react-hook-form only writes a value into an UNCONTROLLED input when it has a
+ * value to write — every field here is registered uncontrolled — so `reason`
+ * cleared (it had a default) and `start_date`, `end_date` and `leave_type_id`
+ * silently kept whatever the user had typed.
+ *
+ * Caught by asserting it: clicking Reset on a dirty form left `start=2026-11-05`
+ * and `end=2026-11-07` in place. That is worse than a cosmetic bug, because the
+ * button reads as "I have cleared this form" and the next submit goes through
+ * with dates the user believes they removed. The same reset runs after a
+ * successful submit, so a second leave request could inherit the first one's
+ * dates straight from a half-cleared form.
+ */
+const defaults = {
+  leave_type_id: "",
+  start_date: "",
+  end_date: "",
+  reason: "",
+} as const;
 
 export function LeaveRequestForm({
   leaveTypes,

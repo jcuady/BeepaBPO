@@ -3,14 +3,29 @@
   "script": "scripts/audit/qa-exercise-leave-workflow.mjs",
   "claim": "request, approve/deny, balance impact",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T05:10:28.211Z",
+  "when": "2026-10-15T06:42:15.316Z",
   "exitCode": 0,
   "verdict": "PASS",
-  "assertions": 13,
+  "assertions": 21,
   "checks": [
     {
       "pass": true,
-      "name": "leave request created  — id=010c5440-0f74-458c-baf7-e61a95fefaae status=pending",
+      "name": "Reset clears a dirty form back to defaults  — start=(empty) end=(empty) reason=(empty)",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "Reset returns the leave type to its placeholder  — leave_type_id=(empty)",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "Reset submits nothing  — 0 -> 0 leave requests created",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "leave request created  — id=1b1ba05e-4e52-4117-afc8-bc8f397efe27 status=pending",
       "detail": null
     },
     {
@@ -70,6 +85,31 @@
     },
     {
       "pass": true,
+      "name": "a second pending request exists to cancel  — id=59ceef82-6ee9-4d52-af15-0ba2827c19e1",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the pending request offers a Cancel control  — found",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "Cancel asks for confirmation before withdrawing  — confirm dialog shown",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "Cancel withdraws the request  — status=cancelled",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "Cancel leaves no actionable approval behind  — cancelled",
+      "detail": null
+    },
+    {
+      "pass": true,
       "name": "this run left no leave request behind  — 0 residual before -> 0 after",
       "detail": null
     }
@@ -77,7 +117,7 @@
   "failedAssertions": [],
   "notes": [],
   "other": [
-    "baseline: 63 notifications, 8 approval actions, 0 residual exercise leaves",
-    "13/13 checks passed"
+    "baseline: 64 notifications, 8 approval actions, 0 residual exercise leaves",
+    "21/21 checks passed"
   ]
 }

@@ -15,7 +15,24 @@ import type { z } from "zod";
 
 type LeadInput = z.infer<typeof crmLeadSchema>;
 
-const defaults = { source: "manual" as const, notes: "" };
+// Every registered field needs a default, not only the ones that happen to be
+// optional.
+//
+// `form.reset(defaults)` writes into an UNCONTROLLED input only for fields it has
+// a value for. With `{ source, notes }` alone, the Reset button left company
+// name, contact name, contact email, contact phone and industry filled in -- and
+// the same reset runs after a successful create. That is the worst shape this
+// bug takes: creating a second lead silently inherits the first company's
+// details. Found by audit-form-reset-defaults.mjs.
+const defaults = {
+  company_name: "",
+  contact_name: "",
+  contact_email: "",
+  contact_phone: "",
+  industry: "",
+  source: "manual" as const,
+  notes: "",
+};
 
 export function CreateLeadForm() {
   const [pending, setPending] = useState(false);

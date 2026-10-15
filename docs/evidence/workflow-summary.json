@@ -1,9 +1,9 @@
 {
   "base": "http://localhost:3100",
-  "when": "2026-10-15T06:05:46.786Z",
+  "when": "2026-10-15T06:42:15.356Z",
   "registryTotal": 21,
   "ranThisInvocation": [
-    "signup"
+    "leave"
   ],
   "totals": {
     "pass": 19,
@@ -12,7 +12,7 @@
     "fail": 0,
     "noEvidence": 0
   },
-  "totalAssertions": 472,
+  "totalAssertions": 480,
   "unregisteredScripts": [],
   "results": [
     {
@@ -31,7 +31,7 @@
       "what": "applicant and client registration reach verification",
       "evidence": "docs/evidence/workflow-signup.json",
       "when": "2026-10-15T06:05:46.779Z",
-      "ranThisRun": true
+      "ranThisRun": false
     },
     {
       "id": "payroll",
@@ -54,11 +54,11 @@
     {
       "id": "leave",
       "verdict": "PASS",
-      "assertions": 13,
+      "assertions": 21,
       "what": "request, approve/deny, balance impact",
       "evidence": "docs/evidence/workflow-leave.json",
-      "when": "2026-10-15T05:10:28.211Z",
-      "ranThisRun": false
+      "when": "2026-10-15T06:42:15.316Z",
+      "ranThisRun": true
     },
     {
       "id": "notifications",

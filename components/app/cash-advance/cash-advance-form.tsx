@@ -12,10 +12,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+// Declared explicitly so `reset()` has a value to write into every controlled-by-
+// registration input. `form.reset()` with no `defaultValues` gives react-hook-
+// form nothing to restore, so the amount and repayment period a user typed
+// survive both the Reset button and the reset that runs after a successful
+// request. Found by audit-form-reset-defaults.mjs.
+const defaults = { reason: "", requested_amount: "", requested_repayment_periods: "" };
+
 export function CashAdvanceForm() {
   const [pending, setPending] = useState(false);
   const form = useForm({
     resolver: zodResolver(cashAdvanceSchema),
+    defaultValues: defaults,
   });
 
   async function onSubmit(values: Record<string, unknown>) {

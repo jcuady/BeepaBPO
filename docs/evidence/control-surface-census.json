@@ -1,6 +1,6 @@
 {
   "base": "http://localhost:3100",
-  "when": "2026-10-15T06:22:18.546Z",
+  "when": "2026-10-15T06:45:41.899Z",
   "sources": {
     "roles": "docs/evidence/role-sweep.json",
     "assertions": "docs/evidence/workflow-assertion-index.json"
@@ -12,13 +12,13 @@
   "distinctControls": 172,
   "namedControls": 172,
   "actionControls": 58,
-  "actionControlsWithMatchingAssertion": 47,
-  "actionControlsUnmatched": 11,
-  "actionControlLabelOverlap": 81,
+  "actionControlsWithMatchingAssertion": 49,
+  "actionControlsUnmatched": 9,
+  "actionControlLabelOverlap": 84.5,
   "navigationControls": 42,
   "navigationControlsWithMatchingAssertion": 30,
   "navigationLabelOverlap": 71.4,
-  "namedControlsWithMatchingAssertion": 143,
+  "namedControlsWithMatchingAssertion": 145,
   "unnamedControls": 0,
   "caveat": "A 'matched' control means some assertion's NAME mentions its label as a word. It does NOT mean the control was pressed, nor pressed in every state. Matching is word-level against assertion names only (URLs and JSON details stripped), which under-reports rather than flatters -- but it still counts an assertion that merely mentions a word in passing. Treat this as an upper bound on coverage, not a measurement of it.",
   "perRole": [
@@ -1136,7 +1136,10 @@
       "seenOn": [
         "/app/my/leave"
       ],
-      "assertedBy": null,
+      "assertedBy": {
+        "exercise": "leave",
+        "assertion": "Cancel asks for confirmation before withdrawing  "
+      },
       "counted": true
     },
     {
@@ -4673,7 +4676,10 @@
         "/app/client/tickets",
         "/app/client/tickets"
       ],
-      "assertedBy": null,
+      "assertedBy": {
+        "exercise": "leave",
+        "assertion": "Reset clears a dirty form back to defaults  "
+      },
       "counted": true
     },
     {
@@ -6004,16 +6010,6 @@
       "name": "reason",
       "kind": "field",
       "exampleRoute": "/app/my/attendance"
-    },
-    {
-      "name": "Reset",
-      "kind": "button",
-      "exampleRoute": "/app/my/leave"
-    },
-    {
-      "name": "Cancel",
-      "kind": "button",
-      "exampleRoute": "/app/my/leave"
     },
     {
       "name": "category",

@@ -49,6 +49,7 @@
     "audit:design": "node scripts/audit-design-system.mjs",
     "audit:filters": "node scripts/audit-filter-persistence.mjs",
     "audit:role-pages": "node scripts/audit-role-pages.mjs",
+    "audit:form-reset-defaults": "node scripts/audit/audit-form-reset-defaults.mjs",
     "audit:runtime-radius": "node scripts/audit/audit-runtime-radius.mjs",
     "audit:contrast": "node scripts/audit/audit-contrast.mjs",
     "audit:typography": "node scripts/audit/audit-typography.mjs",

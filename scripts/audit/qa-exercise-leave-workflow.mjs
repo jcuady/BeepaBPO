@@ -152,6 +152,11 @@ if (APPLY_CLEANUP) {
 
 const residualBefore = await countExerciseLeave();
 let createdLeaveId = null;
+// The cancel leg creates and withdraws a second request. It is tracked separately
+// so the finally block can purge both -- a cancelled row is still a row, and
+// leaving it behind would make the next run's residual count fail for a reason
+// that has nothing to do with the next run.
+let cancelledLeaveId = null;
 
 // ---- 1. employee submits ----
 // Baseline is taken AFTER cleanup. Capturing it first made the cleanup's own
@@ -178,6 +183,51 @@ const options = await emp.page.$$eval("#leave_type_id option", (os) =>
 // dates — so choosing it would guarantee a duplicate on the second run.
 const chosen = options.find((o) => !/bereavement/i.test(o.label)) ?? options[0];
 if (!chosen) { console.error("no leave types available"); process.exitCode = 1; }
+await emp.page.selectOption("#leave_type_id", chosen.value);
+await emp.page.fill("#start_date", startDate);
+await emp.page.fill("#end_date", endDate);
+await emp.page.fill("#reason", REASON);
+
+// ---- 1a. Reset must clear a dirty form and submit nothing ----
+//
+// `qa-control-surface-census.mjs` reported Reset and Cancel as the only two
+// action controls on the whole measured surface that no assertion mentions. They
+// are `form.reset({ ...defaults })` and `cancelLeaveRequest(requestId)` -- a
+// browser affordance and a real server action that withdraws a request, both used
+// by employees every week and both untested.
+//
+// Reset is asserted on a DIRTY form, because a Reset on an already-empty form
+// proves nothing: it would pass identically if the handler did nothing at all.
+const { count: beforeReset } = await db
+  .from("leave_requests")
+  .select("id", { count: "exact", head: true })
+  .gt("created_at", RUN_START);
+
+await emp.page.getByRole("button", { name: /^reset$/i }).click();
+await emp.page.waitForTimeout(800);
+
+const afterReset = await emp.page.evaluate(() => ({
+  type: document.querySelector("#leave_type_id")?.value ?? null,
+  start: document.querySelector("#start_date")?.value ?? null,
+  end: document.querySelector("#end_date")?.value ?? null,
+  reason: document.querySelector("#reason")?.value ?? null,
+}));
+check(
+  "Reset clears a dirty form back to defaults",
+  !afterReset.start && !afterReset.end && !afterReset.reason,
+  `start=${afterReset.start || "(empty)"} end=${afterReset.end || "(empty)"} reason=${afterReset.reason || "(empty)"}`,
+);
+check("Reset returns the leave type to its placeholder", !afterReset.type || /^select/i.test(afterReset.type) || afterReset.type === "",
+  `leave_type_id=${afterReset.type || "(empty)"}`);
+
+const { count: afterResetCount } = await db
+  .from("leave_requests")
+  .select("id", { count: "exact", head: true })
+  .gt("created_at", RUN_START);
+check("Reset submits nothing", (afterResetCount ?? 0) === (beforeReset ?? 0),
+  `${beforeReset} -> ${afterResetCount} leave requests created`);
+
+// Re-fill, because the real submission below needs a populated form.
 await emp.page.selectOption("#leave_type_id", chosen.value);
 await emp.page.fill("#start_date", startDate);
 await emp.page.fill("#end_date", endDate);
@@ -335,6 +385,86 @@ check(
   decision?.body,
 );
 
+// ---- 4. cancelling a pending request withdraws it ----
+//
+// The second button the census could not place. `cancelLeaveRequest` is a real
+// server action behind a ConfirmDialog, and employees use it whenever plans
+// change -- so its failure would be silent and annoying rather than loud.
+//
+// It runs AFTER the main request has been decided, on its own request, so it
+// cannot disturb the approval flow being measured above.
+const cancelStart = iso(new Date(Date.now() + 28 * 86400_000));
+const cancelEnd = iso(new Date(Date.now() + 30 * 86400_000));
+
+// A FRESH sign-in. Reusing `emp.page` threw "Target page, context or browser has
+// been closed" here: the approval steps in between run their own browser contexts
+// and the original one is gone by this point in the run. A dedicated session is
+// also more honest -- the cancel is driven the way an employee would drive it.
+const canceler = await signIn("employee@demo.beepabpo.com");
+
+await canceler.page.goto(`${BASE}/app/my/leave`, { waitUntil: "domcontentloaded" });
+await canceler.page.waitForSelector("#leave_type_id", { timeout: 20000 });
+await canceler.page.selectOption("#leave_type_id", chosen.value);
+await canceler.page.fill("#start_date", cancelStart);
+await canceler.page.fill("#end_date", cancelEnd);
+await canceler.page.fill("#reason", `${MARKER} — to be withdrawn.`);
+await canceler.page.click('button[type="submit"]');
+await canceler.page.waitForTimeout(4000);
+
+const { data: toCancel } = await db
+  .from("leave_requests")
+  .select("id, status")
+  .eq("employee_id", employee.id)
+  .gt("created_at", RUN_START)
+  .eq("status", "pending")
+  .order("created_at", { ascending: false })
+  .limit(1);
+const cancellable = toCancel?.[0];
+check("a second pending request exists to cancel", Boolean(cancellable),
+  cancellable ? `id=${cancellable.id}` : "none created");
+
+if (cancellable) {
+  cancelledLeaveId = cancellable.id;
+  // Reload so the freshly created row renders with its own Cancel button.
+  await canceler.page.reload({ waitUntil: "domcontentloaded" });
+  await canceler.page.waitForTimeout(1500);
+
+  // The button opens a ConfirmDialog; confirming is the part that matters.
+  const cancelBtn = canceler.page.getByRole("button", { name: /^cancel$/i }).first();
+  const opened = await cancelBtn.count();
+  check("the pending request offers a Cancel control", opened > 0, opened > 0 ? "found" : "no Cancel button");
+  if (opened > 0) {
+    await cancelBtn.click();
+    await canceler.page.waitForTimeout(600);
+    const confirmBtn = canceler.page.getByRole("button", { name: /cancel leave/i }).first();
+    const confirmVisible = await confirmBtn.count();
+    check("Cancel asks for confirmation before withdrawing", confirmVisible > 0,
+      confirmVisible > 0 ? "confirm dialog shown" : "cancelled with no confirmation");
+    if (confirmVisible > 0) {
+      await confirmBtn.click();
+      await canceler.page.waitForTimeout(4000);
+    }
+  }
+
+  const { data: afterCancel } = await db
+    .from("leave_requests")
+    .select("status")
+    .eq("id", cancellable.id)
+    .maybeSingle();
+  check("Cancel withdraws the request", afterCancel?.status !== "pending",
+    `status=${afterCancel?.status}`);
+
+  // Withdrawing must also clear it out of the approval queue, or it sits there
+  // as a ghost nobody can act on.
+  const { data: orphanedApprovals } = await db
+    .from("approval_requests")
+    .select("id, status")
+    .eq("entity_id", cancellable.id);
+  check("Cancel leaves no actionable approval behind",
+    (orphanedApprovals ?? []).every((a) => a.status !== "pending"),
+    (orphanedApprovals ?? []).map((a) => a.status).join(",") || "no approval rows");
+}
+
 } finally {
   // ---- end-of-run cleanup: this run's own rows, whatever happened above ----
   //
@@ -343,9 +473,9 @@ check(
   // only cleans up the run BEFORE the last one.
   if (!APPLY_CLEANUP) {
     console.log("\nend-of-run cleanup: skipped (--no-cleanup)");
-  } else if (createdLeaveId) {
+  } else if (createdLeaveId || cancelledLeaveId) {
     try {
-      await purgeLeaveIds([createdLeaveId]);
+      await purgeLeaveIds([createdLeaveId, cancelledLeaveId].filter(Boolean));
       const residualAfter = await countExerciseLeave();
       check(
         "this run left no leave request behind",
