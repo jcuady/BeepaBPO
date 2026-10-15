@@ -1,14 +1,32 @@
 /**
- * Pending-migration preflight — structural only. Executes nothing.
+ * Migration structural preflight — parses nothing, executes nothing.
  *
- * Four migrations are written and unapplied, blocked on DB-privileged
- * credentials, so they have never been run. Four files of SQL that have never
- * been parsed is how a routine `db push` turns into a long debugging session.
+ * WHY THE "PENDING" CLAIM WAS DELETED
+ * ------------------------------------
+ * This script used to print "pending: 4" from a HARDCODED list of filenames,
+ * and its header asserted as fact that "four migrations are written and
+ * unapplied". That was true when written and stopped being true the moment they
+ * were pushed — and it never re-checked. `supabase migration list` now shows all
+ * 38 migrations present in both the Local and Remote columns, including all four
+ * it named, and `supabase db push --dry-run` answers "Remote database is up to
+ * date".
  *
- * `supabase db push --dry-run` would settle it properly but authenticates
- * against the linked project, needing the credentials that are missing.
+ * So the gate was reporting a backend gap that did not exist, in a repo whose
+ * whole standard is that a check may not lie. A hardcoded "pending" list is the
+ * worst possible source for a number printed without qualification: it goes
+ * stale silently and there is nothing to notice.
  *
- * WHAT THIS CHECKS — dollar-quoted body balance.
+ * This script no longer knows, guesses, or prints how many migrations are
+ * pending. It cannot know — that requires the database. To find out:
+ *
+ *     npx supabase migration list     # authoritative, per-migration
+ *     npx supabase db push --dry-run  # or just this
+ *
+ * WHAT IT DOES INSTEAD: structurally preflights every migration on disk. That is
+ * always correct regardless of what has been applied, it needs no credentials,
+ * and it cannot go stale.
+ *
+ * WHAT IT CHECKS — dollar-quoted body balance.
  *
  * A plpgsql function body lives between `$$` markers. If one is missing, the
  * terminator is swallowed and the parser reports a syntax error somewhere after
@@ -18,7 +36,7 @@
  * WHAT THIS DELIBERATELY DOES NOT DO — and the first version of this script
  * tried, and was wrong 80 times in one run:
  *
- *   It did not attempt to resolve `public.x` identifiers. SQL keywords
+ *   It does not attempt to resolve `public.x` identifiers. SQL keywords
  *   (`on delete cascade` -> "delete"), data types (`public.numeric`), and table
  *   aliases (`from generate_series(..) ea`) are indistinguishable from schema
  *   objects to a regex. That produced 80 confident nonsense findings — exactly
@@ -47,37 +65,32 @@ const dirArg = process.argv.slice(2).find((a) => a.startsWith("--dir="));
 // absolute path onto ROOT produces a directory that does not exist.
 const DIR = dirArg ? resolve(dirArg.slice("--dir=".length)) : join(ROOT, "supabase", "migrations");
 
-/**
- * Written but never applied to the linked project.
- *
- * An explicit pending list, not an applied list computed by subtraction: the
- * first version listed these four under `APPLIED` and inverted the whole
- * premise, reporting 30 long-applied migrations as pending.
- */
-const PENDING = [
-  "20261006140000_realtime_and_profile_sync.sql",
-  "20261007120000_payroll_period_no_overlap.sql",
-  "20261007130000_payroll_record_status_coherence.sql",
-  "20261008120000_hr_recruitment_access.sql",
-];
-
 const onDisk = readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort();
 const args = process.argv.slice(2).filter((a) => !a.startsWith("--dir="));
-const pending = args.length ? args : PENDING;
+// Default to EVERY migration on disk, not a list of "pending" ones.
+//
+// This used to default to a hardcoded four that had since been applied, so the
+// script kept reporting a backend gap that no longer existed and preflighted the
+// wrong files. Checking all of them is always true to the repository and cannot
+// go stale; pass explicit filenames to scope it to a push you are about to make.
+const target = args.length ? args : onDisk;
 
 console.log(`migrations on disk: ${onDisk.length}`);
-console.log(`pending: ${pending.length}\n`);
+console.log(`preflighting: ${target.length}${args.length ? " (explicit list)" : " (all on disk)"}\n`);
+console.log("NOTE: this script does not know which migrations are pending -- that needs the database.\n");
+console.log("      npx supabase migration list      # authoritative, per migration");
+console.log("      npx supabase db push --dry-run   # or just this\n");
 
-const missing = pending.filter((f) => !onDisk.includes(f));
+const missing = target.filter((f) => !onDisk.includes(f));
 if (missing.length) {
-  console.log(`PROBLEM: listed as pending but not on disk: ${missing.join(", ")}`);
+  console.log(`PROBLEM: listed but not on disk: ${missing.join(", ")}`);
   process.exit(1);
 }
 
 const problems = [];
 let bodies = 0;
 
-for (const file of pending) {
+for (const file of target) {
   const raw = readFileSync(join(DIR, file), "utf8");
 
   // Counted on the RAW text, not a comment-stripped copy: the markers being
@@ -99,7 +112,7 @@ for (const file of pending) {
   }
 }
 
-console.log(`dollar-quoted bodies across pending migrations: ${bodies}`);
+console.log(`dollar-quoted bodies across preflighted migrations: ${bodies}`);
 
 if (problems.length) {
   console.log(`\nPROBLEMS (${problems.length}):`);
@@ -110,6 +123,9 @@ if (problems.length) {
 
 console.log("\nVERDICT: no structural defects found.");
 console.log("        This is NOT proof the migrations will apply. To settle that, run");
-console.log("        `supabase db push --dry-run --yes`, which needs the db-push PAT");
-console.log("        and DB password listed in docs/REMAINING_WORK.md §1.2.");
+console.log("        `npx supabase db push --dry-run --yes` -- it authenticates against");
+console.log("        the linked project and, as of this writing, answers \"Remote database");
+console.log("        is up to date\" for all 38 migrations. A previous version of this");
+console.log("        script claimed the dry run needed a PAT it could not obtain, and used");
+console.log("        that as the excuse to assert a pending count it had hardcoded.");
 process.exit(0);

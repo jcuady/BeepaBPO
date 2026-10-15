@@ -125,16 +125,23 @@ function gateChain(file, delegatedSrc) {
 
 let total = 0;
 let gated = 0;
+let exemptByDesign = 0;
 const ungated = [];
 const rows = [];
 
-// These three are structural, not data routes, and must not be authorization
+// These four are structural, not data routes, and must not be authorization
 // gated: the root layout *is* the authentication gate, /app only redirects to
-// the caller's role landing, and /app/access-denied is the 403 destination.
+// the caller's role landing, /app/access-denied is the 403 destination, and
+// /app/[...rest] renders nothing at all.
 const EXPECTED_UNGATED = new Set([
   resolve("app/app/layout.tsx"),
   resolve("app/app/page.tsx"),
   resolve("app/app/access-denied/page.tsx"),
+  // Catch-all for unmatched /app/* URLs. Its whole body is `notFound()`, so it
+  // can read nothing and mutate nothing. Authentication happens in
+  // app/app/layout.tsx above it. Gating it would be meaningless; the 404 is
+  // exactly what a request to a non-existent path should get.
+  resolve("app/app/[...rest]/page.tsx"),
 ]);
 
 for (const f of FILES.sort()) {
@@ -150,6 +157,7 @@ for (const f of FILES.sort()) {
 
   if (isGated) gated++;
   else if (!EXPECTED_UNGATED.has(resolve(f))) ungated.push({ file: f, via });
+  else exemptByDesign++;
 
   const merged = Object.assign({}, ...chain);
   const route =
@@ -160,7 +168,7 @@ for (const f of FILES.sort()) {
       .replace(/[/\\]\([a-z_]+\)[/\\]/g, "/")
       .replace(/\[/g, ":")
       .replace(/\]/g, "");
-  rows.push({ route, file: f, via, gates: authorizing.map((g) => g.file), ...merged });
+  rows.push({ route, file: f, via, exempt: !isGated && EXPECTED_UNGATED.has(resolve(f)), gates: authorizing.map((g) => g.file), ...merged });
 }
 
 const expectedUngated = FILES.filter((f) => EXPECTED_UNGATED.has(resolve(f))).length;
@@ -192,14 +200,21 @@ const groups = {};
 for (const r of rows) {
   // route is "/app/<section>/...", so the section name is segment index 2.
   const prefix = r.route.split("/").slice(2, 3)[0] || "(root)";
-  if (!groups[prefix]) groups[prefix] = { total: 0, gated: 0 };
+  if (!groups[prefix]) groups[prefix] = { total: 0, gated: 0, exempt: 0, ungatedPages: 0 };
   groups[prefix].total++;
   if (parentLayoutGates && AUTHORIZES(r)) groups[prefix].gated++;
+  else if (r.exempt) groups[prefix].exempt++;
+  else groups[prefix].ungatedPages++;
 }
 console.log("\nAuthorization by section (gated/total):");
 for (const [k, v] of Object.entries(groups).sort()) {
-  const flag = v.gated === v.total ? "" : "   <-- REVIEW";
-  console.log(`  ${k.padEnd(15)} ${v.gated}/${v.total}${flag}`);
+  // Only a section containing a page that is NEITHER gated NOR exempt is worth
+  // reviewing. Flagging a section whose only member is an exempt structural
+  // route reads as a finding, sends a reader hunting, and was misread here as
+  // four separate problems when the audit had exactly one.
+  const flag = v.ungatedPages > 0 ? "   <-- REVIEW" : "";
+  const exemptNote = v.exempt ? `  (${v.exempt} structural, exempt by design)` : "";
+  console.log(`  ${k.padEnd(15)} ${v.gated}/${v.total}${flag}${exemptNote}`);
 }
 
 process.exit(ungated.length ? 1 : 0);

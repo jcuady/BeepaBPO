@@ -89,7 +89,12 @@ export async function contactAction(
  * form submission does, with the career area carried in the company field and the
  * free-text answer in the message. One lead table, one pipeline, no second
  * inbox nobody reads.
+ *
+ * Safe to expose without a session: it is a write-only intake path, not a read.
+ * Honeypot, zod validation and a per-IP rate limit guard it, and the only row it
+ * creates is a lead no one but staff can read.
  */
+// unauthenticated: public career enquiry dialog, same posture as contactAction.
 export async function careerInquiryAction(
   _prev: ActionState,
   formData: FormData,

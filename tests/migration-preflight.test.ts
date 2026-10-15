@@ -5,12 +5,11 @@ import { join, dirname } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * Pending-migration preflight contract.
+ * Migration preflight contract.
  *
- * Four migrations have never been executed, because applying them needs
- * credentials this machine does not have. The preflight is the only check that
- * can run in the meantime, so it is worth being precise about what it can
- * honestly assert — which is very little.
+ * The preflight can only honestly assert one thing: that the SQL files are not
+ * structurally broken. It cannot know which migrations are pending, because that
+ * is a question about the database and this script never talks to one.
  *
  * The first version of this script tried to resolve `public.x` identifiers and
  * produced 80 findings in one run, every one of them wrong: `on delete cascade`
@@ -18,9 +17,16 @@ import { describe, expect, it } from "vitest";
  * `from generate_series(...) ea` as a table named `ea`. It also had its pending
  * list inverted and reported 30 long-applied migrations as pending.
  *
- * Both failures are pinned here. The second one is the more interesting: a gate
- * that is confidently wrong gets switched off, and then gets believed when it
- * is accidentally right.
+ * Then it kept the four-file list from that era and printed "pending: 4" forever,
+ * long after all four had been applied — `supabase migration list` shows every
+ * migration in both the Local and Remote columns, and `supabase db push
+ * --dry-run` answers "Remote database is up to date". The repo's own
+ * docs/REMAINING_WORK.md said "zero pending" the whole time.
+ *
+ * Both failures are pinned here. The second is the more interesting: a gate that
+ * is confidently wrong gets switched off, and then gets believed when it is
+ * accidentally right. A hardcoded number is the worst case, because it goes
+ * stale silently and there is nothing left to notice.
  */
 
 const ROOT = process.cwd();
@@ -115,17 +121,38 @@ end;
   });
 });
 
-describe("migration preflight — the four pending migrations", () => {
+describe("migration preflight — against the real migrations directory", () => {
   /** Run against the real migrations directory. */
   function runLive() {
     const r = spawnSync(process.execPath, [SCRIPT], { cwd: ROOT, encoding: "utf8" });
     return { status: r.status, out: (r.stdout ?? "") + (r.stderr ?? "") };
   }
 
-  it("reports exactly four pending and finds them structurally sound", () => {
+  it("preflights every migration on disk and finds them structurally sound", () => {
+    // The useful half of the old "pending: 4" test, without the part that lied.
+    // Checking all of them is always true to the repository; checking a
+    // hardcoded subset is true only until those files are applied.
     const r = runLive();
-    expect(r.out).toContain("pending: 4");
+    expect(r.out).toContain("preflighting:");
+    expect(r.out).toContain("all on disk");
     expect(r.status).toBe(0);
+  });
+
+  it("never prints a pending count", () => {
+    // The regression that matters. This script cannot know what is pending, and
+    // it said so for months anyway — printing "pending: 4" from a hardcoded list
+    // after all four had been applied. A reader had no way to tell that number
+    // from a measured one, because it was formatted identically.
+    const r = runLive();
+    expect(r.out).not.toMatch(/pending:\s*\d/);
+  });
+
+  it("points at the command that actually knows the answer", () => {
+    // A script that cannot answer should say where the answer lives, rather
+    // than leaving the reader to guess or, worse, to trust the old number.
+    const r = runLive();
+    expect(r.out).toContain("supabase migration list");
+    expect(r.out).toContain("db push --dry-run");
   });
 
   it("does not try to resolve public.x identifiers", () => {
