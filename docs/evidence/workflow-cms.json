@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-cms-workflow.mjs",
   "claim": "publish and unpublish round trip",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T05:21:52.160Z",
+  "when": "2026-10-15T12:23:37.802Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 43,
@@ -35,7 +35,7 @@
     },
     {
       "pass": true,
-      "name": "update blog post: the edit is persisted  — row now reads \"QA Blog Edited qamv937s63\"",
+      "name": "update blog post: the edit is persisted  — row now reads \"QA Blog Edited qamv9ia6op\"",
       "detail": null
     },
     {
@@ -60,7 +60,7 @@
     },
     {
       "pass": true,
-      "name": "update service: the edit is persisted  — row now reads \"QA Service Edited qamv937s63\"",
+      "name": "update service: the edit is persisted  — row now reads \"QA Service Edited qamv9ia6op\"",
       "detail": null
     },
     {
@@ -85,7 +85,7 @@
     },
     {
       "pass": true,
-      "name": "update FAQ: the edit is persisted  — row now reads \"QA question edited qamv937s63?\"",
+      "name": "update FAQ: the edit is persisted  — row now reads \"QA question edited qamv9ia6op?\"",
       "detail": null
     },
     {
@@ -110,7 +110,7 @@
     },
     {
       "pass": true,
-      "name": "update industry: the edit is persisted  — row now reads \"QA Industry Edited qamv937s63\"",
+      "name": "update industry: the edit is persisted  — row now reads \"QA Industry Edited qamv9ia6op\"",
       "detail": null
     },
     {
@@ -135,7 +135,7 @@
     },
     {
       "pass": true,
-      "name": "update testimonial: the edit is persisted  — row now reads \"QA Client Edited qamv937s63\"",
+      "name": "update testimonial: the edit is persisted  — row now reads \"QA Client Edited qamv9ia6op\"",
       "detail": null
     },
     {
@@ -160,7 +160,7 @@
     },
     {
       "pass": true,
-      "name": "update case study: the edit is persisted  — row now reads \"QA Case Edited qamv937s63\"",
+      "name": "update case study: the edit is persisted  — row now reads \"QA Case Edited qamv9ia6op\"",
       "detail": null
     },
     {
@@ -175,7 +175,7 @@
     },
     {
       "pass": true,
-      "name": "upsertAboutPage writes the About content  — headline=\"QA About headline qamv937s63\"",
+      "name": "upsertAboutPage writes the About content  — headline=\"QA About headline qamv9ia6op\"",
       "detail": null
     },
     {
@@ -230,7 +230,7 @@
     "about page before this run: never set — the row will be removed again"
   ],
   "other": [
-    "marker: qamv937s63",
+    "marker: qamv9ia6op",
     "about page before: (never set)",
     "  (cleanup) removed 1 blog post row(s) created by this run",
     "  (cleanup) removed 1 service row(s) created by this run",

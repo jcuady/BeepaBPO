@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-profile-workflow.mjs",
   "claim": "profile read and write persistence",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T05:23:46.263Z",
+  "when": "2026-10-15T12:25:44.005Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 19,
@@ -16,7 +16,7 @@
     {
       "pass": true,
       "name": "updateEmployee persists the new job title",
-      "detail": "qaprofmv93ese6 Senior Support Analyst"
+      "detail": "qaprofmv9ihdpn Senior Support Analyst"
     },
     {
       "pass": true,
@@ -36,7 +36,7 @@
     {
       "pass": true,
       "name": "updateProfile persists the display name",
-      "detail": "qaprofmv93ese6 Name"
+      "detail": "qaprofmv9ihdpn Name"
     },
     {
       "pass": true,
@@ -109,7 +109,7 @@
     "This proves CLIENT-side validation: the input is type=email with required, so the browser blocks the submit and contactAction is never called. The server-side contactSchema rejection path is not exercised here, because the UI cannot reach it."
   ],
   "other": [
-    "employee: 5754881d",
+    "employee: 47badb71",
     "owner profile: Demo Owner, phone=null, tz=Asia/Manila",
     "crm_leads before: 4",
     "(cleanup) leads still carrying the marker: 0",

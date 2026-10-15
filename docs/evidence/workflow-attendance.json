@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-attendance-workflow.mjs",
   "claim": "clock in/out, corrections, HR approval, delete",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T11:15:08.275Z",
+  "when": "2026-10-15T12:11:19.403Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 31,
@@ -25,7 +25,7 @@
     },
     {
       "pass": true,
-      "name": "Clock In sets clock_in_at and leaves clock_out_at empty  — in=11:14:12 out=null",
+      "name": "Clock In sets clock_in_at and leaves clock_out_at empty  — in=12:10:23 out=null",
       "detail": null
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "pass": true,
-      "name": "Clock Out sets clock_out_at  — in=11:14:12 out=11:14:20",
+      "name": "Clock Out sets clock_out_at  — in=12:10:23 out=12:10:31",
       "detail": null
     },
     {
@@ -45,7 +45,7 @@
     },
     {
       "pass": true,
-      "name": "clock out is later than clock in  — 2026-10-15T11:14:12.266335+00:00 -> 2026-10-15T11:14:20.880001+00:00",
+      "name": "clock out is later than clock in  — 2026-10-15T12:10:23.318783+00:00 -> 2026-10-15T12:10:31.677455+00:00",
       "detail": null
     },
     {
@@ -60,7 +60,7 @@
     },
     {
       "pass": true,
-      "name": "it raised an approval request on the attendance_correction workflow  — status=pending step=1 entity=7962f063",
+      "name": "it raised an approval request on the attendance_correction workflow  — status=pending step=1 entity=e768ff7b",
       "detail": null
     },
     {
@@ -160,18 +160,18 @@
     },
     {
       "pass": true,
-      "name": "no approval requests leaked  — 28 -> 28",
+      "name": "no approval requests leaked  — 30 -> 30",
       "detail": null
     }
   ],
   "failedAssertions": [],
   "notes": [
-    "clocked 11:14:12Z -> 11:14:20Z = 0 min",
+    "clocked 12:10:23Z -> 12:10:31Z = 0 min",
     "finalized-record guard: exercised only through the UI, never by deleting live rows"
   ],
   "other": [
     "employee: employee@demo.beepabpo.com -> 108f95ff-e47f-414f-8ec2-0e49f075edb0 (tz Asia/Manila)",
-    "(node:22864) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/jcuad/OneDrive/Documents/BeepoBeepa/lib/attendance/zoned-time.ts is not specified and it doesn't parse as CommonJS.",
+    "(node:2092) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/jcuad/OneDrive/Documents/BeepoBeepa/lib/attendance/zoned-time.ts is not specified and it doesn't parse as CommonJS.",
     "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
     "To eliminate this warning, add \"type\": \"module\" to C:\\Users\\jcuad\\OneDrive\\Documents\\BeepoBeepa\\package.json.",
     "(Use `node --trace-warnings ...` to show where the warning was created)",

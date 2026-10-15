@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-client-timesheet-workflow.mjs",
   "claim": "client approves submitted timesheets",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T05:14:07.767Z",
+  "when": "2026-10-15T12:15:54.762Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 14,
@@ -11,7 +11,7 @@
     {
       "pass": true,
       "name": "a draft timesheet exists for a client-assigned employee",
-      "detail": "441322fc"
+      "detail": "621fa630"
     },
     {
       "pass": true,

@@ -1,9 +1,9 @@
 {
   "base": "http://localhost:3100",
-  "when": "2026-10-15T06:42:15.356Z",
+  "when": "2026-10-15T12:34:23.362Z",
   "registryTotal": 21,
   "ranThisInvocation": [
-    "leave"
+    "admin-workflow"
   ],
   "totals": {
     "pass": 19,
@@ -12,7 +12,7 @@
     "fail": 0,
     "noEvidence": 0
   },
-  "totalAssertions": 480,
+  "totalAssertions": 482,
   "unregisteredScripts": [],
   "results": [
     {
@@ -21,7 +21,7 @@
       "assertions": 35,
       "what": "sign in/out, sign-out-everywhere, access-denied, no account leakage",
       "evidence": "docs/evidence/workflow-auth.json",
-      "when": "2026-10-15T05:06:33.210Z",
+      "when": "2026-10-15T12:08:04.497Z",
       "ranThisRun": false
     },
     {
@@ -30,7 +30,7 @@
       "assertions": 4,
       "what": "applicant and client registration reach verification",
       "evidence": "docs/evidence/workflow-signup.json",
-      "when": "2026-10-15T06:05:46.779Z",
+      "when": "2026-10-15T12:08:36.839Z",
       "ranThisRun": false
     },
     {
@@ -39,7 +39,7 @@
       "assertions": 19,
       "what": "salary edit, period, recalculate, 2-step approval to finalized",
       "evidence": "docs/evidence/workflow-payroll.json",
-      "when": "2026-10-15T05:08:33.849Z",
+      "when": "2026-10-15T12:10:04.814Z",
       "ranThisRun": false
     },
     {
@@ -48,7 +48,7 @@
       "assertions": 31,
       "what": "clock in/out, corrections, HR approval, delete",
       "evidence": "docs/evidence/workflow-attendance.json",
-      "when": "2026-10-15T05:09:49.848Z",
+      "when": "2026-10-15T12:11:19.403Z",
       "ranThisRun": false
     },
     {
@@ -57,8 +57,8 @@
       "assertions": 21,
       "what": "request, approve/deny, balance impact",
       "evidence": "docs/evidence/workflow-leave.json",
-      "when": "2026-10-15T06:42:15.316Z",
-      "ranThisRun": true
+      "when": "2026-10-15T12:12:14.493Z",
+      "ranThisRun": false
     },
     {
       "id": "notifications",
@@ -66,16 +66,16 @@
       "assertions": 16,
       "what": "mark one/all read, per-user isolation, digest preference",
       "evidence": "docs/evidence/workflow-notifications.json",
-      "when": "2026-10-15T05:10:52.575Z",
+      "when": "2026-10-15T12:12:40.392Z",
       "ranThisRun": false
     },
     {
       "id": "tickets",
       "verdict": "PASS",
-      "assertions": 33,
+      "assertions": 34,
       "what": "ticket list, create, status transitions",
       "evidence": "docs/evidence/workflow-tickets.json",
-      "when": "2026-10-15T05:11:50.422Z",
+      "when": "2026-10-15T12:13:38.919Z",
       "ranThisRun": false
     },
     {
@@ -84,7 +84,7 @@
       "assertions": 31,
       "what": "upload, list, visibility scoping",
       "evidence": "docs/evidence/workflow-documents.json",
-      "when": "2026-10-15T05:12:47.224Z",
+      "when": "2026-10-15T12:14:36.945Z",
       "ranThisRun": false
     },
     {
@@ -93,7 +93,7 @@
       "assertions": 24,
       "what": "notification to evaluate, accept/decline",
       "evidence": "docs/evidence/workflow-nte.json",
-      "when": "2026-10-15T05:13:25.154Z",
+      "when": "2026-10-15T12:15:11.843Z",
       "ranThisRun": false
     },
     {
@@ -102,7 +102,7 @@
       "assertions": 14,
       "what": "client approves submitted timesheets",
       "evidence": "docs/evidence/workflow-client-timesheet.json",
-      "when": "2026-10-15T05:14:07.767Z",
+      "when": "2026-10-15T12:15:54.762Z",
       "ranThisRun": false
     },
     {
@@ -111,7 +111,7 @@
       "assertions": 33,
       "what": "cash advances and billing across the lifecycle",
       "evidence": "docs/evidence/workflow-money.json",
-      "when": "2026-10-15T05:14:52.887Z",
+      "when": "2026-10-15T12:16:37.732Z",
       "ranThisRun": false
     },
     {
@@ -120,7 +120,7 @@
       "assertions": 23,
       "what": "job, applicant, pipeline stage moves",
       "evidence": "docs/evidence/workflow-recruitment.json",
-      "when": "2026-10-15T05:16:17.657Z",
+      "when": "2026-10-15T12:18:04.126Z",
       "ranThisRun": false
     },
     {
@@ -129,7 +129,7 @@
       "assertions": 21,
       "what": "lead and deal lifecycle with activity log",
       "evidence": "docs/evidence/workflow-crm.json",
-      "when": "2026-10-15T05:17:39.462Z",
+      "when": "2026-10-15T12:19:25.888Z",
       "ranThisRun": false
     },
     {
@@ -138,7 +138,7 @@
       "assertions": 43,
       "what": "publish and unpublish round trip",
       "evidence": "docs/evidence/workflow-cms.json",
-      "when": "2026-10-15T05:21:52.160Z",
+      "when": "2026-10-15T12:23:37.802Z",
       "ranThisRun": false
     },
     {
@@ -147,7 +147,7 @@
       "assertions": 23,
       "what": "hire to employee, org membership, cleanup",
       "evidence": "docs/evidence/workflow-hire.json",
-      "when": "2026-10-15T05:22:25.351Z",
+      "when": "2026-10-15T12:24:14.551Z",
       "ranThisRun": false
     },
     {
@@ -156,8 +156,8 @@
       "assertions": 18,
       "what": "admin actions behind their permission",
       "evidence": "docs/evidence/workflow-admin-workflow.json",
-      "when": "2026-10-15T05:23:06.250Z",
-      "ranThisRun": false
+      "when": "2026-10-15T12:34:23.345Z",
+      "ranThisRun": true
     },
     {
       "id": "profile",
@@ -165,16 +165,16 @@
       "assertions": 19,
       "what": "profile read and write persistence",
       "evidence": "docs/evidence/workflow-profile.json",
-      "when": "2026-10-15T05:23:46.263Z",
+      "when": "2026-10-15T12:25:44.005Z",
       "ranThisRun": false
     },
     {
       "id": "list-filters",
       "verdict": "PASS",
-      "assertions": 33,
+      "assertions": 34,
       "what": "filtering, search and pagination on list views",
       "evidence": "docs/evidence/workflow-list-filters.json",
-      "when": "2026-10-15T05:26:38.928Z",
+      "when": "2026-10-15T12:28:32.127Z",
       "ranThisRun": false
     },
     {
@@ -183,7 +183,7 @@
       "assertions": 10,
       "what": "single ticket detail, assignment and status change",
       "evidence": "docs/evidence/workflow-ticket-detail.json",
-      "when": "2026-10-15T05:27:07.246Z",
+      "when": "2026-10-15T12:28:57.381Z",
       "ranThisRun": false
     },
     {
@@ -192,7 +192,7 @@
       "assertions": 12,
       "what": "unpublish leaves the sitemap and republish restores it",
       "evidence": "docs/evidence/workflow-sitemap.json",
-      "when": "2026-10-15T05:29:53.188Z",
+      "when": "2026-10-15T12:29:28.824Z",
       "ranThisRun": false
     },
     {
@@ -201,7 +201,7 @@
       "assertions": 17,
       "what": "sales, finance, client_viewer: the three roles no other exercise drives",
       "evidence": "docs/evidence/workflow-uncovered-roles.json",
-      "when": "2026-10-15T05:28:15.527Z",
+      "when": "2026-10-15T12:30:05.778Z",
       "ranThisRun": false
     }
   ]

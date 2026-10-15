@@ -327,6 +327,7 @@ console.log(
 mkdirSync("docs/evidence", { recursive: true });
 
 let serverDown = false;
+let stopReason = "server stopped answering during this run";
 
 for (const [ci, chunk] of chunks.entries()) {
   if (chunks.length > 1) console.log(`\n-- chunk ${ci + 1}/${chunks.length} --`);
@@ -339,10 +340,36 @@ for (const [ci, chunk] of chunks.entries()) {
         assertions: 0,
         evidence: `docs/evidence/workflow-${w.id}.json`,
         what: w.what,
-        note: "server stopped answering during this run",
+        note: stopReason,
       });
-      console.log(`  ${w.id.padEnd(16)} SKIPPED (server down)`);
+      console.log(`  ${w.id.padEnd(16)} SKIPPED (${stopReason})`);
       continue;
+    }
+
+    // Re-check before every exercise, not once at the start. A full run takes
+    // half an hour; if anyone rebuilds during it, the build on disk is replaced
+    // while the server keeps serving the old one, and every exercise from that
+    // point describes code that is no longer there. That is the same defect as
+    // the one this guard was added for, one step later in the timeline.
+    if (ci > 0 || chunk.indexOf(w) > 0) {
+      const mid = await serverBuildState();
+      if (mid.state !== "fresh") {
+        serverDown = true;
+        stopReason =
+          mid.state === "stale"
+            ? "server was rebuilt mid-run and is no longer serving the build this run started on"
+            : "server build age could not be established mid-run";
+        results.push({
+          id: w.id,
+          verdict: "SKIPPED",
+          assertions: 0,
+          evidence: `docs/evidence/workflow-${w.id}.json`,
+          what: w.what,
+          note: stopReason,
+        });
+        console.log(`  ${w.id.padEnd(16)} SKIPPED (${stopReason})`);
+        continue;
+      }
     }
 
     process.stdout.write(`  ${w.id.padEnd(16)} ...`);

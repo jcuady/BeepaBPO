@@ -31,16 +31,29 @@ function walk(dir, out = []) {
 
 function routeFor(file) {
   const rel = relative(join(ROOT, "app"), file).replace(/\\/g, "/");
-  const m = rel.match(/^(.*)\/(page|route)\.tsx?$/);
+  // The directory part is OPTIONAL, and leaving it out is not a detail.
+  //
+  // This was `/^(.*)\/(page|route)\.tsx?$/`, which requires a `/` before
+  // `page.tsx`. The homepage is `app/page.tsx`, so its relative path is
+  // `"page.tsx"` with no directory at all — it did not match, `routeFor`
+  // returned null, and the one route every visitor lands on was dropped from
+  // the inventory.
+  //
+  // Nothing noticed for two reasons. `--check` only compares the committed file
+  // against what this function produces, so a subject the function cannot see is
+  // a subject that is never reported missing; and the stale file still listed
+  // `/` pointing at `app/(marketing)/page.tsx`, which no longer exists, so the
+  // row being wrong looked like ordinary staleness rather than a blind spot.
+  const m = rel.match(/^(?:(.*)\/)?(page|route)\.tsx?$/);
   if (!m) return null;
   const [, slug, kind] = m;
   // Route groups are not part of the URL: app/(marketing)/about -> /about.
-  const segments = slug
+  const segments = (slug ?? "")
     .split("/")
     .filter((s) => s && !/^\(.*\)$/.test(s))
     .map((s) => (s.startsWith("[") ? ":" + s.replace(/^\[|\]$/g, "") : s));
   const path = "/" + segments.join("/");
-  return { path: path.replace(/\/$/, "") || "/", kind, slug };
+  return { path: path.replace(/\/$/, "") || "/", kind, slug: slug ?? "" };
 }
 
 const GATE = /\b(requirePermission|requireInternal|requireAnyPermission|canAny|can|redirect)\s*\(\s*[^)]*?"([a-z]+\.[a-z]+)"/g;

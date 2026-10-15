@@ -170,11 +170,37 @@ try {
   await page.goto(`${BASE}/app/admin`, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(2000);
   await page.getByRole("button", { name: "Cron dry-run" }).click();
-  await page.waitForTimeout(4000);
+
+  // Wait for the CONDITION, not a duration.
+  //
+  // This was `waitForTimeout(4000)`, and it produced a full-suite FAIL reading
+  // "no summary line found" while passing on an idle server minutes later. The
+  // dry-run walks three real jobs, and in a full run the server is already
+  // carrying twenty exercises — so the assertion was measuring how busy the box
+  // was, not whether the button works. A check that fails under load and passes
+  // when quiet is a flake wearing a product defect's clothes, and the fix is
+  // never to lengthen the sleep.
+  const SUMMARY = /Dry-run OK — missing clock-out: \d+, overdue invoices: \d+, digests: \d+/;
+  let cronSaid = true;
+  try {
+    await page.waitForFunction(
+      (src) => new RegExp(src).test(document.body.innerText.replace(/\s+/g, " ")),
+      SUMMARY.source,
+      { timeout: 60_000 },
+    );
+  } catch {
+    cronSaid = false;
+  }
   const cronText = await page.locator("body").innerText();
-  const cronSaid = /Dry-run OK — missing clock-out: \d+, overdue invoices: \d+, digests: \d+/.test(cronText);
-  check("cron dry-run button reports per-job counts", cronSaid,
-    cronText.match(/Dry-run OK[^\n]*/)?.[0] ?? "no summary line found");
+  check(
+    "cron dry-run button reports per-job counts",
+    cronSaid,
+    cronText.match(/Dry-run OK[^\n]*/)?.[0] ??
+      `no summary line within 60s; page said: ${
+        cronText.match(/(Unable|denied|error|failed)[^\n]*/i)?.[0]?.trim().slice(0, 110) ??
+        "nothing recognisable"
+      }`,
+  );
 
   const cronAudit = await must(db
     .from("audit_logs").select("action, after_data")
@@ -182,13 +208,23 @@ try {
   check("cron dry-run is audit-logged", Boolean(cronAudit?.length), JSON.stringify(cronAudit?.[0]?.after_data ?? null));
 
   // ---- 2. test push ----
+  //
+  // Same shape as the cron fix above: a fixed sleep followed by a read that the
+  // server may not have finished writing yet. Polls the condition with a bound
+  // instead of assuming 3.5s was enough.
   await page.getByRole("button", { name: "Send me test push" }).click();
-  await page.waitForTimeout(3500);
-  const { data: testNotif } = await db
-    .from("notifications").select("id, user_id, type, title, body")
-    .eq("type", "system.test").eq("user_id", adminUserId ?? "").limit(1);
+  let testNotif = [];
+  const pushDeadline = Date.now() + 60_000;
+  while (Date.now() < pushDeadline) {
+    const { data } = await db
+      .from("notifications").select("id, user_id, type, title, body")
+      .eq("type", "system.test").eq("user_id", adminUserId ?? "").limit(1);
+    testNotif = data ?? [];
+    if (testNotif.length) break;
+    await new Promise((r) => setTimeout(r, 1000));
+  }
   check("test push wrote a notification to the admin", Boolean(testNotif?.length),
-    testNotif?.[0] ? `"${testNotif[0].body}"` : "none");
+    testNotif?.[0] ? `"${testNotif[0].body}"` : "none within 60s");
 
   // ---- 2b. invite a staff member ----
   //

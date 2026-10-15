@@ -124,11 +124,34 @@ describe("verify-all surfaces the probe's real diagnosis", () => {
     expect(verifyCode).toMatch(/marker === "LATE"/);
   });
 
-  it("still refuses to pass a broken realtime delivery when skipping migrations", () => {
-    // A skipped step must not be counted toward the total, or the run can print
-    // "Ship it" while notifications are silently broken.
-    expect(verifyCode).toMatch(/marker === "DELIVERY_FAILED" && SKIP_MIGRATION/);
-    expect(verifyCode).toContain("skipped: true");
+  it("never excuses a broken realtime delivery, whatever the migration flag says", () => {
+    // This test used to pin the OPPOSITE. It required
+    // `marker === "DELIVERY_FAILED" && SKIP_MIGRATION` to exist and asserted
+    // `skipped: true` — it was guarding a lie. That branch turned a failed
+    // delivery probe into a skipped step citing "migration 20261006140000 not
+    // pushed yet", and `supabase migration list` shows that migration APPLIED
+    // on the remote. So the flag did not skip a migration check (there was no
+    // migration step to skip); its only effect was to buy a green release for a
+    // broken notification path, with a cause that was not true.
+    //
+    // The concern underneath the test was right and is kept: a broken delivery
+    // must never be waved through. What changed is the mechanism. DELIVERY_FAILED
+    // now fails the gate outright, in the probe's own words.
+    //
+    // The counting invariant this test was really protecting — a skip never
+    // counts as passed, so "Ship it" cannot print over one — is asserted in
+    // `release-gate-honesty.test.ts`, against the accounting itself rather than
+    // against one particular branch.
+    expect(verifyCode).not.toMatch(/marker === "DELIVERY_FAILED" && SKIP_MIGRATION/);
+    expect(verifyCode).not.toContain("20261006140000 not pushed yet");
+    // And the step still ends in a throw, so an unrecognised marker fails too.
+    expect(verifyCode).toMatch(/realtime probe exited \$\{r\.status\} with no output/);
+  });
+
+  it("--skip-migration now skips a real migration check", () => {
+    // So the flag is not a no-op wearing a migration's name.
+    expect(verifyCode).toContain("preflight-pending-migrations.mjs");
+    expect(verifyCode).toMatch(/SKIP_MIGRATION[\s\S]{0,200}?skipped:\s*true/);
   });
 });
 

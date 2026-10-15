@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-documents-workflow.mjs",
   "claim": "upload, list, visibility scoping",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T05:12:47.224Z",
+  "when": "2026-10-15T12:14:36.945Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 31,
@@ -16,7 +16,7 @@
     {
       "pass": true,
       "name": "uploadEmployeeDocument writes a document row",
-      "detail": "1221b053"
+      "detail": "ca8d952a"
     },
     {
       "pass": true,
@@ -91,12 +91,12 @@
     {
       "pass": true,
       "name": "the admin upload writes a document",
-      "detail": "cc6c566d"
+      "detail": "c9a6ed01"
     },
     {
       "pass": true,
       "name": "it is attached to the employee HR chose, not to HR",
-      "detail": "5754881d-cc9f-4d09-9e0c-271b08776491"
+      "detail": "47badb71-715e-4773-8c2e-2bc494c8171c"
     },
     {
       "pass": true,
@@ -121,7 +121,7 @@
     {
       "pass": true,
       "name": "uploadClientDocument writes a document",
-      "detail": "dc99fc97"
+      "detail": "f3f59f9e"
     },
     {
       "pass": true,
@@ -167,7 +167,7 @@
   "failedAssertions": [],
   "notes": [],
   "other": [
-    "employee: BEE-00020; other: BEE-00014",
+    "employee: BEE-00020; other: BEE-00015",
     "documents before: 8",
     "pre-existing document rows whose storage object is absent: 0 of 8",
     "(cleanup) document rows removed: 3; storage objects removed: 3",

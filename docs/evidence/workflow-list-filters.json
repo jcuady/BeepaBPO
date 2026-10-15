@@ -3,10 +3,10 @@
   "script": "scripts/audit/qa-exercise-list-filters.mjs",
   "claim": "filtering, search and pagination on list views",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T05:26:38.928Z",
+  "when": "2026-10-15T12:28:32.127Z",
   "exitCode": 0,
   "verdict": "PASS",
-  "assertions": 33,
+  "assertions": 34,
   "checks": [
     {
       "pass": true,
@@ -135,6 +135,11 @@
     },
     {
       "pass": true,
+      "name": "/app/my/notifications — at least one dropdown option changes the list",
+      "detail": "read=unread of 2 tried"
+    },
+    {
+      "pass": true,
       "name": "/app/client/attendance — at least one dropdown option changes the list",
       "detail": "status=present of 1 tried"
     },
@@ -183,7 +188,6 @@
     "/app/approvals: no Apply form on this page — skipped",
     "/app/my/cash-advances: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "/app/my/documents: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
-    "/app/my/notifications: content is not stable across two identical loads — skipped",
     "signed in as clientadmin@demo.beepabpo.com (client)",
     "/app/client/tickets: no Apply form on this page — skipped",
     "/app/client/timesheets: no Apply form on this page — skipped",
@@ -192,8 +196,8 @@
   ],
   "other": [
     "========================================================================",
-    "filters exercised on 26 page(s) across 3 role(s); 4 page(s) skipped",
-    "33/33 assertions passed",
+    "filters exercised on 27 page(s) across 3 role(s); 3 page(s) skipped",
+    "34/34 assertions passed",
     "notes:",
     "  - signed in as owner@demo.beepabpo.com (internal)",
     "  - /app/employees: filter form has no dropdowns",
@@ -202,7 +206,6 @@
     "  - /app/approvals: no Apply form on this page — skipped",
     "  - /app/my/cash-advances: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "  - /app/my/documents: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
-    "  - /app/my/notifications: content is not stable across two identical loads — skipped",
     "  - signed in as clientadmin@demo.beepabpo.com (client)",
     "  - /app/client/tickets: no Apply form on this page — skipped",
     "  - /app/client/timesheets: no Apply form on this page — skipped",

@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-leave-workflow.mjs",
   "claim": "request, approve/deny, balance impact",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T06:42:15.316Z",
+  "when": "2026-10-15T12:12:14.493Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 21,
@@ -25,7 +25,7 @@
     },
     {
       "pass": true,
-      "name": "leave request created  — id=1b1ba05e-4e52-4117-afc8-bc8f397efe27 status=pending",
+      "name": "leave request created  — id=fbcb17e5-93fc-4fbc-973c-2937efc457ef status=pending",
       "detail": null
     },
     {
@@ -65,7 +65,7 @@
     },
     {
       "pass": true,
-      "name": "approval_actions row written  — 8 -> 10",
+      "name": "approval_actions row written  — 12 -> 14",
       "detail": null
     },
     {
@@ -85,7 +85,7 @@
     },
     {
       "pass": true,
-      "name": "a second pending request exists to cancel  — id=59ceef82-6ee9-4d52-af15-0ba2827c19e1",
+      "name": "a second pending request exists to cancel  — id=6c84ee7c-701b-474d-83ad-0657b4c572a2",
       "detail": null
     },
     {
@@ -117,7 +117,7 @@
   "failedAssertions": [],
   "notes": [],
   "other": [
-    "baseline: 64 notifications, 8 approval actions, 0 residual exercise leaves",
+    "baseline: 66 notifications, 12 approval actions, 0 residual exercise leaves",
     "21/21 checks passed"
   ]
 }

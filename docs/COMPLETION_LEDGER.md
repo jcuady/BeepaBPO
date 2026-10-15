@@ -1,7 +1,7 @@
 # Completion ledger — Principal QA campaign
 
 **Started:** 2026-09-13  
-**Last updated:** 2026-10-15 (workflow suite, button-surface census, five gate corrections)  
+**Last updated:** 2026-10-15 (release gate 21/21; the suite was measuring a stale server; six more gate defects corrected)  
 **Campaign status:** **The release gate passes end to end.** Forward roadmap: `docs/REMAINING_WORK.md`.
 Behavioural proof and the full per-feature breakdown: `docs/FEATURE_CHECKLIST.md`.
 
@@ -75,10 +75,11 @@ it waited for an event it could never receive. The publication already had all 1
 | 2 | Critical workflows documented with pass/fail | **PASS** |
 | 3 | No open P0/P1 **in code** | **PASS** — four P0/P1 defects fixed this session (SW data leak, unapproved payslip exposure, stale payroll minutes, attendance timezone) |
 | 4 | UI consistency on audited hubs | **PASS** — EmptyState + loading + overflow clip + 16px mobile body copy |
-| 5 | Automated gates green | **PASS** — typecheck · lint · vitest 504 · build · Playwright 100/4/0 · release gate 18/18 |
+| 5 | Automated gates green | **PASS** — typecheck · lint · vitest **709 / 93 files** · build · Playwright 100/4/0 · release gate **21/21, exit 0** |
 | 6 | PROJECT_STATUS honest | **PASS** — blockers marked BLOCKED while open, and rewritten to CLOSED with the evidence once resolved |
 
-**Overall:** **READY.** The release gate passes 18/18 with exit 0, and both former blockers
+**Overall:** **READY.** The release gate passes **21/21 with exit 0** (three steps added this
+session: migration preflight, touch targets, page data shape), and both former blockers
 are closed. Remaining open items are non-blocking.
 
 ---
@@ -183,6 +184,6 @@ Parallel workspace resolve, visible skeletons, Clock In/Out on `/app/my/attendan
 
 ## Closing gate
 
-**READY — release gate 18/18, exit 0.** Next: re-subscribe existing browsers to push after
+**READY — release gate 21/21, exit 0.** Next: re-subscribe existing browsers to push after
 the VAPID rotation; set the new `CRON_SECRET` in any deployed environment calling
 `/api/jobs/cron`; confirm Vercel picked up these commits on beepabpo.com.

@@ -26,7 +26,7 @@ Two columns are kept deliberately separate:
 | 5 | **RBAC — server actions** | ✅ Verified today | `audit:action-rbac` **64/65**, exit 0; the 1 is a public form, annotated `unauthenticated` | — |
 | 6 | **Wiring — dead controls** | ✅ Verified today | `audit:wiring` **0 candidates** across 269 `.tsx`, mutation-proven | — |
 | 7 | **Forms — reset integrity** | ✅ Verified today | `audit:form-reset-defaults` 28 forms scanned, 21 that reset, **0** with a field that survives a reset | — |
-| 7b | **Audit suite — self-consistency** | ✅ Verified today | `audit:suite-base-url` 41 browser scripts, all agree on `QA_BASE_URL` and port 3100 | — |
+| 7b | **Audit suite — self-consistency** | ✅ Verified today | `audit:suite-base-url` 58 HTTP-performing scripts, all agree on `QA_BASE_URL` and port 3100 | See row 26 — this row's first version read 41 and was wrong |
 | 8 | **Every workflow** | ✅ Verified today | 21 exercises, **480 assertions, 19 PASS / 2 BLOCKED / 0 FAIL**, production build, real DB | 2 BLOCKED — rows 12–13 |
 | 9 | **Every user / role** | ✅ Verified today | 13 demo roles; 3 previously uncovered (sales, finance, client_viewer) now driven | — |
 | 10 | **Buttons** | ✅ Verified today | Census of 130 pages × 13 roles: **23 of 23 buttons** have a behavioural assertion | — |
@@ -49,6 +49,7 @@ Two columns are kept deliberately separate:
 | 26 | **The audit suite agrees where the app lives** | ✅ Verified today | `audit:suite-base-url` — **58** HTTP-performing scripts scanned, 0 disagree on origin. Was 41 scanned and **4 real drifts missed**, including one writing connection-refused screenshots into `e2e-evidence/` | — |
 | 27 | **The ship gate does what `--skip-migration` says** | ✅ Verified today | `verify:all` now runs a real migration preflight and the flag skips only that. The fabricated "`20261006140000 not pushed yet`" excuse — which named an **applied** migration to convert a failed realtime probe into a skip — is deleted | — |
 | 28 | **The server under test is the build on disk** | ✅ Verified today | `audit:server-fresh` — `uptime` compared against the age of `.next/BUILD_ID`. A full 21-exercise run was found to have measured a server **65 minutes older than the build**; its single FAIL was an artifact, and `auth` re-runs **35/35 PASS** on a current build. `qa-run-workflows.mjs` now refuses to produce evidence otherwise | — |
+| 29 | **Page inventory covers every route** | ✅ Verified today | `generate-page-inventory.mjs --check` — **96 pages, 8 handlers**. Its matcher required a `/` before `page.tsx`, so `app/page.tsx` never matched and the **homepage was absent from the inventory entirely**; `--check` could not report it missing, because it only compares the file against what the function produces | — |
 
 ## The honest summary
 
