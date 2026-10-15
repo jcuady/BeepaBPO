@@ -26,6 +26,7 @@ Two columns are kept deliberately separate:
 | 5 | **RBAC — server actions** | ✅ Verified today | `audit:action-rbac` **64/65**, exit 0; the 1 is a public form, annotated `unauthenticated` | — |
 | 6 | **Wiring — dead controls** | ✅ Verified today | `audit:wiring` **0 candidates** across 269 `.tsx`, mutation-proven | — |
 | 7 | **Forms — reset integrity** | ✅ Verified today | `audit:form-reset-defaults` 28 forms scanned, 21 that reset, **0** with a field that survives a reset | — |
+| 7b | **Audit suite — self-consistency** | ✅ Verified today | `audit:suite-base-url` 41 browser scripts, all agree on `QA_BASE_URL` and port 3100 | — |
 | 8 | **Every workflow** | ✅ Verified today | 21 exercises, **480 assertions, 19 PASS / 2 BLOCKED / 0 FAIL**, production build, real DB | 2 BLOCKED — rows 12–13 |
 | 9 | **Every user / role** | ✅ Verified today | 13 demo roles; 3 previously uncovered (sales, finance, client_viewer) now driven | — |
 | 10 | **Buttons** | ✅ Verified today | Census of 130 pages × 13 roles: **23 of 23 buttons** have a behavioural assertion | — |
@@ -75,6 +76,21 @@ in the same format as a measured one — which is how a wrong gate survives:
 - `audit:rbac` flagged `/app/[...rest]`, a route whose entire body is `notFound()`.
 - `audit:action-rbac` flagged a public contact form as an unguarded server action.
 
+And two **audits that could not check anything at all**, which is a quieter and
+arguably worse failure than a wrong verdict:
+
+- `audit:attendance-tz` hardcoded a work date and exited 1 once real data landed
+  on it. Correct not to overwrite someone's attendance; useless as a check. It
+  now finds a genuinely free date and derives its instants from it.
+- **Five scripts disagreed with the suite about the port.** `pnpm audit:role-pages`
+  reported *"0/13 nav-reachable role pages clean"* and *"13 page(s) a role can SEE
+  but cannot USE"* — thirteen connection errors against a server that was running
+  the whole time on a different port. Two more were on port 3000, including
+  `test-push-roundtrip.mjs`, which would have reported a push-delivery failure
+  for a server that simply was not there. `audit:suite-base-url` now lints all 41
+  browser scripts for this; it found three of the five on its first run, which is
+  the case for automating the class instead of fixing the instances.
+
 And two **real product defects** were found and fixed:
 
 1. `reset()` silently did nothing on most fields in **five forms**. react-hook-form
@@ -94,8 +110,8 @@ npx next start -p 3100                          # leave running
 
 # static, no server needed
 pnpm audit:rbac ; pnpm audit:action-rbac ; pnpm audit:wiring
-pnpm audit:migrations ; pnpm audit:form-reset-defaults ; pnpm audit:design
-pnpm test ; pnpm typecheck ; pnpm lint
+pnpm audit:migrations ; pnpm audit:form-reset-defaults ; pnpm audit:suite-base-url
+pnpm audit:design ; pnpm test ; pnpm typecheck ; pnpm lint
 
 # needs the server
 pnpm audit:filters ; pnpm audit:attendance-tz ; pnpm audit:payslip-exposure
