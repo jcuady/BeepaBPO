@@ -137,7 +137,12 @@ test.describe("authenticated shell", () => {
     await gotoReady(page, "/app/my");
 
     await page.getByRole("button", { name: "Account menu" }).click();
-    const signOut = page.getByRole("menuitem", { name: /sign out/i });
+    // `exact` is load-bearing: the menu has BOTH "Sign out" and "Sign out
+    // everywhere", so `/sign out/i` matched two menuitems and Playwright's strict
+    // mode failed the visibility check. The failure read like a product defect —
+    // an account menu whose sign-out never appears — when the menu was fine and
+    // the locator was ambiguous.
+    const signOut = page.getByRole("menuitem", { name: "Sign out", exact: true });
     await expect(signOut).toBeVisible();
     await signOut.click();
 

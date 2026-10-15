@@ -508,7 +508,14 @@ html:has(.beepaLanding) {
 }
 .beepaLanding .service-list {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* minmax(0, 1fr), not 1fr. A bare `1fr` is `minmax(auto, 1fr)`, so a track's
+     floor is its CONTENT's min-content width -- and the items hold unbreakable
+     service names ("eLearning Course Development", "Customer Relations") inside
+     a Button that carries `shrink-0` and refuses to shrink either. At 375px that
+     pushed the list to 524px and gave the homepage a 149px horizontal scroll.
+     This changes nothing at desktop widths, where the tracks already exceed
+     min-content; it only lets them shrink on a phone. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 20px;
   column-gap: 32px;
 }
@@ -519,6 +526,7 @@ html:has(.beepaLanding) {
   border-bottom: 1px solid var(--border);
   padding: 18px 0;
   font-size: 12px;
+  min-width: 0;
 }
 .beepaLanding .service-list-item span:first-child {
   color: var(--muted-foreground);
@@ -533,6 +541,16 @@ html:has(.beepaLanding) {
   font-weight: 450;
   height: auto;
   min-height: 44px;
+  /* The Button ships `shrink-0`, so the row could not compress until this. */
+  min-width: 0;
+  flex-wrap: wrap;
+}
+/* The label <div> inside that button is itself a flex item, and a flex item's
+   automatic minimum size is its content's min-content width -- so the service
+   name refused to wrap and pushed 24px past the button. `min-width: 0` on the
+   div is what actually lets the text break. */
+.beepaLanding .service-list-item button > div {
+  min-width: 0;
 }
 
 /* ------------------------------------------------------------------ time */
@@ -630,7 +648,8 @@ html:has(.beepaLanding) {
 }
 .beepaLanding .platform-stage {
   display: grid;
-  grid-template-columns: 0.8fr 1.2fr;
+  /* See .service-list — same `1fr` floors at min-content. */
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   align-items: center;
   gap: 60px;
   margin-top: 50px;
@@ -682,6 +701,7 @@ html:has(.beepaLanding) {
   border: 1px solid var(--border);
   background: var(--background);
   box-shadow: var(--shadow-panel);
+  min-width: 0;
   padding: 21px;
   transition: width 0.3s;
   width: 100%;
@@ -1519,7 +1539,7 @@ html:has(.beepaLanding) {
     font-size: 18px;
   }
   .beepaLanding .service-list {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     column-gap: 20px;
   }
   .beepaLanding .service-list-item {
@@ -1728,6 +1748,53 @@ html:has(.beepaLanding) {
   .beepaLanding .career-row {
     padding: 18px 0;
   }
+
+  /* Grid tracks are `minmax(auto, 1fr)` unless told otherwise, so their floor is
+     the item's *min-content* width. On a 375px phone that is wider than the
+     viewport: unbreakable headings, service names like "eLearning Course
+     Development", and an illustrative dashboard table all push past the right
+     edge, and the whole homepage scrolls sideways.
+
+     `min-width: 0` on the track's children removes the content-driven floor and
+     lets each track shrink to its share. Desktop is unaffected -- the tracks are
+     already wider than min-content there, so this changes no rendered geometry
+     above this breakpoint.
+
+     The service-list and platform-stage tracks are additionally declared as
+     `minmax(0, ...)` in their own rules, and the service Button gets
+     `flex-wrap: wrap`; `min-width: 0` alone cannot help a child that refuses to
+     shrink. */
+  .beepaLanding .hero-copy,
+  .beepaLanding .hero-media,
+  .beepaLanding .service-list-item,
+  .beepaLanding .service-card,
+  .beepaLanding .platform-copy,
+  .beepaLanding .dashboard,
+  .beepaLanding .process-step,
+  .beepaLanding .assurance > *,
+  .beepaLanding .values > *,
+  .beepaLanding .section-heading > *,
+  .beepaLanding .promise article,
+  .beepaLanding .time-section > *,
+  .beepaLanding .report-layout > *,
+  .beepaLanding .planner > *,
+  .beepaLanding .careers > *,
+  .beepaLanding .faq-layout > *,
+  .beepaLanding .dashboard-stats > * {
+    min-width: 0;
+  }
+
+  /* The two hero CTAs are 189px each and ship `shrink-0`, so `min-width: 0`
+     cannot help them -- a flex item that refuses to shrink has to wrap. Letting
+     them wrap is also the right mobile layout: stacked, full-width actions read
+     better than two cramped ones. */
+  .beepaLanding .hero-buttons {
+    flex-wrap: wrap;
+  }
+  .beepaLanding .hero-buttons > * {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1736,5 +1803,23 @@ html:has(.beepaLanding) {
   .beepaLanding *::after {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* Below 480px the two hero CTAs still shared a line and left 2px of overflow,
+   because `flex-wrap` only wraps when the line genuinely does not fit and the
+   flex base kept them just wide enough. Stacking them full width is the
+   conventional phone treatment and removes the last of it. */
+@media (max-width: 480px) {
+  .beepaLanding .hero-buttons > * {
+    flex: 1 1 100%;
+  }
+
+  /* Two columns left each service row ~155px, which is not enough for a
+     two-digit counter, a service name and the arrow, and the row overflowed by
+     2px no matter how the children were allowed to shrink. One column reads
+     better than two cramped ones on a phone anyway. */
+  .beepaLanding .service-list {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

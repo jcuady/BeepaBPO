@@ -1,6 +1,6 @@
 {
   "check": "typography",
-  "generatedAt": "2026-10-13T03:05:12.360Z",
+  "generatedAt": "2026-10-15T13:52:20.680Z",
   "base": "http://localhost:3100",
   "contract": {
     "marketing + auth body (<24px, not font-display)": "DM Sans",
@@ -17,13 +17,14 @@
       "route": "/",
       "group": "landing",
       "status": 200,
-      "bodyCopy": 147,
+      "bodyCopy": 176,
       "headline": 4,
       "displayFace": 3,
-      "stray": 0,
+      "stray": 2,
       "families": {
         "body": {
-          "DM Sans": 147
+          "DM Sans": 174,
+          "Manrope": 2
         },
         "headline": {
           "Manrope": 4
@@ -32,19 +33,32 @@
           "Manrope": 3
         }
       },
-      "straySamples": []
+      "straySamples": [
+        {
+          "family": "Manrope",
+          "display": false,
+          "size": 13,
+          "text": "See all open roles ↗"
+        },
+        {
+          "family": "Manrope",
+          "display": false,
+          "size": 18,
+          "text": "↗"
+        }
+      ]
     },
     {
       "route": "/about",
       "group": "marketing",
       "status": 200,
-      "bodyCopy": 34,
+      "bodyCopy": 36,
       "headline": 0,
       "displayFace": 28,
       "stray": 0,
       "families": {
         "body": {
-          "DM Sans": 34
+          "DM Sans": 36
         },
         "headline": {},
         "displayFace": {
@@ -57,13 +71,13 @@
       "route": "/services",
       "group": "marketing",
       "status": 200,
-      "bodyCopy": 28,
+      "bodyCopy": 30,
       "headline": 0,
       "displayFace": 25,
       "stray": 0,
       "families": {
         "body": {
-          "DM Sans": 28
+          "DM Sans": 30
         },
         "headline": {},
         "displayFace": {
@@ -76,13 +90,13 @@
       "route": "/why-beepa",
       "group": "marketing",
       "status": 200,
-      "bodyCopy": 33,
+      "bodyCopy": 35,
       "headline": 0,
       "displayFace": 28,
       "stray": 0,
       "families": {
         "body": {
-          "DM Sans": 33
+          "DM Sans": 35
         },
         "headline": {},
         "displayFace": {
@@ -95,13 +109,13 @@
       "route": "/contact",
       "group": "marketing",
       "status": 200,
-      "bodyCopy": 28,
+      "bodyCopy": 30,
       "headline": 0,
       "displayFace": 16,
       "stray": 0,
       "families": {
         "body": {
-          "DM Sans": 28
+          "DM Sans": 30
         },
         "headline": {},
         "displayFace": {
@@ -114,17 +128,17 @@
       "route": "/login",
       "group": "auth",
       "status": 200,
-      "bodyCopy": 20,
+      "bodyCopy": 39,
       "headline": 0,
-      "displayFace": 17,
+      "displayFace": 18,
       "stray": 0,
       "families": {
         "body": {
-          "DM Sans": 20
+          "DM Sans": 39
         },
         "headline": {},
         "displayFace": {
-          "Manrope": 17
+          "Manrope": 18
         }
       },
       "straySamples": []
@@ -133,13 +147,13 @@
       "route": "/signup",
       "group": "auth",
       "status": 200,
-      "bodyCopy": 24,
+      "bodyCopy": 27,
       "headline": 0,
       "displayFace": 17,
       "stray": 0,
       "families": {
         "body": {
-          "DM Sans": 24
+          "DM Sans": 27
         },
         "headline": {},
         "displayFace": {
@@ -171,17 +185,17 @@
       "route": "/employee/login",
       "group": "auth",
       "status": 200,
-      "bodyCopy": 17,
+      "bodyCopy": 44,
       "headline": 0,
-      "displayFace": 9,
+      "displayFace": 10,
       "stray": 0,
       "families": {
         "body": {
-          "DM Sans": 17
+          "DM Sans": 44
         },
         "headline": {},
         "displayFace": {
-          "Manrope": 9
+          "Manrope": 10
         }
       },
       "straySamples": []
@@ -361,13 +375,13 @@
       "route": "/app/my/requests",
       "group": "app",
       "status": 200,
-      "bodyCopy": 59,
+      "bodyCopy": 74,
       "headline": 0,
       "displayFace": 1,
       "stray": 0,
       "families": {
         "body": {
-          "Inter": 59
+          "Inter": 74
         },
         "headline": {},
         "displayFace": {
@@ -399,13 +413,13 @@
       "route": "/app/my/notifications",
       "group": "app",
       "status": 200,
-      "bodyCopy": 97,
+      "bodyCopy": 117,
       "headline": 0,
       "displayFace": 1,
       "stray": 0,
       "families": {
         "body": {
-          "Inter": 97
+          "Inter": 117
         },
         "headline": {},
         "displayFace": {
@@ -969,17 +983,17 @@
       "route": "/app/approvals",
       "group": "app",
       "status": 200,
-      "bodyCopy": 117,
+      "bodyCopy": 120,
       "headline": 0,
-      "displayFace": 26,
+      "displayFace": 27,
       "stray": 0,
       "families": {
         "body": {
-          "Inter": 117
+          "Inter": 120
         },
         "headline": {},
         "displayFace": {
-          "Manrope": 26
+          "Manrope": 27
         }
       },
       "straySamples": []
@@ -1027,11 +1041,11 @@
     "routesChecked": 53,
     "publicRoutes": 9,
     "appRoutes": 44,
-    "bodyCopyElements": 4007,
-    "bodyCopyPublic": 344,
-    "bodyCopyApp": 3663,
-    "strays": 0,
+    "bodyCopyElements": 4131,
+    "bodyCopyPublic": 430,
+    "bodyCopyApp": 3701,
+    "strays": 2,
     "non200": []
   },
-  "status": "PASS"
+  "status": "FAIL"
 }
