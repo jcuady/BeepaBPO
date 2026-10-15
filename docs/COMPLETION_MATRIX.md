@@ -45,10 +45,14 @@ Two columns are kept deliberately separate:
 | 22 | **E2E (Playwright)** | 📋 Inherited | 100 passed, 4 skipped, recorded 2026-10-09 | Needs `RUN_E2E=true` + secrets in CI |
 | 23 | **Documentation** | ✅ Verified today | 24 docs + 5 root files; `docs/README.md` is now a single index mapping **one authority per subject**, with each doc's verification date and the two historical contradictions recorded where a reader meets them | — |
 | 24 | **Realtime** | ✅ Verified today | `audit:realtime` — authenticated subscriber received a live `notifications` INSERT in **418ms** | — |
+| 25 | **Every declared audit is actually gated** | ✅ Verified today | `audit:gate-coverage` — **0 ungated**. 29 of 36 declared `audit:`/`verify:`/`smoke:` scripts are wired into one of the two release orchestrators; 7 are seed/fix/planning and reported as not-gates by nature | — |
+| 26 | **The audit suite agrees where the app lives** | ✅ Verified today | `audit:suite-base-url` — **58** HTTP-performing scripts scanned, 0 disagree on origin. Was 41 scanned and **4 real drifts missed**, including one writing connection-refused screenshots into `e2e-evidence/` | — |
+| 27 | **The ship gate does what `--skip-migration` says** | ✅ Verified today | `verify:all` now runs a real migration preflight and the flag skips only that. The fabricated "`20261006140000 not pushed yet`" excuse — which named an **applied** migration to convert a failed realtime probe into a skip — is deleted | — |
+| 28 | **The server under test is the build on disk** | ✅ Verified today | `audit:server-fresh` — `uptime` compared against the age of `.next/BUILD_ID`. A full 21-exercise run was found to have measured a server **65 minutes older than the build**; its single FAIL was an artifact, and `auth` re-runs **35/35 PASS** on a current build. `qa-run-workflows.mjs` now refuses to produce evidence otherwise | — |
 
 ## The honest summary
 
-**Proven and current: rows 1–11, 15–20, 23, 24.** Every one of those was executed in this
+**Proven and current: rows 1–11, 15–20, 23–27.** Every one of those was executed in this
 session against a production build and the real database.
 
 **Blocked by the environment, not by the code: rows 12–14.** These are not
@@ -90,9 +94,42 @@ arguably worse failure than a wrong verdict:
   but cannot USE"* — thirteen connection errors against a server that was running
   the whole time on a different port. Two more were on port 3000, including
   `test-push-roundtrip.mjs`, which would have reported a push-delivery failure
-  for a server that simply was not there. `audit:suite-base-url` now lints all 41
-  browser scripts for this; it found three of the five on its first run, which is
-  the case for automating the class instead of fixing the instances.
+  for a server that simply was not there. `audit:suite-base-url` now lints the
+  scripts for this; it found three of the five on its first run, which is the
+  case for automating the class instead of fixing the instances.
+
+…and then the gate written to enforce that class turned out to need the same
+treatment. It reported **"41 browser-driving scripts agree"** and was wrong three
+ways: it only examined Playwright importers (so a plain-`fetch` script was
+invisible, despite its own rule covering anything that "fetches a page"), it
+matched only the literal source shape `const BASE =`, and it excused scripts with
+no env override as "cannot drift" — which is false. Rewritten, the population is
+**58** and it found **four more real drifts**, one of which
+(`shot-space.mjs`) had been writing connection-refused screenshots into
+`e2e-evidence/` as if they were the landing page. It is mutation-tested: all three
+blindness shapes planted at once, all caught.
+
+And **the release gate itself** was the last gate to be audited:
+`verify-all.mjs --skip-migration` skipped nothing — there was no migration step —
+and its only effect was to turn a failed realtime probe into a *skip* citing a
+migration that `supabase migration list` shows as **applied**. It now skips a real
+migration preflight, and that excuse is gone.
+
+And **eight declared audits were invoked by nothing.** Each could be run by hand,
+pass, and change nothing, while carrying a row in this matrix as though it were
+covered. `audit:gate-coverage` exists to make that class visible; it is itself
+gated. Its first version reported a false "28 of 35" by scanning one orchestrator
+instead of both.
+
+And **the evidence itself was measuring the wrong thing.** A full 21-exercise run
+produced 482 assertions against a server that had been up 65 minutes *less* than
+the age of `.next/BUILD_ID` — it was serving code that had already been replaced.
+Its one failure read as a live P2 auth defect (signup blaming the user's address
+for a Supabase 429) and pointed the investigation at `lib/auth/actions.ts`, where
+the fix had been sitting since 2026-10-10. On a current build the same exercise
+is **35/35**. The runner had been probing that the server was *alive*, which is
+not the question; it now refuses to produce evidence unless the process answering
+is newer than the build on disk.
 
 And two **real product defects** were found and fixed:
 
@@ -114,7 +151,10 @@ npx next start -p 3100                          # leave running
 # static, no server needed
 pnpm audit:rbac ; pnpm audit:action-rbac ; pnpm audit:wiring
 pnpm audit:migrations ; pnpm audit:form-reset-defaults ; pnpm audit:suite-base-url
-pnpm audit:design ; pnpm test ; pnpm typecheck ; pnpm lint
+pnpm audit:gate-coverage ; pnpm audit:design ; pnpm test ; pnpm typecheck ; pnpm lint
+
+# run this FIRST once the server is up — it is what makes the rest trustworthy
+pnpm audit:server-fresh
 
 # needs the server
 pnpm audit:filters ; pnpm audit:attendance-tz ; pnpm audit:payslip-exposure

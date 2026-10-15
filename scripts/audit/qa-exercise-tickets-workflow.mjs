@@ -126,6 +126,29 @@ try {
   if (hasCreate) {
     await createForm.locator("#subject").fill(`${MARK} printer jams`);
     await createForm.locator("#description").fill(`QA ticket ${MARK}. Reported by an internal user.`);
+
+    // The category must be chosen explicitly.
+    //
+    // This used to work without touching the field: the select rendered no
+    // placeholder option, so the browser pre-selected the first real category and
+    // react-hook-form read it off the DOM on submit. `ticketSchema` requires
+    // `category` to be `min(1)`, so the ticket was created and 33 assertions
+    // passed — while nothing in this exercise ever exercised category selection.
+    //
+    // `create-ticket-form` now renders `<option value="">Select a category…</option>`,
+    // so `""` is a state the control can actually display and the form model
+    // agrees with what is on screen. The product behaviour is better: a support
+    // ticket no longer silently lands in "general" because it happened to be
+    // first. The harness had to become explicit to match, and its earlier pass
+    // was partly luck.
+    const categoryValue = await createForm
+      .locator("#category option:not([value=''])")
+      .first()
+      .getAttribute("value");
+    await createForm.locator("#category").selectOption(categoryValue ?? "general");
+    check("the create form requires a deliberate category", Boolean(categoryValue),
+      categoryValue ? `chose "${categoryValue}"` : "select offers no real category");
+
     await createForm.getByRole("button", { name: /create ticket/i }).click();
     await page.waitForTimeout(3000);
   }

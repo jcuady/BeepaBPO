@@ -5,7 +5,12 @@
 //
 // Usage:  node scripts/verify-all.mjs [--skip-migration]
 //
-// Exit code 0 = all green, 1 = at least one failure.
+// Exit code 0 = all green, 1 = at least one failure or skipped check.
+//
+// --skip-migration skips the migration structural preflight and nothing else.
+// It does not soften any other step, and in particular it no longer excuses a
+// failed realtime probe: that check once reported a skip blaming an unapplied
+// migration which was, in fact, applied.
 
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -189,6 +194,27 @@ step("Filters survive pagination", () => {
   console.log(`  ${DIM}${out.match(/scanned .*$/m)?.[0] ?? "ok"}; 0 dropped${DIM}`);
 });
 
+step("Touch targets meet 44px", () => {
+  // Registered here, and not merely declared in package.json. An audit that no
+  // gate invokes can be run by hand, pass, and change nothing — which is how
+  // "audited" quietly stops meaning anything.
+  const r = spawnSync("node", ["scripts/audit/audit-touch-overrides.mjs"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) throw new Error(r.stderr || r.stdout);
+  const out = r.stdout.toString();
+  console.log(`  ${DIM}${out.split("\n").filter((l) => /VERDICT|scanned|under 44/i.test(l)).slice(0, 3).join(" | ") || "ok"}${RESET}`);
+});
+
+step("Every app page declares its data shape", () => {
+  // `audit-tables.mjs` walks app/app and reports each page's action, permission,
+  // and whether filter / pager / empty state are present. Informational by
+  // design — it exits 0 even with pages that omit an empty state — so this gate
+  // surfaces the numbers rather than pretending it found nothing to say.
+  const r = spawnSync("node", ["scripts/audit/audit-tables.mjs"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) throw new Error(r.stderr || r.stdout);
+  const out = r.stdout.toString();
+  console.log(`  ${DIM}${out.split("\n").filter((l) => /page|table|total/i.test(l)).slice(0, 2).join(" | ") || "ok"}${RESET}`);
+});
+
 step("Payroll periods do not overlap", () => {
   // Overlapping periods pay the same days twice. This blocks the gate: the fix
   // may be a business decision, but "Ship it" must never print while an
@@ -247,6 +273,35 @@ step("Vitest (full suite)", () => {
 });
 
 if (haveSupabase) {
+  // WHY THIS STEP EXISTS
+  // -------------------
+  // `--skip-migration` was documented in this file's usage line and honoured in
+  // exactly one place: the realtime step's error message. There was no migration
+  // step for it to skip, so the flag's entire effect was to convert a red
+  // realtime check into a skip that named a migration ("20261006140000 not pushed
+  // yet") which `supabase migration list` proves IS applied. A flag that skips
+  // nothing and excuses a failure with a cause that is not true is worse than no
+  // flag at all.
+  //
+  // Now it skips an actual migration check, and only that.
+  step("Migration structural preflight", () => {
+    if (SKIP_MIGRATION) {
+      return { skipped: true, reason: "--skip-migration — migrations not structurally preflighted" };
+    }
+    // Static: parses the files on disk, needs no credentials and no CLI. It
+    // deliberately does NOT claim to know which migrations are unapplied —
+    // `npx supabase migration list` is authoritative for that, because this gate
+    // cannot see the database.
+    const r = spawnSync("node", ["scripts/audit/preflight-pending-migrations.mjs"], {
+      cwd: ROOT, encoding: "utf8", env: childEnv(),
+    });
+    if (r.status !== 0) {
+      throw new Error((r.stdout || "") + (r.stderr || ""));
+    }
+    const count = /migrations on disk: (\d+)/.exec(r.stdout ?? "")?.[1];
+    console.log(`  ${DIM}${count ?? "?"} migrations structurally preflighted${RESET}`);
+  });
+
   step("Live data smoke (DB state)", () => {
     const r = spawnSync("cmd.exe", ["/c", "pnpm", "vitest", "run", "tests/live-data-smoke.test.ts"], { cwd: ROOT, encoding: "utf8", env: childEnv() });
     if (r.status !== 0) {
@@ -288,15 +343,19 @@ if (haveSupabase) {
       );
     }
 
-    if (marker === "DELIVERY_FAILED" && SKIP_MIGRATION) {
-      // Deliberately reported as skipped, not passed. `step()` does not count
-      // a skipped result toward the total, so the run cannot print "Ship it"
-      // while realtime notifications are silently broken.
-      return {
-        skipped: true,
-        reason: "realtime events broken — known: migration 20261006140000 not pushed yet",
-      };
-    }
+    // `--skip-migration` deliberately does NOT apply here any more.
+    //
+    // It used to, and the excuse it granted was false. It turned a failed
+    // delivery probe into a skipped step citing "migration 20261006140000 not
+    // pushed yet" — a migration `supabase migration list` shows as applied on the
+    // remote. So a broken notification path could be waved through a release
+    // gate with a cause that does not exist, on the authority of a flag whose
+    // only other job was to skip a migration check there was none of.
+    //
+    // A skip here would not even be safe: `skippedSteps` keeps the run from
+    // printing "Ship it", but it also removes the failure from the count a
+    // reader scans first. Notifications that silently stop arriving is a
+    // shipping defect, so it fails, with the probe's own words.
     throw new Error(
       out.trim().slice(-800) || `realtime probe exited ${r.status} with no output`,
     );

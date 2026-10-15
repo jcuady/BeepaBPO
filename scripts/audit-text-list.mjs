@@ -1,7 +1,7 @@
 /** List remaining sub-16px body copy per route at 375px. */
 import { chromium } from "@playwright/test";
 
-const BASE = process.argv[2] ?? "http://localhost:3000";
+const BASE = process.env.QA_BASE_URL ?? process.env.BASE_URL ?? process.argv[2] ?? "http://localhost:3100";
 const ROUTES = process.argv.slice(3);
 const browser = await chromium.launch();
 

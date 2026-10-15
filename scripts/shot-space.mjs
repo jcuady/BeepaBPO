@@ -4,6 +4,11 @@ import { mkdirSync } from "node:fs";
 const dir = "e2e-evidence/landing-space";
 mkdirSync(dir, { recursive: true });
 
+// Was two hardcoded `http://localhost:3000` literals. The app is served on 3100
+// (`next start -p 3100`), so this script screenshotted a connection-refused page
+// and wrote it to `e2e-evidence/` as if it were the landing page.
+const BASE = process.env.QA_BASE_URL ?? process.env.BASE_URL ?? "http://localhost:3100";
+
 const browser = await chromium.launch({ headless: true });
 
 async function prep(page, sel) {
@@ -28,7 +33,7 @@ function metrics(page, sel) {
 }
 
 const desktop = await browser.newPage({ viewport: { width: 1440, height: 980 } });
-await desktop.goto("http://localhost:3000/", { waitUntil: "networkidle" });
+await desktop.goto(`${BASE}/`, { waitUntil: "networkidle" });
 
 const shots = [
   ["#faq", "faq-1440.png"],
@@ -51,7 +56,7 @@ const dts = await desktop.locator("#faq dt").count();
 await desktop.close();
 
 const mobile = await browser.newPage({ viewport: { width: 375, height: 900 } });
-await mobile.goto("http://localhost:3000/#faq", { waitUntil: "networkidle" });
+await mobile.goto(`${BASE}/#faq`, { waitUntil: "networkidle" });
 await prep(mobile, "#faq");
 await mobile.locator("#faq").screenshot({ path: `${dir}/faq-375.png` });
 await prep(mobile, "#get-started");

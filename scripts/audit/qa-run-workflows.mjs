@@ -236,9 +236,43 @@ async function serverAlive() {
   }
 }
 
+/**
+ * Is the process answering the build that is on disk?
+ *
+ * `serverAlive()` above asks whether anything is listening. That is a different
+ * question, and answering it is not enough: a full run once produced 482
+ * assertions against a server that had been up for 65 minutes LESS than the age
+ * of `.next/BUILD_ID`. Every one of them described code that was no longer on
+ * disk, and one failed with copy the current source cannot produce — which read
+ * as a live auth defect (signup blaming the address for a Supabase 429) and sent
+ * the investigation at the wrong file.
+ *
+ * It cuts both ways, which is why it matters more than the one visible failure:
+ * a stale server also reports success for fixes that were never built. The
+ * evidence is not evidence either way.
+ *
+ * A 404 on `/api/health` means the running build predates the route itself, so
+ * freshness cannot be established at all — also not "fine".
+ */
+async function serverBuildState() {
+  try {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), 10000);
+    const res = await fetch(`${BASE}/api/health`, { signal: ac.signal });
+    clearTimeout(t);
+    if (res.status === 404) return { state: "no-health-route" };
+    if (!res.ok) return { state: "unknown", status: res.status };
+    const body = await res.json();
+    if (body?.stale === true) return { state: "stale", body };
+    if (body?.stale === false) return { state: "fresh", body };
+    return { state: "unknown", body };
+  } catch (e) {
+    return { state: "unknown", error: e.message };
+  }
+}
+
 const results = [];
 const ranThisRun = new Set();
-mkdirSync("docs/evidence", { recursive: true });
 console.log(
   `Running ${selected.length} workflow exercise(s) against ${BASE}` +
     (chunks.length > 1 ? ` in ${chunks.length} chunk(s) of <=${batchSize}` : "") +
@@ -252,6 +286,45 @@ if (!(await serverAlive())) {
   );
   process.exit(2);
 }
+
+const freshness = await serverBuildState();
+if (freshness.state === "stale") {
+  const b = freshness.body ?? {};
+  console.error(
+    `ABORT: ${BASE} is running a build that is no longer on disk.\n\n` +
+      `  server up ${Math.round((b.uptimeMs ?? 0) / 1000)}s, but the build is ` +
+      `${Math.round((b.buildAgeMs ?? 0) / 1000)}s old (id ${b.buildId}).\n\n` +
+      "Every assertion below would describe code that has been replaced — which\n" +
+      "resurrects defects you already fixed and, worse, reports success for fixes\n" +
+      "that were never built. Stop the process on the port, then:\n\n" +
+      "  pnpm build\n" +
+      "  npx next start -p 3100\n\n" +
+      "Nothing was exercised, so nothing is reported.",
+  );
+  process.exit(2);
+}
+if (freshness.state === "no-health-route") {
+  console.error(
+    `ABORT: ${BASE}/api/health is missing, so the running build predates the route\n` +
+      "       that reports freshness. That cannot be reported as fine.\n" +
+      "       Stop the process on the port, then `pnpm build && npx next start -p 3100`.",
+  );
+  process.exit(2);
+}
+if (freshness.state === "unknown") {
+  console.error(
+    `ABORT: could not establish whether ${BASE} is running the current build ` +
+      `(${freshness.error ?? `HTTP ${freshness.status}`}).\n` +
+      "       Refusing to produce evidence against a build of unknown age.",
+  );
+  process.exit(2);
+}
+console.log(
+  `Server is current: build ${freshness.body.buildId}, up ` +
+    `${Math.round(freshness.body.uptimeMs / 1000)}s.\n`,
+);
+
+mkdirSync("docs/evidence", { recursive: true });
 
 let serverDown = false;
 

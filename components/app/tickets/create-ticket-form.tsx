@@ -72,6 +72,19 @@ export function CreateTicketForm() {
           id="category"
           {...form.register("category")}
         >
+          {/* The placeholder is load-bearing, not decoration.
+
+              This select had no empty option, so the DOM showed the first real
+              category while the form model held `""` — and `ticketSchema` requires
+              `category` to be `min(1)`. Submitting produced "Select a category."
+              on a select that visibly had one selected, and the ticket was never
+              created. Caught by the tickets workflow exercise going from 33
+              assertions to a FAIL on "a ticket exists for this run".
+
+              `""` is only a safe default when the control can actually display
+              `""`. leave-request-form already does this with "Select type…";
+              this now matches it. */}
+          <option value="">Select a category…</option>
           {CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>
               {cat.replace(/_/g, " ")}

@@ -164,6 +164,36 @@ const CHECKS = [
   // registered above `role-sweep` while a comment claimed otherwise.)
   { id: "control-census", tier: "slow",  cmd: ["scripts/audit/qa-control-surface-census.mjs"], evidence: "docs/evidence/control-surface-census.json", what: "interactive-control surface vs. what the suite asserts" },
 
+  // ---- Scripts that no gate invoked ---------------------------------------
+  //
+  // `audit-gate-coverage.mjs` found these. Each was declared in package.json and
+  // each could be run by hand, pass, and change nothing — while carrying a row in
+  // docs/COMPLETION_MATRIX.md as though it were covered. That is the quietest
+  // way for "audited" to become a claim: the script exists, the row exists, and
+  // the only thing missing is the moment it would ever have spoken.
+  //
+  // All of them need the server, so they are slow tier. `attendance-tz` also
+  // creates and deletes attendance rows, which is why it sits after `workflows`
+  // rather than beside it — this runner is serial, and the exercises share one
+  // database.
+  { id: "seo-metadata",     tier: "slow", cmd: ["scripts/audit/audit-seo-metadata.mjs"], evidence: null, what: "titles, descriptions, canonicals, OG and JSON-LD on every sitemap URL, asserted against raw HTML" },
+  { id: "role-pages",       tier: "slow", cmd: ["scripts/audit-role-pages.mjs"],         evidence: null, what: "every nav-reachable page renders clean for each of the 13 roles" },
+  { id: "performance",      tier: "slow", cmd: ["scripts/audit-performance.mjs"],         evidence: null, what: "per-route timings against the running server" },
+  { id: "payslip-exposure", tier: "slow", cmd: ["scripts/audit/audit-unapproved-payslip-exposure.mjs"], evidence: null, what: "an employee cannot read a payslip from an unapproved period" },
+  { id: "attendance-tz",    tier: "slow", cmd: ["scripts/audit/verify-attendance-tz.mjs"], evidence: null, what: "attendance day boundaries resolve in the employee's timezone, not UTC" },
+  { id: "cron-smoke",       tier: "slow", cmd: ["scripts/smoke-cron.mjs"],               evidence: null, what: "cron endpoint refuses an unauthenticated call and honours a dry run" },
+
+  // First, because everything below it is measured against it. A full workflow
+  // run once produced 482 assertions against a server 65 minutes older than the
+  // build on disk, and one of them read as a live auth defect that the current
+  // source cannot produce. "Is the server alive" is not "is the server running
+  // the code I think it is".
+  { id: "server-fresh", tier: "fast", cmd: ["scripts/audit/audit-server-fresh.mjs"], evidence: null, what: "the process answering is not older than .next/BUILD_ID" },
+
+  // Static, so fast tier — and this one gates itself. A coverage check that no
+  // gate runs would be the same defect it exists to catch.
+  { id: "gate-coverage", tier: "fast", cmd: ["scripts/audit/audit-gate-coverage.mjs"], evidence: null, what: "every declared audit script is wired into a release gate" },
+
   { id: "gate",             tier: "gate",  cmd: ["__GATE__"],                                   evidence: null, what: "vitest + tsc --noEmit" },
 ];
 
