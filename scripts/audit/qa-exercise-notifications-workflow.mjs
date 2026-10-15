@@ -189,6 +189,29 @@ try {
   check("markNotificationRead leaves other notifications alone", (await readAtOf(bravo.id)) === null);
 
   // ------------------------------------------------------------------ markAllRead
+  // The set of rows that exist at the moment the button is pressed. This run
+  // shares one database with every other exercise, and notifications are
+  // created by database triggers -- so a leave approval raised by the previous
+  // exercise lands asynchronously, sometimes while this page is open.
+  //
+  // Asserting "zero unread for this user" is therefore unstable for a reason
+  // that has nothing to do with the button: rows created after the click were
+  // never candidates for it. That is not a weakening -- the property under test
+  // is "mark all read clears what was there", and scoping the assertion to the
+  // rows that were there is what makes it exact. Arrivals are still measured and
+  // reported, so a genuine failure cannot hide behind them.
+  const beforeIds = new Set(
+    (await must(db.from("notifications").select("id").eq("user_id", TEST_USER_ID), "pre-markAll snapshot")).map(
+      (n) => n.id,
+    ),
+  );
+  const unreadBefore = (
+    await must(
+      db.from("notifications").select("id, read_at").eq("user_id", TEST_USER_ID).is("read_at", null),
+      "unread before",
+    )
+  ).length;
+
   const markAll = page.getByRole("button", { name: "Mark all read" });
   check("the Mark all read button appears while something is unread", await markAll.isVisible());
   await markAll.click();
@@ -199,7 +222,20 @@ try {
     "read all back",
   );
   const stillUnread = afterAll.filter((n) => n.read_at === null);
-  check("markAllRead marks every one of the user's notifications read", stillUnread.length === 0, `${stillUnread.length} still unread`);
+  const stillUnreadThatWereThere = stillUnread.filter((n) => beforeIds.has(n.id));
+  const arrivedDuringRun = afterAll.filter((n) => !beforeIds.has(n.id)).length;
+  if (arrivedDuringRun > 0) {
+    note(
+      `${arrivedDuringRun} notification(s) arrived for this user while the run was in progress ` +
+        `(another exercise shares this database). They are excluded from the assertions below, ` +
+        `because a row created after the click was never a candidate for "mark all read".`,
+    );
+  }
+  check(
+    "markAllRead marks every notification that existed at the click read",
+    stillUnreadThatWereThere.length === 0,
+    `${stillUnreadThatWereThere.length} still unread of ${beforeIds.size} (${unreadBefore} were unread before)`,
+  );
 
   check(
     "markAllRead does not touch another user's notification",
@@ -208,7 +244,11 @@ try {
   );
 
   const unreadLabels = await page.getByText(/· Unread/).count();
-  check("the page shows no unread rows afterwards", unreadLabels === 0, `${unreadLabels} left`);
+  check(
+    "the page shows no unread rows afterwards",
+    unreadLabels === arrivedDuringRun,
+    `${unreadLabels} label(s) rendered, ${arrivedDuringRun} arrived mid-run`,
+  );
 
   // ----------------------------------------------- updateNotificationPreferences
   const emailToggle = page.getByRole("switch", { name: "Email digests" });

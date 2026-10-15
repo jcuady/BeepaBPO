@@ -1,0 +1,208 @@
+{
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:29:53.215Z",
+  "registryTotal": 21,
+  "ranThisInvocation": [
+    "sitemap"
+  ],
+  "totals": {
+    "pass": 19,
+    "blocked": 2,
+    "skipped": 0,
+    "fail": 0,
+    "noEvidence": 0
+  },
+  "totalAssertions": 468,
+  "unregisteredScripts": [],
+  "results": [
+    {
+      "id": "auth",
+      "verdict": "PASS",
+      "assertions": 35,
+      "what": "sign in/out, sign-out-everywhere, access-denied, no account leakage",
+      "evidence": "docs/evidence/workflow-auth.json",
+      "when": "2026-10-15T05:06:33.210Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "signup",
+      "verdict": "BLOCKED",
+      "assertions": 0,
+      "what": "applicant and client registration reach verification",
+      "evidence": "docs/evidence/workflow-signup.json",
+      "when": "2026-10-15T05:07:05.313Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "payroll",
+      "verdict": "PASS",
+      "assertions": 19,
+      "what": "salary edit, period, recalculate, 2-step approval to finalized",
+      "evidence": "docs/evidence/workflow-payroll.json",
+      "when": "2026-10-15T05:08:33.849Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "attendance",
+      "verdict": "PASS",
+      "assertions": 31,
+      "what": "clock in/out, corrections, HR approval, delete",
+      "evidence": "docs/evidence/workflow-attendance.json",
+      "when": "2026-10-15T05:09:49.848Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "leave",
+      "verdict": "PASS",
+      "assertions": 13,
+      "what": "request, approve/deny, balance impact",
+      "evidence": "docs/evidence/workflow-leave.json",
+      "when": "2026-10-15T05:10:28.211Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "notifications",
+      "verdict": "PASS",
+      "assertions": 16,
+      "what": "mark one/all read, per-user isolation, digest preference",
+      "evidence": "docs/evidence/workflow-notifications.json",
+      "when": "2026-10-15T05:10:52.575Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "tickets",
+      "verdict": "PASS",
+      "assertions": 33,
+      "what": "ticket list, create, status transitions",
+      "evidence": "docs/evidence/workflow-tickets.json",
+      "when": "2026-10-15T05:11:50.422Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "documents",
+      "verdict": "PASS",
+      "assertions": 31,
+      "what": "upload, list, visibility scoping",
+      "evidence": "docs/evidence/workflow-documents.json",
+      "when": "2026-10-15T05:12:47.224Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "nte",
+      "verdict": "PASS",
+      "assertions": 24,
+      "what": "notification to evaluate, accept/decline",
+      "evidence": "docs/evidence/workflow-nte.json",
+      "when": "2026-10-15T05:13:25.154Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "client-timesheet",
+      "verdict": "PASS",
+      "assertions": 14,
+      "what": "client approves submitted timesheets",
+      "evidence": "docs/evidence/workflow-client-timesheet.json",
+      "when": "2026-10-15T05:14:07.767Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "money",
+      "verdict": "PASS",
+      "assertions": 33,
+      "what": "cash advances and billing across the lifecycle",
+      "evidence": "docs/evidence/workflow-money.json",
+      "when": "2026-10-15T05:14:52.887Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "recruitment",
+      "verdict": "PASS",
+      "assertions": 23,
+      "what": "job, applicant, pipeline stage moves",
+      "evidence": "docs/evidence/workflow-recruitment.json",
+      "when": "2026-10-15T05:16:17.657Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "crm",
+      "verdict": "PASS",
+      "assertions": 21,
+      "what": "lead and deal lifecycle with activity log",
+      "evidence": "docs/evidence/workflow-crm.json",
+      "when": "2026-10-15T05:17:39.462Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "cms",
+      "verdict": "PASS",
+      "assertions": 43,
+      "what": "publish and unpublish round trip",
+      "evidence": "docs/evidence/workflow-cms.json",
+      "when": "2026-10-15T05:21:52.160Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "hire",
+      "verdict": "PASS",
+      "assertions": 23,
+      "what": "hire to employee, org membership, cleanup",
+      "evidence": "docs/evidence/workflow-hire.json",
+      "when": "2026-10-15T05:22:25.351Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "admin-workflow",
+      "verdict": "BLOCKED",
+      "assertions": 18,
+      "what": "admin actions behind their permission",
+      "evidence": "docs/evidence/workflow-admin-workflow.json",
+      "when": "2026-10-15T05:23:06.250Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "profile",
+      "verdict": "PASS",
+      "assertions": 19,
+      "what": "profile read and write persistence",
+      "evidence": "docs/evidence/workflow-profile.json",
+      "when": "2026-10-15T05:23:46.263Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "list-filters",
+      "verdict": "PASS",
+      "assertions": 33,
+      "what": "filtering, search and pagination on list views",
+      "evidence": "docs/evidence/workflow-list-filters.json",
+      "when": "2026-10-15T05:26:38.928Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "ticket-detail",
+      "verdict": "PASS",
+      "assertions": 10,
+      "what": "single ticket detail, assignment and status change",
+      "evidence": "docs/evidence/workflow-ticket-detail.json",
+      "when": "2026-10-15T05:27:07.246Z",
+      "ranThisRun": false
+    },
+    {
+      "id": "sitemap",
+      "verdict": "PASS",
+      "assertions": 12,
+      "what": "unpublish leaves the sitemap and republish restores it",
+      "evidence": "docs/evidence/workflow-sitemap.json",
+      "when": "2026-10-15T05:29:53.188Z",
+      "ranThisRun": true
+    },
+    {
+      "id": "uncovered-roles",
+      "verdict": "PASS",
+      "assertions": 17,
+      "what": "sales, finance, client_viewer: the three roles no other exercise drives",
+      "evidence": "docs/evidence/workflow-uncovered-roles.json",
+      "when": "2026-10-15T05:28:15.527Z",
+      "ranThisRun": false
+    }
+  ]
+}

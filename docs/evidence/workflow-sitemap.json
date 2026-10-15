@@ -1,0 +1,82 @@
+{
+  "id": "sitemap",
+  "script": "scripts/audit/qa-exercise-sitemap-unpublish.mjs",
+  "claim": "unpublish leaves the sitemap and republish restores it",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:29:53.188Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 12,
+  "checks": [
+    {
+      "pass": true,
+      "name": "the article is created  - 80fc960b",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a Publish control exists on its row",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "publishing moves it to published  - status=published",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "*** a published article is in the sitemap WITHOUT a rebuild ***  - present on the next request - the sitemap is generated per request",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "while published, the article URL resolves  - HTTP 200",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "while published, the index lists it",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "an Archive control exists on its row",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "archiving moves it to archived  - status=archived",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "after archiving, the article URL no longer resolves  - HTTP 404",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "after archiving, the index no longer lists it",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "*** after archiving, the sitemap no longer advertises it ***  - correctly dropped",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "revalidateCmsPublic() does not include /sitemap.xml, which is why  - function revalidateCmsPublic() { revalidatePath(\"/app/cms\"); revalidatePath(\"/resources\"); revalidatePath(\"/services\"); revalidatePath(\"/about\"); reva",
+      "detail": null
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [
+    "cleanup: QA article deleted",
+    "rows still carrying the marker: 0",
+    "the live sitemap still mentions the QA article: false",
+    "the real articles are still listed: true"
+  ],
+  "other": [
+    "12/12 assertions passed"
+  ]
+}

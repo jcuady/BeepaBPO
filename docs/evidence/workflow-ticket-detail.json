@@ -1,0 +1,68 @@
+{
+  "id": "ticket-detail",
+  "script": "scripts/audit/qa-exercise-ticket-workflow.mjs",
+  "claim": "single ticket detail, assignment and status change",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:27:07.246Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 10,
+  "checks": [
+    {
+      "pass": true,
+      "name": "ticket created by the client contact  — TKT-20261015-00014",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "ticket starts in 'new'  — status=new",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "requester received ticket.created  — \"We received your request: QA ticket exercise mv93jezh — payroll question\"",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "ticket.created names the subject  — We received your request: QA ticket exercise mv93jezh — payroll question",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "assignment exercised  — assignee selected",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "ticket has an assignee  — assignee=set",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "assignee received ticket.assigned  — \"TKT-20261015-00014: QA ticket exercise mv93jezh — payroll question\"",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "ticket.assigned names the ticket number  — TKT-20261015-00014: QA ticket exercise mv93jezh — payroll question",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "notifications were actually created  — 64 -> 66",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "this run left no ticket behind  — 0 residual before -> 0 after",
+      "detail": null
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [],
+  "other": [
+    "baseline: 64 notifications, 0 residual exercise tickets",
+    "10/10 checks passed"
+  ]
+}

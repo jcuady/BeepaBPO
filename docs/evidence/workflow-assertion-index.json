@@ -1,0 +1,222 @@
+{
+  "when": "2026-10-15T05:28:42.146Z",
+  "evidenceDir": "docs/evidence",
+  "exercisesIndexed": 21,
+  "exercisesPassing": 19,
+  "totalAssertions": 468,
+  "distinctBehaviours": 460,
+  "behavioursAssertedByMoreThanOneExercise": 2,
+  "duplicated": [
+    {
+      "name": "no page errors",
+      "exercises": [
+        "documents",
+        "money",
+        "notifications",
+        "nte",
+        "profile"
+      ]
+    },
+    {
+      "name": "no unexpected console errors",
+      "exercises": [
+        "documents",
+        "money",
+        "notifications",
+        "nte",
+        "profile"
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "admin-workflow",
+      "claim": "admin actions behind their permission",
+      "verdict": "BLOCKED",
+      "when": "2026-10-15T05:23:06.250Z",
+      "assertionCount": 18,
+      "distinctBehaviours": 18,
+      "failed": []
+    },
+    {
+      "id": "attendance",
+      "claim": "clock in/out, corrections, HR approval, delete",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:09:49.848Z",
+      "assertionCount": 31,
+      "distinctBehaviours": 31,
+      "failed": []
+    },
+    {
+      "id": "auth",
+      "claim": "sign in/out, sign-out-everywhere, access-denied, no account leakage",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:06:33.210Z",
+      "assertionCount": 35,
+      "distinctBehaviours": 35,
+      "failed": []
+    },
+    {
+      "id": "client-timesheet",
+      "claim": "client approves submitted timesheets",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:14:07.767Z",
+      "assertionCount": 14,
+      "distinctBehaviours": 14,
+      "failed": []
+    },
+    {
+      "id": "cms",
+      "claim": "publish and unpublish round trip",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:21:52.160Z",
+      "assertionCount": 43,
+      "distinctBehaviours": 43,
+      "failed": []
+    },
+    {
+      "id": "crm",
+      "claim": "lead and deal lifecycle with activity log",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:17:39.462Z",
+      "assertionCount": 21,
+      "distinctBehaviours": 21,
+      "failed": []
+    },
+    {
+      "id": "documents",
+      "claim": "upload, list, visibility scoping",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:12:47.224Z",
+      "assertionCount": 31,
+      "distinctBehaviours": 31,
+      "failed": []
+    },
+    {
+      "id": "hire",
+      "claim": "hire to employee, org membership, cleanup",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:22:25.351Z",
+      "assertionCount": 23,
+      "distinctBehaviours": 23,
+      "failed": []
+    },
+    {
+      "id": "leave",
+      "claim": "request, approve/deny, balance impact",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:10:28.211Z",
+      "assertionCount": 13,
+      "distinctBehaviours": 13,
+      "failed": []
+    },
+    {
+      "id": "list-filters",
+      "claim": "filtering, search and pagination on list views",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:26:38.928Z",
+      "assertionCount": 33,
+      "distinctBehaviours": 33,
+      "failed": []
+    },
+    {
+      "id": "money",
+      "claim": "cash advances and billing across the lifecycle",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:14:52.887Z",
+      "assertionCount": 33,
+      "distinctBehaviours": 33,
+      "failed": []
+    },
+    {
+      "id": "notifications",
+      "claim": "mark one/all read, per-user isolation, digest preference",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:10:52.575Z",
+      "assertionCount": 16,
+      "distinctBehaviours": 16,
+      "failed": []
+    },
+    {
+      "id": "nte",
+      "claim": "notification to evaluate, accept/decline",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:13:25.154Z",
+      "assertionCount": 24,
+      "distinctBehaviours": 24,
+      "failed": []
+    },
+    {
+      "id": "payroll",
+      "claim": "salary edit, period, recalculate, 2-step approval to finalized",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:08:33.849Z",
+      "assertionCount": 19,
+      "distinctBehaviours": 19,
+      "failed": []
+    },
+    {
+      "id": "profile",
+      "claim": "profile read and write persistence",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:23:46.263Z",
+      "assertionCount": 19,
+      "distinctBehaviours": 19,
+      "failed": []
+    },
+    {
+      "id": "recruitment",
+      "claim": "job, applicant, pipeline stage moves",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:16:17.657Z",
+      "assertionCount": 23,
+      "distinctBehaviours": 23,
+      "failed": []
+    },
+    {
+      "id": "signup",
+      "claim": "applicant and client registration reach verification",
+      "verdict": "BLOCKED",
+      "when": "2026-10-15T05:07:05.313Z",
+      "assertionCount": 0,
+      "distinctBehaviours": 0,
+      "failed": []
+    },
+    {
+      "id": "sitemap",
+      "claim": "unpublish leaves the sitemap and republish restores it",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:27:41.090Z",
+      "assertionCount": 12,
+      "distinctBehaviours": 12,
+      "failed": []
+    },
+    {
+      "id": "ticket-detail",
+      "claim": "single ticket detail, assignment and status change",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:27:07.246Z",
+      "assertionCount": 10,
+      "distinctBehaviours": 10,
+      "failed": []
+    },
+    {
+      "id": "tickets",
+      "claim": "ticket list, create, status transitions",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:11:50.422Z",
+      "assertionCount": 33,
+      "distinctBehaviours": 33,
+      "failed": []
+    },
+    {
+      "id": "uncovered-roles",
+      "claim": "sales, finance, client_viewer: the three roles no other exercise drives",
+      "verdict": "PASS",
+      "when": "2026-10-15T05:28:15.527Z",
+      "assertionCount": 17,
+      "distinctBehaviours": 17,
+      "failed": []
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "id": "tickets",
+  "script": "scripts/audit/qa-exercise-tickets-workflow.mjs",
+  "claim": "ticket list, create, status transitions",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:11:50.422Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 33,
+  "checks": [
+    {
+      "pass": true,
+      "name": "staff sees the create-ticket form",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a ticket exists for this run",
+      "detail": "e3b2acab"
+    },
+    {
+      "pass": true,
+      "name": "the ticket detail page shows a reply box",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a brand-new ticket has no first response yet",
+      "detail": "null"
+    },
+    {
+      "pass": true,
+      "name": "the first staff reply stamps first_response_at",
+      "detail": "2026-10-15T05:11:05.905+00:00"
+    },
+    {
+      "pass": true,
+      "name": "exactly one message row exists",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "the message is stored as public, not internal",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a SECOND staff reply does not move the first-response clock",
+      "detail": "2026-10-15T05:11:05.905+00:00 -> 2026-10-15T05:11:05.905+00:00"
+    },
+    {
+      "pass": true,
+      "name": "both messages are stored",
+      "detail": "2 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "the status control is present",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "updateTicketStatus sets the status to resolved",
+      "detail": "resolved"
+    },
+    {
+      "pass": true,
+      "name": "resolving stamps resolved_at",
+      "detail": "2026-10-15T05:11:15.712+00:00"
+    },
+    {
+      "pass": true,
+      "name": "the status change writes an audit row",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "the ticket can be moved back to an open status",
+      "detail": "in_progress"
+    },
+    {
+      "pass": true,
+      "name": "reopening CLEARS resolved_at rather than leaving a stale resolution date",
+      "detail": "null"
+    },
+    {
+      "pass": true,
+      "name": "the SLA page lists policies",
+      "detail": "4 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "a create form is offered once the 'urgent' priority is free",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "an SLA whose resolution target is shorter than its first-response target is refused",
+      "detail": "no row written"
+    },
+    {
+      "pass": true,
+      "name": "createTicketSlaPolicy writes a policy",
+      "detail": "bf55c37a"
+    },
+    {
+      "pass": true,
+      "name": "the first-response target is stored as typed",
+      "detail": "30"
+    },
+    {
+      "pass": true,
+      "name": "the resolution target is stored as typed",
+      "detail": "240"
+    },
+    {
+      "pass": true,
+      "name": "the created policy is editable on the SLA page",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "updateTicketSlaPolicy refuses resolution < first-response too",
+      "detail": "stored 30/240"
+    },
+    {
+      "pass": true,
+      "name": "updateTicketSlaPolicy persists the new targets",
+      "detail": "45/300"
+    },
+    {
+      "pass": true,
+      "name": "the SLA edit writes an audit row",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "no ticket is left carrying the marker",
+      "detail": "0"
+    },
+    {
+      "pass": true,
+      "name": "no SLA policy is left carrying the marker",
+      "detail": "0"
+    },
+    {
+      "pass": true,
+      "name": "the tickets table is back to its starting size",
+      "detail": "13 vs 13"
+    },
+    {
+      "pass": true,
+      "name": "ticket messages are back to their starting size",
+      "detail": "37 vs 37"
+    },
+    {
+      "pass": true,
+      "name": "SLA policies are back to their starting size",
+      "detail": "4 vs 4"
+    },
+    {
+      "pass": true,
+      "name": "every pre-existing SLA policy is back to exactly the values the run found",
+      "detail": "4 polic(ies) verified field by field"
+    },
+    {
+      "pass": true,
+      "name": "no policy is left parked outside Beepa",
+      "detail": "none"
+    },
+    {
+      "pass": true,
+      "name": "the scratch organization was removed",
+      "detail": "gone"
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [
+    "parked policy e95d2050 (priority 'urgent') under a scratch org to free that slot; the move is undone in the finally block"
+  ],
+  "other": [
+    "before: tickets=13 messages=37 policies=4",
+    "(cleanup) tickets 13->13, messages 37->37, policies 4->4",
+    "(cleanup) rows still carrying the marker: 0 ticket(s), 0 policy(ies)",
+    "the sweep left the demo data as it found it: yes",
+    "33/33 assertions passed",
+    "notes:",
+    "  - parked policy e95d2050 (priority 'urgent') under a scratch org to free that slot; the move is undone in the finally block"
+  ]
+}

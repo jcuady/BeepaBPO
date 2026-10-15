@@ -1,0 +1,115 @@
+{
+  "id": "admin-workflow",
+  "script": "scripts/audit/qa-exercise-admin-workflow.mjs",
+  "claim": "admin actions behind their permission",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:23:06.250Z",
+  "exitCode": 2,
+  "verdict": "BLOCKED",
+  "assertions": 18,
+  "checks": [
+    {
+      "pass": true,
+      "name": "signed in as super admin  — http://localhost:3100/app/dashboard",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "cron dry-run button reports per-job counts  — Dry-run OK — missing clock-out: 0, overdue invoices: 1, digests: 6.",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "cron dry-run is audit-logged  — {\"invoice_overdue\":1,\"missing_clock_out\":0,\"notification_digest\":6,\"notification_digest_failed\":0,\"notification_digest_candidates\":6}",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "test push wrote a notification to the admin  — \"Push and in-app delivery check from Admin.\"",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a failing invite tells the user why  — Too many invites have been sent from this network. Wait a moment, then try again.",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "target membership row rendered",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "role select present on the row",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "Update role is disabled while the role is unchanged",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "Update role enables once a different role is chosen",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "role change asks for confirmation  — Change this member’s role? Their functional role becomes Finance. The",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "role changed but the self-service baseline survived  — roles now [employee, finance], expected [employee, finance]",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "member keeps their own leave/payroll/attendance access  — employee role retained",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "role change is audit-logged with before and after  — {\"before_data\":{\"role_codes\":[\"marketing\",\"employee\"]},\"after_data\":{\"role_codes\":[\"employee\",\"finance\"]}}",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "revoke asks for confirmation  — Revoke this membership? The user loses access for this organization.",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "revoke set the membership inactive  — status=inactive",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "revoke is audit-logged  — {\"before_data\":{\"status\":\"active\"},\"after_data\":{\"status\":\"inactive\"}}",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no console errors during the admin run",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "this run left the account exactly as it found it  — roles now [employee, marketing] (was [employee, marketing]), status active (was active)",
+      "detail": null
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [],
+  "other": [
+    "target: marketing@demo.beepabpo.com membership=b5b127d0-b0c8-4a4b-96e6-12b5aeed839e",
+    "original roles: [employee, marketing] status=active",
+    "BLOCKED  invite creates an account  — Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a fresh SMTP quota or a project that is not being hammered; the error IS surfaced to the user.",
+    "audit_logs 328 -> 332, notifications 64 -> 64 (minus this run's test push)",
+    "18/18 checks passed",
+    "1 path(s) could not be exercised in this environment:",
+    "  - invite creates an account",
+    "      Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a fresh SMTP quota or a project that is not being hammered; the error IS surfaced to the user.",
+    "  These are UNKNOWN, not passing. See docs/QA_REPORT.md."
+  ]
+}

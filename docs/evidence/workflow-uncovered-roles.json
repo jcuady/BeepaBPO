@@ -1,0 +1,106 @@
+{
+  "id": "uncovered-roles",
+  "script": "scripts/audit/qa-exercise-uncovered-roles.mjs",
+  "claim": "sales, finance, client_viewer: the three roles no other exercise drives",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:28:15.527Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 17,
+  "checks": [
+    {
+      "pass": true,
+      "name": "finance signs in",
+      "detail": "http://localhost:3100/app/my"
+    },
+    {
+      "pass": true,
+      "name": "finance is kept out of the client billing surface",
+      "detail": "http://localhost:3100/app/client/billing money=0"
+    },
+    {
+      "pass": true,
+      "name": "no uncaught page errors as finance",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "sales signs in",
+      "detail": "http://localhost:3100/app/crm"
+    },
+    {
+      "pass": true,
+      "name": "sales lands on the CRM pipeline",
+      "detail": "http://localhost:3100/app/crm"
+    },
+    {
+      "pass": true,
+      "name": "sales sees no payroll amounts on /app/payroll",
+      "detail": "money=0 [] url=http://localhost:3100/app/payroll"
+    },
+    {
+      "pass": true,
+      "name": "sales sees a populated lead list",
+      "detail": "Dashboard Attendance Schedule Leave Payroll Cash advances NTE Requests"
+    },
+    {
+      "pass": true,
+      "name": "no uncaught page errors as sales",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "client_admin signs in",
+      "detail": "http://localhost:3100/app/client"
+    },
+    {
+      "pass": true,
+      "name": "client_viewer signs in",
+      "detail": "http://localhost:3100/app/client"
+    },
+    {
+      "pass": true,
+      "name": "client viewer has no control client admin lacks on /app/client/attendance",
+      "detail": "admin sees 5, viewer sees 5"
+    },
+    {
+      "pass": true,
+      "name": "client viewer has no control client admin lacks on /app/client/timesheets",
+      "detail": "admin sees 4, viewer sees 4"
+    },
+    {
+      "pass": true,
+      "name": "client viewer has no control client admin lacks on /app/client/tickets",
+      "detail": "admin sees 6, viewer sees 6"
+    },
+    {
+      "pass": true,
+      "name": "client viewer has no control client admin lacks on /app/client/requests",
+      "detail": "admin sees 5, viewer sees 5"
+    },
+    {
+      "pass": true,
+      "name": "client viewer is refused the internal payroll app",
+      "detail": "denied=true money=0 url=http://localhost:3100/app/payroll"
+    },
+    {
+      "pass": true,
+      "name": "client viewer is refused internal reports",
+      "detail": "denied=true money=0 url=http://localhost:3100/app/reports"
+    },
+    {
+      "pass": true,
+      "name": "client viewer renders no amounts on client billing",
+      "detail": "money=0 [] url=http://localhost:3100/app/client/billing"
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [
+    "client billing renders its shell for client_viewer with zero amounts rather than a denial page. Nothing is exposed -- `billing.read` is not granted to the role -- but an empty surface a user cannot fill is worth a considered decision rather than a default."
+  ],
+  "other": [
+    "17/17 checks passed",
+    "NOTES:",
+    "  - client billing renders its shell for client_viewer with zero amounts rather than a denial page. Nothing is exposed -- `billing.read` is not granted to the role -- but an empty surface a user cannot fill is worth a considered decision rather than a default."
+  ]
+}

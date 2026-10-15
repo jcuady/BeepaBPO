@@ -1,0 +1,113 @@
+{
+  "id": "payroll",
+  "script": "scripts/audit/qa-exercise-payroll-workflow.mjs",
+  "claim": "salary edit, period, recalculate, 2-step approval to finalized",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:08:33.849Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 19,
+  "checks": [
+    {
+      "pass": true,
+      "name": "signed in as owner (holds payroll.manage)  — http://localhost:3100/app/dashboard",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "salary settings form rendered  — [{\"id\":\"salary-717e51a9-f770-4b56-9ee9-72dd2e8e26c8\",\"value\":\"120000\"},{\"id\":\"salary-c4dc9f09-32d4-4b91-ad84-38f5041071dd\",\"value\":\"25000\"}]",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "snapshotted the profile of the employee actually being edited  — 717e51a9 salary=120000",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "salary change persisted  — 120000 -> 120111 (stored 120111) for 717e51a9",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a frequency with no existing period is selectable  — chose Monthly",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a new payroll period was created  — {\"id\":\"d8057c0d-41c8-4638-851a-0233e85e6cc3\",\"name\":\"October 1–15, 2026\",\"status\":\"draft\",\"start_date\":\"2026-10-01\",\"end_date\":\"2026-10-15\",\"pay_date\"",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "new period starts as draft  — status=draft",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "payroll records were seeded for the period  — 10 record(s), sample pay=12500",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "seeded records start as draft  — 10/10 draft",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "Recalculate control present",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "recalculate produced a calculation snapshot  — snapshot written",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "Submit for approval present",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "period moved to approval  — status=approval",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "an approval request was created  — 1 request(s)",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "period finalized after the full approval chain  — status=finalized after 2 approval(s)",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "payroll approval took two steps  — 2 approval(s)",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "every record in the period is finalized  — 10/10 finalized",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no console errors during the payroll run",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "this run left payroll exactly as it found it  — periods 2->2, records 11->11, payslips 1->1, audit 293->293, salary restored=true",
+      "detail": null
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [],
+  "other": [
+    "cleanup: 6 audit row(s) this run created, deleted",
+    "19/19 checks passed"
+  ]
+}

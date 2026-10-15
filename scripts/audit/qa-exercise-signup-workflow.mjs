@@ -87,10 +87,30 @@ async function membershipsFor(userId) {
   );
 }
 
-async function fillSignup(page) {
+/**
+ * The form asks which audience is registering before it asks for any field, so
+ * the Company field only exists for a company registration.
+ *
+ * This helper filled `#company` unconditionally. That was correct when the form
+ * was client-shaped for everyone, and it became a false failure the moment the
+ * audience selector landed: Playwright timed out waiting for a field the
+ * applicant path deliberately does not render. It failed with a fill timeout
+ * rather than an assertion, which is the shape of "the page is broken" and is
+ * why it needed reading rather than re-running.
+ *
+ * Both audiences are now exercised, because they take different paths through
+ * the action: an applicant is assigned the `applicant` membership, a client
+ * becomes a CRM lead. Asserting only one would leave the other branch
+ * unexercised.
+ */
+async function fillSignup(page, intent) {
+  if (intent === "client") {
+    await page.getByRole("button", { name: /hiring talent/i }).click();
+    await page.locator("#company").waitFor({ state: "visible", timeout: 10000 });
+  }
   await page.locator("#fullName").fill(NAME);
   await page.locator("#email").fill(EMAIL);
-  await page.locator("#company").fill("QA Signup Co");
+  if (intent === "client") await page.locator("#company").fill("QA Signup Co");
   await page.locator("#password").fill(PASSWORD);
   await page.locator("#confirmPassword").fill(PASSWORD);
   await page.locator("#acceptTerms").check();
@@ -105,7 +125,7 @@ try {
   // ---------- 1. the success path
   await page.goto(`${BASE}/signup`, { waitUntil: "domcontentloaded" });
   await page.locator("#fullName").waitFor({ state: "visible", timeout: 20000 });
-  await fillSignup(page);
+  await fillSignup(page, "applicant");
   await page.getByRole("button", { name: /create account/i }).click();
 
   // The panel is only reachable once `state.ok` is true, so its presence is the action's

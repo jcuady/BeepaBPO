@@ -1,0 +1,123 @@
+{
+  "id": "profile",
+  "script": "scripts/audit/qa-exercise-profile-workflow.mjs",
+  "claim": "profile read and write persistence",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:23:46.263Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 19,
+  "checks": [
+    {
+      "pass": true,
+      "name": "HR sees the employee edit form",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "updateEmployee persists the new job title",
+      "detail": "qaprofmv93ese6 Senior Support Analyst"
+    },
+    {
+      "pass": true,
+      "name": "updateEmployee writes an audit row",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "owner sees the profile form",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the profile form is pre-filled from the database",
+      "detail": "form shows Demo Owner"
+    },
+    {
+      "pass": true,
+      "name": "updateProfile persists the display name",
+      "detail": "qaprofmv93ese6 Name"
+    },
+    {
+      "pass": true,
+      "name": "updateProfile persists the phone",
+      "detail": "+63 900 000 1234"
+    },
+    {
+      "pass": true,
+      "name": "updateProfile writes an audit row",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "clearing the phone stores null, not an empty string",
+      "detail": "null"
+    },
+    {
+      "pass": true,
+      "name": "the contact form confirms receipt to the enquirer",
+      "detail": "Thanks - your request has been received"
+    },
+    {
+      "pass": true,
+      "name": "contactAction creates exactly one lead",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "the lead is sourced from the website form",
+      "detail": "website_contact"
+    },
+    {
+      "pass": true,
+      "name": "the lead lands in the sales queue as new",
+      "detail": "new"
+    },
+    {
+      "pass": true,
+      "name": "a honeypot submission is told it succeeded",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a honeypot submission writes no lead",
+      "detail": "0 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "an invalid email is refused at step 1",
+      "detail": "an error is shown"
+    },
+    {
+      "pass": true,
+      "name": "no lead is written for invalid input",
+      "detail": "0 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "no unexpected console errors",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no page errors",
+      "detail": null
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [
+    "This proves CLIENT-side validation: the input is type=email with required, so the browser blocks the submit and contactAction is never called. The server-side contactSchema rejection path is not exercised here, because the UI cannot reach it."
+  ],
+  "other": [
+    "employee: 5754881d",
+    "owner profile: Demo Owner, phone=null, tz=Asia/Manila",
+    "crm_leads before: 4",
+    "(cleanup) leads still carrying the marker: 0",
+    "(cleanup) employee restored: true; profile restored: true",
+    "(cleanup) crm_leads before=4 after=4",
+    "the sweep left the demo data as it found it: yes",
+    "19/19 assertions passed",
+    "notes:",
+    "  - This proves CLIENT-side validation: the input is type=email with required, so the browser blocks the submit and contactAction is never called. The server-side contactSchema rejection path is not exercised here, because the UI cannot reach it."
+  ]
+}

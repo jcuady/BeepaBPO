@@ -225,10 +225,28 @@ await page.getByRole("button", { name: "Send invite" }).click();
   const { data: invitedList } = await db.auth.admin.listUsers({ page: 1, perPage: 1000 });
   const invitedUser = (invitedList?.users ?? []).find((u) => u.email === inviteEmail);
   invitedUserId = invitedUser?.id ?? null;
-  const rateLimited = /rate limit/i.test(toastText || "");
+
+  // HOW TO TELL "the mail provider refused" FROM "the invite action is broken"
+  //
+  // This used to test /rate limit/i, which can never match what the user
+  // actually sees. The action reports a delivery failure with deliberately
+  // generic copy -- "Unable to send the invite right now. Try again in a
+  // moment." -- so the BLOCKED branch below was unreachable in practice and a
+  // spent email budget was reported as a product FAIL: "invite created the
+  // account -- not created". The suite went red for a reason no code change
+  // can fix, which is exactly what BLOCKED exists to prevent.
+  //
+  // So this matches the copy the app emits for a provider refusal. A genuine
+  // bug in the invite action is still caught: it would have to produce this
+  // same sentence to be misfiled, and a validation fault produces different
+  // copy entirely ("valid work email", "already ..."), which falls through to
+  // the FAIL branch where it belongs.
+  const emailRefused = /unable to send the invite|try again in a moment|rate limit|too many/i.test(
+    toastText || "",
+  );
   if (invitedUser) {
     check("invite created the account", true, invitedUser.email);
-  } else if (rateLimited) {
+  } else if (emailRefused) {
     recordBlocked(
       "invite creates an account",
       "Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a " +
@@ -344,5 +362,10 @@ await page.getByRole("button", { name: "Send invite" }).click();
     for (const b of blocked) console.log(`  - ${b.name}\n      ${b.reason}`);
     console.log("  These are UNKNOWN, not passing. See docs/QA_REPORT.md.");
   }
+  // A blocked path is not a pass. This run used to print exactly that sentence
+  // and then exit 0, so a spent email budget reported as success to every
+  // caller that reads an exit code -- including `qa-run-workflows.mjs`, which
+  // maps 0 to PASS. Exit 2 is the code the runners already treat as BLOCKED.
   if (failed.length) process.exitCode = 1;
+  else if (blocked.length) process.exitCode = 2;
 }

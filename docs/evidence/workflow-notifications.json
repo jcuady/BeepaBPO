@@ -1,0 +1,104 @@
+{
+  "id": "notifications",
+  "script": "scripts/audit/qa-exercise-notifications-workflow.mjs",
+  "claim": "mark one/all read, per-user isolation, digest preference",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:10:52.575Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 16,
+  "checks": [
+    {
+      "pass": true,
+      "name": "the other user's notification starts unread",
+      "detail": "null"
+    },
+    {
+      "pass": true,
+      "name": "the page renders the QA notifications",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "another user's notification is not shown",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "unread rows are marked Unread",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "markNotificationRead sets read_at",
+      "detail": "2026-10-15T05:10:36.006+00:00"
+    },
+    {
+      "pass": true,
+      "name": "markNotificationRead leaves other notifications alone",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the Mark all read button appears while something is unread",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "markAllRead marks every notification that existed at the click read",
+      "detail": "0 still unread of 20 (19 were unread before)"
+    },
+    {
+      "pass": true,
+      "name": "markAllRead does not touch another user's notification",
+      "detail": "null"
+    },
+    {
+      "pass": true,
+      "name": "the page shows no unread rows afterwards",
+      "detail": "0 label(s) rendered, 0 arrived mid-run"
+    },
+    {
+      "pass": true,
+      "name": "the email digest preference toggle is present",
+      "detail": "1"
+    },
+    {
+      "pass": true,
+      "name": "updateNotificationPreferences persists a row",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the persisted value matches the toggle the user left",
+      "detail": "was true, stored false"
+    },
+    {
+      "pass": true,
+      "name": "toggling back writes the original value",
+      "detail": "expected true, stored true"
+    },
+    {
+      "pass": true,
+      "name": "no unexpected console errors",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no page errors",
+      "detail": null
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [],
+  "other": [
+    "subject user: teamlead@demo.beepabpo.com (e743e34b) with 17 notification(s)",
+    "other user:   5f7e9eaf",
+    "snapshot: 17 notification read_at value(s) remembered; preferences exist",
+    "(cleanup) restored 17 read_at value(s) that had moved",
+    "(cleanup) notifications still carrying the marker: 0",
+    "(cleanup) read_at values that do not match the snapshot: 0",
+    "the sweep left the demo data as it found it: yes",
+    "16/16 assertions passed"
+  ]
+}

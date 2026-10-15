@@ -120,6 +120,28 @@ const CHECKS = [
   { id: "responsive-app-cms", tier: "slow", env: { QA_CHUNK_LABEL: "cms" }, cmd: ["scripts/audit-app-responsive.mjs", "marketing@demo.beepabpo.com", "/app/cms"], evidence: "docs/evidence/responsive-app-cms.json", what: "CMS layout under the account that can actually reach it" },
   { id: "responsive-public", tier: "slow", cmd: ["scripts/audit-responsive.mjs", "/", "/about", "/services", "/why-beepa", "/contact", "/privacy", "/terms", "/case-studies", "/careers", "/resources", "/security", "/pricing", "/login", "/signup", "/employee/login"], evidence: "docs/evidence/responsive-public.json", what: "public + auth surface, 15 routes x 8 viewports" },
 
+  // Does the product WORK, as opposed to looking right and building. This
+  // registry above is presentation and release gates; it answers nothing about
+  // whether payroll reaches finalized or an employee is actually notified. The
+  // twenty workflow exercises that answer that were present in the directory
+  // and registered nowhere, so they ran when someone remembered a filename.
+  //
+  // It proved the point the day it was added: the signup exercise fills the
+  // signup form by field id, and when the form became role-aware it began
+  // failing on an `#company` that no longer rendered by default. That is
+  // coverage rotting silently, reported as a failure with no explanation.
+  //
+  // Serial by necessity — these create and delete fixtures in one shared
+  // database, and running two at once corrupts each other's cleanup into what
+  // looks like a product bug.
+  { id: "workflows",        tier: "slow",  cmd: ["scripts/audit/qa-run-workflows.mjs"],        evidence: "docs/evidence/workflow-summary.json",          what: "21 workflow exercises: payroll, attendance, leave, notifications, tickets, documents, NTE, money, recruitment, CRM, CMS, hire, admin, profile, filters" },
+
+  // The workflows tier reports how many exercises passed. This reports how many
+  // *distinct things the product did*, deduplicated across those exercises --
+  // which is the only way to answer "every button works" with something other
+  // than a pass count. Reads the evidence the tier above just wrote.
+  { id: "assertion-index", tier: "slow",  cmd: ["scripts/audit/qa-workflow-assertion-index.mjs"], evidence: "docs/evidence/workflow-assertion-index.json", what: "distinct named behaviours asserted across the workflow evidence" },
+
   { id: "role-sweep",       tier: "slow",  cmd: ["scripts/audit/audit-role-sweep.mjs"],         evidence: "docs/evidence/role-sweep.json",             what: "13 roles across their reachable pages" },
 
   { id: "gate",             tier: "gate",  cmd: ["__GATE__"],                                   evidence: null, what: "vitest + tsc --noEmit" },

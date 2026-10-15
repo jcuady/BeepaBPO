@@ -1,0 +1,179 @@
+{
+  "id": "documents",
+  "script": "scripts/audit/qa-exercise-documents-workflow.mjs",
+  "claim": "upload, list, visibility scoping",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:12:47.224Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 31,
+  "checks": [
+    {
+      "pass": true,
+      "name": "employee sees the upload form",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "uploadEmployeeDocument writes a document row",
+      "detail": "1221b053"
+    },
+    {
+      "pass": true,
+      "name": "the document is attached to the uploading employee's record",
+      "detail": "108f95ff-e47f-414f-8ec2-0e49f075edb0"
+    },
+    {
+      "pass": true,
+      "name": "a self-upload is private",
+      "detail": "private"
+    },
+    {
+      "pass": true,
+      "name": "the recorded size matches the uploaded bytes",
+      "detail": "40 vs 40"
+    },
+    {
+      "pass": true,
+      "name": "the upload writes an audit row",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "a Download control is offered for the document",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "clicking Download opens a signed URL",
+      "detail": "https://nwvnawgxkzwiercllgmg.supabase.co/storage/v1/object/sign/employee-documents/108f95f"
+    },
+    {
+      "pass": true,
+      "name": "the signed URL is served successfully",
+      "detail": "HTTP 200"
+    },
+    {
+      "pass": true,
+      "name": "the signed URL returns exactly the bytes that were uploaded",
+      "detail": "40 bytes match"
+    },
+    {
+      "pass": true,
+      "name": "a pre-existing seeded document is listed to this employee",
+      "detail": "Demo Employment Contract"
+    },
+    {
+      "pass": true,
+      "name": "a pre-existing seeded document can also be downloaded",
+      "detail": "signed URL minted"
+    },
+    {
+      "pass": true,
+      "name": "the seeded document serves real bytes",
+      "detail": "HTTP 200, 704 bytes"
+    },
+    {
+      "pass": true,
+      "name": "a disallowed MIME type is refused and writes nothing",
+      "detail": "no row written"
+    },
+    {
+      "pass": true,
+      "name": "an upload with no file is refused and writes nothing",
+      "detail": "0 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "HR sees an upload form on another employee's record",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the admin upload writes a document",
+      "detail": "cc6c566d"
+    },
+    {
+      "pass": true,
+      "name": "it is attached to the employee HR chose, not to HR",
+      "detail": "5754881d-cc9f-4d09-9e0c-271b08776491"
+    },
+    {
+      "pass": true,
+      "name": "an upload made on someone's behalf is employee_visible, not private",
+      "detail": "employee_visible"
+    },
+    {
+      "pass": true,
+      "name": "another employee's document is not listed to this employee",
+      "detail": "0 shown"
+    },
+    {
+      "pass": true,
+      "name": "the employee still sees their own document",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "client admin sees the upload form",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "uploadClientDocument writes a document",
+      "detail": "dc99fc97"
+    },
+    {
+      "pass": true,
+      "name": "the client document is tied to a client organization",
+      "detail": "1a91499c-56b5-4d60-ae9d-3835545b6ed5"
+    },
+    {
+      "pass": true,
+      "name": "a client upload is client_visible",
+      "detail": "client_visible"
+    },
+    {
+      "pass": true,
+      "name": "the client upload writes an audit row",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "no unexpected console errors",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no page errors",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no document row is left carrying the marker",
+      "detail": "0 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "no storage object is orphaned",
+      "detail": "0 orphan(s)"
+    },
+    {
+      "pass": true,
+      "name": "the documents table is back to its starting size",
+      "detail": "8 vs 8"
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [],
+  "other": [
+    "employee: BEE-00020; other: BEE-00014",
+    "documents before: 8",
+    "pre-existing document rows whose storage object is absent: 0 of 8",
+    "(cleanup) document rows removed: 3; storage objects removed: 3",
+    "(cleanup) document rows still carrying the marker: 0",
+    "(cleanup) documents 8 -> 8; orphaned storage objects: 0",
+    "the sweep left the demo data as it found it: yes",
+    "31/31 assertions passed"
+  ]
+}

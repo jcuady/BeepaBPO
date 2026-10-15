@@ -1,0 +1,194 @@
+{
+  "id": "money",
+  "script": "scripts/audit/qa-exercise-money-workflow.mjs",
+  "claim": "cash advances and billing across the lifecycle",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:14:52.887Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 33,
+  "checks": [
+    {
+      "pass": true,
+      "name": "owner sees the issue-invoice form",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "issueInvoice creates an invoice",
+      "detail": "INV-20261015-7091"
+    },
+    {
+      "pass": true,
+      "name": "the invoice total is quantity x unit rate",
+      "detail": "3751.5"
+    },
+    {
+      "pass": true,
+      "name": "the currency is stored upper-cased",
+      "detail": "PHP"
+    },
+    {
+      "pass": true,
+      "name": "a new invoice starts in status 'issued'",
+      "detail": "issued"
+    },
+    {
+      "pass": true,
+      "name": "issueInvoice writes exactly one line item",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "the line amount matches the invoice total",
+      "detail": "3751.5"
+    },
+    {
+      "pass": true,
+      "name": "issueInvoice writes an audit row",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "the invoice detail page shows the payment form",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a partial payment moves the invoice to 'partially_paid'",
+      "detail": "partially_paid"
+    },
+    {
+      "pass": true,
+      "name": "exactly one payment row exists",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "a date-only 'paid on' round-trips to the same calendar day",
+      "detail": "2026-03-05T00:00:00+00:00 -> 2026-03-05"
+    },
+    {
+      "pass": true,
+      "name": "settling the balance moves the invoice to 'paid'",
+      "detail": "paid"
+    },
+    {
+      "pass": true,
+      "name": "the payment form is hidden once the invoice is fully paid",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "employee sees the cash advance request form",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "createCashAdvanceRequest writes a request",
+      "detail": "3e4e9693"
+    },
+    {
+      "pass": true,
+      "name": "submitting the request opened an approval workflow",
+      "detail": "step 1, pending"
+    },
+    {
+      "pass": true,
+      "name": "a new request starts at 'hr_review'",
+      "detail": "hr_review"
+    },
+    {
+      "pass": true,
+      "name": "the remaining balance starts equal to the amount requested",
+      "detail": "5000"
+    },
+    {
+      "pass": true,
+      "name": "HR sees the request in the review queue",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "an Approve control is offered on that row",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the confirmation dialog opens",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no unhandled error is shown to HR",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the approval engine recorded an action",
+      "detail": "1 action row(s)"
+    },
+    {
+      "pass": true,
+      "name": "reviewCashAdvance advances the request out of hr_review",
+      "detail": "hr_review -> finance_review"
+    },
+    {
+      "pass": true,
+      "name": "the advanced status is one the workflow defines",
+      "detail": "finance_review"
+    },
+    {
+      "pass": true,
+      "name": "the approval workflow wrote request rows",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "no unexpected console errors",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no page errors",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "invoice table is back to its starting size",
+      "detail": "7 vs 7"
+    },
+    {
+      "pass": true,
+      "name": "invoice items are back to their starting size",
+      "detail": "27 vs 27"
+    },
+    {
+      "pass": true,
+      "name": "invoice payments are back to their starting size",
+      "detail": "4 vs 4"
+    },
+    {
+      "pass": true,
+      "name": "cash advance requests are back to their starting size",
+      "detail": "2 vs 2"
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [
+    "paid_at is type=date, so the value is a bare YYYY-MM-DD parsed as UTC midnight, which stays on the same day for hosts between UTC-12 and UTC+11. This is the shape the NTE deadline got WRONG: that field carried a time component.",
+    "Cash advance approval produced 'finance_review'. advanceApprovalRequest decides whether the two-step workflow completes; the run asserts the status it produced rather than assuming 'approved'."
+  ],
+  "other": [
+    "client: CloudPeak (1a91499c)",
+    "employee: BEE-00020",
+    "before: invoices=7 items=27 payments=4 advances=2",
+    "(cleanup) approval rows created by this run and removed: 1",
+    "(cleanup) invoices 7->7, items 27->27, payments 4->4, advances 2->2",
+    "the sweep left the demo data as it found it: yes",
+    "33/33 assertions passed",
+    "notes:",
+    "  - paid_at is type=date, so the value is a bare YYYY-MM-DD parsed as UTC midnight, which stays on the same day for hosts between UTC-12 and UTC+11. This is the shape the NTE deadline got WRONG: that field carried a time component.",
+    "  - Cash advance approval produced 'finance_review'. advanceApprovalRequest decides whether the two-step workflow completes; the run asserts the status it produced rather than assuming 'approved'."
+  ]
+}

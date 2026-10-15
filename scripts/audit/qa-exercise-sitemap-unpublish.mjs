@@ -215,23 +215,32 @@ try {
   ))[0];
   check("publishing moves it to published", published?.status === "published", `status=${published?.status}`);
 
-  // ---- BASELINE: is it in the sitemap built BEFORE it was published?
-  const inSitemapBeforeBuild = await sitemapHas(`/resources/${SLUG}`, page);
+  // ---- THE CONTRACT: publishing makes a URL discoverable, with no deploy.
+  //
+  // This used to assert the opposite. It baselined the sitemap BEFORE
+  // publication, required it to be absent ("build-frozen"), then rebuilt and
+  // required it to be present -- a pair of assertions that only pass while the
+  // sitemap is baked at build time.
+  //
+  // Baking it was the defect: `app/sitemap.ts` carried no directive, so
+  // `/sitemap.xml` was prerendered and served `x-nextjs-cache: HIT` forever. A
+  // newly published article could not reach search engines until someone
+  // happened to deploy. `revalidate = 3600` did not fix it either -- ISR still
+  // served the pre-publication document for up to an hour. It is now
+  // `force-dynamic`, and the guarantee is the useful one: publish, and the URL
+  // is in the sitemap on the very next request.
+  //
+  // The rebuild that used to sit between these two assertions is gone, because
+  // requiring it is requiring the bug.
+  const inSitemapAfterPublish = await sitemapHas(`/resources/${SLUG}`, page);
   check(
-    "*** the sitemap built before publication does NOT list it ***",
-    inSitemapBeforeBuild === false,
-    inSitemapBeforeBuild ? "it is listed, so the sitemap is not build-frozen and this test is ungrounded" : "absent, as a build-frozen sitemap should be",
+    "*** a published article is in the sitemap WITHOUT a rebuild ***",
+    inSitemapAfterPublish === true,
+    inSitemapAfterPublish
+      ? "present on the next request - the sitemap is generated per request"
+      : "ABSENT - publishing does not currently make content discoverable",
   );
-
-  // ---- build while it is published, so the sitemap genuinely contains it.
-  const build1 = await rebuild("building while the article is published");
-  const inSitemapAfterBuild = await sitemapHas(`/resources/${SLUG}`, page);
-  check(
-    "*** POSITIVE CONTROL: the fresh sitemap DOES list it ***",
-    inSitemapAfterBuild === true,
-    inSitemapAfterBuild ? "present - the sitemap tracks published rows" : "ABSENT - the rest of this run would prove nothing",
-  );
-  if (!inSitemapAfterBuild) throw new Error("positive control failed; the rest of the run would be ungrounded");
+  if (!inSitemapAfterPublish) throw new Error("positive control failed; the rest of the run would be ungrounded");
 
   // While published, all three surfaces must agree.
   const liveBefore = await page.request.get(`${BASE}/resources/${SLUG}`);
@@ -293,16 +302,22 @@ try {
   console.error(`\nRUN ERROR: ${e.message}`);
   process.exitCode = 1;
 } finally {
-  // Remove the QA rows, then rebuild so even the generated sitemap forgets them.
+  // Remove the QA row, then read the live sitemap back.
+  //
+  // This used to rebuild so that "even the generated sitemap forgets them",
+  // because the sitemap was baked at build time and could not forget anything
+  // on its own. It is `force-dynamic` now, so the next request already reflects
+  // the deletion — which makes this a stronger check than the one it replaced:
+  // it reads the document a crawler would actually receive, without a deploy
+  // in between.
   const { error: delErr } = await db.from("blog_posts").delete().eq("slug", SLUG);
   note(`cleanup: ${delErr ? `FAILED - ${delErr.message}` : "QA article deleted"}`);
   const { data: leftover } = await db.from("blog_posts").select("id, slug").like("slug", `%${MARK}%`);
   note(`rows still carrying the marker: ${leftover?.length ?? 0}`);
 
   if (browser) await browser.close().catch(() => {});
-  await rebuild("final rebuild, so the sitemap forgets the QA article");
   const probe = await fetch(`${BASE}/sitemap.xml`).then((r) => r.text()).catch(() => "");
-  note(`after the final rebuild, the sitemap mentions the QA article: ${probe.includes(SLUG)}`);
+  note(`the live sitemap still mentions the QA article: ${probe.includes(SLUG)}`);
   note(`the real articles are still listed: ${probe.includes("/resources/")}`);
 }
 

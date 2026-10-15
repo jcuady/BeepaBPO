@@ -1,0 +1,92 @@
+{
+  "id": "client-timesheet",
+  "script": "scripts/audit/qa-exercise-client-timesheet-workflow.mjs",
+  "claim": "client approves submitted timesheets",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:14:07.767Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 14,
+  "checks": [
+    {
+      "pass": true,
+      "name": "a draft timesheet exists for a client-assigned employee",
+      "detail": "441322fc"
+    },
+    {
+      "pass": true,
+      "name": "internal user is offered 'Send to client' for the day",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "submitTimesheetForClientReview moves the record to client_review",
+      "detail": "client_review"
+    },
+    {
+      "pass": true,
+      "name": "the timesheet hand-off writes an audit row",
+      "detail": "1 row(s)"
+    },
+    {
+      "pass": true,
+      "name": "the submitted day is no longer offered for submission",
+      "detail": "Demo Employee: \"Demo Employee employee P\""
+    },
+    {
+      "pass": true,
+      "name": "the timesheet appears in the client review queue",
+      "detail": "view: 1 row(s) [client_review]; 1 Approve button(s) rendered"
+    },
+    {
+      "pass": true,
+      "name": "the client is offered Approve",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "reviewClientTimesheet approve finalizes the record",
+      "detail": "finalized"
+    },
+    {
+      "pass": true,
+      "name": "the finalized day leaves the client review queue",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the client is offered 'Send back'",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "reviewClientTimesheet 'Send back' returns it to supervisor_review",
+      "detail": "supervisor_review"
+    },
+    {
+      "pass": true,
+      "name": "'Send to client' is offered for an employee with NO client assignment",
+      "detail": "2 row(s) offered — clicking one always yields \"Employee has no active client assignment.\""
+    },
+    {
+      "pass": true,
+      "name": "the fixture rows are gone",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the attendance_records count is back to its starting size",
+      "detail": "201 vs 201"
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [],
+  "other": [
+    "client org: 1a91499c (approval enabled)",
+    "assigned employee: 108f95ff (assignment from 2026-09-05)",
+    "fixture work_date: 2026-09-06 (inside the assignment window)",
+    "(cleanup) attendance_records 201 -> 201; rows left on 2026-09-06: 0",
+    "the sweep left the demo data as it found it: yes",
+    "14/14 assertions passed"
+  ]
+}

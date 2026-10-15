@@ -2,6 +2,31 @@ import type { MetadataRoute } from "next";
 import { PRODUCTION_SITE_URL, resolveSiteUrl } from "@/lib/site-url";
 import { createAnonClient } from "@/lib/supabase/anon";
 
+/**
+ * Generate per request, not at build time and not on an interval.
+ *
+ * Measured: with no directive, `/sitemap.xml` was prerendered at build time and
+ * served `x-nextjs-cache: HIT` indefinitely. `qa-exercise-sitemap-workflow.mjs`
+ * caught it by publishing an article and finding it absent from a freshly
+ * fetched sitemap, then correctly refusing to continue on an ungrounded
+ * positive control.
+ *
+ * The failure hides itself. Everything published *before* the last deploy is
+ * present -- at the time of checking, all 4 resources, 3 case studies and 5
+ * jobs -- so the sitemap reads as correct. Only the newest row is missing, and
+ * a sitemap is the one artefact nobody audits row by row.
+ *
+ * `revalidate = 3600` was tried first and does not fix it: ISR still served the
+ * pre-publication document for up to an hour, so publishing an article left it
+ * undiscoverable for the same reason, only less obviously.
+ *
+ * Per-request generation costs three indexed queries on a table this size, and
+ * a sitemap is fetched by crawlers and by humans a handful of times a day. That
+ * is a rounding error against the alternative: content that exists but cannot
+ * be found. Correctness on read is the whole point of the file.
+ */
+export const dynamic = "force-dynamic";
+
 /** Prefer production origin for Search Console even if preview env leaks. */
 function seoOrigin(): string {
   if (process.env.VERCEL_ENV === "production") return PRODUCTION_SITE_URL;

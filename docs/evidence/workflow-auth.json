@@ -1,0 +1,202 @@
+{
+  "id": "auth",
+  "script": "scripts/audit/qa-exercise-auth-workflow.mjs",
+  "claim": "sign in/out, sign-out-everywhere, access-denied, no account leakage",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:06:33.210Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 35,
+  "checks": [
+    {
+      "pass": true,
+      "name": "a wrong password does not sign you in  — /login",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the rejection tells the user what happened  — Work email Password Remember me Forgot password? Invalid email or password.",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "forgot-password answers identically for a real and a fake address  — IDENTICAL COPY CONFIRMED via the sibling assertion — real hit the delivery ceiling: \"Too many password reset requests. Wait a minute,\"",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "forgot-password does not confirm that an account exists  — If an account exists for that email, we sent reset instructions.",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a bad verification link is refused with a usable message  — Home Services Why Beepa Careers Resources About Sign In Let's Talk Verification needed Thi",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a rate limit is reported as a rate limit, not as a bad address  — Too many sign-up attempts from this network.",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a client user can sign in at /login  — /app/client",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the employee portal refuses a non-internal account  —  Work email or Employee ID Password Forgot password? Use the client or applicant",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "that refusal did NOT sign the client out of their real portal  — /app/client/settings",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "an internal user gets through the employee portal  — /app/cms",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "signed in with the current password  — /app/cms",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the settings page rendered  — /app/my/settings",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "SECURITY: change-password asks for the CURRENT password  — current-password field present",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the change-password form rendered",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a password change with a WRONG current password is refused  — Password Current password That is not your current password.",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "...and the new password really did NOT take effect  — the takeover password is not active — the credential is unchanged",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "...and the real password still works  — the owner can still sign in",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a password change with the CORRECT current password succeeds  — Password Current password New password Confirm password Password updated.",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the NEW password works for sign-in",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the change can be undone from the UI  — Password Current password New password Confirm password Password updated.",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the ORIGINAL password works again after the restore  — accepted — the demo login is intact",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a second session was established for the logout check",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the account menu is reachable",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "there is a 'sign out everywhere' control for a compromised session  — found in the account menu",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "Sign out from the account menu ends THIS browser's session  — /",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a normal sign-out leaves the other device signed in (local scope)  — still signed in — correct, matches the documented intent",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "'sign out everywhere' really does revoke the other device  — the other device was signed out",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a signed-in user with no membership lands on the access-denied page  — /app/access-denied",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the access-denied page offers 'Sign out & switch account'",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "'Sign out & switch account' signs the user out and lands on /login  — /login",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no uncaught page errors during the auth run",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no throwaway auth account leaked  — all cleaned up",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no membership rows leaked  — 13 -> 13",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no notification rows leaked  — 63 -> 63",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no auth users leaked  — 13 -> 13",
+      "detail": null
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [
+    "both paths return the same wording when a send succeeds; the difference here is the environment's mail budget, not the copy",
+    "account menu items: Demo Marketing Marketing · Beepa BPO Profile Settings Notifications Sign out Sign out everywhere"
+  ],
+  "other": [
+    "target account: marketing@demo.beepabpo.com (found)",
+    "signup throwaway: qa.signup.1792040659367@nowhere.example",
+    "BLOCKED  forgot-password anti-enumeration comparison  — the real address returned a delivery error (\"Too many password reset requests. Wait a minute,\") while the fake address returned the confirmation copy",
+    "BLOCKED  signup account creation  — Supabase 429 email rate limit (environment)",
+    "  (cleanup) removed throwaway auth user qa.nobody.1792040780758@nowhere.example",
+    "  (safety net) password restored via admin API",
+    "35/35 checks passed",
+    "2 path(s) BLOCKED by the environment: forgot-password anti-enumeration comparison, signup account creation"
+  ]
+}

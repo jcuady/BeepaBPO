@@ -1,0 +1,83 @@
+{
+  "id": "leave",
+  "script": "scripts/audit/qa-exercise-leave-workflow.mjs",
+  "claim": "request, approve/deny, balance impact",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:10:28.211Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 13,
+  "checks": [
+    {
+      "pass": true,
+      "name": "leave request created  — id=010c5440-0f74-458c-baf7-e61a95fefaae status=pending",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "leave request is pending  — status=pending",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "approval request created  — status=pending step=1",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "team lead received leave.request  — \"Demo Employee requested 3 days of Emergency Leave (Nov 5 – Nov 7).\"",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "notification body is specific (days + dates, not the old generic string)  — Demo Employee requested 3 days of Emergency Leave (Nov 5 – Nov 7).",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "team lead approved step 1  — clicked + confirmed",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "workflow advanced to step 2 after one approval  — step=2 status=pending",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "hr approved step 2  — clicked + confirmed",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "approval_actions row written  — 8 -> 10",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "leave request left pending  — status=approved",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "employee received leave.decision  — \"Your leave request for 3 days (Nov 5 – Nov 7) was approved by Demo HR.\"",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "decision body names who decided / which dates  — Your leave request for 3 days (Nov 5 – Nov 7) was approved by Demo HR.",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "this run left no leave request behind  — 0 residual before -> 0 after",
+      "detail": null
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [],
+  "other": [
+    "baseline: 63 notifications, 8 approval actions, 0 residual exercise leaves",
+    "13/13 checks passed"
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "id": "crm",
+  "script": "scripts/audit/qa-exercise-crm-workflow.mjs",
+  "claim": "lead and deal lifecycle with activity log",
+  "base": "http://localhost:3100",
+  "when": "2026-10-15T05:17:39.462Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 21,
+  "checks": [
+    {
+      "pass": true,
+      "name": "signed in as owner  — http://localhost:3100/app/dashboard",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "lead created  — {\"id\":\"afe6e604-81df-4779-9b00-7fa5fb4420ce\",\"status\":\"new\",\"company_name\":\"QA CRM mv93611b Co\"}",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "lead starts as 'new'  — status=new",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "lead status advanced to qualified  — status=qualified (confirmed dialog)",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "deal created  — {\"id\":\"6938a9c5-efd9-444d-9699-75484340c552\",\"stage\":\"new_lead\",\"title\":\"QA CRM mv93611b Retainer\",\"estimated_value\":250000,\"currency\":\"PHP\"",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "deal is linked to the lead  — deal->lead link verified by title match",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "proposal created  — {\"id\":\"c5f4dfab-711d-47f5-a3f3-1a0056f84153\",\"status\":\"draft\",\"title\":\"QA CRM mv93611b Proposal\",\"amount\":250000}",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "proposal can be marked sent from the deal page",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "proposal marked sent  — status=sent",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "a sent proposal now has a status control on the list",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "proposal accepted  — status=accepted",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "deal stage selector present",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "deal marked won  — stage=won",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "convert-to-client control present on a won deal  — Toggle Sidebar | Go to a page…⌘K | 9+ | DODemo OwnerOwner / CEO · Beepa BPO | Create client organization | Create proposal",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "client organization created  — {\"id\":\"6285ccb8-80c2-4d0e-a5d6-27c0c9075dec\",\"name\":\"QA CRM mv93611b Org\",\"slug\":\"qa-crm-mv93611b-org\",\"type\":\"client\",\"status\":\"active\"}",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "organization is a client and active  — type=client status=active",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "client_settings row created  — 1 row(s)",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "deal is linked to the new organization  — link=true",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "conversion is noted on the deal timeline  — Deal created | Proposal created | Proposal → sent | Proposal → accepted | Stage → won | Client organization created",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "no console errors during the CRM run",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "this run left CRM exactly as it found it  — leads 4->4, deals 7->7, proposals 7->7, orgs 2->2",
+      "detail": null
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [],
+  "other": [
+    "     billing account created: yes",
+    "21/21 checks passed"
+  ]
+}
