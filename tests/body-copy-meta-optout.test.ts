@@ -76,3 +76,50 @@ describe("data-meta body-copy opt-out", () => {
     );
   });
 });
+
+/**
+ * The six "no employee record" paragraphs — the case no measurement can reach.
+ *
+ * These render only when `employee ? <form> : <p>` takes the empty branch, and
+ * no demo account takes it: every account that reaches `/app/my` HAS an employee
+ * record, and `applicant` (which has none) is stopped by RBAC at
+ * `/app/applicant`. The responsive sweep therefore reports these pages clean and
+ * would go on doing so forever — for the one user the message is written for.
+ *
+ * Adding a record-less account would close the gap properly, but it would also
+ * put that account in the user-facing demo picker (`lib/demo/users.ts` feeds
+ * `DemoLoginPicker`, and `tests/demo-login-picker.test.ts` asserts exactly 13
+ * addresses). That is a product change, not a test fix, so it is not done here.
+ *
+ * These assertions are therefore the only thing standing behind the six sites.
+ */
+describe("body copy in branches no demo account renders", () => {
+  const SITES: [string, string][] = [
+    ["app/app/my/attendance/page.tsx", "Link your employee profile to clock in and out."],
+    ["app/app/my/attendance/page.tsx", "Link your employee profile to request attendance corrections."],
+    ["app/app/my/leave/page.tsx", "No leave balances configured for this year yet."],
+    ["app/app/my/requests/page.tsx", "Cash advances require an employee record."],
+    ["app/app/my/support/page.tsx", "For HR, payroll, or IT issues, submit a ticket"],
+    ["app/app/my/cash-advances/page.tsx", "Link your employee profile to request a cash advance."],
+    ["app/app/my/documents/page.tsx", "No employee record is linked to your account"],
+  ];
+
+  it.each(SITES)("%s — %s is at 16px on phones", (file, copy) => {
+    const src = read(file);
+    const at = src.indexOf(copy);
+    expect(at).toBeGreaterThan(-1);
+    // Walk back to the opening tag of the element carrying this copy.
+    const open = src.slice(0, at).lastIndexOf("<p");
+    const tag = src.slice(open, src.indexOf(">", open) + 1);
+    expect(tag).toContain("text-base");
+    expect(tag).toContain("md:text-sm");
+  });
+
+  it("does not quietly drop a site — all seven are still present", () => {
+    // The guard above is only as good as the list, so the list is itself
+    // asserted: removing a branch would otherwise pass silently.
+    for (const [file, copy] of SITES) {
+      expect(read(file)).toContain(copy);
+    }
+  });
+});

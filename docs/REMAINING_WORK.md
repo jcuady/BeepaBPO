@@ -548,15 +548,30 @@ audit proved the owner reaches `/app/my/attendance` at 390px with no finding,
 which is the evidence that the owner has a record: had it rendered the 46-character
 paragraph, the audit would have flagged it.
 
-All six are now `text-base text-slate md:text-sm`. **They are corrected by
-inspection, not by measurement** — no automated check in this repository can
-render that state today, and it would be dishonest to report them as covered.
+All six are now `text-base text-slate md:text-sm`, and each is pinned by a named
+assertion in `tests/body-copy-meta-optout.test.ts` — **mutation-proved**:
+reverting one to `text-sm` turns the suite red and names that exact site. So they
+are not merely corrected by inspection; they cannot silently regress. What they
+still are **not** is *rendered*, because no automated check in this repository can
+produce that state today. Those are different claims and the distinction is
+deliberate.
 
 **The fix for the gap, not done here:** seed one demo account with no linked
-employee record and add it to the per-role sweep. That is a change to the demo
-tenant, and several checks assert on its exact account list and role counts, so
-it is deliberately not made casually. Until then, treat "the demo tenant has an
-employee record" as an assumption the layout audits are silently resting on.
+employee record and add it to the per-role sweep. Worth recording *why* it was
+declined, because the first reason turned out to be the weaker one:
+
+- `tests/demo-login-picker.test.ts` asserts exactly **13** demo addresses, so a
+  14th would fail a test. That part is trivial.
+- The real blocker is that `lib/demo/users.ts` feeds `DemoLoginPicker`, so a new
+  account does not just exist — it becomes a **button on the public login page**.
+  An account with no linked employee record in that picker would land the user
+  somewhere unusual, which is a product decision, not a test fix. Adding it also
+  moves the denominator on every figure that reports "13 roles": the role sweep,
+  role × page reachability, the control census, and matrix rows 9, 10 and 20.
+
+Until then, treat "every demo account that reaches `/app/my` has an employee
+record" as an assumption the layout audits are silently resting on — now written
+down, and now guarded, rather than merely true.
 
 **`CardTitle` renders a `<div>`, not a heading — fixed 2026-10-09.** It used to render a
 `<div>`, so every card title in the app was invisible to heading-navigation. axe does not
