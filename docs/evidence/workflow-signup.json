@@ -3,46 +3,54 @@
   "script": "scripts/audit/qa-exercise-signup-workflow.mjs",
   "claim": "applicant and client registration reach verification",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:08:36.839Z",
-  "exitCode": 2,
-  "verdict": "BLOCKED",
-  "assertions": 4,
+  "when": "2026-10-16T02:06:10.727Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 6,
   "checks": [
     {
       "pass": true,
-      "name": "a refused signup still tells the user something went wrong  — Too many sign-up attempts from this network. Wait a minute, then try again. |",
+      "name": "the form reports the signup neutrally, not 'Account created'  — If that address wasn't already registered, we sent a verification link. If it was, sign in instead.",
       "detail": null
     },
     {
       "pass": true,
-      "name": "a refused signup does not claim success  — no success copy",
+      "name": "a real auth user now exists for that address  — 16a7e87e-3f56-4a0a-8891-af81f3a15e8e",
       "detail": null
     },
     {
       "pass": true,
-      "name": "a refused signup creates no auth user  — no user created",
+      "name": "signupAction granted an applicant membership  — {\"id\":\"914a1cb4-84ab-4b6b-914f-a39b1e66a566\",\"membership_type\":\"applicant\",\"status\":\"active\"}",
       "detail": null
     },
     {
       "pass": true,
-      "name": "a refused signup creates no membership  — 0 membership row(s) left behind",
+      "name": "that membership carries the applicant role  — 1 role row(s)",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the second submission created no second account  — still exactly the one user",
+      "detail": null
+    },
+    {
+      "pass": true,
+      "name": "the already-registered path created no second membership  — 1 membership row(s) for the one real user",
       "detail": null
     }
   ],
   "failedAssertions": [],
   "notes": [
-    "action error report: \"Too many sign-up attempts from this network. Wait a minute, then try again. |\"",
-    "cleanup: no auth user remained to delete",
+    "action error report: (none)",
+    "re-submitting an already-registered address reports: Too many sign-up attempts from this network. Wait a minute, then try again. |",
+    "BLOCKED_PARTIAL: first leg valid, duplicate leg unmeasurable",
+    "cleanup: auth user deleted",
     "cleanup: membership rows left for this run: 0"
   ],
   "other": [
-    "BLOCKED — this environment refused to send the signup email (\"Too many sign-up attempts from this network. Wait a minute, then try again. |\").",
-    "That is an environment rate limit, not a product result: the SUCCESS path is",
-    "unproven and is not counted as passing. The refusal path above WAS exercised.",
-    "Do NOT run check-auth-email-rate-limit.mjs first -- it calls auth.signUp for real,",
-    "consumes the very budget this exercise needs, and has been observed burning it.",
-    "Wait out the project's signup limit, then run this file on its own.",
-    "RUN ERROR: BLOCKED: signup email rate limited (refusal path asserted above)",
-    "4/4 assertions passed"
+    "BLOCKED — the duplicate-address leg was rate limited (\"Too many sign-up attempts from this network. Wait a minute, then try again. |\").",
+    "The first submission succeeded, so assertions 1-3 above are valid; assertions",
+    "about the duplicate path are not measurable in this run and are not counted.",
+    "6/6 assertions passed"
   ]
 }

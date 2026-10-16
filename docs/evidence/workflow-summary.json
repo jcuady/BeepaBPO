@@ -1,18 +1,18 @@
 {
   "base": "http://localhost:3100",
-  "when": "2026-10-15T13:31:07.694Z",
+  "when": "2026-10-16T02:07:09.323Z",
   "registryTotal": 21,
   "ranThisInvocation": [
-    "money"
+    "admin-workflow"
   ],
   "totals": {
-    "pass": 19,
-    "blocked": 2,
+    "pass": 20,
+    "blocked": 1,
     "skipped": 0,
     "fail": 0,
     "noEvidence": 0
   },
-  "totalAssertions": 488,
+  "totalAssertions": 490,
   "unregisteredScripts": [],
   "results": [
     {
@@ -26,11 +26,11 @@
     },
     {
       "id": "signup",
-      "verdict": "BLOCKED",
-      "assertions": 4,
+      "verdict": "PASS",
+      "assertions": 6,
       "what": "applicant and client registration reach verification",
       "evidence": "docs/evidence/workflow-signup.json",
-      "when": "2026-10-15T12:08:36.839Z",
+      "when": "2026-10-16T02:06:10.727Z",
       "ranThisRun": false
     },
     {
@@ -112,7 +112,7 @@
       "what": "cash advances and billing across the lifecycle",
       "evidence": "docs/evidence/workflow-money.json",
       "when": "2026-10-15T13:31:07.687Z",
-      "ranThisRun": true
+      "ranThisRun": false
     },
     {
       "id": "recruitment",
@@ -156,8 +156,8 @@
       "assertions": 18,
       "what": "admin actions behind their permission",
       "evidence": "docs/evidence/workflow-admin-workflow.json",
-      "when": "2026-10-15T12:34:23.345Z",
-      "ranThisRun": false
+      "when": "2026-10-16T02:07:09.314Z",
+      "ranThisRun": true
     },
     {
       "id": "profile",

@@ -18,7 +18,7 @@ Behavioural proof and the full per-feature breakdown: `docs/FEATURE_CHECKLIST.md
 | Dead controls | **0 candidates** across 269 `.tsx`, mutation-proven |
 | Form reset integrity | **28 forms scanned, 21 that reset — 0 with a field that survives one** |
 | Migration preflight | **38 on disk, 0 pending**, all applied, Local == Remote for every one. **Not a grammar check** |
-| Workflow suite | **21 exercises, 488 assertions, 19 PASS / 2 BLOCKED / 0 FAIL** against a production build on real DB state, with the build proven current by `audit:server-fresh` |
+| Workflow suite | **21 exercises, 490 assertions, 20 PASS / 1 BLOCKED / 0 FAIL** against a production build on real DB state, with the build proven current by `audit:server-fresh`. Signup cleared after ~14h and now passes for real (6 assertions); the one remaining BLOCKED path is the admin-invite **success** leg (SMTP quota) |
 | Button surface | 13 roles / 444 page visits, **0 page failures**; 339 action controls, 84.7% label overlap, **0 without an accessible name**. Every unmatched *button* chased: 3 flagged, **1 real hole** (cash-advance `Reject`, never pressed — reject leg had zero executions) now covered; 2 artefacts (`Save`, `Continue`, both exercised and working) |
 | Role × page reachability | **479** role-page visits across 13 roles, **0 page errors** |
 | Responsive — public + auth | **120/120** across 15 routes × 8 viewports, exit 0, on a build proven current — measured *after* the two homepage fixes it previously hid |

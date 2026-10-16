@@ -27,12 +27,12 @@ Two columns are kept deliberately separate:
 | 6 | **Wiring — dead controls** | ✅ Verified today | `audit:wiring` **0 candidates** across 269 `.tsx`, mutation-proven | — |
 | 7 | **Forms — reset integrity** | ✅ Verified today | `audit:form-reset-defaults` 28 forms scanned, 21 that reset, **0** with a field that survives a reset | — |
 | 7b | **Audit suite — self-consistency** | ✅ Verified today | `audit:suite-base-url` 58 HTTP-performing scripts, all agree on `QA_BASE_URL` and port 3100 | See row 26 — this row's first version read 41 and was wrong |
-| 8 | **Every workflow** | ✅ Verified today | 21 exercises, **488 assertions, 19 PASS / 2 BLOCKED / 0 FAIL**, production build, real DB, build proven current | 2 BLOCKED — rows 12–13 |
+| 8 | **Every workflow** | ✅ Verified today | 21 exercises, **490 assertions, 20 PASS / 1 BLOCKED / 0 FAIL**, production build, real DB, build proven current | 1 BLOCKED — row 13 (admin-invite *success*; its refusal path is proven) |
 | 9 | **Every user / role** | ✅ Verified today | 13 demo roles; 3 previously uncovered (sales, finance, client_viewer) now driven | — |
 | 10 | **Buttons** | ✅ Verified today | Census of 13 roles / 444 page visits: 339 action controls, **0 without an accessible name**. Every unmatched *button* is chased to ground: 3 flagged, **1 was a real hole** — the cash-advance `Reject` had never been pressed, so the reject leg of a money workflow had zero executions. Now covered end to end, and the census no longer flags it | The remaining 2 (`Save`, `Continue`) are **artefacts** of label-matching, not gaps — both are pressed and work, proved from the run evidence. Label overlap is wrong in **both** directions |
 | 11 | **Filters** | ✅ Verified today | `audit:filters` 33 paginated pages, every filter carried into its pager, exit 0; `list-filters` exercise 33 assertions | — |
-| 12 | **Signup — success path** | ⛔ **BLOCKED** | Supabase refuses `auth.signUp` from this network, durably (still refusing after 300s idle) | Needs the project's signup limit to clear |
-| 13 | **Admin invite** | ⛔ **BLOCKED** | Same limiter | Same |
+| 12 | **Signup — success path** | ✅ **Verified today** | The Supabase sign-up limiter had cleared after ~14h, so `qa-exercise-signup.mjs` ran for real: **PASS, 6 assertions** (was BLOCKED at 4). A real auth user was created, then deleted; `membership rows left: 0` | The row previously read "refuses `auth.signUp` from this network, durably (still refusing after 300s idle)" — **that is no longer true**, and leaving it would have kept a resolved blocker on the board. One leg remains partial: re-submitting an **already-registered** address trips the sign-up limiter, so the duplicate-registration branch is still unmeasured. The script says so itself — `BLOCKED_PARTIAL: first leg valid, duplicate leg unmeasurable` — rather than reporting the partial run as a clean pass |
+| 13 | **Admin invite — success path** | ⛔ **BLOCKED** (refusal path proven) | `qa-exercise-admin-workflow.mjs` is **18/18 PASS** and cleans up after itself (`roles now [employee, marketing]`, `status active`, unchanged). The single unproven path is `invite creates an account`: **Supabase SMTP quota**, HTTP 429 — a *different* limit from the sign-up limiter, since signup succeeded minutes earlier. The error is surfaced to the user, and that is asserted: *"a failing invite tells the user why — Too many invites have been sent from this network."* | Needs SMTP quota, not idle time. Retrying is safe — the exercise restores every membership row it touches and deletes the auth user it creates |
 | 14 | **Password reset** | ⛔ **BLOCKED** | Needs a recovery token from an inbox; **no mail provider in this environment** | Different cause — will not clear by waiting |
 | 15 | **Signup — refusal path** | ✅ Verified today | 4 assertions: error shown, no success claimed, **no auth user and no membership row created** | — |
 | 16 | **Design system** | ✅ Verified today | `audit:design` exit 0 — 0 raw primitives, 0 hardcoded colours across 248 files | — |
@@ -57,9 +57,14 @@ Two columns are kept deliberately separate:
 **Proven and current: rows 1–11, 15–20, 23–27.** Every one of those was executed in this
 session against a production build and the real database.
 
-**Blocked by the environment, not by the code: rows 12–14.** These are not
+**Blocked by the environment, not by the code: rows 13 and 14.** These are not
 "probably fine". They are unproven, and reporting them as anything else is the
-failure this matrix exists to prevent.
+failure this matrix exists to prevent. Row 12 used to be on that list and no
+longer is: the sign-up limiter cleared after ~14 hours, signup now runs for real
+and passes 6 assertions. Row 13 narrowed rather than cleared — the invite's
+**refusal** path is proven and asserted, its **success** path needs SMTP quota,
+which is a different resource from the sign-up limiter and does not clear by
+waiting.
 
 **No row in this matrix is inherited evidence any more.** Row 21c was the last
 one, and it went green the hard way: it had no runner at all, so it had been

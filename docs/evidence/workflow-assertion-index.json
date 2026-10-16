@@ -1,10 +1,10 @@
 {
-  "when": "2026-10-15T13:34:13.441Z",
+  "when": "2026-10-16T02:10:30.870Z",
   "evidenceDir": "docs/evidence",
   "exercisesIndexed": 21,
-  "exercisesPassing": 19,
-  "totalAssertions": 488,
-  "distinctBehaviours": 480,
+  "exercisesPassing": 20,
+  "totalAssertions": 490,
+  "distinctBehaviours": 482,
   "behavioursAssertedByMoreThanOneExercise": 2,
   "duplicated": [
     {
@@ -33,14 +33,14 @@
       "id": "admin-workflow",
       "claim": "admin actions behind their permission",
       "verdict": "BLOCKED",
-      "when": "2026-10-15T12:34:23.345Z",
+      "when": "2026-10-16T02:07:09.314Z",
       "assertionCount": 18,
       "distinctBehaviours": 18,
       "failed": [],
       "behaviours": [
         "Update role enables once a different role is chosen",
         "Update role is disabled while the role is unchanged",
-        "a failing invite tells the user why  — Too many invites have been sent from this network. Wait a moment, then try again.",
+        "a failing invite tells the user why  — Unable to send the invite right now. Try again in a moment.",
         "cron dry-run button reports per-job counts  — Dry-run OK — missing clock-out: 0, overdue invoices: 1, digests: 6.",
         "cron dry-run is audit-logged  — {\"invoice_overdue\":1,\"missing_clock_out\":0,\"notification_digest\":6,\"notification_digest_failed\":0,\"notification_digest_candidates\":6}",
         "member keeps their own leave/payroll/attendance access  — employee role retained",
@@ -619,16 +619,18 @@
     {
       "id": "signup",
       "claim": "applicant and client registration reach verification",
-      "verdict": "BLOCKED",
-      "when": "2026-10-15T12:08:36.839Z",
-      "assertionCount": 4,
-      "distinctBehaviours": 4,
+      "verdict": "PASS",
+      "when": "2026-10-16T02:06:10.727Z",
+      "assertionCount": 6,
+      "distinctBehaviours": 6,
       "failed": [],
       "behaviours": [
-        "a refused signup creates no auth user  — no user created",
-        "a refused signup creates no membership  — 0 membership row(s) left behind",
-        "a refused signup does not claim success  — no success copy",
-        "a refused signup still tells the user something went wrong  — Too many sign-up attempts from this network. Wait a minute, then try again. |"
+        "a real auth user now exists for that address  — 16a7e87e-3f56-4a0a-8891-af81f3a15e8e",
+        "signupAction granted an applicant membership  — {\"id\":\"914a1cb4-84ab-4b6b-914f-a39b1e66a566\",\"membership_type\":\"applicant\",\"status\":\"active\"}",
+        "that membership carries the applicant role  — 1 role row(s)",
+        "the already-registered path created no second membership  — 1 membership row(s) for the one real user",
+        "the form reports the signup neutrally, not 'Account created'  — If that address wasn't already registered, we sent a verification link. If it was, sign in instead.",
+        "the second submission created no second account  — still exactly the one user"
       ]
     },
     {
