@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isServerStale } from "../lib/server/build-freshness";
+import { isServerStale, isBuildBehindSource } from "../lib/server/build-freshness";
 
 /**
  * The staleness rule, pinned in both directions.
@@ -60,5 +60,47 @@ describe("isServerStale", () => {
     // A dev server with no `.next` is not a fresh production build. `null` is
     // carried through so callers exit 2 rather than reporting agreement.
     expect(isServerStale(5_000, null)).toBeNull();
+  });
+});
+
+/**
+ * The second link in the chain, pinned in both directions.
+ *
+ * `isServerStale` compares the serving process to `.next/BUILD_ID`. That is not
+ * the whole claim: it is silent about `app/`, `components/` and `lib/`. Edit a
+ * product file, skip `pnpm build`, and uptime is still comfortably under the
+ * build's age — so the first rule reports fine — while every assertion made
+ * against that server describes a build that does not contain the edit.
+ */
+describe("isBuildBehindSource", () => {
+  const MIN = 60_000;
+
+  it("is behind when a source file was edited after the build was written", () => {
+    // Build 2 minutes old, source edited 30 seconds ago.
+    expect(isBuildBehindSource(2 * MIN, 30_000)).toBe(true);
+  });
+
+  it("is NOT behind when the build postdates every source file", () => {
+    // The healthy case, and the one that must stay quiet: a build written after
+    // the last edit. This is the false positive the rule would have if the ages
+    // were compared the wrong way round.
+    expect(isBuildBehindSource(30_000, 2 * MIN)).toBe(false);
+  });
+
+  it("treats a same-instant edit and build as not behind", () => {
+    // Editing and building inside one filesystem tick is common on a fast
+    // machine. Calling that stale would make the gate non-deterministic.
+    expect(isBuildBehindSource(10_000, 10_000)).toBe(false);
+  });
+
+  it("is behind by definition when there is a source tree but no build", () => {
+    // The inverse of the `null` case above: there is something to measure
+    // against, and it has not been compiled.
+    expect(isBuildBehindSource(null, 5_000)).toBe(true);
+  });
+
+  it("cannot tell when there is no source to compare against", () => {
+    // Callers must exit 2 rather than assume agreement.
+    expect(isBuildBehindSource(30_000, null)).toBeNull();
   });
 });

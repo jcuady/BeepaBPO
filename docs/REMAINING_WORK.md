@@ -482,6 +482,46 @@ the test fail.
 | ~~`CardTitle` carries no heading role~~ | **Done** | `CardTitle` now renders `<h2>`; a positive a11y assertion prevents regression. See §2.5 |
 | OAuth / FTS / announcements | Deferred | Deliberately out of scope |
 | Org/workflow CRUD | Deferred | Read-only is intentional |
+| **The 25-character body-copy threshold hides real 14px violations** | **P2** | See §2.8 |
+| **`text-sm text-slate` body copy on ~8 `/app/my` pages** | **P2** | See §2.8 |
+
+### 2.8 The audit's 25-character body-copy threshold is seed data, not a rule
+
+The responsive audit skips any text under 25 characters as "not running body copy"
+(`scripts/audit-app-responsive.mjs`). That is a reasonable guard against flagging
+short labels, but it makes the verdict depend on **how long the seeded text
+happens to be** rather than on what the element is. Two real violations got
+through and were only caught when the sweep was finally run *per role*:
+
+| Page | Element | Was | Caught by |
+|---|---|---|---|
+| `/app/my/documents` | `category · date` | `text-sm` (14px) | teamlead's document name is 28 chars; owner's is shorter and passed the identical component |
+| `/app/client/notifications` | notification **body** | `text-sm` (14px) | clientviewer's seeded body exceeds 25 chars |
+
+Both are fixed (`text-base md:text-sm` / `text-base sm:text-sm`, unchanged on
+desktop). Both are in **shared components**, so other routes were latently wrong
+too.
+
+**The same pattern is still present and currently under the threshold**, so these
+are latent rather than green — they will fail the moment seeded text gets longer:
+
+- `app/app/my/cash-advances/page.tsx:123` — `row.reason`
+- `app/app/my/requests/page.tsx:127` — `ticket_number · date`
+- `app/app/my/nte/page.tsx:87` — `row.description`
+- `app/app/my/requests/[id]/page.tsx:63` — `ticket.description`
+- `app/app/my/attendance/page.tsx:130` — timestamps
+- `components/app/billing/invoice-detail-view.tsx:72` — client · period
+- `app/app/crm/deals/[id]/page.tsx:188` — proposal amount
+
+**The fix is two parts and only the first is mechanical.** Bumping those to
+`text-base md:text-sm` is mechanical. The threshold itself is the real problem:
+it should distinguish *body copy* from a *label* semantically — e.g. an explicit
+opt-out attribute on the element — rather than by counting characters, because a
+counting rule cannot distinguish `Draft` from `No employee record is linked to
+your account, so uploads are unavailable.` Do not simply lower the number: that
+converts every short label on every page into a failure and buries the real
+findings, which is the failure mode `audit:responsive` already documents for
+`/app/cms`.
 
 **`CardTitle` renders a `<div>`, not a heading — fixed 2026-10-09.** It used to render a
 `<div>`, so every card title in the app was invisible to heading-navigation. axe does not

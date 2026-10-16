@@ -192,7 +192,13 @@ export function NotificationsPageClient({
                     className="block w-full text-left hover:opacity-90"
                   >
                     <p className="font-medium text-navy">{n.title}</p>
-                    <p className="mt-1 text-sm text-slate">{n.body}</p>
+                    {/* The body is the row's content, not a metadata label —
+                        16px on phones, 14px on desktop. The timestamp below
+                        already carries this treatment; this line did not, and
+                        was only caught once the sweep was run as a client
+                        account, whose seeded notification body is long enough
+                        to clear the audit's 25-character body-copy threshold. */}
+                    <p className="mt-1 text-base text-slate sm:text-sm">{n.body}</p>
                   </button>
                 ) : (
                   <button
@@ -201,7 +207,7 @@ export function NotificationsPageClient({
                     className="block w-full text-left"
                   >
                     <p className="font-medium text-navy">{n.title}</p>
-                    <p className="mt-1 text-sm text-slate">{n.body}</p>
+                    <p className="mt-1 text-base text-slate sm:text-sm">{n.body}</p>
                   </button>
                 )}
                 <p className="mt-2 text-base text-slate sm:text-xs">

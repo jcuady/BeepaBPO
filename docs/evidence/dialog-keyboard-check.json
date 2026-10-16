@@ -1,6 +1,6 @@
 {
   "check": "dialog-keyboard",
-  "generatedAt": "2026-10-13T02:55:43.597Z",
+  "generatedAt": "2026-10-15T14:55:14.676Z",
   "base": "http://localhost:3100",
   "total": 16,
   "passed": 16,
@@ -22,7 +22,7 @@
     {
       "name": "focus moves into the dialog on open",
       "pass": true,
-      "detail": "activeElement BUTTON# \"Cancel\""
+      "detail": "focus inside after 1ms (1 sample(s))"
     },
     {
       "name": "Escape closes the dialog",

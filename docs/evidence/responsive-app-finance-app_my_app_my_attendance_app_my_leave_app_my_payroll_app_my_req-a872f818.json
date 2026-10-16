@@ -1,0 +1,458 @@
+{
+  "check": "responsive-app",
+  "generatedAt": "2026-10-16T01:37:32.203Z",
+  "base": "http://localhost:3100",
+  "account": "finance@demo.beepabpo.com",
+  "routes": [
+    "/app/my",
+    "/app/my/attendance",
+    "/app/my/leave",
+    "/app/my/payroll",
+    "/app/my/requests",
+    "/app/my/documents",
+    "/app/my/schedule",
+    "/app/payroll",
+    "/app/payroll/periods",
+    "/app/billing",
+    "/app/approvals",
+    "/app/reports"
+  ],
+  "requestedRoutes": [
+    "/app/dashboard",
+    "/app/my",
+    "/app/my/attendance",
+    "/app/my/leave",
+    "/app/my/payroll",
+    "/app/my/requests",
+    "/app/my/documents",
+    "/app/my/schedule",
+    "/app/crm",
+    "/app/crm/leads",
+    "/app/crm/deals",
+    "/app/crm/proposals",
+    "/app/attendance",
+    "/app/leave",
+    "/app/employees",
+    "/app/payroll",
+    "/app/payroll/periods",
+    "/app/billing",
+    "/app/recruitment",
+    "/app/recruitment/jobs",
+    "/app/recruitment/applicants",
+    "/app/tickets",
+    "/app/approvals",
+    "/app/reports",
+    "/app/hr",
+    "/app/admin",
+    "/app/admin/users",
+    "/app/clients"
+  ],
+  "inaccessible": [
+    {
+      "route": "/app/dashboard",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/crm",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/crm/leads",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/crm/deals",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/crm/proposals",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/attendance",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/leave",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/employees",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/recruitment",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/recruitment/jobs",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/recruitment/applicants",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/tickets",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/hr",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/admin",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/admin/users",
+      "status": "forbidden"
+    },
+    {
+      "route": "/app/clients",
+      "status": "forbidden"
+    }
+  ],
+  "chunkOf": "12 route(s) — run in chunks, see QA_REPORT §7",
+  "total": 24,
+  "passed": 24,
+  "failures": 0,
+  "results": [
+    {
+      "route": "/app/my",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my/attendance",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my/attendance",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my/leave",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my/leave",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my/payroll",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my/payroll",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my/requests",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my/requests",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my/documents",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my/documents",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my/schedule",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/my/schedule",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/payroll",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/payroll",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/payroll/periods",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/payroll/periods",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/billing",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/billing",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/approvals",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/approvals",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/reports",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/reports",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    }
+  ]
+}

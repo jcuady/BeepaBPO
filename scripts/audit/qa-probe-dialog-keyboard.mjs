@@ -20,6 +20,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { chromium } from "@playwright/test";
+import { waitForFocusInside } from "./lib/wait-for-focus.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -147,8 +148,25 @@ await openDialog();
 check("changing status opens the confirm dialog", (await page.locator(DIALOG).count()) === 1);
 
 const onOpen = await activeInfo();
-check("focus moves into the dialog on open", onOpen.insideDialog,
-  `activeElement ${onOpen.tag}#${onOpen.id} "${onOpen.text}"`);
+//
+// `onOpen` is sampled the instant the popup is VISIBLE. A mounted popup is not
+// yet a focused one — Base UI takes focus in an effect after mount, and the gap
+// is ~2ms on this app (visible +25ms, focused +27ms). Sampling once inside that
+// window reported a defect that does not exist, and passed on a faster machine.
+// So poll, bounded, and report the delay instead of rounding it away. A dialog
+// that never takes focus still fails.
+const focusLanding = await waitForFocusInside(
+  () => page.evaluate((d) => {
+    const el = document.activeElement;
+    const dlg = document.querySelector(d);
+    return !!(dlg && el && dlg.contains(el));
+  }, DIALOG),
+);
+check("focus moves into the dialog on open", focusLanding.inside,
+  focusLanding.inside
+    ? `focus inside after ${focusLanding.waitedMs}ms (${focusLanding.samples} sample(s))`
+    : `focus never entered the dialog within ${focusLanding.waitedMs}ms (${focusLanding.samples} samples); ` +
+      `activeElement ${onOpen.tag}#${onOpen.id} "${onOpen.text}"`);
 
 // ---- 2. Escape dismisses it --------------------------------------------------
 await closeWithEscape();

@@ -333,7 +333,7 @@ Held by the presentation tier (`qa-run-all.mjs`), unchanged by this work:
 
 | Gate | Result |
 |---|---|
-| `pnpm test` | **709 passed / 93 files** |
+| `pnpm test` | **745 passed / 96 files** |
 | `pnpm typecheck` | **0 errors** |
 | `pnpm lint` | **0 errors, 15 warnings** (warnings are `@next/next/no-img-element`, pre-existing) |
 | `pnpm audit:design` | clean |

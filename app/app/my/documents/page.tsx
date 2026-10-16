@@ -67,7 +67,7 @@ export default async function MyDocumentsPage({
       {employee ? (
         <DocumentUploadForm mode="employee" employeeId={employee.id} />
       ) : (
-        <p className="text-sm text-slate">
+        <p className="text-base text-slate md:text-sm">
           No employee record is linked to your account, so uploads are unavailable.
         </p>
       )}
@@ -99,7 +99,14 @@ export default async function MyDocumentsPage({
               <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div>
                   <p className="font-medium text-navy">{doc.title}</p>
-                  <p className="text-sm text-slate">
+                  {/* `text-base md:text-sm` — 16px on phones, unchanged on desktop.
+                      This is readable content, not a label: the category · date
+                      line. It sat at 14px and was only caught because teamlead's
+                      seed document name pushed it past the audit's 25-character
+                      body-copy threshold; owner's shorter one passed the same
+                      component. Note the order — `md:` is a MIN-width breakpoint,
+                      so `text-sm md:text-base` would be exactly backwards. */}
+                  <p className="text-base text-slate md:text-sm">
                     {doc.category} ·{" "}
                     {format(new Date(doc.created_at), "MMM d, yyyy")}
                   </p>

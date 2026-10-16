@@ -42,7 +42,7 @@ Two columns are kept deliberately separate:
 | 20 | **Role × page reachability** | ✅ Verified today | `audit:role-pages` **222/222** nav-reachable pages clean across 13 roles, exit 0 | — |
 | 21 | **Responsive — public + auth** | ✅ Verified today | `audit:responsive` **120/120** viewport-route combinations clean (15 routes × 8 viewports), exit 0, on a build proven current by `audit:server-fresh` | The figure this row previously carried was **not earned** — the committed file predated the build and was hiding a 149px document overflow on `/`, then a `BLEED 13` on the same route. Both are fixed and the regenerated 120/120 was measured after the fix |
 | 21b | **Responsive — product app (routes)** | ✅ Verified today | `audit:app-responsive` **224/224** across 28 routes × 8 viewports (375→1920) as owner, plus **8/8** for `/app/cms` under marketing — **232/232**, all five chunks exit 0, on a build proven current by `audit:server-fresh` | — |
-| 21c | **Responsive — per role** | 📋 Inherited | 100/100 at 390 + 768 across 7 roles (owner 14, finance 14, team lead 14, employee 14, client admin 20, client viewer 18, applicant 6), recorded 2026-10-09 | Not re-run today — a different measurement from row 21b, which covers routes for one role |
+| 21c | **Responsive — per role** | ✅ Verified today | **178/178** viewport-route combinations clean across **7 roles × 390 + 768**, all seven exit 0, on a build proven current by `audit:server-fresh` in **both** directions (server matches build, and build matches source). Per role, over only the routes that role can open: owner **56/56** (28 routes), client admin **26/26** (13), client viewer **26/26** (13), finance **24/24** (12), team lead **24/24** (12), employee **14/14** (7), applicant **8/8** (4) | **This row was not runnable, not merely un-run.** It was "inherited" at 100/100 from 2026-10-09 because no runner existed for it. Running it exposed four defects, all real: two sub-16px body-copy violations the owner-only sweep could not see (`/app/my/documents`, notification bodies), a harness bug that would have overwritten 7 of 8 evidence files, and a second one that scored RBAC denials as layout failures. See `QA_REPORT` rows 21–26 |
 | 22 | **Playwright E2E** | ✅ Verified today | `npx playwright test --workers=1` against the current build: **102 passed, 2 skipped, 0 failed** in 3.3 min. Replaces the inherited "100 passed, 4 skipped" (2026-10-09) | The 2 skips are by design. Switching this on in CI still needs the `RUN_E2E=true` repo variable — a settings action, not a code change |
 | 23 | **Documentation** | ✅ Verified today | 24 docs + 5 root files; `docs/README.md` is now a single index mapping **one authority per subject**, with each doc's verification date and the two historical contradictions recorded where a reader meets them | — |
 | 24 | **Realtime** | ✅ Verified today | `audit:realtime` — authenticated subscriber received a live `notifications` INSERT in **418ms** | — |
@@ -61,12 +61,16 @@ session against a production build and the real database.
 "probably fine". They are unproven, and reporting them as anything else is the
 failure this matrix exists to prevent.
 
-**Inherited, and therefore not current evidence: row 21c only.** Responsive measured
-*per role* rather than per route (100/100 at 390 + 768 across 7 roles, recorded
-2026-10-09). It should be re-run before anyone quotes it as today's. Note that row 21b
-going green today is **not** evidence for row 21c: they measure different things over a
-different set of pages. Row 22 (Playwright E2E) is no longer inherited — it was re-run
-today against the current build.
+**No row in this matrix is inherited evidence any more.** Row 21c was the last
+one, and it went green the hard way: it had no runner at all, so it had been
+carried as "100/100, recorded 2026-10-09" since it was written. Building the
+runner was the work — the number it produces (**178/178** across 7 roles at
+390 + 768) is smaller than the inherited one because each role is now measured
+only over the routes that role can actually open, and the omitted routes are
+recorded per role under `inaccessible` rather than counted as passes. It also
+found two product defects the owner-only sweep (row 21b) structurally could not
+see. Note that row 21b going green was **never** evidence for row 21c: they
+measure different things over different page sets.
 
 **Known gap: row 19's web push.** The in-app and email-digest paths are proven.
 The push path is configured correctly locally and simply has nowhere to send from

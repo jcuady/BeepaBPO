@@ -34,3 +34,33 @@ export function isServerStale(
   if (buildAgeMs === null) return null;
   return uptimeMs > buildAgeMs;
 }
+
+/**
+ * Is a source file newer than the build on disk?
+ *
+ * WHY THIS IS NOT THE SAME QUESTION AS `isServerStale`
+ * ----------------------------------------------------
+ * `isServerStale` asks whether the serving process predates `.next/BUILD_ID`.
+ * It cannot see the third thing in the chain: `app/`, `components/` and `lib/`.
+ *
+ * Edit a product file and skip `pnpm build`, and the process still matches the
+ * build on disk perfectly — uptime is still under the build's age — so the
+ * check says fine. But the build no longer contains the code in the working
+ * tree, and every assertion made against that server describes a version of the
+ * product that does not exist. This is the same failure the stale-server check
+ * was written to catch, one step further down: that one found a server older
+ * than its build, this one finds a build older than its source.
+ *
+ * A null newest-source time means "cannot tell", which callers must not report
+ * as fine — same rule, same reason.
+ */
+export function isBuildBehindSource(
+  buildAgeMs: number | null,
+  newestSourceAgeMs: number | null,
+): boolean | null {
+  if (newestSourceAgeMs === null) return null;
+  if (buildAgeMs === null) return true;
+  // Newer source = smaller age. Strictly, so a same-second edit is not treated
+  // as a rebuild having happened after it.
+  return newestSourceAgeMs < buildAgeMs;
+}

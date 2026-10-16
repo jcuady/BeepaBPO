@@ -1,6 +1,6 @@
 {
   "check": "internal-links",
-  "generatedAt": "2026-10-13T03:01:11.874Z",
+  "generatedAt": "2026-10-15T15:02:41.141Z",
   "base": "http://localhost:3100",
   "total": 29,
   "passed": 29,
@@ -114,22 +114,22 @@
     {
       "name": "public — the crawl actually found links to verify",
       "pass": true,
-      "detail": "25 found, floor is 20"
+      "detail": "28 found, floor is 20"
     },
     {
       "name": "public — the sitemap lists something to check",
       "pass": true,
-      "detail": "22 URL(s)"
+      "detail": "24 URL(s)"
     },
     {
       "name": "public — every URL in the sitemap resolves",
       "pass": true,
-      "detail": "22 URL(s) all resolve"
+      "detail": "24 URL(s) all resolve"
     },
     {
       "name": "public — no internal link renders a 404",
       "pass": true,
-      "detail": "25 link(s) resolved"
+      "detail": "28 link(s) resolved"
     },
     {
       "name": "public — no internal link bounces this role to /login",
@@ -161,6 +161,6 @@
     "signed in as applicant@demo.beepabpo.com (applicant)",
     "applicant: discovered 5 distinct internal link(s)",
     "public: not signed in",
-    "public: discovered 25 distinct internal link(s)"
+    "public: discovered 28 distinct internal link(s)"
   ]
 }

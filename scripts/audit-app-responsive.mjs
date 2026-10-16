@@ -34,6 +34,7 @@ import { chromium } from "@playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { createHash } from "node:crypto";
 
 // `QA_BASE_URL` first, matching every other probe in this directory, so the
 // whole suite can be pointed at one server with one variable. `BASE_URL` is
@@ -100,7 +101,38 @@ const DEFAULT_ROUTES = [
   "/app/clients",
 ];
 
-const routes = ROUTES.length ? ROUTES : DEFAULT_ROUTES;
+// DEFAULT_ROUTES is the INTERNAL segment's reachable set. Client and applicant
+// accounts sign in through `/login` and land on `/app/client` / `/app/applicant`
+// (`lib/auth/landing.ts`), which that list does not contain a single member of —
+// so asking a client account to open all 28 produced `0/28` reachable, and the
+// reachability guard below correctly refused to report `0/0` as a clean run.
+// Three of the seven roles on matrix row 21c were unmeasurable for that reason.
+//
+// Dynamic `[id]` routes are omitted throughout: they need a real record id, and
+// record-level pages are covered by `qa-exercise-internal-links.mjs`, which
+// resolves them from the database rather than guessing.
+const CLIENT_ROUTES = [
+  "/app/client",
+  "/app/client/approvals",
+  "/app/client/attendance",
+  "/app/client/billing",
+  "/app/client/documents",
+  "/app/client/notifications",
+  "/app/client/performance",
+  "/app/client/reports",
+  "/app/client/requests",
+  "/app/client/settings",
+  "/app/client/team",
+  "/app/client/tickets",
+  "/app/client/timesheets",
+];
+
+const APPLICANT_ROUTES = [
+  "/app/applicant",
+  "/app/applicant/jobs",
+  "/app/applicant/notifications",
+  "/app/applicant/profile",
+];
 
 const MATRIX = [
   { name: "iPhone SE", w: 375, h: 667, touch: true },
@@ -138,7 +170,33 @@ const envLine = (src, key) => {
 
 const envSrc = loadEnv();
 const PASSWORD = process.env.DEMO_PASSWORD ?? envLine(envSrc, "DEMO_PASSWORD");
-const IS_CLIENT_SEGMENT = /client|applicant/.test(EMAIL);
+// Client and applicant accounts sign in at `/login`; everyone else at
+// Two different questions, and conflating them is what broke the applicant run:
+//   - which LOGIN page the account uses — client AND applicant both use
+//     `/login`; only internal staff use `/employee/login`.
+//   - which ROUTE POOL it can be offered — applicant and client are separate,
+//     so the old combined `/client|applicant/` test could never hand an
+//     applicant the applicant pages.
+// Splitting the constant without noticing the login path sent the applicant to
+// `/employee/login`, which then timed out waiting for `/app`.
+const IS_EXTERNAL_SEGMENT = /client|applicant/.test(EMAIL);
+const IS_APPLICANT_SEGMENT = /applicant/.test(EMAIL);
+const IS_CLIENT_SEGMENT = /client/.test(EMAIL);
+
+// Named routes always win: asking for a route by name is a request to measure
+// exactly that one, whatever segment the account belongs to.
+//
+// Applicant is tested FIRST, not client. `applicant@…` does not match
+// `/client/`, so a client-first chain falls through to the internal pool and
+// measures an applicant against 28 `/app/*` routes it can never open — which the
+// reachability guard then reports as 0/28.
+const routes = ROUTES.length
+  ? ROUTES
+  : IS_APPLICANT_SEGMENT
+    ? APPLICANT_ROUTES
+    : IS_CLIENT_SEGMENT
+      ? CLIENT_ROUTES
+      : DEFAULT_ROUTES;
 
 if (!PASSWORD) {
   console.error("DEMO_PASSWORD not found (.env.local or environment). Aborting.");
@@ -316,12 +374,12 @@ const browser = await chromium.launch();
 // --- Establish one authenticated session, reused at every viewport. ---
 const authCtx = await browser.newContext();
 const authPage = await authCtx.newPage();
-const loginPath = IS_CLIENT_SEGMENT ? "/login" : "/employee/login";
+const loginPath = IS_EXTERNAL_SEGMENT ? "/login" : "/employee/login";
 await authPage.goto(`${BASE}${loginPath}`, { waitUntil: "domcontentloaded" });
 await authPage.getByLabel(/email/i).fill(EMAIL);
 await authPage.getByLabel(/^password$/i).fill(PASSWORD);
 await authPage
-  .getByRole("button", { name: IS_CLIENT_SEGMENT ? /sign in/i : /access portal/i })
+  .getByRole("button", { name: IS_EXTERNAL_SEGMENT ? /sign in/i : /access portal/i })
   .click();
 await authPage.waitForURL(/\/app(\/|$)/, { timeout: 30_000 });
 const statePath = join(tmpdir(), `beepa-audit-state-${Date.now()}.json`);
@@ -331,9 +389,80 @@ await authCtx.close();
 
 let failures = 0;
 const summary = [];
-const t0 = Date.now();
 
-for (const route of routes) {
+// Started after the reachability pre-pass, so the duration printed at the end
+// measures the same thing it always did: the sweep. The pre-pass is reported on
+// its own, as the reachability line above it.
+let t0 = Date.now();
+
+// --- Drop routes this account cannot open, before sweeping them --------------
+//
+// DEFAULT_ROUTES is the OWNER's reachable set. Every route in it is a page the
+// owner can open, which is why the list works for the runner — every runner
+// entry signs in as owner or marketing.
+//
+// The moment the script is used for its other documented purpose, responsive
+// measured *per role* (matrix row 21c), that assumption breaks: finance cannot
+// open `/app/crm`, and Next's `forbidden()` renders AT the requested URL. So a
+// per-role run scored each unreachable route `DENIED forbidden` at every
+// viewport — two FAILs per route, none of them about layout. The `/app/cms`
+// comment above describes exactly this failure and solved it by hand for one
+// route; that fix does not generalise to a role that is missing twenty.
+//
+// So probe first, sweep second. A route this account cannot open is recorded in
+// `inaccessible` and printed as a NOTE — deliberately not a FAIL, because a
+// permission the account was never granted is not a layout defect. It is still
+// *reported*, so the denials are visible rather than swept away, and RBAC truth
+// stays owned by `audit:role-sweep` and the Action RBAC gate.
+//
+// Routes passed explicitly on argv are never filtered: naming a route is an
+// explicit request to measure it, and an inaccessible one should say so loudly.
+const inaccessible = [];
+let sweepRoutes = routes;
+if (!ROUTES.length) {
+  const ctx = await browser.newContext({ storageState: statePath });
+  const page = await ctx.newPage();
+  const reachable = [];
+  for (const route of routes) {
+    let status = null;
+    let bouncedTo = null;
+    try {
+      await page.goto(`${BASE}${route}`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+      await page.waitForLoadState("networkidle", { timeout: 8_000 }).catch(() => {});
+      await page.waitForTimeout(400);
+      bouncedTo = new URL(page.url()).pathname;
+      status = await page.evaluate(
+        () =>
+          document.querySelector("[data-page-status]")?.getAttribute("data-page-status") ?? null,
+      );
+    } catch {
+      /* a route that will not even load is a finding, not an exclusion */
+    }
+    const denied =
+      status === "forbidden" || status === "error" || (bouncedTo && bouncedTo !== route);
+    if (denied) {
+      inaccessible.push({ route, status: status ?? `redirected to ${bouncedTo}` });
+    } else {
+      reachable.push(route);
+    }
+  }
+  await ctx.close();
+  sweepRoutes = reachable;
+
+  console.log(
+    `Reachability: ${reachable.length}/${routes.length} route(s) open to ${EMAIL}` +
+      (inaccessible.length ? `; ${inaccessible.length} not reachable by this role:` : ""),
+  );
+  for (const i of inaccessible) console.log(`  skip  ${i.route.padEnd(24)} ${i.status}`);
+  if (!reachable.length) {
+    console.error(`\nNo route in the default list is open to ${EMAIL}. Refusing to report 0/0 as a pass.`);
+    process.exit(2);
+  }
+  console.log("");
+  t0 = Date.now();
+}
+
+for (const route of sweepRoutes) {
   for (const vp of viewports) {
     const ctx = await browser.newContext({
       viewport: { width: vp.w, height: vp.h },
@@ -428,6 +557,14 @@ for (const s of summary) {
 
 const pass = summary.filter((s) => s.verdict === "PASS").length;
 console.log(`\n${pass}/${summary.length} viewport-route combinations clean (${Math.round((Date.now() - t0) / 1000)}s)`);
+if (inaccessible.length) {
+  // Spell out the denominator, or "44/44 clean" reads as full coverage when it
+  // is not: this account was only allowed to open part of the route list.
+  console.log(
+    `note: measured over the ${sweepRoutes.length} route(s) this role can open; ` +
+      `${inaccessible.length} of the ${routes.length} defaults were denied it and are listed in the evidence`,
+  );
+}
 
 // Evidence, not a claim. Every other check in the suite writes a file, and the
 // runner treats "passed but wrote no evidence" as a finding. This one wrote
@@ -439,13 +576,42 @@ console.log(`\n${pass}/${summary.length} viewport-route combinations clean (${Ma
 // make a partial run indistinguishable from a complete one.
 //
 // QA_CHUNK_LABEL gives the file a short, stable name that the runner can name
-// in advance. Without it the name is derived from the routes, which is
-// self-describing but produces filenames like
-// `responsive-app-app_dashboard_app_my_app_my_attendance_….json` — unwieldy, and
-// easy for a registry entry to get subtly wrong.
+// in advance. Without it the name is derived from the account and routes.
+//
+// The derived name used to be routes-only, which had two defects that only
+// appear on the per-role path (no QA_CHUNK_LABEL, full default route list):
+//
+//   1. It overran Windows' 260-char MAX_PATH. `docs/evidence/responsive-app-`
+//      plus the slug plus `.json` reached ~450 characters, so `writeFileSync`
+//      threw ENOENT. The sweep had already printed `56/56 clean` — it reported
+//      success and then could not record that it had succeeded, exiting 1 with
+//      no evidence file. A pass nobody can read is indistinguishable from a
+//      check that never ran.
+//   2. It omitted the account, so two roles measured over the same default
+//      route list produced the SAME filename and the second run silently
+//      overwrote the first. Re-running row 21c per role would have destroyed
+//      seven of the eight evidence files it was trying to produce.
+//
+// So: the slug is capped, carries a short digest of the full route list so two
+// long route sets cannot collide, and names the account it was measured as.
+const MAX_SLUG = 80;
+// Digest the routes actually swept, not the requested list: a role that can
+// open 14 of 28 should not collide with a role that can open all 28.
+const routeSlug = sweepRoutes
+  .map((r) => r.replace(/^\//, "").replace(/[/?=&]/g, "_") || "root")
+  .join("_");
+const digest = createHash("sha256").update(routeSlug).digest("hex").slice(0, 8);
+const accountSlug = EMAIL.split("@")[0].replace(/[^a-z0-9_-]/gi, "");
 const slug =
   process.env.QA_CHUNK_LABEL ??
-  routes.map((r) => r.replace(/^\//, "").replace(/[/?=&]/g, "_") || "root").join("_");
+  `${accountSlug}-${routeSlug.slice(0, MAX_SLUG - accountSlug.length - digest.length - 2)}-${digest}`;
+
+if (slug.length > MAX_SLUG && !process.env.QA_CHUNK_LABEL) {
+  throw new Error(
+    `evidence slug is ${slug.length} chars, over the ${MAX_SLUG} budget; Windows MAX_PATH will reject the write`,
+  );
+}
+
 mkdirSync("docs/evidence", { recursive: true });
 const evidencePath = `docs/evidence/responsive-app-${slug}.json`;
 writeFileSync(
@@ -456,8 +622,12 @@ writeFileSync(
       generatedAt: new Date().toISOString(),
       base: BASE,
       account: EMAIL,
-      routes,
-      chunkOf: `${routes.length} route(s) — run in chunks, see QA_REPORT §7`,
+      routes: sweepRoutes,
+      // Routes this account was denied, listed so the coverage figure can be
+      // read honestly: 14/14 means 14 pages this role can actually open.
+      requestedRoutes: routes,
+      inaccessible,
+      chunkOf: `${sweepRoutes.length} route(s) — run in chunks, see QA_REPORT §7`,
       total: summary.length,
       passed: pass,
       failures,

@@ -24,13 +24,12 @@ Behavioural proof and the full per-feature breakdown: `docs/FEATURE_CHECKLIST.md
 | Responsive — public + auth | **120/120** across 15 routes × 8 viewports, exit 0, on a build proven current — measured *after* the two homepage fixes it previously hid |
 | Playwright E2E | **102 passed, 2 skipped, 0 failed** in 3.3 min against the current build (replaces the inherited "100 passed, 4 skipped") |
 | Responsive — owner, product app | **232/232** (224 route × viewport + 8 for `/app/cms`), 28 routes × 8 viewports, re-run on a build proven current |
-| Responsive — all roles | 100/100 at 390 + 768 across 7 roles — **inherited 2026-10-09**, not re-run today |
+| Responsive — all roles | **178/178** across 7 roles × 390 + 768, all exit 0, build proven current — replaces the inherited "100/100" (2026-10-09), which had no runner behind it. Each role is measured only over the routes it can open; the rest are listed per role under `inaccessible` |
 | Responsive — marketing | 56/56 across 7 routes × 8 viewports |
 | Design system | **exit 0 — 0 raw primitives, 0 hardcoded colours** |
 | Filter persistence | exit 0 — 32 paginated pages, 0 dropped filters, 0 unverified |
 | Realtime delivery | PASS — an authenticated subscriber received a live `notifications` INSERT |
 | Payroll periods | 0 overlapping; overlap constraint and status-coherence trigger both installed |
-| E2E | 100 passed, 4 skipped, 0 failed against a production build from a cold `.auth` |
 
 ### Corrections made to this ledger's own gates (2026-10-15)
 
@@ -77,7 +76,7 @@ it waited for an event it could never receive. The publication already had all 1
 | 2 | Critical workflows documented with pass/fail | **PASS** |
 | 3 | No open P0/P1 **in code** | **PASS** — four P0/P1 defects fixed this session (SW data leak, unapproved payslip exposure, stale payroll minutes, attendance timezone) |
 | 4 | UI consistency on audited hubs | **PASS** — EmptyState + loading + overflow clip + 16px mobile body copy |
-| 5 | Automated gates green | **PASS** — typecheck · lint · vitest **709 / 93 files** · build · Playwright 100/4/0 · release gate **21/21, exit 0** |
+| 5 | Automated gates green | **PASS** — typecheck · lint · vitest **745 / 96 files** · build · Playwright 102/2/0 · release gate **21/21, exit 0** |
 | 6 | PROJECT_STATUS honest | **PASS** — blockers marked BLOCKED while open, and rewritten to CLOSED with the evidence once resolved |
 
 **Overall:** **READY.** The release gate passes **21/21 with exit 0** (three steps added this

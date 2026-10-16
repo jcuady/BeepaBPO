@@ -1,6 +1,6 @@
 {
   "check": "notification-bell",
-  "generatedAt": "2026-10-13T02:55:59.390Z",
+  "generatedAt": "2026-10-15T14:55:52.943Z",
   "base": "http://localhost:3100",
   "total": 10,
   "passed": 10,
@@ -16,7 +16,7 @@
     {
       "name": "the unread count is part of the button's accessible name",
       "pass": true,
-      "detail": "aria-label \"Notifications (12 unread)\", visible badge \"9+\""
+      "detail": "aria-label \"Notifications (17 unread)\", visible badge \"9+\""
     },
     {
       "name": "unread badge text meets WCAG AA contrast (4.5:1)",
@@ -51,12 +51,12 @@
     {
       "name": "focus is not dumped on <body> after Escape",
       "pass": true,
-      "detail": "activeElement Notifications (12 unread)"
+      "detail": "activeElement Notifications (17 unread)"
     },
     {
       "name": "focus returns to the bell after Escape",
       "pass": true,
-      "detail": "activeElement aria-label Notifications (12 unread)"
+      "detail": "activeElement aria-label Notifications (17 unread)"
     }
   ]
 }

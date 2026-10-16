@@ -1,0 +1,137 @@
+{
+  "check": "responsive-app",
+  "generatedAt": "2026-10-16T01:50:38.595Z",
+  "base": "http://localhost:3100",
+  "account": "applicant@demo.beepabpo.com",
+  "routes": [
+    "/app/applicant",
+    "/app/applicant/jobs",
+    "/app/applicant/notifications",
+    "/app/applicant/profile"
+  ],
+  "requestedRoutes": [
+    "/app/applicant",
+    "/app/applicant/jobs",
+    "/app/applicant/notifications",
+    "/app/applicant/profile"
+  ],
+  "inaccessible": [],
+  "chunkOf": "4 route(s) — run in chunks, see QA_REPORT §7",
+  "total": 8,
+  "passed": 8,
+  "failures": 0,
+  "results": [
+    {
+      "route": "/app/applicant",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/applicant",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/applicant/jobs",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/applicant/jobs",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/applicant/notifications",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/applicant/notifications",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/applicant/profile",
+      "viewport": "390x900",
+      "name": "custom 390",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    },
+    {
+      "route": "/app/applicant/profile",
+      "viewport": "768x1024",
+      "name": "iPad Mini",
+      "verdict": "PASS",
+      "issues": "—",
+      "detail": {
+        "bleeders": [],
+        "smallTargets": [],
+        "tinyText": [],
+        "console": [],
+        "overflowPx": 0
+      }
+    }
+  ]
+}
