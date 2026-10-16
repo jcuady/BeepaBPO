@@ -353,3 +353,68 @@ describe("the control census refuses a stale role list", () => {
     expect(census).toMatch(/assertionsWhen:\s*[^,\n]*statSync\(ASSERTION_INDEX\)/);
   });
 });
+
+/**
+ * `qa-run-all.mjs` reported six FAIL verdicts against a server that was dead.
+ *
+ * `next start` reaches ~2.4 GB under sustained browser load in this environment and
+ * dies. `qa-run-workflows.mjs` had a `serverAlive()` guard for exactly this — SKIP
+ * the rest, downgrade a failure taken against a dead server, stop. `qa-run-all.mjs`
+ * had none of it, so when the server died part-way through the fast tier on
+ * 2026-10-17 the runner went on to score six more checks against a corpse:
+ * `internal-links`, `client-invite`, `auth-callback` (`TypeError: fetch failed`,
+ * 0/0 checks), `runtime-radius`, `contrast` and `typography`. Five of those six were
+ * healthy checks, each reported with a specific surface named as broken.
+ *
+ * That is the failure this repo keeps paying for: a confidently wrong cause sends
+ * the investigation at the wrong file. The one check that diagnosed it correctly was
+ * `server-fresh`, reporting BLOCKED — so one line said "cannot reach the server"
+ * while six said "your code is broken".
+ */
+describe("the suite runner does not score checks against a dead server", () => {
+  const src = readFileSync(join(ROOT, "scripts", "audit", "qa-run-all.mjs"), "utf8");
+  // Comments stripped: the block explaining the incident names every one of the
+  // six checks and the failure it replaced, so a raw search would match its own
+  // explanation rather than the code.
+  const code = src
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+
+  it("probes the server before running a check", () => {
+    expect(code).toContain("async function serverAlive()");
+    expect(code).toMatch(/serverDown\s*\|\|\s*!\(await serverAlive\(\)\)/);
+    // And the probe comes before the check is run, not after.
+    //
+    // Anchored on `await runCheck(check)`, not `runCheck(check)` — the latter also
+    // matches `async function runCheck(check) {`, so the bare form measured the
+    // definition's position and reported the ordering test red against correct code.
+    expect(code.indexOf("await serverAlive()")).toBeLessThan(
+      code.indexOf("await runCheck(check)"),
+    );
+  });
+
+  it("downgrades a failure taken against a server that has gone", () => {
+    expect(code).toMatch(/outcome\.status === "FAIL" && !\(await serverAlive\(\)\)/);
+    expect(code).toContain('outcome.status = "SKIPPED"');
+  });
+
+  it("exits 2 rather than 0 for a run it could not complete", () => {
+    // 1 is a genuine failure. 2 is "cannot tell". An incomplete run must never
+    // be reported as a clean pass however green the passing half looked.
+    expect(code).toMatch(/process\.exit\(failed\.length \? 1 : serverDown \? 2 : 0\)/);
+  });
+
+  it("counts SKIPPED apart from both PASS and FAIL", () => {
+    expect(code).toContain('const skipped = outcomes.filter((o) => o.status === "SKIPPED")');
+    expect(code).toContain("skipReason: serverDown ? stopReason : null");
+    expect(code).not.toMatch(/const failed = outcomes\.filter\(\(o\) => o\.status === "FAIL" \|\| o\.status === "SKIPPED"\)/);
+  });
+
+  it("catches the guard being removed", () => {
+    const noGuard = code.replace(
+      /if \(serverDown \|\| !\(await serverAlive\(\)\)\) \{/,
+      "if (false) {",
+    );
+    expect(noGuard).not.toMatch(/serverDown\s*\|\|\s*!\(await serverAlive\(\)\)/);
+  });
+});

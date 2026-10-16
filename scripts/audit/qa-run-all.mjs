@@ -362,7 +362,43 @@ if (selected.some((c) => c.id === "client-invite")) {
   );
 }
 
+/**
+ * Is anything answering on the app server?
+ *
+ * Ported from `qa-run-workflows.mjs`, which had this guard and this runner did not.
+ *
+ * `next start` in this repo reaches ~2.4 GB under sustained browser load and dies.
+ * Without the guard this runner does the exact thing the workflow runner's own
+ * comment warns against: it keeps scoring checks against a dead server and prints a
+ * confident verdict for each. Measured on 2026-10-17 — `not-found`, `dialog-keyboard`
+ * and `notification-bell` passed, the server died, and the next SIX checks were
+ * reported FAIL: `internal-links`, `client-invite`, `auth-callback` (which reported
+ * `TypeError: fetch failed` and 0/0 checks), `runtime-radius`, `contrast` and
+ * `typography`. Five of those six were healthy checks measured against a corpse,
+ * each naming a specific surface as broken. A summary like that sends the reader to
+ * investigate five files that are fine — and it counts against the same evidence
+ * rule that treats "we did not measure" as a finding rather than a pass.
+ *
+ * `server-fresh` already reported this run as BLOCKED for the right reason, which
+ * is what finally made the difference visible: one line said "cannot reach the
+ * server" while six said "your code is broken".
+ */
+async function serverAlive() {
+  try {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), 10000);
+    const res = await fetch(`${BASE}/api/health`, { signal: ac.signal });
+    clearTimeout(t);
+    return res.ok || res.status < 500;
+  } catch {
+    return false;
+  }
+}
+
 const outcomes = [];
+let serverDown = false;
+let stopReason = "";
+
 for (const check of selected) {
   process.stdout.write(`  ${check.id.padEnd(18)} … `);
   if (check.id === "gate") {
@@ -382,13 +418,42 @@ for (const check of selected) {
     console.log(`${bad ? "FAIL" : "PASS"}  (${parts.map((p) => `${p.name} ${p.summary}`).join(", ")})`);
     continue;
   }
+
+  // Check BEFORE running, so a dead server costs one probe instead of a check.
+  if (serverDown || !(await serverAlive())) {
+    serverDown = true;
+    stopReason = stopReason || "the app server stopped answering mid-run";
+    outcomes.push({
+      id: check.id,
+      what: check.what,
+      tier: check.tier,
+      status: "SKIPPED",
+      code: null,
+      seconds: 0,
+      evidence: check.evidence ?? null,
+      evidenceWritten: null,
+      tail: stopReason,
+    });
+    console.log(`SKIPPED  (${stopReason})`);
+    continue;
+  }
+
   const outcome = await runCheck(check);
+  // And re-probe AFTER a failure, because the server can die during the check.
+  // A failure against a server that is gone is not a product result.
+  if (outcome.status === "FAIL" && !(await serverAlive())) {
+    serverDown = true;
+    stopReason = "the app server stopped answering during this check";
+    outcome.status = "SKIPPED";
+    outcome.tail = `${outcome.tail} — ${stopReason}`;
+  }
   outcomes.push(outcome);
   console.log(`${outcome.status}  (${outcome.seconds}s)  ${outcome.tail}`);
 }
 
 const failed = outcomes.filter((o) => o.status === "FAIL");
 const blocked = outcomes.filter((o) => o.status === "BLOCKED");
+const skipped = outcomes.filter((o) => o.status === "SKIPPED");
 const missingEvidence = outcomes.filter((o) => o.evidence && o.evidenceWritten === false);
 
 const summary = {
@@ -400,6 +465,11 @@ const summary = {
   passed: outcomes.filter((o) => o.status === "PASS").length,
   failures: failed.length,
   blocked: blocked.length,
+  // Neither PASS nor FAIL. Counted separately because a run that lost its server
+  // mid-way measured almost nothing, and reporting that as a clean pass is the
+  // dishonesty this whole evidence rule exists to prevent.
+  skipped: skipped.length,
+  skipReason: serverDown ? stopReason : null,
   // A check that passes without leaving evidence is reported, not counted green.
   missingEvidence: missingEvidence.map((o) => o.id),
   results: outcomes,
@@ -410,11 +480,16 @@ writeFileSync("docs/evidence/qa-suite.json", JSON.stringify(summary, null, 2) + 
 
 console.log("\n" + "=".repeat(72));
 for (const o of outcomes) {
-  const mark = o.status === "PASS" ? "OK  " : o.status === "BLOCKED" ? "SKIP" : "FAIL";
+  const mark =
+    o.status === "PASS" ? "OK  " : o.status === "BLOCKED" || o.status === "SKIPPED" ? "SKIP" : "FAIL";
   console.log(`${mark}  ${o.id.padEnd(18)} ${String(o.seconds).padStart(4)}s  ${o.what}`);
 }
 console.log("=".repeat(72));
-console.log(`${summary.passed}/${summary.total} passed` + (blocked.length ? `, ${blocked.length} blocked by the environment` : ""));
+console.log(
+  `${summary.passed}/${summary.total} passed` +
+    (blocked.length ? `, ${blocked.length} blocked by the environment` : "") +
+    (skipped.length ? `, ${skipped.length} skipped (server gone)` : ""),
+);
 if (missingEvidence.length) {
   console.log(`\nWARNING — passed but wrote no evidence file: ${missingEvidence.map((o) => o.id).join(", ")}`);
   console.log("A check result printed to a terminal is a claim, not evidence.");
@@ -423,6 +498,14 @@ if (failed.length) {
   console.log(`\n${failed.length} check(s) FAILED:`);
   for (const f of failed) console.log(`  - ${f.id}: ${f.tail}`);
 }
+if (skipped.length) {
+  console.log(`\n${skipped.length} check(s) SKIPPED — ${stopReason}.`);
+  for (const s of skipped) console.log(`  - ${s.id}`);
+  console.log(
+    "These are NOT passes and NOT failures: nothing was measured. Restart the server and re-run.\n" +
+      "Reporting them as FAIL would have named a surface as broken when the surface was fine.",
+  );
+}
 if (blocked.length) {
   console.log(`\n${blocked.length} check(s) BLOCKED by the environment, not by the code:`);
   for (const b of blocked) console.log(`  - ${b.id}: ${b.tail || "see evidence file"}`);
@@ -430,4 +513,6 @@ if (blocked.length) {
 }
 console.log("\nwrote docs/evidence/qa-suite.json");
 if (!wantAll) console.log("note: slow tier not run. --all includes it (role sweep ~20min).");
-process.exit(failed.length ? 1 : 0);
+// 1 = a check genuinely failed. 2 = the run could not tell. Never 0 for an
+// incomplete run, however green the passing half looked.
+process.exit(failed.length ? 1 : serverDown ? 2 : 0);
