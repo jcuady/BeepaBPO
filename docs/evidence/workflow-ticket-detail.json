@@ -3,14 +3,14 @@
   "script": "scripts/audit/qa-exercise-ticket-workflow.mjs",
   "claim": "single ticket detail, assignment and status change",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:28:57.381Z",
+  "when": "2026-10-16T18:01:02.234Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 10,
   "checks": [
     {
       "pass": true,
-      "name": "ticket created by the client contact  — TKT-20261015-00019",
+      "name": "ticket created by the client contact  — TKT-20261016-00021",
       "detail": null
     },
     {
@@ -20,12 +20,12 @@
     },
     {
       "pass": true,
-      "name": "requester received ticket.created  — \"We received your request: QA ticket exercise mv9ilw7c — payroll question\"",
+      "name": "requester received ticket.created  — \"We received your request: QA ticket exercise mvb9wshm — payroll question\"",
       "detail": null
     },
     {
       "pass": true,
-      "name": "ticket.created names the subject  — We received your request: QA ticket exercise mv9ilw7c — payroll question",
+      "name": "ticket.created names the subject  — We received your request: QA ticket exercise mvb9wshm — payroll question",
       "detail": null
     },
     {
@@ -40,17 +40,17 @@
     },
     {
       "pass": true,
-      "name": "assignee received ticket.assigned  — \"TKT-20261015-00019: QA ticket exercise mv9ilw7c — payroll question\"",
+      "name": "assignee received ticket.assigned  — \"TKT-20261016-00021: QA ticket exercise mvb9wshm — payroll question\"",
       "detail": null
     },
     {
       "pass": true,
-      "name": "ticket.assigned names the ticket number  — TKT-20261015-00019: QA ticket exercise mv9ilw7c — payroll question",
+      "name": "ticket.assigned names the ticket number  — TKT-20261016-00021: QA ticket exercise mvb9wshm — payroll question",
       "detail": null
     },
     {
       "pass": true,
-      "name": "notifications were actually created  — 67 -> 69",
+      "name": "notifications were actually created  — 72 -> 74",
       "detail": null
     },
     {
@@ -62,7 +62,7 @@
   "failedAssertions": [],
   "notes": [],
   "other": [
-    "baseline: 67 notifications, 0 residual exercise tickets",
+    "baseline: 72 notifications, 0 residual exercise tickets",
     "10/10 checks passed"
   ]
 }

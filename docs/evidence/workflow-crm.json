@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-crm-workflow.mjs",
   "claim": "lead and deal lifecycle with activity log",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:19:25.888Z",
+  "when": "2026-10-16T17:52:49.733Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 21,
@@ -15,7 +15,7 @@
     },
     {
       "pass": true,
-      "name": "lead created  — {\"id\":\"4faa4d80-e31d-4194-aef5-cb810fe8b8e9\",\"status\":\"new\",\"company_name\":\"QA CRM mv9i8fl4 Co\"}",
+      "name": "lead created  — {\"id\":\"85556888-2a72-4024-a7da-ec18d6eec4c9\",\"status\":\"new\",\"company_name\":\"QA CRM mvb9kymq Co\"}",
       "detail": null
     },
     {
@@ -30,7 +30,7 @@
     },
     {
       "pass": true,
-      "name": "deal created  — {\"id\":\"6a783a97-d48f-44c0-b052-b22064dfbe92\",\"stage\":\"new_lead\",\"title\":\"QA CRM mv9i8fl4 Retainer\",\"estimated_value\":250000,\"currency\":\"PHP\"",
+      "name": "deal created  — {\"id\":\"f999e2ce-ca9b-4833-80f4-24e5409aee95\",\"stage\":\"new_lead\",\"title\":\"QA CRM mvb9kymq Retainer\",\"estimated_value\":250000,\"currency\":\"PHP\"",
       "detail": null
     },
     {
@@ -40,7 +40,7 @@
     },
     {
       "pass": true,
-      "name": "proposal created  — {\"id\":\"d47bfa6d-ed79-47ed-9e6f-02458b63e068\",\"status\":\"draft\",\"title\":\"QA CRM mv9i8fl4 Proposal\",\"amount\":250000}",
+      "name": "proposal created  — {\"id\":\"c69416ed-0614-4ae8-b44b-81817b2361ec\",\"status\":\"draft\",\"title\":\"QA CRM mvb9kymq Proposal\",\"amount\":250000}",
       "detail": null
     },
     {
@@ -80,7 +80,7 @@
     },
     {
       "pass": true,
-      "name": "client organization created  — {\"id\":\"1df5dcd0-52e1-4faf-ae36-eaee726661ee\",\"name\":\"QA CRM mv9i8fl4 Org\",\"slug\":\"qa-crm-mv9i8fl4-org\",\"type\":\"client\",\"status\":\"active\"}",
+      "name": "client organization created  — {\"id\":\"113bc5f5-8113-4732-87ae-8116a489ff1a\",\"name\":\"QA CRM mvb9kymq Org\",\"slug\":\"qa-crm-mvb9kymq-org\",\"type\":\"client\",\"status\":\"active\"}",
       "detail": null
     },
     {

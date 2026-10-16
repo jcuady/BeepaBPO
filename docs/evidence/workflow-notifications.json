@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-notifications-workflow.mjs",
   "claim": "mark one/all read, per-user isolation, digest preference",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:12:40.392Z",
+  "when": "2026-10-16T17:46:05.893Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 16,
@@ -31,7 +31,7 @@
     {
       "pass": true,
       "name": "markNotificationRead sets read_at",
-      "detail": "2026-10-15T12:12:22.077+00:00"
+      "detail": "2026-10-16T17:45:50.488+00:00"
     },
     {
       "pass": true,
@@ -46,7 +46,7 @@
     {
       "pass": true,
       "name": "markAllRead marks every notification that existed at the click read",
-      "detail": "0 still unread of 20 (19 were unread before)"
+      "detail": "0 still unread of 24 (23 were unread before)"
     },
     {
       "pass": true,
@@ -92,10 +92,10 @@
   "failedAssertions": [],
   "notes": [],
   "other": [
-    "subject user: teamlead@demo.beepabpo.com (e743e34b) with 17 notification(s)",
+    "subject user: teamlead@demo.beepabpo.com (e743e34b) with 21 notification(s)",
     "other user:   5f7e9eaf",
-    "snapshot: 17 notification read_at value(s) remembered; preferences exist",
-    "(cleanup) restored 17 read_at value(s) that had moved",
+    "snapshot: 21 notification read_at value(s) remembered; preferences exist",
+    "(cleanup) restored 21 read_at value(s) that had moved",
     "(cleanup) notifications still carrying the marker: 0",
     "(cleanup) read_at values that do not match the snapshot: 0",
     "the sweep left the demo data as it found it: yes",

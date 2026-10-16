@@ -856,6 +856,60 @@ The shipped rule has three parts, each with a negative control in
 
 Live result: **32 pages scanned, 0 dropped, 0 unverified.**
 
+### 2.10 `work_date` is stamped in the employee's timezone, and three callers compare it against UTC today
+
+Found on 2026-10-17 by running `qa-run-workflows.mjs` in full for the first time
+in days. It reported `attendance` FAIL — *"Clock In creates today's record — no row
+appeared"* — while the product was working perfectly.
+
+`clock_event` stamps `attendance_records.work_date` as
+`(now() at time zone <employee default_timezone>)::date`, defaulting to
+`Asia/Manila`. Three places compare that column against a date computed as
+`new Date().toISOString().slice(0, 10)`, which is **UTC by definition**:
+
+| Caller | What it drives | Window affected |
+|---|---|---|
+| `qa-exercise-attendance-workflow.mjs:65` | The Clock In/Out assertions | **Fixed** — see below |
+| `lib/app/admin-pages.tsx:36` | `presentToday` on the admin dashboard | 00:00–08:00 Manila |
+| `lib/app/admin-pages.tsx:229`, `:595` | leave and attendance window queries | 00:00–08:00 Manila |
+| `lib/jobs/cron-jobs.ts:33` | the `missing_clock_out` cron | 00:00–08:00 Manila |
+
+For eight hours a day those are different days. A manager opening the dashboard at
+03:00 Manila is shown **yesterday's** present-count; the missing-clock-out cron looks
+for the wrong day's open records.
+
+**The exercise is fixed.** `workDateFor()` now lives in
+`lib/attendance/zoned-time.ts` and states the database's own rule, and the exercise
+prints both dates on every run so the discrepancy can never hide again:
+`today in Asia/Manila: 2026-10-17 (host UTC date would be 2026-10-16)`. The exercise
+went from **15/18 to 31/31**, and the leak it caused is gone — it had been leaving a
+real attendance row on the Manila date while cleaning up the UTC one, which is also
+why the rollup run's "no attendance records leaked — 201 -> 202" assertion failed.
+That row has been removed; the demo employee's last real record is 2026-10-08.
+
+**The three product callers are NOT fixed, and that is a decision rather than an
+oversight.** They all need an answer to "what is today *for this organisation*",
+which is not derivable from the code:
+
+- The demo org is Manila-only, so `DEFAULT_TIMEZONE` would be right — and that is
+  the same constant `clock_event` already falls back to.
+- But `employees.default_timezone` exists and is per-employee. A single global
+  "today" cannot be correct for a workforce spanning zones, and picking one zone
+  would silently reintroduce the same off-by-one for everyone else.
+- The org-level answer also belongs in the `organizations` table so it can be
+  configured rather than compiled in.
+
+So this is filed the way §2.1 is: **the code change is obvious, the product decision
+is not mine to make.** The smallest correct fix, once a decision exists, is to pass
+the org zone into `workDateFor` at all three call sites. Left as P2 pending that call.
+
+The wider lesson is recorded on the helper: `new Date().toISOString()` is UTC, and
+comparing it against a value a database computed in a local zone is a defect
+waiting for the wrong eight hours of the day. The same idiom appears in ~15 other
+places (invoice dates, incident dates, hire dates) where the consequence is a
+business date that can be a day out rather than a wrong record; those were checked
+individually and left alone.
+
 ---
 
 ## 3. Recently completed (so nobody redoes it)

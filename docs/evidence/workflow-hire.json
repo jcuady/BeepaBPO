@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-hire-workflow.mjs",
   "claim": "hire to employee, org membership, cleanup",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:24:14.551Z",
+  "when": "2026-10-16T17:56:46.728Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 23,
@@ -75,7 +75,7 @@
     },
     {
       "pass": true,
-      "name": "an employee record was created  — {\"id\":\"caabd001-48ea-4703-8f12-fe9fc2db518d\",\"profile_id\":\"c753f9ad-eb0a-48aa-9cd4-2c785b1e5c3e\",\"employee_number\":\"BEE-00035\",\"job_title\":\"",
+      "name": "an employee record was created  — {\"id\":\"48f9936a-971a-4a38-b8c9-72754e319a7e\",\"profile_id\":\"c753f9ad-eb0a-48aa-9cd4-2c785b1e5c3e\",\"employee_number\":\"BEE-00036\",\"job_title\":\"",
       "detail": null
     },
     {
@@ -130,7 +130,7 @@
     "seeded a fixture job_application at stage=client_interview on \"HR Generalist\""
   ],
   "other": [
-    "target: Qa Hireprobe  application=88904332-20b2-4d5e-85eb-0aed02774b88",
+    "target: Qa Hireprobe  application=b4a0c2d5-2627-4e25-8912-9c765a1d30f5",
     "original: stage=client_interview  membership_type=applicant status=active roles=[applicant]",
     "cleanup: seeded application deleted",
     "cleanup: seeded applicant deleted",

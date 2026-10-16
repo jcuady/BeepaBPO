@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-tickets-workflow.mjs",
   "claim": "ticket list, create, status transitions",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:13:38.919Z",
+  "when": "2026-10-16T17:47:01.948Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 34,
@@ -21,7 +21,7 @@
     {
       "pass": true,
       "name": "a ticket exists for this run",
-      "detail": "bd192d7e"
+      "detail": "3f87b4bd"
     },
     {
       "pass": true,
@@ -36,7 +36,7 @@
     {
       "pass": true,
       "name": "the first staff reply stamps first_response_at",
-      "detail": "2026-10-15T12:12:53.556+00:00"
+      "detail": "2026-10-16T17:46:19.47+00:00"
     },
     {
       "pass": true,
@@ -51,7 +51,7 @@
     {
       "pass": true,
       "name": "a SECOND staff reply does not move the first-response clock",
-      "detail": "2026-10-15T12:12:53.556+00:00 -> 2026-10-15T12:12:53.556+00:00"
+      "detail": "2026-10-16T17:46:19.47+00:00 -> 2026-10-16T17:46:19.47+00:00"
     },
     {
       "pass": true,
@@ -71,7 +71,7 @@
     {
       "pass": true,
       "name": "resolving stamps resolved_at",
-      "detail": "2026-10-15T12:13:03.274+00:00"
+      "detail": "2026-10-16T17:46:29.043+00:00"
     },
     {
       "pass": true,
@@ -106,7 +106,7 @@
     {
       "pass": true,
       "name": "createTicketSlaPolicy writes a policy",
-      "detail": "2b1a699d"
+      "detail": "8e47f468"
     },
     {
       "pass": true,

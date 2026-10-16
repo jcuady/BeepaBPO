@@ -3,10 +3,10 @@
   "script": "scripts/audit/qa-exercise-cms-workflow.mjs",
   "claim": "publish and unpublish round trip",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:23:37.802Z",
-  "exitCode": 0,
-  "verdict": "PASS",
-  "assertions": 43,
+  "when": "2026-10-16T17:56:13.794Z",
+  "exitCode": 1,
+  "verdict": "FAIL",
+  "assertions": 35,
   "checks": [
     {
       "pass": true,
@@ -24,53 +24,13 @@
       "detail": null
     },
     {
-      "pass": true,
-      "name": "create blog post: a draft row exists  — status=draft",
+      "pass": false,
+      "name": "create blog post: a draft row exists  — no row matching qamvb9msk6",
       "detail": null
     },
     {
-      "pass": true,
-      "name": "create blog post: it starts as a draft  — draft",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "update blog post: the edit is persisted  — row now reads \"QA Blog Edited qamv9ia6op\"",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "status blog post: publish moves it to published  — published_at=set",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "status blog post: archive moves it to archived  — archived",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "create service: a draft row exists  — status=draft",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "create service: it starts as a draft  — draft",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "update service: the edit is persisted  — row now reads \"QA Service Edited qamv9ia6op\"",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "status service: publish moves it to published  — published",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "status service: archive moves it to archived  — archived",
+      "pass": false,
+      "name": "create service: a draft row exists  — no row matching qamvb9msk6",
       "detail": null
     },
     {
@@ -85,7 +45,7 @@
     },
     {
       "pass": true,
-      "name": "update FAQ: the edit is persisted  — row now reads \"QA question edited qamv9ia6op?\"",
+      "name": "update FAQ: the edit is persisted  — row now reads \"QA question edited qamvb9msk6?\"",
       "detail": null
     },
     {
@@ -110,7 +70,7 @@
     },
     {
       "pass": true,
-      "name": "update industry: the edit is persisted  — row now reads \"QA Industry Edited qamv9ia6op\"",
+      "name": "update industry: the edit is persisted  — row now reads \"QA Industry Edited qamvb9msk6\"",
       "detail": null
     },
     {
@@ -135,7 +95,7 @@
     },
     {
       "pass": true,
-      "name": "update testimonial: the edit is persisted  — row now reads \"QA Client Edited qamv9ia6op\"",
+      "name": "update testimonial: the edit is persisted  — row now reads \"QA Client Edited qamvb9msk6\"",
       "detail": null
     },
     {
@@ -160,7 +120,7 @@
     },
     {
       "pass": true,
-      "name": "update case study: the edit is persisted  — row now reads \"QA Case Edited qamv9ia6op\"",
+      "name": "update case study: the edit is persisted  — row now reads \"QA Case Edited qamvb9msk6\"",
       "detail": null
     },
     {
@@ -175,7 +135,7 @@
     },
     {
       "pass": true,
-      "name": "upsertAboutPage writes the About content  — headline=\"QA About headline qamv9ia6op\"",
+      "name": "upsertAboutPage writes the About content  — headline=\"QA About headline qamvb9msk6\"",
       "detail": null
     },
     {
@@ -224,13 +184,24 @@
       "detail": null
     }
   ],
-  "failedAssertions": [],
+  "failedAssertions": [
+    {
+      "pass": false,
+      "name": "create blog post: a draft row exists  — no row matching qamvb9msk6",
+      "detail": null
+    },
+    {
+      "pass": false,
+      "name": "create service: a draft row exists  — no row matching qamvb9msk6",
+      "detail": null
+    }
+  ],
   "notes": [
     "no explicit \"access denied\" banner was shown; the page body began: \"Dashboard Attendance Schedule Leave Payroll Cash advances NTE Requests Documents Profile Support HR HR Attendance NTE Cases RECRUITMENT Recr\"",
     "about page before this run: never set — the row will be removed again"
   ],
   "other": [
-    "marker: qamv9ia6op",
+    "marker: qamvb9msk6",
     "about page before: (never set)",
     "  (cleanup) removed 1 blog post row(s) created by this run",
     "  (cleanup) removed 1 service row(s) created by this run",
@@ -239,6 +210,9 @@
     "  (cleanup) removed 1 testimonial row(s) created by this run",
     "  (cleanup) removed 1 case study row(s) created by this run",
     "  (cleanup) About row removed — it did not exist before this run",
-    "43/43 checks passed"
+    "33/35 checks passed",
+    "FAILURES:",
+    "  - create blog post: a draft row exists",
+    "  - create service: a draft row exists"
   ]
 }

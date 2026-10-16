@@ -3,10 +3,10 @@
   "script": "scripts/audit/qa-exercise-attendance-workflow.mjs",
   "claim": "clock in/out, corrections, HR approval, delete",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:11:19.403Z",
-  "exitCode": 0,
-  "verdict": "PASS",
-  "assertions": 31,
+  "when": "2026-10-16T17:44:48.514Z",
+  "exitCode": 1,
+  "verdict": "FAIL",
+  "assertions": 21,
   "checks": [
     {
       "pass": true,
@@ -19,13 +19,13 @@
       "detail": null
     },
     {
-      "pass": true,
-      "name": "Clock In creates today's record  — status=incomplete",
+      "pass": false,
+      "name": "Clock In creates today's record  — no row appeared",
       "detail": null
     },
     {
-      "pass": true,
-      "name": "Clock In sets clock_in_at and leaves clock_out_at empty  — in=12:10:23 out=null",
+      "pass": false,
+      "name": "Clock In sets clock_in_at and leaves clock_out_at empty  — in= out=undefined",
       "detail": null
     },
     {
@@ -34,68 +34,18 @@
       "detail": null
     },
     {
-      "pass": true,
-      "name": "Clock Out sets clock_out_at  — in=12:10:23 out=12:10:31",
+      "pass": false,
+      "name": "Clock Out sets clock_out_at  — in= out=",
       "detail": null
     },
     {
-      "pass": true,
-      "name": "worked_minutes matches the actual gap between the two clock times  — worked_minutes=0 actual gap=0 min",
+      "pass": false,
+      "name": "worked_minutes matches the actual gap between the two clock times  — worked_minutes=undefined actual gap=null min",
       "detail": null
     },
     {
-      "pass": true,
-      "name": "clock out is later than clock in  — 2026-10-15T12:10:23.318783+00:00 -> 2026-10-15T12:10:31.677455+00:00",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "the correction request was created  — status=pending",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "the correction starts pending  — pending",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "it raised an approval request on the attendance_correction workflow  — status=pending step=1 entity=e768ff7b",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "HR can sign in  — /app/my",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "HR can see this pending correction on /app/attendance/corrections  — found \"wrong\"",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "HR approved the correction",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "*** the corrected clock-in reads back as the time that was requested ***  — asked for 8:00 AM, record shows 8:00 AM (stored 2026-10-15T00:00:00Z)",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "*** the corrected clock-out reads back as the time that was requested ***  — asked for 5:00 PM, record shows 5:00 PM (stored 2026-10-15T09:00:00Z)",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "worked_minutes matches the corrected shift (09:00 = 540 min)  — worked_minutes=540 (expected 540)",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "the approved record is marked finalized  — finalized",
+      "pass": false,
+      "name": "clock out is later than clock in  — undefined -> undefined",
       "detail": null
     },
     {
@@ -149,8 +99,8 @@
       "detail": null
     },
     {
-      "pass": true,
-      "name": "no attendance records leaked  — 201 -> 201",
+      "pass": false,
+      "name": "no attendance records leaked  — 201 -> 202",
       "detail": null
     },
     {
@@ -160,22 +110,59 @@
     },
     {
       "pass": true,
-      "name": "no approval requests leaked  — 30 -> 30",
+      "name": "no approval requests leaked  — 35 -> 35",
       "detail": null
     }
   ],
-  "failedAssertions": [],
+  "failedAssertions": [
+    {
+      "pass": false,
+      "name": "Clock In creates today's record  — no row appeared",
+      "detail": null
+    },
+    {
+      "pass": false,
+      "name": "Clock In sets clock_in_at and leaves clock_out_at empty  — in= out=undefined",
+      "detail": null
+    },
+    {
+      "pass": false,
+      "name": "Clock Out sets clock_out_at  — in= out=",
+      "detail": null
+    },
+    {
+      "pass": false,
+      "name": "worked_minutes matches the actual gap between the two clock times  — worked_minutes=undefined actual gap=null min",
+      "detail": null
+    },
+    {
+      "pass": false,
+      "name": "clock out is later than clock in  — undefined -> undefined",
+      "detail": null
+    },
+    {
+      "pass": false,
+      "name": "no attendance records leaked  — 201 -> 202",
+      "detail": null
+    }
+  ],
   "notes": [
-    "clocked 12:10:23Z -> 12:10:31Z = 0 min",
+    "clocked Z -> Z = undefined min",
     "finalized-record guard: exercised only through the UI, never by deleting live rows"
   ],
   "other": [
     "employee: employee@demo.beepabpo.com -> 108f95ff-e47f-414f-8ec2-0e49f075edb0 (tz Asia/Manila)",
-    "(node:2092) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/jcuad/OneDrive/Documents/BeepoBeepa/lib/attendance/zoned-time.ts is not specified and it doesn't parse as CommonJS.",
+    "(node:21288) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/jcuad/OneDrive/Documents/BeepoBeepa/lib/attendance/zoned-time.ts is not specified and it doesn't parse as CommonJS.",
     "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
     "To eliminate this warning, add \"type\": \"module\" to C:\\Users\\jcuad\\OneDrive\\Documents\\BeepoBeepa\\package.json.",
     "(Use `node --trace-warnings ...` to show where the warning was created)",
-    "  (cleanup) removed 1 approval request(s) this run created",
-    "31/31 checks passed"
+    "15/21 checks passed",
+    "FAILURES:",
+    "  - Clock In creates today's record",
+    "  - Clock In sets clock_in_at and leaves clock_out_at empty",
+    "  - Clock Out sets clock_out_at",
+    "  - worked_minutes matches the actual gap between the two clock times",
+    "  - clock out is later than clock in",
+    "  - no attendance records leaked"
   ]
 }

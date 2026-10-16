@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-payroll-workflow.mjs",
   "claim": "salary edit, period, recalculate, 2-step approval to finalized",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:10:04.814Z",
+  "when": "2026-10-16T17:44:00.346Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 19,
@@ -35,7 +35,7 @@
     },
     {
       "pass": true,
-      "name": "a new payroll period was created  — {\"id\":\"e2cd2b27-a913-4156-b93f-bbc16f85cf32\",\"name\":\"October 1–15, 2026\",\"status\":\"draft\",\"start_date\":\"2026-10-01\",\"end_date\":\"2026-10-15\",\"pay_date\"",
+      "name": "a new payroll period was created  — {\"id\":\"3ca08500-eab5-444b-a56f-d468363cd6b2\",\"name\":\"October 16–31, 2026\",\"status\":\"draft\",\"start_date\":\"2026-10-16\",\"end_date\":\"2026-10-31\",\"pay_date",
       "detail": null
     },
     {
@@ -100,7 +100,7 @@
     },
     {
       "pass": true,
-      "name": "this run left payroll exactly as it found it  — periods 2->2, records 11->11, payslips 1->1, audit 407->407, salary restored=true",
+      "name": "this run left payroll exactly as it found it  — periods 2->2, records 11->11, payslips 1->1, audit 524->524, salary restored=true",
       "detail": null
     }
   ],

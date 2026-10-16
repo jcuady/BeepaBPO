@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-auth-workflow.mjs",
   "claim": "sign in/out, sign-out-everywhere, access-denied, no account leakage",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:08:04.497Z",
+  "when": "2026-10-16T17:42:21.584Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 35,
@@ -170,17 +170,17 @@
     },
     {
       "pass": true,
-      "name": "no membership rows leaked  — 13 -> 13",
+      "name": "no membership rows leaked  — 14 -> 14",
       "detail": null
     },
     {
       "pass": true,
-      "name": "no notification rows leaked  — 66 -> 66",
+      "name": "no notification rows leaked  — 71 -> 71",
       "detail": null
     },
     {
       "pass": true,
-      "name": "no auth users leaked  — 13 -> 13",
+      "name": "no auth users leaked  — 14 -> 14",
       "detail": null
     }
   ],
@@ -191,10 +191,10 @@
   ],
   "other": [
     "target account: marketing@demo.beepabpo.com (found)",
-    "signup throwaway: qa.signup.1792065950417@nowhere.example",
+    "signup throwaway: qa.signup.1792172405451@nowhere.example",
     "BLOCKED  forgot-password anti-enumeration comparison  — the real address returned a delivery error (\"Too many password reset requests. Wait a minute,\") while the fake address returned the confirmation copy",
     "BLOCKED  signup account creation  — Supabase 429 email rate limit (environment)",
-    "  (cleanup) removed throwaway auth user qa.nobody.1792066071861@nowhere.example",
+    "  (cleanup) removed throwaway auth user qa.nobody.1792172525222@nowhere.example",
     "  (safety net) password restored via admin API",
     "35/35 checks passed",
     "2 path(s) BLOCKED by the environment: forgot-password anti-enumeration comparison, signup account creation"

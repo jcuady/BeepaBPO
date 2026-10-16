@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-recruitment-workflow.mjs",
   "claim": "job, applicant, pipeline stage moves",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:18:04.126Z",
+  "when": "2026-10-16T17:51:23.580Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 23,
@@ -30,7 +30,7 @@
     },
     {
       "pass": true,
-      "name": "updateJobPost persists the change  — title is now \"QA Job Edited qamv9i6kxz\"",
+      "name": "updateJobPost persists the change  — title is now \"QA Job Edited qamvb9j71h\"",
       "detail": null
     },
     {
@@ -45,7 +45,7 @@
     },
     {
       "pass": true,
-      "name": "publishJobPost stamps published_at  — 2026-10-15T12:17:10.139+00:00",
+      "name": "publishJobPost stamps published_at  — 2026-10-16T17:50:31.613+00:00",
       "detail": null
     },
     {
@@ -65,12 +65,12 @@
     },
     {
       "pass": true,
-      "name": "closeJobPost preserves the original published_at  — 2026-10-15T12:17:10.139+00:00",
+      "name": "closeJobPost preserves the original published_at  — 2026-10-16T17:50:31.613+00:00",
       "detail": null
     },
     {
       "pass": true,
-      "name": "a CLOSED job is not offered to an applicant  — /app/applicant/jobs/66fb862e-c669-4922-b281-f2924296d143",
+      "name": "a CLOSED job is not offered to an applicant  — /app/applicant/jobs/b0f55ffd-bfdb-43b5-b861-79e9deb4beb3",
       "detail": null
     },
     {
@@ -130,7 +130,7 @@
     "the apply form disappeared after applying, so the duplicate guard cannot be re-driven from the UI"
   ],
   "other": [
-    "marker: qamv9i6kxz",
+    "marker: qamvb9j71h",
     "applicant row before: (none)",
     "  (cleanup) removed 1 job post(s) and their applications",
     "  (cleanup) applicant row removed — it did not exist before this run",

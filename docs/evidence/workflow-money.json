@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-money-workflow.mjs",
   "claim": "cash advances and billing across the lifecycle",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T13:31:07.687Z",
+  "when": "2026-10-16T17:50:02.042Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 39,
@@ -16,7 +16,7 @@
     {
       "pass": true,
       "name": "issueInvoice creates an invoice",
-      "detail": "INV-20261015-3954"
+      "detail": "INV-20261016-4984"
     },
     {
       "pass": true,
@@ -86,7 +86,7 @@
     {
       "pass": true,
       "name": "createCashAdvanceRequest writes a request",
-      "detail": "8ac37c49"
+      "detail": "5a4537ac"
     },
     {
       "pass": true,
@@ -146,7 +146,7 @@
     {
       "pass": true,
       "name": "a second request exists to be rejected",
-      "detail": "675194c7"
+      "detail": "9b98bda8"
     },
     {
       "pass": true,

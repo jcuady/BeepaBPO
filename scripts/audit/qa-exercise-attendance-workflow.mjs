@@ -62,7 +62,17 @@ async function must(p, what) {
 const EMPLOYEE_EMAIL = "employee@demo.beepabpo.com";
 const HR_EMAIL = "hr@demo.beepabpo.com";
 const CLIENT_EMAIL = "clientadmin@demo.beepabpo.com";
-const TODAY = new Date().toISOString().slice(0, 10);
+// "Today" is resolved after the employee row is read, because it means the
+// EMPLOYEE's today, not the host's. `clock_event` stamps
+// `work_date = (now() at time zone <employee tz>)::date`, so anything that asks
+// for today's record has to use the same zone.
+//
+// It used to be `new Date().toISOString().slice(0, 10)` — UTC — which disagrees
+// with Asia/Manila for eight hours a day. A run at 02:02 Manila reported "Clock In
+// creates today's record — no row appeared" against a product that had written a
+// correct record for the 17th, and leaked that row because the cleanup searched
+// for the 16th. See `workDateFor` in lib/attendance/zoned-time.ts.
+let TODAY;
 // Two spare dates on which no record should exist; verified below before use.
 const MANUAL_DATE = "2026-03-02";
 const CLIENT_DATE = "2026-03-03";
@@ -81,9 +91,18 @@ console.log(`employee: ${EMPLOYEE_EMAIL} -> ${employee.id} (tz ${employee.defaul
 // What a wall-clock reading means in this employee's own timezone. This is the
 // app's own helper, imported rather than reimplemented, so the exercise cannot
 // drift from what the product does.
-const { zonedWorkDateTime, formatZonedTime } = await import("../../lib/attendance/zoned-time.ts").catch(
-  () => ({ zonedWorkDateTime: null, formatZonedTime: null }),
-);
+const { zonedWorkDateTime, formatZonedTime, workDateFor } = await import(
+  "../../lib/attendance/zoned-time.ts"
+).catch(() => ({ zonedWorkDateTime: null, formatZonedTime: null, workDateFor: null }));
+
+// The employee's today, from the app's own rule. Falls back to Intl if the
+// dynamic import of the TypeScript helper did not resolve, because a wrong date
+// here silently invalidates every precondition built on it.
+const EMPLOYEE_TZ = employee.default_timezone ?? "Asia/Manila";
+TODAY =
+  workDateFor?.(new Date().toISOString(), EMPLOYEE_TZ) ??
+  new Intl.DateTimeFormat("en-CA", { timeZone: EMPLOYEE_TZ }).format(new Date());
+console.log(`today in ${EMPLOYEE_TZ}: ${TODAY} (host UTC date would be ${new Date().toISOString().slice(0, 10)})\n`);
 
 const createdRecordIds = new Set();
 const createdCorrectionIds = new Set();

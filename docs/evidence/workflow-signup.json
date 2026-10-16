@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-signup-workflow.mjs",
   "claim": "applicant and client registration reach verification",
   "base": "http://localhost:3100",
-  "when": "2026-10-16T02:06:10.727Z",
+  "when": "2026-10-16T17:42:34.666Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 6,
@@ -15,12 +15,12 @@
     },
     {
       "pass": true,
-      "name": "a real auth user now exists for that address  — 16a7e87e-3f56-4a0a-8891-af81f3a15e8e",
+      "name": "a real auth user now exists for that address  — a1fd9ec9-2b9e-4c9c-b786-373cc60ee089",
       "detail": null
     },
     {
       "pass": true,
-      "name": "signupAction granted an applicant membership  — {\"id\":\"914a1cb4-84ab-4b6b-914f-a39b1e66a566\",\"membership_type\":\"applicant\",\"status\":\"active\"}",
+      "name": "signupAction granted an applicant membership  — {\"id\":\"b3fdd8ca-d4e0-4dcf-a3a5-0618581e7d72\",\"membership_type\":\"applicant\",\"status\":\"active\"}",
       "detail": null
     },
     {

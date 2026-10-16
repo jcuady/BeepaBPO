@@ -1,143 +1,141 @@
 {
   "id": "admin-workflow",
   "script": "scripts/audit/qa-exercise-admin-workflow.mjs",
-  "claim": "admin surfaces: cron dry run, test push, invite (both legs), role change, revoke",
+  "claim": "admin actions behind their permission",
   "base": "http://localhost:3100",
-  "when": "2026-10-16T06:38:44.825Z",
-  "exitCode": 0,
+  "when": "2026-10-16T17:57:34.211Z",
+  "exitCode": 2,
   "verdict": "BLOCKED",
   "assertions": 23,
   "checks": [
     {
-      "name": "signed in as super admin",
       "pass": true,
-      "detail": "http://localhost:3100/app/dashboard"
+      "name": "signed in as super admin  — http://localhost:3100/app/dashboard",
+      "detail": null
     },
     {
-      "name": "cron dry-run button reports per-job counts",
       "pass": true,
-      "detail": "Dry-run OK — missing clock-out: 0, overdue invoices: 1, digests: 6."
+      "name": "cron dry-run button reports per-job counts  — Dry-run OK — missing clock-out: 0, overdue invoices: 1, digests: 6.",
+      "detail": null
     },
     {
-      "name": "cron dry-run is audit-logged",
       "pass": true,
-      "detail": "{\"invoice_overdue\":1,\"missing_clock_out\":0,\"notification_digest\":6,\"notification_digest_failed\":0,\"notification_digest_candidates\":6}"
+      "name": "cron dry-run is audit-logged  — {\"invoice_overdue\":1,\"missing_clock_out\":0,\"notification_digest\":6,\"notification_digest_failed\":0,\"notification_digest_candidates\":6}",
+      "detail": null
     },
     {
-      "name": "test push wrote a notification to the admin",
       "pass": true,
-      "detail": "\"Push and in-app delivery check from Admin.\""
+      "name": "test push wrote a notification to the admin  — \"Push and in-app delivery check from Admin.\"",
+      "detail": null
     },
     {
-      "name": "a failing invite tells the user why",
       "pass": true,
-      "detail": "Too many invites have been sent from this network. Wait a moment, then try again."
+      "name": "a failing invite tells the user why  — Too many invites have been sent from this network. Wait a moment, then try again.",
+      "detail": null
     },
     {
-      "name": "inviting an existing account reports that the user was linked",
       "pass": true,
-      "detail": "Existing user linked with role hr."
+      "name": "inviting an existing account reports that the user was linked  — Existing user linked with role hr.",
+      "detail": null
     },
     {
+      "pass": true,
       "name": "the existing account was given a membership",
-      "pass": true,
-      "detail": ""
+      "detail": null
     },
     {
-      "name": "existing-account invite grants BOTH the chosen role and self-service access",
       "pass": true,
-      "detail": "roles [employee, hr]"
+      "name": "existing-account invite grants BOTH the chosen role and self-service access  — roles [employee, hr]",
+      "detail": null
     },
     {
-      "name": "existing-account invite is audit-logged",
       "pass": true,
-      "detail": "users.invite"
+      "name": "existing-account invite is audit-logged  — users.invite",
+      "detail": null
     },
     {
-      "name": "existing-account invite left nothing behind",
       "pass": true,
-      "detail": "membership and auth user removed"
+      "name": "existing-account invite left nothing behind  — membership and auth user removed",
+      "detail": null
     },
     {
+      "pass": true,
       "name": "target membership row rendered",
-      "pass": true,
-      "detail": ""
+      "detail": null
     },
     {
+      "pass": true,
       "name": "role select present on the row",
-      "pass": true,
-      "detail": ""
+      "detail": null
     },
     {
+      "pass": true,
       "name": "Update role is disabled while the role is unchanged",
-      "pass": true,
-      "detail": ""
+      "detail": null
     },
     {
+      "pass": true,
       "name": "Update role enables once a different role is chosen",
-      "pass": true,
-      "detail": ""
+      "detail": null
     },
     {
-      "name": "role change asks for confirmation",
       "pass": true,
-      "detail": "Change this member’s role? Their functional role becomes Finance. The"
+      "name": "role change asks for confirmation  — Change this member’s role? Their functional role becomes Finance. The",
+      "detail": null
     },
     {
-      "name": "role changed but the self-service baseline survived",
       "pass": true,
-      "detail": "roles now [employee, finance], expected [employee, finance]"
+      "name": "role changed but the self-service baseline survived  — roles now [employee, finance], expected [employee, finance]",
+      "detail": null
     },
     {
-      "name": "member keeps their own leave/payroll/attendance access",
       "pass": true,
-      "detail": "employee role retained"
+      "name": "member keeps their own leave/payroll/attendance access  — employee role retained",
+      "detail": null
     },
     {
-      "name": "role change is audit-logged with before and after",
       "pass": true,
-      "detail": "{\"before_data\":{\"role_codes\":[\"marketing\",\"employee\"]},\"after_data\":{\"role_codes\":[\"employee\",\"finance\"]}}"
+      "name": "role change is audit-logged with before and after  — {\"before_data\":{\"role_codes\":[\"marketing\",\"employee\"]},\"after_data\":{\"role_codes\":[\"employee\",\"finance\"]}}",
+      "detail": null
     },
     {
-      "name": "revoke asks for confirmation",
       "pass": true,
-      "detail": "Revoke this membership? The user loses access for this organization. "
+      "name": "revoke asks for confirmation  — Revoke this membership? The user loses access for this organization.",
+      "detail": null
     },
     {
-      "name": "revoke set the membership inactive",
       "pass": true,
-      "detail": "status=inactive"
+      "name": "revoke set the membership inactive  — status=inactive",
+      "detail": null
     },
     {
-      "name": "revoke is audit-logged",
       "pass": true,
-      "detail": "{\"before_data\":{\"status\":\"active\"},\"after_data\":{\"status\":\"inactive\"}}"
+      "name": "revoke is audit-logged  — {\"before_data\":{\"status\":\"active\"},\"after_data\":{\"status\":\"inactive\"}}",
+      "detail": null
     },
     {
+      "pass": true,
       "name": "no console errors during the admin run",
-      "pass": true,
-      "detail": ""
+      "detail": null
     },
     {
-      "name": "this run left the account exactly as it found it",
       "pass": true,
-      "detail": "roles now [employee, marketing] (was [employee, marketing]), status active (was active)"
+      "name": "this run left the account exactly as it found it  — roles now [employee, marketing] (was [employee, marketing]), status active (was active)",
+      "detail": null
     }
   ],
   "failedAssertions": [],
-  "blockedPaths": [
-    {
-      "name": "invite creates an account",
-      "reason": "Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a fresh SMTP quota or a project that is not being hammered; the error IS surfaced to the user."
-    }
-  ],
   "notes": [],
-  "auditLogs": {
-    "before": 511,
-    "after": 516
-  },
-  "notifications": {
-    "before": 72,
-    "after": 71
-  }
+  "other": [
+    "target: marketing@demo.beepabpo.com membership=b5b127d0-b0c8-4a4b-96e6-12b5aeed839e",
+    "original roles: [employee, marketing] status=active",
+    "BLOCKED  invite creates an account  — Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a fresh SMTP quota or a project that is not being hammered; the error IS surfaced to the user.",
+    "audit_logs 559 -> 564, notifications 72 -> 72 (minus this run's test push)",
+    "wrote docs/evidence/workflow-admin-workflow.json",
+    "23/23 checks passed",
+    "1 path(s) could not be exercised in this environment:",
+    "  - invite creates an account",
+    "      Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a fresh SMTP quota or a project that is not being hammered; the error IS surfaced to the user.",
+    "  These are UNKNOWN, not passing. See docs/QA_REPORT.md."
+  ]
 }

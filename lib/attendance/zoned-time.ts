@@ -127,6 +127,32 @@ export function formatZonedDate(
   }).format(date);
 }
 
+/**
+ * The work date an instant falls on — the same rule `clock_event` applies.
+ *
+ * The database stamps `attendance_records.work_date` as
+ * `(now() at time zone <employee tz>)::date`, so anything that then asks "what is
+ * today's attendance?" has to compute today in that same zone or it reads the
+ * wrong day.
+ *
+ * This exists because the difference is invisible until it bites. The attendance
+ * exercise computed "today" with `toISOString().slice(0, 10)`, which is UTC, and
+ * for eight hours every day in Asia/Manila those are different days. The run at
+ * 02:02 Manila reported "Clock In creates today's record — no row appeared",
+ * while the product had in fact written a correct record for the Manila date. It
+ * also leaked that row: cleanup looked for the UTC date it had been told to
+ * expect, so it never found the row it had just caused.
+ *
+ * `new Date().toISOString()` is UTC by definition. Anything comparing it against a
+ * `work_date` needs this instead.
+ */
+export function workDateFor(
+  iso: string = new Date().toISOString(),
+  timeZone: string = DEFAULT_TIMEZONE,
+): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date(iso));
+}
+
 /** Same, for a full date+time, e.g. a payslip coverage line. */
 export function formatZonedDateTime(
   iso: string | null | undefined,

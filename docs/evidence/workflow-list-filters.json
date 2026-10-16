@@ -3,10 +3,10 @@
   "script": "scripts/audit/qa-exercise-list-filters.mjs",
   "claim": "filtering, search and pagination on list views",
   "base": "http://localhost:3100",
-  "when": "2026-10-15T12:28:32.127Z",
+  "when": "2026-10-16T18:00:35.493Z",
   "exitCode": 0,
   "verdict": "PASS",
-  "assertions": 34,
+  "assertions": 35,
   "checks": [
     {
       "pass": true,
@@ -27,6 +27,11 @@
       "pass": true,
       "name": "/app/attendance — a search that matches nothing changes the list",
       "detail": "list changed"
+    },
+    {
+      "pass": true,
+      "name": "/app/attendance — at least one dropdown option changes the list",
+      "detail": "status=present of 2 tried"
     },
     {
       "pass": true,
@@ -183,7 +188,6 @@
   "notes": [
     "signed in as owner@demo.beepabpo.com (internal)",
     "/app/employees: filter form has no dropdowns",
-    "/app/attendance: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "/app/attendance/corrections: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "/app/approvals: no Apply form on this page — skipped",
     "/app/my/cash-advances: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
@@ -197,11 +201,10 @@
   "other": [
     "========================================================================",
     "filters exercised on 27 page(s) across 3 role(s); 3 page(s) skipped",
-    "34/34 assertions passed",
+    "35/35 assertions passed",
     "notes:",
     "  - signed in as owner@demo.beepabpo.com (internal)",
     "  - /app/employees: filter form has no dropdowns",
-    "  - /app/attendance: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "  - /app/attendance/corrections: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "  - /app/approvals: no Apply form on this page — skipped",
     "  - /app/my/cash-advances: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",

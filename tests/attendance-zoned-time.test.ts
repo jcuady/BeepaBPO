@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_TIMEZONE,
   formatZonedTime,
+  workDateFor,
   zonedWorkDateTime,
 } from "../lib/attendance/zoned-time";
 
@@ -105,5 +106,51 @@ describe("formatZonedTime", () => {
     expect(formatZonedTime(undefined)).toBe("—");
     expect(formatZonedTime("")).toBe("—");
     expect(formatZonedTime("garbage")).toBe("—");
+  });
+});
+
+/**
+ * "Which work date does this instant fall on?" — the question `clock_event`
+ * answers when it stamps `attendance_records.work_date`.
+ *
+ * Added after the attendance exercise computed "today" with
+ * `toISOString().slice(0, 10)`, which is UTC. For eight hours a day in
+ * Asia/Manila that is the previous day, and the exercise reported a working
+ * Clock In as broken — then leaked the row it had caused, because cleanup
+ * searched for the date it wrongly expected.
+ *
+ * The instants below are the real ones from that run.
+ */
+describe("workDateFor", () => {
+  it("agrees with clock_event on a mid-morning instant", () => {
+    // 09:10 Manila on the 8th — the demo's usual working day.
+    expect(workDateFor("2026-10-08T01:10:00.000Z", "Asia/Manila")).toBe("2026-10-08");
+  });
+
+  it("returns the Manila date when UTC still says the day before", () => {
+    // The exact moment the audit ran: 02:02 Manila is 18:02 UTC the day before.
+    // `toISOString().slice(0, 10)` said 2026-10-16; the database wrote 2026-10-17.
+    const iso = "2026-10-16T18:02:00.000Z";
+    expect(iso.slice(0, 10)).toBe("2026-10-16");
+    expect(workDateFor(iso, "Asia/Manila")).toBe("2026-10-17");
+  });
+
+  it("holds in both directions around the UTC midnight hour", () => {
+    // Not a one-directional fudge: just before 08:00 Manila the UTC date is still
+    // behind, and just after, Manila is a full day ahead of New York.
+    expect(workDateFor("2026-10-16T16:30:00.000Z", "Asia/Manila")).toBe("2026-10-17");
+    expect(workDateFor("2026-10-16T23:59:00.000Z", "Asia/Manila")).toBe("2026-10-17");
+    expect(workDateFor("2026-10-16T23:59:00.000Z", "America/Los_Angeles")).toBe("2026-10-16");
+  });
+
+  it("defaults to the project's timezone, the one clock_event falls back to", () => {
+    expect(DEFAULT_TIMEZONE).toBe("Asia/Manila");
+    expect(workDateFor("2026-10-16T18:02:00.000Z")).toBe(
+      workDateFor("2026-10-16T18:02:00.000Z", DEFAULT_TIMEZONE),
+    );
+  });
+
+  it("returns YYYY-MM-DD, the shape work_date is compared as", () => {
+    expect(workDateFor("2026-01-05T00:00:00.000Z", "Asia/Manila")).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
