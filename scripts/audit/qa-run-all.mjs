@@ -177,7 +177,14 @@ const CHECKS = [
   // rather than beside it — this runner is serial, and the exercises share one
   // database.
   { id: "seo-metadata",     tier: "slow", cmd: ["scripts/audit/audit-seo-metadata.mjs"], evidence: null, what: "titles, descriptions, canonicals, OG and JSON-LD on every sitemap URL, asserted against raw HTML" },
-  { id: "role-pages",       tier: "slow", cmd: ["scripts/audit-role-pages.mjs"],         evidence: null, what: "every nav-reachable page renders clean for each of the 13 roles" },
+  // `evidence: null` used to be a way of declaring an exemption rather than
+  // reporting a gap, and `role-pages` was the one that mattered: it wrote
+  // nothing, so its result existed only as terminal scrollback and three
+  // documents drifted to three different numbers for it — the matrix said
+  // 222/222 "verified today", the ledger said 219/219 from 2026-10-09, and the
+  // figure nobody could trace. The script writes role-pages.json now, and this
+  // registry is what keeps that file honest; see the rule at the top of the file.
+  { id: "role-pages",       tier: "slow", cmd: ["scripts/audit-role-pages.mjs"],         evidence: "docs/evidence/role-pages.json",             what: "every nav-reachable page renders clean for each of the 13 roles" },
   { id: "performance",      tier: "slow", cmd: ["scripts/audit-performance.mjs"],         evidence: null, what: "per-route timings against the running server" },
   { id: "payslip-exposure", tier: "slow", cmd: ["scripts/audit/audit-unapproved-payslip-exposure.mjs"], evidence: null, what: "an employee cannot read a payslip from an unapproved period" },
   { id: "attendance-tz",    tier: "slow", cmd: ["scripts/audit/verify-attendance-tz.mjs"], evidence: null, what: "attendance day boundaries resolve in the employee's timezone, not UTC" },

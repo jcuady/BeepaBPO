@@ -45,7 +45,7 @@
 // exits on a crash code is a gate whose result nobody can trust, because the
 // runner only ever sees the number.
 
-import { readdirSync, statSync } from "node:fs";
+import { mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 // Only the trees that end up in a client bundle matter for what a browser can
@@ -113,6 +113,24 @@ try {
   process.exitCode = 2;
 }
 
+// Evidence, not a claim. This gate is the one every other behavioural check
+// leans on — `qa-run-workflows.mjs` refuses to produce evidence without it — and
+// it used to leave no record at all. A verdict that only ever existed on screen
+// is exactly what this repository calls "a green check with no evidence file is
+// a finding, not a pass", and it is the failure most expensive to notice later:
+// the whole suite's credibility rests on a check whose past verdicts cannot be
+// read back, and cannot be dated against the build they described.
+const VERDICT = {
+  stale: "STALE — the server started before the current build",
+  behind: "BEHIND SOURCE — the build does not contain the working tree",
+  unknown: "CANNOT TELL",
+  fresh: "CURRENT — server matches the build on disk, and the build matches the source",
+};
+
+let verdictKey = "unknown";
+let exit = 2;
+let evidence = null;
+
 if (payload) {
   const buildAgeMs = payload.buildAgeMs ?? null;
   const newestSourceMs = newestProductSourceMtime();
@@ -135,10 +153,24 @@ if (payload) {
       ? null
       : buildAgeMs === null || sourceAgeMs < buildAgeMs;
 
+  evidence = {
+    check: "server-fresh",
+    generatedAt: new Date().toISOString(),
+    base: BASE,
+    buildId: payload.buildId ?? null,
+    builtAt: payload.builtAt ?? null,
+    buildAgeMs,
+    serverUptimeMs: payload.uptimeMs ?? null,
+    newestSourceAgeMs: sourceAgeMs,
+    stale: payload.stale ?? null,
+    buildBehindSource: behindSource,
+  };
+
   if (payload.buildId === null) {
     console.error("ABORT: no .next/BUILD_ID on disk, so there is nothing to compare against.");
     console.error("      Run `pnpm build` before running behaviour gates.");
     process.exitCode = 2;
+    verdictKey = "unknown";
   } else if (payload.stale === true) {
     console.error("VERDICT: STALE. The server started before the current build was written.");
     console.error(`\n  up ${secs(payload.uptimeMs)} vs. build ${secs(buildAgeMs)} old.`);
@@ -149,6 +181,7 @@ if (payload) {
     console.error("  pnpm build");
     console.error("  npx next start -p 3100");
     process.exitCode = 1;
+    verdictKey = "stale";
   } else if (behindSource === true) {
     console.error("VERDICT: THE BUILD IS BEHIND THE SOURCE.");
     console.error(`\n  a file under app/, components/ or lib/ changed ${secs(sourceAgeMs)} ago,`);
@@ -162,14 +195,47 @@ if (payload) {
     console.error("  pnpm build");
     console.error("  npx next start -p 3100");
     process.exitCode = 1;
+    verdictKey = "behind";
   } else if (behindSource === null) {
     console.error("ABORT: could not read any source file to compare against the build.");
     console.error("      Cannot tell whether the build is current, so not fine.");
     process.exitCode = 2;
+    verdictKey = "unknown";
   } else if (payload.stale === null || payload.stale === undefined) {
     console.error("ABORT: /api/health did not report staleness — cannot tell, so not fine.");
     process.exitCode = 2;
+    verdictKey = "unknown";
   } else {
     console.log("VERDICT: the server is running the build on disk, and the build matches the source.");
+    verdictKey = "fresh";
   }
+
+  evidence.verdict = verdictKey;
+  evidence.verdictText = VERDICT[verdictKey];
+  evidence.exitCode = process.exitCode ?? 0;
+  mkdirSync("docs/evidence", { recursive: true });
+  writeFileSync("docs/evidence/server-fresh.json", JSON.stringify(evidence, null, 2) + "\n");
+  console.log("wrote docs/evidence/server-fresh.json");
+} else {
+  // The server could not be reached at all. That is a verdict too, and it is
+  // the one most worth keeping: "we did not measure" must not look like
+  // "nothing was wrong".
+  mkdirSync("docs/evidence", { recursive: true });
+  writeFileSync(
+    "docs/evidence/server-fresh.json",
+    JSON.stringify(
+      {
+        check: "server-fresh",
+        generatedAt: new Date().toISOString(),
+        base: BASE,
+        verdict: "unknown",
+        verdictText: VERDICT.unknown,
+        exitCode: process.exitCode ?? 2,
+        reachable: false,
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  console.error("wrote docs/evidence/server-fresh.json (server unreachable)");
 }

@@ -484,6 +484,7 @@ the test fail.
 | Org/workflow CRUD | Deferred | Read-only is intentional |
 | **The 25-character body-copy threshold hides real 14px violations** | **P2, mostly closed** | See §2.8 — 4 body-copy sites fixed, 4 metadata sites now marked `data-meta` |
 | **`text-sm text-slate` body copy on `/app/my` pages** | **Done** | See §2.8 |
+| **8 registered checks still write no evidence file, and 6 matrix rows quote numbers from them** | **P2** | See §2.9 |
 
 ### 2.8 The audit's 25-character body-copy threshold is seed data, not a rule — mostly closed
 
@@ -572,6 +573,42 @@ declined, because the first reason turned out to be the weaker one:
 Until then, treat "every demo account that reaches `/app/my` has an employee
 record" as an assumption the layout audits are silently resting on — now written
 down, and now guarded, rather than merely true.
+
+### 2.9 Eight registered checks write no evidence file, and six matrix rows quote numbers from them
+
+`qa-run-all.mjs` states its own rule in a comment: *evidence: file this check is
+expected to have written. A green check with no evidence file is a finding, not a
+pass.* Ten of the thirty registered checks then set `evidence: null` — which does
+not report the finding, it **declares the exemption**, and the rule goes quiet.
+
+Two of those ten were fixed this session and immediately became the worst
+offenders:
+
+- **`role-pages`** — matrix "222/222 ✅ Verified today", ledger "219/219, re-run
+  2026-10-09", and **no file at all**. The script ended at `process.exit` having
+  written nothing. Re-measured: 222/222, so the matrix was right and the ledger
+  was stale — but neither could be checked, and the reason they had drifted is
+  exactly this. Now writes `role-pages.json`.
+- **`server-fresh`** — the gate the entire behavioural suite refuses to run
+  without, whose past verdicts could not be read back or dated against the build
+  they described. Now writes `server-fresh.json`, including the unreachable case
+  so "we did not measure" can never read as "nothing was wrong".
+
+**Still open, P2:** `form-reset-defaults`, `suite-base-url`, `seo-metadata`,
+`performance`, `payslip-exposure`, `attendance-tz`, `cron-smoke`, `gate-coverage`.
+
+Matrix rows **2, 3, 7, 7b, 25 and 26** quote a specific figure from one of those
+— "58 HTTP-performing scripts", "0 ungated", "28 forms scanned, 21 that reset",
+"clean" — and every one is marked **✅ Verified today**. They are almost
+certainly correct; what they are not is *traceable*, and this repository's whole
+standard is that a figure nobody can trace to a run is not evidence.
+
+**Suggested order, cheapest first:** `suite-base-url` and `gate-coverage` first —
+both are static, produce a single count, and are the two most quoted. Then
+`performance` and `seo-metadata`. `cron-smoke` and `attendance-tz` mutate or
+query real data and need care about what they snapshot. The rule should not be
+loosened to accommodate them: a check that genuinely has nothing durable to say
+should say so in its `what` string rather than by passing `evidence: null`.
 
 **`CardTitle` renders a `<div>`, not a heading — fixed 2026-10-09.** It used to render a
 `<div>`, so every card title in the app was invisible to heading-navigation. axe does not

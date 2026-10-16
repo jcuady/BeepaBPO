@@ -1,0 +1,15 @@
+{
+  "check": "server-fresh",
+  "generatedAt": "2026-10-16T03:43:18.654Z",
+  "base": "http://localhost:3100",
+  "buildId": "T68RqHiICmhDGrKmwOXTk",
+  "builtAt": "2026-10-16T03:42:54.444Z",
+  "buildAgeMs": 24115.63720703125,
+  "serverUptimeMs": 17328,
+  "newestSourceAgeMs": 160635.58911132812,
+  "stale": false,
+  "buildBehindSource": false,
+  "verdict": "fresh",
+  "verdictText": "CURRENT — server matches the build on disk, and the build matches the source",
+  "exitCode": 0
+}

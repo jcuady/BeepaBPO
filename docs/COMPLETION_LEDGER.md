@@ -146,7 +146,7 @@ Parallel workspace resolve, visible skeletons, Clock In/Out on `/app/my/attendan
 | Applicant careers | `/app/applicant/jobs` + `/app/applicant/jobs/[id]`; unlinked notifications page added to nav |
 | Application stages | 12 stages × (label, tone, applicant note, staff note, terminal, step); `on_hold`/`talent_pool` explicitly non-terminal; enum parsed from the migration in tests |
 | PageHeader | Gained a `title` prop — a detail page H1 was reading "Good afternoon, …" |
-| Role × page | `audit-role-pages.mjs` — 219/219 clean across 13 roles, reading the rendered sidebar. Re-run 2026-10-09 after `app-header` / `site-header` / `notification-bell` changed |
+| Role × page | `audit-role-pages.mjs` — **222/222** nav-reachable pages clean across 13 roles, reading the rendered sidebar. This row previously read "219/219, re-run 2026-10-09" and was stale: the route set grew after that run and nothing had re-measured it, because **the script wrote no evidence file at all** — its result lived only in terminal scrollback, which is how the matrix and this ledger drifted to different numbers for the same check |
 | Dropdowns | 26 raw `<select>` across 22 files → `NativeSelect`; **none had a focus ring** |
 | Tables | Last raw `<table>` → Table primitives |
 | Colours | Semantic status + series + sidebar token layers; 12 hardcoded-colour files tokenised |

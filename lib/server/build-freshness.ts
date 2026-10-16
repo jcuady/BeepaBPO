@@ -53,6 +53,18 @@ export function isServerStale(
  *
  * A null newest-source time means "cannot tell", which callers must not report
  * as fine — same rule, same reason.
+ *
+ * KNOWN CONSERVATISM: this compares modification times, not content. An
+ * edit-then-revert — a mutation test, a reformat, a comment-only change — leaves
+ * a source file newer than the build while the build is in fact current, so this
+ * reports true. Observed for real: a mutation test reverted
+ * `app/app/my/attendance/page.tsx` minutes after the build, and the gate said
+ * BEHIND SOURCE with the content byte-identical.
+ *
+ * That is the safe direction to be wrong in — it costs a rebuild and never lets a
+ * stale measurement through — so it is left as-is rather than tuned away.
+ * Comparing content hashes would remove the false positive at the cost of hashing
+ * the source tree on every invocation.
  */
 export function isBuildBehindSource(
   buildAgeMs: number | null,

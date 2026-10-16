@@ -21,7 +21,7 @@
  *   node scripts/audit-role-pages.mjs [email ...]
  *   ROLES=hr,recruiter,sales,marketing,operations,superadmin node scripts/audit-role-pages.mjs
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
 // `@playwright/test`, not `playwright` — the bare package is not resolvable from
 // this workspace (pnpm + the pinned playwright-core override), matching
 // scripts/audit-app-responsive.mjs.
@@ -235,6 +235,41 @@ for (const [email, rows] of byRole) {
   const dispatchNote = dispatchNoteByEmail.get(email) ?? "";
   console.log(`  ${pass}/${rows.length} nav-reachable pages clean${dispatchNote}`);
 }
+
+// Evidence, not a claim. This script used to end at `process.exit` having
+// written nothing, so its result existed only as terminal scrollback — and three
+// documents disagreed about it: the completion matrix carried "222/222,
+// verified today", the ledger carried "219/219, re-run 2026-10-09", and neither
+// number had a file behind it. The repo's own rule is that a green check with no
+// evidence file is a finding, not a pass; this check was exactly that, and the
+// numbers drifted because nothing pinned them.
+//
+// Every other audit in this suite writes here. Matching them is what makes the
+// matrix row traceable to a run rather than to somebody's memory.
+const EVIDENCE = "docs/evidence/role-pages.json";
+mkdirSync("docs/evidence", { recursive: true });
+writeFileSync(
+  EVIDENCE,
+  JSON.stringify(
+    {
+      check: "role-pages",
+      generatedAt: new Date().toISOString(),
+      base: BASE,
+      roles: [...byRole.keys()],
+      roleCount: byRole.size,
+      total: results.length,
+      passed: results.length - failures,
+      failures,
+      // Both figures, because they are different measurements and conflating
+      // them is how 222 and 219 ended up in the same argument.
+      claim: "every page a role's own nav makes visible is reachable and working",
+      results,
+    },
+    null,
+    2,
+  ) + "\n",
+);
+console.log(`\nwrote ${EVIDENCE}`);
 
 console.log(
   `\n${results.length - failures}/${results.length} nav-reachable role pages clean.`,

@@ -1,0 +1,1359 @@
+{
+  "check": "role-pages",
+  "generatedAt": "2026-10-16T03:56:49.228Z",
+  "base": "http://localhost:3100",
+  "roles": [
+    "owner@demo.beepabpo.com",
+    "superadmin@demo.beepabpo.com",
+    "hr@demo.beepabpo.com",
+    "recruiter@demo.beepabpo.com",
+    "sales@demo.beepabpo.com",
+    "marketing@demo.beepabpo.com",
+    "operations@demo.beepabpo.com",
+    "teamlead@demo.beepabpo.com",
+    "finance@demo.beepabpo.com",
+    "employee@demo.beepabpo.com",
+    "clientadmin@demo.beepabpo.com",
+    "clientviewer@demo.beepabpo.com",
+    "applicant@demo.beepabpo.com"
+  ],
+  "roleCount": 13,
+  "total": 222,
+  "passed": 222,
+  "failures": 0,
+  "claim": "every page a role's own nav makes visible is reachable and working",
+  "results": [
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/admin",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/admin/audit",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/admin/organizations",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/admin/users",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/admin/workflows",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/approvals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/attendance/corrections",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/billing",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/clients",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/cms",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/crm",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/crm/deals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/crm/leads",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/crm/proposals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/dashboard",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/employees",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/hr",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/hr/nte",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/my",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/my/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/my/cash-advances",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/my/documents",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/my/leave",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/my/nte",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/my/payroll",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/my/profile",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/my/requests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/my/schedule",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/my/support",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/payroll",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/payroll/periods",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/payroll/settings",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/recruitment",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/reports",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/tickets",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "owner@demo.beepabpo.com",
+      "route": "/app/tickets/sla",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/admin",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/admin/audit",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/admin/organizations",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/admin/users",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/admin/workflows",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/approvals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/attendance/corrections",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/cms",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/dashboard",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/employees",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/hr",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/my",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/my/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/my/cash-advances",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/my/documents",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/my/leave",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/my/nte",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/my/payroll",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/my/profile",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/my/requests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/my/schedule",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/my/support",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "superadmin@demo.beepabpo.com",
+      "route": "/app/reports",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/approvals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/attendance/corrections",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/hr",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/hr/nte",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/my",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/my/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/my/cash-advances",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/my/documents",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/my/leave",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/my/notifications",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/my/nte",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/my/payroll",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/my/profile",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/my/requests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/my/schedule",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/my/support",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/recruitment",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "hr@demo.beepabpo.com",
+      "route": "/app/reports",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/my",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/my/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/my/cash-advances",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/my/documents",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/my/leave",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/my/notifications",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/my/nte",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/my/payroll",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/my/profile",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/my/requests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/my/schedule",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/my/support",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/recruitment",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "recruiter@demo.beepabpo.com",
+      "route": "/app/reports",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/clients",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/crm",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/crm/deals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/crm/leads",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/crm/leads?status=new",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/crm/proposals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/my",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/my/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/my/cash-advances",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/my/documents",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/my/leave",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/my/nte",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/my/payroll",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/my/profile",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/my/requests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/my/schedule",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/my/support",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/reports",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "sales@demo.beepabpo.com",
+      "route": "/app/tickets",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/cms",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/crm",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/crm/deals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/crm/leads",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/crm/proposals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/my",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/my/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/my/cash-advances",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/my/documents",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/my/leave",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/my/nte",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/my/payroll",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/my/profile",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/my/requests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/my/schedule",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/my/support",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/reports",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "marketing@demo.beepabpo.com",
+      "route": "/app/tickets",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/clients",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/my",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/my/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/my/cash-advances",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/my/documents",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/my/leave",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/my/notifications",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/my/nte",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/my/payroll",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/my/profile",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/my/requests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/my/schedule",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/my/support",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/reports",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/tickets",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "operations@demo.beepabpo.com",
+      "route": "/app/tickets/sla",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/approvals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/attendance/corrections",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/hr",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/my",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/my/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/my/cash-advances",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/my/documents",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/my/leave",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/my/notifications",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/my/nte",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/my/payroll",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/my/profile",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/my/requests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/my/schedule",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/my/support",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "teamlead@demo.beepabpo.com",
+      "route": "/app/reports",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/approvals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/billing",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/my",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/my/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/my/cash-advances",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/my/documents",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/my/leave",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/my/notifications",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/my/nte",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/my/payroll",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/my/profile",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/my/requests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/my/schedule",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/my/support",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/payroll",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/payroll/settings",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "finance@demo.beepabpo.com",
+      "route": "/app/reports",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "employee@demo.beepabpo.com",
+      "route": "/app/my",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "employee@demo.beepabpo.com",
+      "route": "/app/my/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "employee@demo.beepabpo.com",
+      "route": "/app/my/cash-advances",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "employee@demo.beepabpo.com",
+      "route": "/app/my/documents",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "employee@demo.beepabpo.com",
+      "route": "/app/my/leave",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "employee@demo.beepabpo.com",
+      "route": "/app/my/notifications",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "employee@demo.beepabpo.com",
+      "route": "/app/my/nte",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "employee@demo.beepabpo.com",
+      "route": "/app/my/payroll",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "employee@demo.beepabpo.com",
+      "route": "/app/my/profile",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "employee@demo.beepabpo.com",
+      "route": "/app/my/requests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "employee@demo.beepabpo.com",
+      "route": "/app/my/schedule",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "employee@demo.beepabpo.com",
+      "route": "/app/my/support",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientadmin@demo.beepabpo.com",
+      "route": "/app/client",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientadmin@demo.beepabpo.com",
+      "route": "/app/client/approvals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientadmin@demo.beepabpo.com",
+      "route": "/app/client/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientadmin@demo.beepabpo.com",
+      "route": "/app/client/billing",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientadmin@demo.beepabpo.com",
+      "route": "/app/client/documents",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientadmin@demo.beepabpo.com",
+      "route": "/app/client/performance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientadmin@demo.beepabpo.com",
+      "route": "/app/client/reports",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientadmin@demo.beepabpo.com",
+      "route": "/app/client/requests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientadmin@demo.beepabpo.com",
+      "route": "/app/client/settings",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientadmin@demo.beepabpo.com",
+      "route": "/app/client/team",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientadmin@demo.beepabpo.com",
+      "route": "/app/client/tickets",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientadmin@demo.beepabpo.com",
+      "route": "/app/client/timesheets",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientviewer@demo.beepabpo.com",
+      "route": "/app/client",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientviewer@demo.beepabpo.com",
+      "route": "/app/client/approvals",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientviewer@demo.beepabpo.com",
+      "route": "/app/client/attendance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientviewer@demo.beepabpo.com",
+      "route": "/app/client/billing",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientviewer@demo.beepabpo.com",
+      "route": "/app/client/documents",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientviewer@demo.beepabpo.com",
+      "route": "/app/client/performance",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientviewer@demo.beepabpo.com",
+      "route": "/app/client/reports",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientviewer@demo.beepabpo.com",
+      "route": "/app/client/requests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientviewer@demo.beepabpo.com",
+      "route": "/app/client/settings",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientviewer@demo.beepabpo.com",
+      "route": "/app/client/team",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientviewer@demo.beepabpo.com",
+      "route": "/app/client/tickets",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "clientviewer@demo.beepabpo.com",
+      "route": "/app/client/timesheets",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "applicant@demo.beepabpo.com",
+      "route": "/app/applicant",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "applicant@demo.beepabpo.com",
+      "route": "/app/applicant/jobs",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "applicant@demo.beepabpo.com",
+      "route": "/app/applicant/notifications",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "email": "applicant@demo.beepabpo.com",
+      "route": "/app/applicant/profile",
+      "status": "PASS",
+      "detail": ""
+    }
+  ]
+}
