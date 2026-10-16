@@ -528,6 +528,36 @@ remaining shape of the problem is that `data-meta` is opt-in and therefore
 incomplete by construction: a future metadata line that nobody marks still depends
 on its text being short.
 
+### 2.8a The demo tenant cannot reach a whole class of empty states — fixed, but unverified by measurement
+
+While fixing the sites above, a second and larger blind spot turned up. Six
+paragraphs of explanatory body copy were sitting at 14px in the **"no employee
+record"** branches of `/app/my/attendance` (×2), `/app/my/leave`,
+`/app/my/requests`, `/app/my/support` and `/app/my/cash-advances`.
+
+The rendered audit cannot see them, and the reason is not the 25-character rule:
+
+- every demo account that reaches those pages **has** an employee record, so
+  `employee ? <form> : <p>` always takes the form branch;
+- `applicant` has no employee record, but RBAC stops it at `/app/applicant`, so
+  it never reaches `/app/my` either.
+
+So those pages measure clean for every one of the 7 roles in row 21c, and would
+measure clean forever — **for the one user the message is written for**. The
+audit proved the owner reaches `/app/my/attendance` at 390px with no finding,
+which is the evidence that the owner has a record: had it rendered the 46-character
+paragraph, the audit would have flagged it.
+
+All six are now `text-base text-slate md:text-sm`. **They are corrected by
+inspection, not by measurement** — no automated check in this repository can
+render that state today, and it would be dishonest to report them as covered.
+
+**The fix for the gap, not done here:** seed one demo account with no linked
+employee record and add it to the per-role sweep. That is a change to the demo
+tenant, and several checks assert on its exact account list and role counts, so
+it is deliberately not made casually. Until then, treat "the demo tenant has an
+employee record" as an assumption the layout audits are silently resting on.
+
 **`CardTitle` renders a `<div>`, not a heading — fixed 2026-10-09.** It used to render a
 `<div>`, so every card title in the app was invisible to heading-navigation. axe does not
 flag this: a `<div>` is not a *broken* heading, it is simply not one. It was found by

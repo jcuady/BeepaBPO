@@ -84,7 +84,7 @@ export default async function MyCashAdvancesPage({
           {employee ? (
             <CashAdvanceForm />
           ) : (
-            <p className="text-sm text-slate">
+            <p className="text-base text-slate md:text-sm">
               Link your employee profile to request a cash advance.
             </p>
           )}

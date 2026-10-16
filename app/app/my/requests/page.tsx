@@ -96,7 +96,7 @@ export default async function MyRequestsPage() {
             {employee ? (
               <CashAdvanceForm />
             ) : (
-              <p className="text-sm text-slate">
+              <p className="text-base text-slate md:text-sm">
                 Cash advances require an employee record. Contact HR if you need
                 one.
               </p>

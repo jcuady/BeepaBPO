@@ -120,7 +120,7 @@ export default async function MyLeavePage({
             </CardHeader>
             <CardContent>
               {balances.length === 0 ? (
-                <p className="text-sm text-slate">
+                <p className="text-base text-slate md:text-sm">
                   No leave balances configured for this year yet.
                 </p>
               ) : (

@@ -26,7 +26,7 @@ export default async function MySupportPage() {
           <div className="flex size-12 items-center justify-center rounded-none bg-soft-green text-green">
             <IconHeadset stroke={1.75} className="size-6" />
           </div>
-          <p className="text-sm text-slate">
+          <p className="text-base text-slate md:text-sm">
             For HR, payroll, or IT issues, submit a ticket or contact your
             supervisor. Emergency site issues can be reported through the
             contact form.

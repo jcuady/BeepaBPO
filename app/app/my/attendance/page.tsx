@@ -87,7 +87,7 @@ export default async function MyAttendancePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-slate">
+              <p className="text-base text-slate md:text-sm">
                 Link your employee profile to clock in and out.
               </p>
             </CardContent>
@@ -104,7 +104,7 @@ export default async function MyAttendancePage() {
             {employee ? (
               <AttendanceCorrectionForm records={records} />
             ) : (
-              <p className="text-sm text-slate">
+              <p className="text-base text-slate md:text-sm">
                 Link your employee profile to request attendance corrections.
               </p>
             )}
