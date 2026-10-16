@@ -389,6 +389,40 @@ Widening it to those three tags found **11 files**. Judgement on each:
 
 29 contract cases in `tests/design-system-contract.test.ts`, up from 24.
 
+#### 2.2b-1 The type exemption is also blind to *styling* drift on those elements
+
+The widening stopped one step short, and the residual gap is recorded here rather
+than closed, because closing it properly needs a judgement the scanner cannot make.
+
+`NON_TEXT_INPUT_TYPES` exempts `checkbox`, `radio`, `file`, `range`, `color`,
+`image` and `hidden` **by type**. That answers one question — "is there a primitive
+for this control category?" — and for a checkbox the honest answer is about
+*submitting*, not about looks. `components/ui/checkbox.tsx` exists and is used
+correctly by `login-form.tsx` for "Remember me", which is state-driven and submits
+nothing. But the signup terms box is a native `required` field: swapping it for the
+Base UI `Checkbox` would break form submission, because that primitive is a
+`button role="checkbox"`. So the signup exemption is **correct code**, and the
+payroll wizard's `type="radio"` likewise.
+
+The gap is that the exemption is blind to everything *else* about those elements.
+Found by sweeping the same way §2.2b found its eleven: `ticket-sla-policy-form.tsx`
+carried `className="size-4 rounded border-line"` — a **4px corner radius on a
+square-brand product**, at 16px where its sibling in the same auth flow renders at
+20px through the primitive. Invisible to the gate, because the exemption is keyed on
+`type` and says nothing about classes.
+
+**Fixed** (`size-5 rounded-none border-line`), aligning it with both the brand and
+the login checkbox.
+
+**No gate added, deliberately.** The obvious rule — "a raw checkbox may not carry a
+corner radius" — is sound, but the *general* version cannot be written: deciding
+whether a raw checkbox is a submitted native field or a controlled toggle needs to
+follow state wiring across a component, and this repo's own rule is that a scanner
+which cannot read a file has no standing to accuse it (the `audit-filter-persistence`
+version-3 failure in §2.7 is exactly that mistake, made once already). A rule keyed
+on `type` can only skip them all. Recorded as a known gap rather than papered over
+with a check that would either be vacuous or wrong.
+
 ### 2.3 Remaining silent list caps (P2 — re-scoped, most were never defects)
 
 An earlier version of this doc listed eleven `.limit()` sites as "list pages that

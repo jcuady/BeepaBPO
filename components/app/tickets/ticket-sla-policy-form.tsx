@@ -101,7 +101,7 @@ export function TicketSlaPolicyForm({
       <label className="flex min-h-11 items-center gap-2 text-sm text-navy">
         <input
           type="checkbox"
-          className="size-4 rounded border-line"
+          className="size-5 rounded-none border-line"
           checked={active}
           onChange={(e) => {
             setActive(e.target.checked);
