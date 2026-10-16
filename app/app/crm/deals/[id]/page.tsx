@@ -185,7 +185,7 @@ export default async function CrmDealDetailPage({
               >
                 <div>
                   <p className="text-sm font-medium text-navy">{proposal.title}</p>
-                  <p className="mt-1 text-sm text-slate">
+                  <p data-meta className="mt-1 text-sm text-slate">
                     {money(proposal.amount, proposal.currency)}
                   </p>
                   <div className="mt-2">

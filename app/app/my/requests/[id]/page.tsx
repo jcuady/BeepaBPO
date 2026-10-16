@@ -60,7 +60,7 @@ export default async function MyTicketDetailPage({
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="whitespace-pre-wrap text-sm text-slate">
+          <p className="whitespace-pre-wrap text-base text-slate md:text-sm">
             {ticket.description}
           </p>
           <p className="text-xs text-slate">
@@ -100,7 +100,7 @@ export default async function MyTicketDetailPage({
                     {author?.display_name ?? "User"} ·{" "}
                     {format(new Date(msg.created_at), "MMM d, h:mm a")}
                   </p>
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-navy">
+                  <p className="mt-2 whitespace-pre-wrap text-base text-navy md:text-sm">
                     {msg.body}
                   </p>
                 </CardContent>

@@ -482,10 +482,10 @@ the test fail.
 | ~~`CardTitle` carries no heading role~~ | **Done** | `CardTitle` now renders `<h2>`; a positive a11y assertion prevents regression. See §2.5 |
 | OAuth / FTS / announcements | Deferred | Deliberately out of scope |
 | Org/workflow CRUD | Deferred | Read-only is intentional |
-| **The 25-character body-copy threshold hides real 14px violations** | **P2** | See §2.8 |
-| **`text-sm text-slate` body copy on ~8 `/app/my` pages** | **P2** | See §2.8 |
+| **The 25-character body-copy threshold hides real 14px violations** | **P2, mostly closed** | See §2.8 — 4 body-copy sites fixed, 4 metadata sites now marked `data-meta` |
+| **`text-sm text-slate` body copy on `/app/my` pages** | **Done** | See §2.8 |
 
-### 2.8 The audit's 25-character body-copy threshold is seed data, not a rule
+### 2.8 The audit's 25-character body-copy threshold is seed data, not a rule — mostly closed
 
 The responsive audit skips any text under 25 characters as "not running body copy"
 (`scripts/audit-app-responsive.mjs`). That is a reasonable guard against flagging
@@ -498,30 +498,35 @@ through and were only caught when the sweep was finally run *per role*:
 | `/app/my/documents` | `category · date` | `text-sm` (14px) | teamlead's document name is 28 chars; owner's is shorter and passed the identical component |
 | `/app/client/notifications` | notification **body** | `text-sm` (14px) | clientviewer's seeded body exceeds 25 chars |
 
-Both are fixed (`text-base md:text-sm` / `text-base sm:text-sm`, unchanged on
-desktop). Both are in **shared components**, so other routes were latently wrong
-too.
+**Both defects are fixed**, and so is the rule that let them through.
 
-**The same pattern is still present and currently under the threshold**, so these
-are latent rather than green — they will fail the moment seeded text gets longer:
+**The four unambiguous body-copy sites** — a reason, a description, a message body
+— are now `text-base md:text-sm`, unchanged on desktop:
 
-- `app/app/my/cash-advances/page.tsx:123` — `row.reason`
-- `app/app/my/requests/page.tsx:127` — `ticket_number · date`
-- `app/app/my/nte/page.tsx:87` — `row.description`
-- `app/app/my/requests/[id]/page.tsx:63` — `ticket.description`
-- `app/app/my/attendance/page.tsx:130` — timestamps
-- `components/app/billing/invoice-detail-view.tsx:72` — client · period
-- `app/app/crm/deals/[id]/page.tsx:188` — proposal amount
+- `app/app/my/cash-advances/page.tsx` — `row.reason`
+- `app/app/my/nte/page.tsx` — `row.description`
+- `app/app/my/requests/[id]/page.tsx` — `ticket.description`, `msg.body`
 
-**The fix is two parts and only the first is mechanical.** Bumping those to
-`text-base md:text-sm` is mechanical. The threshold itself is the real problem:
-it should distinguish *body copy* from a *label* semantically — e.g. an explicit
-opt-out attribute on the element — rather than by counting characters, because a
-counting rule cannot distinguish `Draft` from `No employee record is linked to
-your account, so uploads are unavailable.` Do not simply lower the number: that
-converts every short label on every page into a failure and buries the real
-findings, which is the failure mode `audit:responsive` already documents for
-`/app/cms`.
+**The four sites that are genuinely metadata** keep their 14px and are now marked
+`data-meta`, a semantic opt-out the audit honours *before* the length heuristic:
+a ticket number and date, a clock time, an invoice client and period, a
+proposal amount. Marking them is explicit and reviewable; a character count can
+never make that distinction, and these lines are exactly the ones that would flip
+to FAIL the day a client name or ticket number grew.
+
+`tests/body-copy-meta-optout.test.ts` (4 tests) pins both directions — that the
+four metadata lines are marked, that the body-copy lines are **not**, and that
+each body-copy site still carries `text-base md:text-sm`. **Mutation-proved:**
+marking `row.reason` as `data-meta` turns 2 of the 4 red, so the guard fires
+rather than merely being present.
+
+**What deliberately did not change: the 25-character rule itself.** It still
+guards every unmarked short string, and it is still a heuristic. Removing it would
+turn every short label on every page into a failure and bury the real findings —
+the failure mode `audit:responsive` already documents for `/app/cms`. The
+remaining shape of the problem is that `data-meta` is opt-in and therefore
+incomplete by construction: a future metadata line that nobody marks still depends
+on its text being short.
 
 **`CardTitle` renders a `<div>`, not a heading — fixed 2026-10-09.** It used to render a
 `<div>`, so every card title in the app was invisible to heading-navigation. axe does not

@@ -84,7 +84,7 @@ export default async function MyNtePage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <p className="whitespace-pre-wrap text-sm text-slate">
+                  <p className="whitespace-pre-wrap text-base text-slate md:text-sm">
                     {row.description}
                   </p>
                   <p className="text-xs text-slate">

@@ -340,6 +340,15 @@ const probe = (opts) => {
       // Visually-hidden accessibility text is not rendered body copy.
       if (el.closest('[class*="sr-only"], .sr-only')) continue;
       const text = (el.textContent || "").trim();
+      // SEMANTIC opt-out, and it comes before the length heuristic below.
+      // `data-meta` means "this element is secondary metadata, not body copy" —
+      // a category, a timestamp, an amount. The 25-character rule cannot make
+      // that distinction: it treats `No employee record is linked to your
+      // account, so uploads are unavailable.` as body copy and `₱12,000` as a
+      // label, purely on length, which is why two real 14px violations in
+      // shared components passed until their seed text happened to grow.
+      // Marking the element is explicit, reviewable, and immune to the data.
+      if (el.closest("[data-meta]")) continue;
       if (text.length < 25) continue;
       if (el.children.length > 0) continue;
       if (["TD", "TH", "DT", "FIGCAPTION", "KBD", "SUMMARY"].includes(el.tagName)) continue;

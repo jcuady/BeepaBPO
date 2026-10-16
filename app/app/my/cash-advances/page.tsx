@@ -120,7 +120,13 @@ export default async function MyCashAdvancesPage({
                   <p className="font-medium text-navy">
                     ₱{Number(row.requested_amount).toLocaleString()}
                   </p>
-                  <p className="text-sm text-slate">{row.reason}</p>
+                  {/* The reason a person typed is body copy, not a label. `text-base md:text-sm`
+                      keeps it at 14px on desktop, where it was fine and the rest
+                      of the card is dense, and 16px on phones. Recorded in
+                      REMAINING_WORK 2.8: this line passed only because the
+                      current seed reasons are short enough to fall under the
+                      audit's 25-character body-copy threshold. */}
+                  <p className="text-base text-slate md:text-sm">{row.reason}</p>
                   <p className="text-xs text-slate">
                     {format(new Date(row.created_at), "MMM d, yyyy")}
                   </p>

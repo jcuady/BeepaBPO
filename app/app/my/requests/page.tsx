@@ -124,7 +124,7 @@ export default async function MyRequestsPage() {
                     <CardContent className="flex items-center justify-between gap-3 p-4">
                       <div>
                         <p className="font-medium text-navy">{ticket.subject}</p>
-                        <p className="text-sm text-slate">
+                        <p data-meta className="text-sm text-slate">
                           {ticket.ticket_number} ·{" "}
                           {format(new Date(ticket.created_at), "MMM d, yyyy")}
                         </p>

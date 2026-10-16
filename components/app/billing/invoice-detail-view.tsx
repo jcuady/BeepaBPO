@@ -69,7 +69,7 @@ export function InvoiceDetailView({
             <CardTitle className="font-display text-base text-navy">
               {invoice.invoice_number}
             </CardTitle>
-            <p className="mt-1 text-sm text-slate">
+            <p data-meta className="mt-1 text-sm text-slate">
               {clientName ? `${clientName} · ` : null}
               Period {format(new Date(invoice.period_start), "MMM d")} –{" "}
               {format(new Date(invoice.period_end), "MMM d, yyyy")}

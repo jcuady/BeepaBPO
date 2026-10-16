@@ -127,7 +127,7 @@ export default async function MyAttendancePage() {
                   <p className="font-medium text-navy">
                     {format(parseISO(row.work_date), "MMM d, yyyy")}
                   </p>
-                  <p className="text-sm text-slate">
+                  <p data-meta className="text-sm text-slate">
                     {row.clock_in_at
                       ? formatZonedTime(row.clock_in_at)
                       : "—"}{" "}
