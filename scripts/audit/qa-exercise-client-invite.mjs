@@ -118,6 +118,12 @@ async function cleanup() {
 
 const browser = await chromium.launch();
 let outcome = "pass";
+// Declared HERE, not inside the `try`. The `finally` block needs it to clean up,
+// and a `const` scoped to the `try` is in the temporal dead zone when the `try`
+// throws before reaching its declaration — so a run that failed EARLY threw a
+// ReferenceError from the cleanup instead of reporting the failure that actually
+// happened. That is the worst possible time to lose the real error.
+let existingUserId = null;
 try {
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
@@ -203,13 +209,25 @@ try {
     if (environmentRefused) {
       outcome = "blocked";
       block(`invite refused by the environment: "${toastText}"`);
+      // DO NOT throw here. Throwing skipped everything after the new-address
+      // attempt — which is to say it skipped the leg that does not need mail at
+      // all, and reported the whole feature as unexercisable because one of its two
+      // paths was quota-bound. `inviteClientUser` calls the same
+      // `inviteOrResolveAuthUser` helper as the admin invite, and an address that
+      // already has an account takes the resolve path with no outbound mail.
+      //
+      // That leg is the one a real admin hits most often, and it is what proves
+      // the membership, the organization binding and the client-scoped role. It is
+      // driven below instead. The 6/7 BLOCKED record this used to produce was
+      // accurate about the mail and wrong about the feature.
+    } else {
+      check("invite succeeds", false,
+        `no auth user was created — toast: ${toastText ?? "(none)"}`);
+      throw new Error("invite did not succeed");
     }
-    check("invite succeeds", false,
-      `no auth user was created — toast: ${toastText ?? "(none)"}`);
-    throw new Error("invite did not succeed");
-  }
-  check("invite succeeds", true, `auth user ${authUser.id} — toast: ${toastText ?? "(no toast)"}`);
-  check("an auth user was created for the invited address", true, authUser.id);
+  } else {
+    check("invite succeeds", true, `auth user ${authUser.id} — toast: ${toastText ?? "(no toast)"}`);
+    check("an auth user was created for the invited address", true, authUser.id);
 
   const profiles = await must(
     db.from("profiles").select("id, display_name, first_name, last_name, status").eq("id", createdUserId),
@@ -248,12 +266,110 @@ try {
     roles.map((r) => r.roles?.scope).join(", "));
 
   // ---- an invited user must NOT be able to sign in yet ---------------------
+  // New-address only. A user created by an invite has no password until they
+  // accept; a user who ALREADY had an account has one, and can sign in. Asserting
+  // this on the resolve path would assert the wrong thing and fail correctly.
   const anon = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
     auth: { persistSession: false },
   });
   const signIn = await anon.auth.signInWithPassword({ email: EMAIL, password: env.DEMO_PASSWORD });
   check("the invited user cannot sign in with a password before accepting", !!signIn.error,
     signIn.error ? signIn.error.message : "SIGNED IN — invited users should have no password yet");
+  } // <- end of the NEW-ADDRESS branch
+
+  // ---- the leg that needs no mail: an address that ALREADY has an account ----
+  //
+  // Reached whether or not the new-address attempt above succeeded, because it is
+  // a different code path with a different dependency, and a quota on one says
+  // nothing about the other.
+  //
+  // `inviteClientUser` calls the same `inviteOrResolveAuthUser` helper as the
+  // admin invite. Supabase answers an invite for a known address with "A user with
+  // this email address has already been registered" and no user, so the helper
+  // resolves the id by paging `listUsers` — no mail, no quota. Proven by probe
+  // before being relied on: an existing address returns "already registered" while
+  // a new one still returns the rate-limit refusal.
+  //
+  // The fixture is on `@demo.beepabpo.com` because `inviteUserByEmail` VALIDATES
+  // the domain and rejected the `@nowhere.example` domain the other probes used —
+  // a fixture built there could never be invited at all, and the leg would have
+  // failed for a reason that reads exactly like a product defect.
+  const EXISTING_EMAIL = `qa.client.existing.${Date.now().toString(36)}@demo.beepabpo.com`;
+  const seededExisting = await db.auth.admin.createUser({
+    email: EXISTING_EMAIL,
+    password: "QaClientInvite#2026x",
+    email_confirm: true, // no confirmation mail, so the FIXTURE spends no quota
+  });
+
+  if (seededExisting.error) {
+    block(`could not seed the existing-account fixture: ${seededExisting.error.message}`);
+  } else {
+    existingUserId = seededExisting.data.user.id;
+    // The toast is watched from the moment of the click: Sonner dismisses in ~4s,
+    // so a fixed wait afterwards finds nothing and reports the absence of a
+    // message that was in fact shown. This is the same trap that made the first
+    // version of the admin leg fail on a healthy run.
+    const existingToasts = new Set();
+    const existingWatcher = setInterval(async () => {
+      try {
+        const texts = await page.locator("[data-sonner-toaster]").allInnerTexts();
+        for (const t of texts) if (t.trim()) existingToasts.add(t.trim());
+      } catch { /* page navigating */ }
+    }, 200);
+
+    await page.goto(`${BASE}/app/clients`, { waitUntil: "domcontentloaded" });
+    await page.locator("#client-org").waitFor({ state: "visible", timeout: 20000 });
+    await page.fill("#client-first-name", "Qa");
+    await page.fill("#client-last-name", "Existing");
+    await page.fill("#client-email", EXISTING_EMAIL);
+    await page.click('form button[type="submit"]');
+    await page.waitForTimeout(6000);
+    clearInterval(existingWatcher);
+    const existingToast = [...existingToasts].join(" | ").trim();
+
+    // The action's own wording for the resolve path, read from `inviteClientUser`:
+    // `invited ? "Invite sent to <email> for <org>." : "Existing user linked to <org> as <role>."`
+    //
+    // Read rather than guessed. The first version reused the ADMIN leg's phrasing,
+    // "Existing user linked with role hr.", and failed on a perfectly healthy run —
+    // the two actions say it differently, and an assertion copied from a sibling
+    // reports the copy as the requirement. Matching the ORG as well as the role is
+    // what proves this specific action ran rather than the admin one.
+    const linkedCopy = existingToast.match(/Existing user linked to .+ as client_(?:admin|viewer)\./i)?.[0]?.trim();
+    check("inviting an existing account reports that the user was linked",
+      Boolean(linkedCopy), linkedCopy ?? `toast: ${existingToast.slice(0, 110) || "(no toast was shown)"}`);
+
+    // And now by state: the membership is the claim, not the message.
+    const exMemberships = await must(
+      db.from("organization_memberships")
+        .select("id, organization_id, user_id, membership_type, status")
+        .eq("user_id", existingUserId),
+      "read existing-account membership",
+    );
+    const exM = exMemberships[0] ?? {};
+    check("the existing account was given a membership", exMemberships.length === 1, `${exMemberships.length} row(s)`);
+    check("the existing-account membership points at the selected organization",
+      exM.organization_id === selectedOrgId, `${exM.organization_id} vs selected ${selectedOrgId}`);
+    check("the existing-account membership is client-scoped, not internal",
+      exM.membership_type === "client", String(exM.membership_type));
+    // Deliberately NOT asserting `status === "invited"`: an account that already
+    // exists is ACTIVE, not pending acceptance. Asserting "invited" here would be
+    // asserting the new-address rule on the resolve path — the kind of check that
+    // passes for the wrong reason or fails for a non-defect.
+
+    if (exM.id) {
+      const exRoles = await must(
+        db.from("membership_roles").select("role_id, roles (id, code, scope)").eq("membership_id", exM.id),
+        "read existing-account roles",
+      );
+      const exCodes = exRoles.map((r) => r.roles?.code).filter(Boolean);
+      check("the existing-account membership carries the client portal role",
+        exCodes.includes("client_admin") || exCodes.includes("client_viewer"), exCodes.join(", ") || "none");
+      check("every role granted to an existing account is client-scoped",
+        exRoles.every((r) => r.roles?.scope === "client"),
+        exRoles.map((r) => r.roles?.scope).join(", "));
+    }
+  }
 
   await ctx.close();
 } catch (err) {
@@ -263,6 +379,24 @@ try {
   }
 } finally {
   await browser.close();
+
+  // The existing-account fixture is cleaned up here rather than in `cleanup()`,
+  // which only knows about `createdUserId`. Leaving it behind would put a real
+  // auth user in the demo database for every run thereafter — and the next run
+  // would find a second one already there, which is exactly how a QA fixture
+  // becomes permanent data.
+  if (existingUserId) {
+    const { data: exLeft } = await db
+      .from("organization_memberships").select("id").eq("user_id", existingUserId);
+    for (const mem of exLeft ?? []) {
+      await db.from("membership_roles").delete().eq("membership_id", mem.id);
+      await db.from("organization_memberships").delete().eq("id", mem.id);
+    }
+    const del = await db.auth.admin.deleteUser(existingUserId);
+    const gone = (await db.auth.admin.getUserById(existingUserId)).data?.user;
+    check("existing-account invite left nothing behind", !del.error && !gone,
+      del.error ? `deleteUser: ${del.error.message}` : gone ? "auth user still present" : "membership and auth user removed");
+  }
 }
 
 // ---- cleanup is a RESULT, not a log line ----------------------------------

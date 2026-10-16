@@ -1,10 +1,10 @@
 {
   "check": "client-invite",
-  "generatedAt": "2026-10-13T03:01:23.472Z",
+  "generatedAt": "2026-10-16T06:55:13.108Z",
   "base": "http://localhost:3100",
-  "marker": "qa-invite-mv63glym",
-  "total": 17,
-  "passed": 17,
+  "marker": "qa-invite-mvam4prq",
+  "total": 24,
+  "passed": 24,
   "failures": 0,
   "blocked": false,
   "cleanupVerified": true,
@@ -27,22 +27,22 @@
     {
       "name": "the form accepts the invite address",
       "pass": true,
-      "detail": "qa-invite-mv63glym@beepabpo.com"
+      "detail": "qa-invite-mvam4prq@beepabpo.com"
     },
     {
       "name": "invite succeeds",
       "pass": true,
-      "detail": "auth user e6919847-4009-4f9a-8908-3b2e3b9bb844 — toast: Invite sent to qa-invite-mv63glym@beepabpo.com for CloudPeak."
+      "detail": "auth user f0953121-eb1b-4471-be1f-b36512df54b2 — toast: Invite sent to qa-invite-mvam4prq@beepabpo.com for CloudPeak."
     },
     {
       "name": "an auth user was created for the invited address",
       "pass": true,
-      "detail": "e6919847-4009-4f9a-8908-3b2e3b9bb844"
+      "detail": "f0953121-eb1b-4471-be1f-b36512df54b2"
     },
     {
       "name": "the profile carries the names typed into the form",
       "pass": true,
-      "detail": "{\"id\":\"e6919847-4009-4f9a-8908-3b2e3b9bb844\",\"display_name\":\"Qa Invitee\",\"first_name\":\"Qa\",\"last_name\":\"Invitee\",\"status"
+      "detail": "{\"id\":\"f0953121-eb1b-4471-be1f-b36512df54b2\",\"display_name\":\"Qa Invitee\",\"first_name\":\"Qa\",\"last_name\":\"Invitee\",\"status"
     },
     {
       "name": "a membership was created",
@@ -83,6 +83,41 @@
       "name": "the invited user cannot sign in with a password before accepting",
       "pass": true,
       "detail": "Invalid login credentials"
+    },
+    {
+      "name": "inviting an existing account reports that the user was linked",
+      "pass": true,
+      "detail": "Existing user linked to CloudPeak as client_admin."
+    },
+    {
+      "name": "the existing account was given a membership",
+      "pass": true,
+      "detail": "1 row(s)"
+    },
+    {
+      "name": "the existing-account membership points at the selected organization",
+      "pass": true,
+      "detail": "1a91499c-56b5-4d60-ae9d-3835545b6ed5 vs selected 1a91499c-56b5-4d60-ae9d-3835545b6ed5"
+    },
+    {
+      "name": "the existing-account membership is client-scoped, not internal",
+      "pass": true,
+      "detail": "client"
+    },
+    {
+      "name": "the existing-account membership carries the client portal role",
+      "pass": true,
+      "detail": "client_admin"
+    },
+    {
+      "name": "every role granted to an existing account is client-scoped",
+      "pass": true,
+      "detail": "client"
+    },
+    {
+      "name": "existing-account invite left nothing behind",
+      "pass": true,
+      "detail": "membership and auth user removed"
     },
     {
       "name": "cleanup left no membership behind",

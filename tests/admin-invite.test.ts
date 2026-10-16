@@ -89,6 +89,106 @@ describe("admin invite slice", () => {
     expect(exercise).toMatch(/createUser\(\{[\s\S]{0,200}email_confirm: true/);
   });
 
+  /**
+   * The CLIENT invite is the same helper and the same two paths, and the client
+   * leg is driven separately because its failure mode is worse.
+   *
+   * With the resolve short-circuit dead, inviting somebody who ALREADY has a
+   * client account returns *"Unable to send the invite right now. Try again in a
+   * moment."* and creates NO membership. So an empty mail budget does not merely
+   * stop new people joining — it stops existing people being granted access, and
+   * reports a mail problem for an operation that needed no mail. Measured, not
+   * inferred: that is the mutated run's actual output.
+   */
+  it("drives the client existing-account leg, and does not gate it on mail", () => {
+    const exercise = readFileSync(
+      join(process.cwd(), "scripts", "audit", "qa-exercise-client-invite.mjs"),
+      "utf8",
+    );
+
+    // The critical shape: a blocked new-address attempt must NOT throw, because
+    // throwing skipped everything after it — which was the leg that needs no mail.
+    // The whole exercise used to report BLOCKED and measure nothing.
+    expect(exercise).toMatch(/outcome = "blocked";[\s\S]{0,900}?\n\s*\} else \{/);
+    expect(exercise).toContain("inviting an existing account reports that the user was linked");
+    expect(exercise).toContain("the existing-account membership points at the selected organization");
+    expect(exercise).toContain("the existing-account membership is client-scoped, not internal");
+    expect(exercise).toContain("every role granted to an existing account is client-scoped");
+    expect(exercise).toContain("existing-account invite left nothing behind");
+
+    // The cleanup variable must be hoisted out of the `try`. Scoped to it, a run
+    // that failed early threw a ReferenceError from the `finally` instead of
+    // reporting the failure — which is how the first run of this reported a
+    // ReferenceError as its verdict.
+    expect(exercise).toMatch(/let existingUserId = null;[\s\S]*?try \{/);
+
+    // An existing account is ACTIVE, not `invited`. Asserting `status === "invited"`
+    // on the resolve path would assert the new-address rule on the wrong leg.
+    //
+    // Scoped to the EXISTING-ACCOUNT REGION, not the file. The first version
+    // searched check-call lines across the whole script and failed against a
+    // script that is correct, because `an invited user is marked invited, not
+    // active` legitimately compares `status === "invited"` for the NEW-address
+    // user — who really is invited. Two assertions here were wrong rather than
+    // the code: one read the script's own explanatory comment, one read the
+    // sibling leg's valid check. A negative assertion has to name its subject.
+    // Anchored to the DECLARATION, not the first mention: the constant's name also
+    // appears in the comment block above it, and slicing from there runs to
+    // end-of-file and picks the sibling leg's valid check back up. That was the
+    // second version of this assertion failing for the same underlying reason.
+    const exStart = exercise.indexOf("const EXISTING_EMAIL =");
+    expect(exStart).toBeGreaterThan(-1);
+    // And bounded: the leg ends where its `finally`-time cleanup is defined, so
+    // the region cannot silently grow to include unrelated assertions.
+    const exEnd = exercise.indexOf("existing-account invite left nothing behind", exStart);
+    expect(exEnd).toBeGreaterThan(exStart);
+    const exRegion = exercise.slice(exStart, exEnd + 200);
+    expect(exRegion).toContain('membership_type === "client"');
+
+    // COMMENTS ARE STRIPPED before this negative check. Three versions of this
+    // assertion failed in a row against a script that was correct each time:
+    // the first searched check-call lines and matched the sibling leg's valid
+    // assertion, the second matched the script's own explanation of why it does
+    // NOT assert `status === "invited"`, and the third matched that same comment
+    // after the region was anchored correctly.
+    //
+    // The lesson generalises past this file: a negative assertion against source
+    // must run on CODE. A comment that names the forbidden string is the normal
+    // way a careful author documents the rule, so searching raw text guarantees a
+    // false positive the moment somebody writes down why.
+    const exCode = exRegion
+      .split(/\r?\n/)
+      .filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l))
+      .join("\n");
+    expect(exCode).not.toMatch(/status\s*===\s*"invited"/);
+    // And the new-address leg still asserts it, which is correct there.
+    expect(exercise.slice(0, exStart)).toMatch(/m\.status === "invited"/);
+  });
+
+  it("gives the two invite actions their own success copy", () => {
+    // They differ, and an assertion written for the wrong one fails on a healthy
+    // run. Measured: admin says "Existing user linked with role hr." and the
+    // client action says "Existing user linked to CloudPeak as client_admin."
+    const clientActions = readFileSync(join(process.cwd(), "lib", "clients", "actions.ts"), "utf8");
+    const admin = readFileSync(
+      join(process.cwd(), "scripts", "audit", "qa-exercise-admin-workflow.mjs"),
+      "utf8",
+    );
+    const client = readFileSync(
+      join(process.cwd(), "scripts", "audit", "qa-exercise-client-invite.mjs"),
+      "utf8",
+    );
+    expect(actions).toContain("Existing user linked with role");
+    expect(clientActions).toContain("Existing user linked to");
+    // And each exercise matches its OWN action's wording. Asserted as plain
+    // substrings of the REGEX LITERALS rather than as regexes-of-regexes: the
+    // first version of this test used `/Existing user linked with role \[a-z_\]\+\./`
+    // and failed against a script whose matcher was correct, because the escaping
+    // had to be right twice. A test that fails on its own escaping teaches nothing.
+    expect(admin).toContain("Existing user linked with role [a-z_]+");
+    expect(client).toContain("Existing user linked to .+ as client_(?:admin|viewer)");
+  });
+
   it("wires AdminInviteForm on users page with invited list", () => {
     expect(form).toContain("inviteInternalUser");
     expect(page).toContain("AdminInviteForm");

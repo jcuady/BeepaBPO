@@ -1,11 +1,11 @@
 {
   "check": "client-invite",
-  "generatedAt": "2026-10-12T12:50:20.457Z",
+  "generatedAt": "2026-10-16T07:01:01.980Z",
   "base": "http://localhost:3100",
-  "marker": "qa-invite-mv59290s",
-  "total": 7,
-  "passed": 6,
-  "failures": 1,
+  "marker": "qa-invite-mvamc8h5",
+  "total": 11,
+  "passed": 7,
+  "failures": 4,
   "blocked": true,
   "cleanupVerified": true,
   "results": [
@@ -27,12 +27,32 @@
     {
       "name": "the form accepts the invite address",
       "pass": true,
-      "detail": "qa-invite-mv59290s@beepabpo.com"
+      "detail": "qa-invite-mvamc8h5@beepabpo.com"
     },
     {
-      "name": "invite succeeds",
+      "name": "inviting an existing account reports that the user was linked",
       "pass": false,
-      "detail": "no auth user was created — toast: Too many invites have been sent from this network. Wait a moment, then try again."
+      "detail": "toast: Unable to send the invite right now. Try again in a moment."
+    },
+    {
+      "name": "the existing account was given a membership",
+      "pass": false,
+      "detail": "0 row(s)"
+    },
+    {
+      "name": "the existing-account membership points at the selected organization",
+      "pass": false,
+      "detail": "undefined vs selected 1a91499c-56b5-4d60-ae9d-3835545b6ed5"
+    },
+    {
+      "name": "the existing-account membership is client-scoped, not internal",
+      "pass": false,
+      "detail": "undefined"
+    },
+    {
+      "name": "existing-account invite left nothing behind",
+      "pass": true,
+      "detail": "membership and auth user removed"
     },
     {
       "name": "cleanup left no membership behind",

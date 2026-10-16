@@ -3731,7 +3731,69 @@ than only printed.
 `inviteClientUser` still answers 429 on the **new-address** leg. That remains a
 project-level email budget with nothing in it, and retrying is safe.
 
-**One action left, and the budget reasoning still applies.** `inviteClientUser` calls
+****The same two paths exist on the CLIENT invite, and its failure mode is worse.**
+
+`inviteClientUser` calls the same helper, so `qa-exercise-client-invite.mjs` gained
+the same existing-account leg — and the exercise had to be restructured first,
+because it made the blocked path fatal:
+
+```js
+if (environmentRefused) { outcome = "blocked"; block(…); }
+check("invite succeeds", false, …);
+throw new Error("invite did not succeed");     // ← skipped EVERYTHING after it
+```
+
+So one closed mail window meant the exercise reported `BLOCKED` and measured
+**nothing** — including the leg that needs no mail. It now continues past a blocked
+new-address attempt and drives the resolve path regardless. The result is a full
+measurement rather than a 6/7 record: **24/24**, with both legs in one run and
+`client-invite-check.json` written rather than skipped.
+
+**And the mutation found something the admin leg's did not.** With the
+`already registered` short-circuit disabled, the client path returns:
+
+```
+FAIL  inviting an existing account reports that the user was linked
+      — toast: Unable to send the invite right now. Try again in a moment.
+FAIL  the existing account was given a membership  — 0 row(s)
+```
+
+An existing client is **denied access entirely** because a mail budget is empty,
+and told it is a mail problem — for an operation that never needed mail. On the
+admin leg the same mutation cost one assertion; here it costs the membership
+itself. That is a correctness bug the quota had been concealing, not just a
+missing test, and it is the argument for measuring the resolve path rather than
+declaring the whole feature unexercisable.
+
+Two defects in the new client check, both the same shape as the admin one:
+
+1. It reused the **admin** leg's phrasing, "Existing user linked with role hr.",
+   and failed on a healthy run. The two actions say it differently — client says
+   *"Existing user linked to CloudPeak as client_admin."* An assertion copied from a
+   sibling reports the copy as the requirement.
+2. `existingUserId` was declared with `const` inside the `try`, so a run that threw
+   early hit a **ReferenceError in the `finally`** instead of reporting the failure
+   that actually happened — and a ReferenceError was briefly this exercise's
+   verdict. It is hoisted now.
+
+**Three versions of a test assertion failed against a correct script**, which is
+worth recording because the shape recurs. The assertion was "the existing-account
+leg must not assert `status === "invited"`", because an account that already exists
+is ACTIVE. It failed three times:
+
+1. searching all `check(` lines matched the **sibling new-address leg's valid**
+   assertion — where `invited` is correct;
+2. scoping to `check(` lines still matched the script's **own comment** explaining
+   why it does not assert that;
+3. anchoring the region correctly still matched that same comment, because the
+   slice ran to end-of-file.
+
+The fix is not a narrower regex. **A negative assertion against source must run on
+CODE, with comments stripped** — a comment that names the forbidden string is the
+normal way a careful author documents the rule, so searching raw text guarantees a
+false positive the moment somebody writes down why.
+
+One action left, and the budget reasoning still applies.** `inviteClientUser` calls
 `admin.inviteUserByEmail`, which is still answering HTTP 429. That is a **budget, not a
 wall** — which this session proved the hard way: `signupAction` sat in the "blocked forever"
 bucket for most of the QA run, was assumed dead, and then ran to completion the moment the
