@@ -2,7 +2,7 @@
   "check": "auth-callback",
   "script": "scripts/audit/qa-exercise-auth-callback.mjs",
   "baseUrl": "http://localhost:3100",
-  "when": "2026-10-16T08:48:23.560Z",
+  "when": "2026-10-16T14:57:50.589Z",
   "assertions": 8,
   "passed": 8,
   "failed": 0,

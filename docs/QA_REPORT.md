@@ -4243,3 +4243,42 @@ matched before changing anything, and both cleanup scripts re-read afterwards to
 confirm rather than trusting the delete's own count. Every workflow exercise
 restores what it changed and then **asserts the restoration**, so a failing run
 says so rather than leaving damage behind quietly.
+
+## A field declared on `ActionState` that no action returns (`verifyToken`)
+
+Found by sweeping for the general shape of the `/auth/callback` defect: a value
+produced by one module and consumed by nobody. `ActionState` declared
+`verifyToken?: string`, and **no action in the repository ever set it**.
+
+Two components read it, so two confirmation panels carried a branch that could never
+execute:
+
+| Panel | Guard | Link it offered |
+|---|---|---|
+| `signup-form.tsx` — "Check your email" | `{state.verifyToken && …}` | `/verify-email?token=…` |
+| `forgot-password-form.tsx` — "Check your email" | `{state.verifyToken && …}` | `/reset-password?token=…` |
+
+Neither was gated to a development environment. Both were labelled "Dev … link", and
+both were one assignment away from shipping in production, on a surface whose stated
+rule is never to advertise something that is not built.
+
+**The reset one was worse than unreachable.** `/reset-password` reads `token` only to
+hand it to a form that gates on the **session** and never reads it — the earlier fix
+in this file. Had the field been populated, the forgot-password panel would have
+handed a person a link whose entire message is "Invalid link".
+
+`/verify-email?token=` is genuinely real: that page calls `verifyEmailAction(token)`.
+Only the reset link was a dead end, which is why deleting the field is right and
+deleting the `/verify-email` route would have been wrong.
+
+**Removed rather than wired up.** `tests/action-state-orphans.test.ts` fails if a
+field is declared on `ActionState` that no action returns, so the next one of these
+cannot be added silently. Mutation-proven: re-adding `verifyToken?: string` turns the
+guard red and it names the field.
+
+The negative assertions run on **comments stripped**. The comment explaining the
+removal names the field deliberately, so a raw text search would always hit it.
+
+Verified: vitest **804/804 across 99 files**, `tsc` 0, `eslint` 0, and both auth
+exercises re-run against the rebuilt app — `auth-callback` **8/8**, `reset-password`
+**8/8** — so removing the branches changed nothing that was reachable.

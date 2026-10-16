@@ -17,17 +17,6 @@ export function ForgotPasswordForm() {
       <div className="rounded-none border border-line bg-white p-6 shadow-[0_8px_30px_rgb(23_24_43/0.06)] sm:p-8">
         <h2 className="font-display text-2xl font-bold text-navy">Check your email</h2>
         <p className="mt-3 text-base text-slate">{state.message}</p>
-        {state.verifyToken && (
-          <p className="mt-4 rounded-none bg-mist p-3 text-sm text-navy">
-            Dev reset link:{" "}
-            <Link
-              className="font-semibold text-green-strong underline"
-              href={`/reset-password?token=${state.verifyToken}`}
-            >
-              Reset password
-            </Link>
-          </p>
-        )}
         <Link
           href="/login"
           className="mt-6 inline-flex min-h-11 items-center font-display text-sm font-semibold text-green-strong hover:underline"

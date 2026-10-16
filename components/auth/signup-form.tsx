@@ -62,17 +62,6 @@ export function SignupForm() {
           Check your email
         </h2>
         <p className="mt-3 text-center text-base text-slate">{state.message}</p>
-        {state.verifyToken && (
-          <p className="mt-4 rounded-none bg-mist p-3 text-center text-sm text-navy">
-            Dev verification link:{" "}
-            <Link
-              className="font-semibold text-green-strong underline"
-              href={`/verify-email?token=${state.verifyToken}`}
-            >
-              Verify email
-            </Link>
-          </p>
-        )}
         <div className="mt-6 flex justify-center">
           <Link
             href="/login"

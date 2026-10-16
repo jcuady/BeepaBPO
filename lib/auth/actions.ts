@@ -27,7 +27,21 @@ export type ActionState = {
   error?: string;
   fieldErrors?: Record<string, string[]>;
   message?: string;
-  verifyToken?: string;
+  // `verifyToken` used to live here, and nothing has ever set it.
+  //
+  // Two components read it — a "Dev verification link" on the signup confirmation
+  // and a "Dev reset link" on the forgot-password confirmation — so both blocks
+  // were unreachable, and neither was gated to a development environment. They
+  // were one assignment away from shipping in production.
+  //
+  // The reset one was also a dead end even if it had fired: it pointed at
+  // `/reset-password?token=…`, and `/reset-password` gates on the SESSION and
+  // renders "Invalid link" for exactly that URL. So populating the field would
+  // have handed a person a link telling them the link was invalid.
+  //
+  // Removed rather than wired up. `tests/action-state-orphans.test.ts` now fails
+  // if a field is ever declared here that no action returns, so the next one of
+  // these cannot be added silently.
 };
 
 function formDataToObject(formData: FormData) {
