@@ -117,7 +117,7 @@ describe("no QA check may exempt itself from the evidence rule", () => {
     const end = src.indexOf("\n];", start);
     const ids = [...src.slice(start, end).matchAll(/\{\s*id:\s*"([^"]+)"/g)];
     expect(rows.length).toBe(ids.length);
-    expect(rows.length).toBe(30);
+    expect(rows.length).toBe(31);
     // And the exempt one is the gate, named in this file's own EXEMPT set.
     expect(rows.filter((r) => EXEMPT.has(r.id)).map((r) => r.id)).toEqual(["gate"]);
   });
@@ -263,6 +263,79 @@ describe("every declared evidence file exists, and is a recent measurement", () 
  * leaves the trap open: fixing only the caller means the next caller forgets,
  * and fixing only the gate means the next gate repeats it.
  */
+/**
+ * The unlinked-employee probe's PREMISE, pinned at the source level.
+ *
+ * The rendered proof is its own run — a fixture in a temp directory cannot
+ * produce a Supabase-backed account — so what is asserted here is that the state
+ * the probe claims to build is still the state the code produces.
+ *
+ * The specific failure this guards against is a probe that stops being able to
+ * build its state and reports "clean" anyway. If `employees` ever gets a NOT NULL
+ * profile link that auto-creates, or `resolveEmployeeForUser` starts falling back
+ * to a different table, the probe would still sign in, still load five pages, and
+ * still write `verdict: clean` — measuring the wrong state without noticing. That
+ * is the same failure as a gate whose fixture silently stopped differing from
+ * production, and it is invisible from the output.
+ */
+describe("the unlinked-employee probe still builds a state no demo account has", () => {
+  const probe = readFileSync(
+    join(ROOT, "scripts", "audit", "qa-probe-unlinked-employee.mjs"),
+    "utf8",
+  );
+
+  it("asserts the absence of an employees row rather than assuming it", () => {
+    // Without this the fixture could acquire a record and the run would silently
+    // become a measurement of the ordinary branch.
+    expect(probe).toMatch(/from\("employees"\)\s*\.select\("id"\)\s*\.eq\("profile_id", userId\)/);
+    expect(probe).toMatch(/fixture is invalid/);
+  });
+
+  it("creates the account outside the demo login picker", () => {
+    // The reason this was declined for months: a 14th entry in
+    // `lib/demo/users.ts` becomes a button on the public login page. Built per
+    // run and deleted, nothing visible is added.
+    const users = readFileSync(join(ROOT, "lib", "demo", "users.ts"), "utf8");
+    expect(users).not.toContain("qa.unlinked");
+    expect(probe).toMatch(/@nowhere\.example/);
+  });
+
+  it("deletes what it creates, and asserts the deletion", () => {
+    // A silently-failed cleanup leaves a real auth user behind, and the next run
+    // creates a second one.
+    expect(probe).toMatch(/auth\.admin\.deleteUser/);
+    expect(probe).toMatch(/getUserById/);
+    expect(probe).toMatch(/throwaway account is deleted after the run/);
+    expect(probe).toMatch(/membership_roles"\)\.delete/);
+    expect(probe).toMatch(/organization_memberships"\)\.delete/);
+  });
+
+  it("measures the viewport where the 16px rule actually applies", () => {
+    // `text-base … sm:text-sm` is 16px below 640px and 14px above, and the
+    // repository's rule is "body text below 16px ON NARROW SCREENS". A desktop
+    // run measured against 16px fails all five pages on the very 14px that §2.8
+    // deliberately kept — the probe reporting its own scope as a defect.
+    expect(probe).toMatch(/390,\s*h:\s*844[^\n]*minPx:\s*16/);
+    expect(probe).toMatch(/1440,\s*h:\s*900[^\n]*minPx:\s*0/);
+  });
+
+  it("excludes unpainted elements rather than guessing at selectors", () => {
+    // The command palette's `<p>` is in the layout on every route and is not a
+    // `role="dialog"` in the DOM, so a selector list missed it and the probe
+    // failed all five pages on it forever. A zero-size rect catches whatever is
+    // not painted, which is the actual question.
+    expect(probe).toMatch(/getBoundingClientRect\(\)/);
+    expect(probe).toMatch(/r\.width === 0 && r\.height === 0/);
+  });
+
+  it("is registered in the suite with an evidence file", () => {
+    const rows = parseRegistry(readFileSync(REGISTRY, "utf8"));
+    const row = rows.find((r) => r.id === "unlinked-employee");
+    expect(row).toBeDefined();
+    expect(row!.evidence).toBe("docs/evidence/unlinked-employee-check.json");
+  });
+});
+
 describe("a fixture run cannot overwrite the repository's evidence", () => {
   const FIXTURE_GATES = [
     { script: "scripts/audit/audit-suite-base-url.mjs", flag: "--dir=" },

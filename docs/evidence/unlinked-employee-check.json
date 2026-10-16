@@ -1,0 +1,427 @@
+{
+  "check": "unlinked-employee",
+  "generatedAt": "2026-10-16T05:50:29.257Z",
+  "base": "http://localhost:3100",
+  "fixture": {
+    "email": "qa.unlinked.1792129811216@nowhere.example",
+    "userId": "e771aae5-635e-4c8d-93df-c5c04a8f3cfa",
+    "membershipType": "internal",
+    "role": "employee",
+    "hasEmployeeRecord": false,
+    "addedToDemoLoginPicker": false
+  },
+  "verdict": "clean",
+  "verdictText": "all 5 empty-state pages render, explain themselves, and keep body copy at 16px or larger",
+  "pagesExercised": 10,
+  "assertionCount": 32,
+  "failures": [],
+  "results": [
+    {
+      "name": "a member with no employee record can sign in",
+      "pass": true,
+      "detail": "http://localhost:3100/app"
+    },
+    {
+      "name": "/app/my/attendance renders its empty state rather than a form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "/app/my/attendance is titled \"Attendance\"",
+      "pass": true,
+      "detail": "\"Attendance\""
+    },
+    {
+      "name": "/app/my/attendance body copy meets its floor on phone (390px)",
+      "pass": true,
+      "detail": "4 paragraph(s) checked, floor 16px"
+    },
+    {
+      "name": "/app/my/leave renders its empty state rather than a form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "/app/my/leave is titled \"Leave\"",
+      "pass": true,
+      "detail": "\"Leave\""
+    },
+    {
+      "name": "/app/my/leave body copy meets its floor on phone (390px)",
+      "pass": true,
+      "detail": "2 paragraph(s) checked, floor 16px"
+    },
+    {
+      "name": "/app/my/requests renders its empty state rather than a form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "/app/my/requests is titled \"Requests\"",
+      "pass": true,
+      "detail": "\"Requests\""
+    },
+    {
+      "name": "/app/my/requests body copy meets its floor on phone (390px)",
+      "pass": true,
+      "detail": "3 paragraph(s) checked, floor 16px"
+    },
+    {
+      "name": "/app/my/support renders its empty state rather than a form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "/app/my/support is titled \"Support\"",
+      "pass": true,
+      "detail": "\"Support\""
+    },
+    {
+      "name": "/app/my/support body copy meets its floor on phone (390px)",
+      "pass": true,
+      "detail": "2 paragraph(s) checked, floor 16px"
+    },
+    {
+      "name": "/app/my/cash-advances renders its empty state rather than a form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "/app/my/cash-advances is titled \"Cash Advances\"",
+      "pass": true,
+      "detail": "\"Cash Advances\""
+    },
+    {
+      "name": "/app/my/cash-advances body copy meets its floor on phone (390px)",
+      "pass": true,
+      "detail": "3 paragraph(s) checked, floor 16px"
+    },
+    {
+      "name": "/app/my/attendance renders its empty state rather than a form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "/app/my/attendance is titled \"Attendance\"",
+      "pass": true,
+      "detail": "\"Attendance\""
+    },
+    {
+      "name": "/app/my/attendance body copy meets its floor on desktop (1440px)",
+      "pass": true,
+      "detail": "5 paragraph(s) checked, floor nonepx"
+    },
+    {
+      "name": "/app/my/leave renders its empty state rather than a form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "/app/my/leave is titled \"Leave\"",
+      "pass": true,
+      "detail": "\"Leave\""
+    },
+    {
+      "name": "/app/my/leave body copy meets its floor on desktop (1440px)",
+      "pass": true,
+      "detail": "3 paragraph(s) checked, floor nonepx"
+    },
+    {
+      "name": "/app/my/requests renders its empty state rather than a form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "/app/my/requests is titled \"Requests\"",
+      "pass": true,
+      "detail": "\"Requests\""
+    },
+    {
+      "name": "/app/my/requests body copy meets its floor on desktop (1440px)",
+      "pass": true,
+      "detail": "4 paragraph(s) checked, floor nonepx"
+    },
+    {
+      "name": "/app/my/support renders its empty state rather than a form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "/app/my/support is titled \"Support\"",
+      "pass": true,
+      "detail": "\"Support\""
+    },
+    {
+      "name": "/app/my/support body copy meets its floor on desktop (1440px)",
+      "pass": true,
+      "detail": "3 paragraph(s) checked, floor nonepx"
+    },
+    {
+      "name": "/app/my/cash-advances renders its empty state rather than a form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "/app/my/cash-advances is titled \"Cash Advances\"",
+      "pass": true,
+      "detail": "\"Cash Advances\""
+    },
+    {
+      "name": "/app/my/cash-advances body copy meets its floor on desktop (1440px)",
+      "pass": true,
+      "detail": "4 paragraph(s) checked, floor nonepx"
+    },
+    {
+      "name": "throwaway account is deleted after the run",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "pages": [
+    {
+      "path": "/app/my/attendance",
+      "viewport": "phone",
+      "width": 390,
+      "reached": true,
+      "emptyStateExplained": true,
+      "heading": "Attendance",
+      "paragraphs": [
+        {
+          "text": "Clock in or out, then review your history and corrections.",
+          "px": 16
+        },
+        {
+          "text": "Link your employee profile to clock in and out.",
+          "px": 16
+        },
+        {
+          "text": "Link your employee profile to request attendance corrections",
+          "px": 16
+        },
+        {
+          "text": "Your daily attendance will appear here after you clock in.",
+          "px": 16
+        }
+      ],
+      "undersizedParagraphs": []
+    },
+    {
+      "path": "/app/my/leave",
+      "viewport": "phone",
+      "width": 390,
+      "reached": true,
+      "emptyStateExplained": true,
+      "heading": "Leave",
+      "paragraphs": [
+        {
+          "text": "Request time off and track leave balances.",
+          "px": 16
+        },
+        {
+          "text": "Your account is not linked to an employee record yet. Contac",
+          "px": 16
+        }
+      ],
+      "undersizedParagraphs": []
+    },
+    {
+      "path": "/app/my/requests",
+      "viewport": "phone",
+      "width": 390,
+      "reached": true,
+      "emptyStateExplained": true,
+      "heading": "Requests",
+      "paragraphs": [
+        {
+          "text": "Track tickets, cash advances, and approval requests.",
+          "px": 16
+        },
+        {
+          "text": "Cash advances require an employee record. Contact HR if you ",
+          "px": 16
+        },
+        {
+          "text": "Your submitted tickets and requests will appear here.",
+          "px": 16
+        }
+      ],
+      "undersizedParagraphs": []
+    },
+    {
+      "path": "/app/my/support",
+      "viewport": "phone",
+      "width": 390,
+      "reached": true,
+      "emptyStateExplained": true,
+      "heading": "Support",
+      "paragraphs": [
+        {
+          "text": "Get help from the Beepa support team.",
+          "px": 16
+        },
+        {
+          "text": "For HR, payroll, or IT issues, submit a ticket or contact yo",
+          "px": 16
+        }
+      ],
+      "undersizedParagraphs": []
+    },
+    {
+      "path": "/app/my/cash-advances",
+      "viewport": "phone",
+      "width": 390,
+      "reached": true,
+      "emptyStateExplained": true,
+      "heading": "Cash Advances",
+      "paragraphs": [
+        {
+          "text": "Request and track cash advances.",
+          "px": 16
+        },
+        {
+          "text": "Link your employee profile to request a cash advance.",
+          "px": 16
+        },
+        {
+          "text": "Your submitted requests will appear here.",
+          "px": 16
+        }
+      ],
+      "undersizedParagraphs": []
+    },
+    {
+      "path": "/app/my/attendance",
+      "viewport": "desktop",
+      "width": 1440,
+      "reached": true,
+      "emptyStateExplained": true,
+      "heading": "Attendance",
+      "paragraphs": [
+        {
+          "text": "People · Process · Progress",
+          "px": 12
+        },
+        {
+          "text": "Clock in or out, then review your history and corrections.",
+          "px": 16
+        },
+        {
+          "text": "Link your employee profile to clock in and out.",
+          "px": 14
+        },
+        {
+          "text": "Link your employee profile to request attendance corrections",
+          "px": 14
+        },
+        {
+          "text": "Your daily attendance will appear here after you clock in.",
+          "px": 14
+        }
+      ],
+      "undersizedParagraphs": []
+    },
+    {
+      "path": "/app/my/leave",
+      "viewport": "desktop",
+      "width": 1440,
+      "reached": true,
+      "emptyStateExplained": true,
+      "heading": "Leave",
+      "paragraphs": [
+        {
+          "text": "People · Process · Progress",
+          "px": 12
+        },
+        {
+          "text": "Request time off and track leave balances.",
+          "px": 16
+        },
+        {
+          "text": "Your account is not linked to an employee record yet. Contac",
+          "px": 14
+        }
+      ],
+      "undersizedParagraphs": []
+    },
+    {
+      "path": "/app/my/requests",
+      "viewport": "desktop",
+      "width": 1440,
+      "reached": true,
+      "emptyStateExplained": true,
+      "heading": "Requests",
+      "paragraphs": [
+        {
+          "text": "People · Process · Progress",
+          "px": 12
+        },
+        {
+          "text": "Track tickets, cash advances, and approval requests.",
+          "px": 16
+        },
+        {
+          "text": "Cash advances require an employee record. Contact HR if you ",
+          "px": 14
+        },
+        {
+          "text": "Your submitted tickets and requests will appear here.",
+          "px": 14
+        }
+      ],
+      "undersizedParagraphs": []
+    },
+    {
+      "path": "/app/my/support",
+      "viewport": "desktop",
+      "width": 1440,
+      "reached": true,
+      "emptyStateExplained": true,
+      "heading": "Support",
+      "paragraphs": [
+        {
+          "text": "People · Process · Progress",
+          "px": 12
+        },
+        {
+          "text": "Get help from the Beepa support team.",
+          "px": 16
+        },
+        {
+          "text": "For HR, payroll, or IT issues, submit a ticket or contact yo",
+          "px": 14
+        }
+      ],
+      "undersizedParagraphs": []
+    },
+    {
+      "path": "/app/my/cash-advances",
+      "viewport": "desktop",
+      "width": 1440,
+      "reached": true,
+      "emptyStateExplained": true,
+      "heading": "Cash Advances",
+      "paragraphs": [
+        {
+          "text": "People · Process · Progress",
+          "px": 12
+        },
+        {
+          "text": "Request and track cash advances.",
+          "px": 16
+        },
+        {
+          "text": "Link your employee profile to request a cash advance.",
+          "px": 14
+        },
+        {
+          "text": "Your submitted requests will appear here.",
+          "px": 14
+        }
+      ],
+      "undersizedParagraphs": []
+    }
+  ],
+  "notes": [],
+  "blocked": null,
+  "exitCode": 0
+}

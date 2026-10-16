@@ -529,7 +529,7 @@ remaining shape of the problem is that `data-meta` is opt-in and therefore
 incomplete by construction: a future metadata line that nobody marks still depends
 on its text being short.
 
-### 2.8a The demo tenant cannot reach a whole class of empty states — fixed, but unverified by measurement
+### 2.8a The demo tenant cannot reach a whole class of empty states — fixed, and now measured too
 
 While fixing the sites above, a second and larger blind spot turned up. Six
 paragraphs of explanatory body copy were sitting at 14px in the **"no employee
@@ -557,22 +557,62 @@ still are **not** is *rendered*, because no automated check in this repository c
 produce that state today. Those are different claims and the distinction is
 deliberate.
 
-**The fix for the gap, not done here:** seed one demo account with no linked
-employee record and add it to the per-role sweep. Worth recording *why* it was
-declined, because the first reason turned out to be the weaker one:
+**The fix for the gap — CLOSED 2026-10-16 by `qa-probe-unlinked-employee.mjs`.**
+The blocker recorded below was real, and the way round it was to stop seeding a
+demo account and start **building the state**:
 
-- `tests/demo-login-picker.test.ts` asserts exactly **13** demo addresses, so a
-  14th would fail a test. That part is trivial.
-- The real blocker is that `lib/demo/users.ts` feeds `DemoLoginPicker`, so a new
-  account does not just exist — it becomes a **button on the public login page**.
-  An account with no linked employee record in that picker would land the user
-  somewhere unusual, which is a product decision, not a test fix. Adding it also
-  moves the denominator on every figure that reports "13 roles": the role sweep,
-  role × page reachability, the control census, and matrix rows 9, 10 and 20.
+`scripts/audit/qa-probe-unlinked-employee.mjs` creates a throwaway auth user with
+the admin API, gives it an `internal` membership and the `employee` role, and
+deliberately **not** a row in `employees` — which is exactly the production
+situation of an admin who has not finished linking the profile. It signs in, walks
+five `/app/my` pages at 390px and 1440px, and asserts the empty state renders, the
+page names itself, and body copy meets its floor.
+
+- **It is not in `lib/demo/users.ts`,** so nothing is added to the public login
+  page, no 14th address breaks `demo-login-picker.test.ts`, and no figure that
+  reports "13 roles" moves. The earlier reasoning below was correct about the
+  picker and wrong to conclude the state could not be built.
+- **32/32 checks pass**, and the deletion of what it creates is asserted, not
+  assumed.
+- **Mutation-proven:** reverting `/app/my/cash-advances`' empty-state paragraph to
+  `text-sm` turns exactly one check red — `14px "Link your employee profile to
+  request a cash advance."` on phone (390px) — and 31 others stay green.
+
+**Three things the first version of the probe got wrong, each caught by running
+it rather than by reading it:**
+
+1. It counted every `<p>` over 25 characters and failed **all five pages** on
+   `14px "Search for a command to run..."` — the command palette's description,
+   which lives in the app layout on every route. Excluding by
+   `closest('[role=dialog]')` did not help: the palette has no such wrapper in the
+   DOM. The fix is the **zero-size rect** check `audit-app-responsive.mjs` already
+   uses — an element that painted nothing is not body copy whatever its role.
+2. It asserted the 16px floor at **1440px** as well, and failed all five pages
+   again. This repository's rule is "body text below 16px **on narrow screens**"
+   (`audit-app-responsive.mjs`, line 13); `text-base … sm:text-sm` is 16px below
+   640px and 14px above by design, and §2.8's own eight fixes were all
+   `text-base md:text-sm` for exactly that reason. The probe had invented a
+   stricter rule than the product holds. Per-viewport floors now: **16px on phone,
+   no floor on desktop** — desktop is still measured and recorded per paragraph,
+   because that is what surfaced the footer tagline at 12px.
+3. It matched one phrase across all four branching pages and failed two of them for
+   no reason except that their copy differs. The four say three different things
+   ("Link your employee profile", "not linked to an employee record", "require an
+   employee record"); an assertion that encodes one author's phrasing reports the
+   phrasing as the requirement.
+
+**And it corrected §2.8a itself.** This section listed **five** pages including
+`/app/my/support`. `/app/my/support` has **no** `employee` branch at all — it
+renders one unconditional paragraph that never mentions an employee record — so it
+was never in this state and never needed to be. The real figure is **four pages,
+five paragraphs**. It is still checked for legibility, which is worth having, but
+it is not an empty state. A coverage claim that overstates its own scope is its
+own defect, and the probe was written to find exactly this.
 
 Until then, treat "every demo account that reaches `/app/my` has an employee
 record" as an assumption the layout audits are silently resting on — now written
-down, and now guarded, rather than merely true.
+down, now guarded by a probe that builds the counter-state, and no longer an
+assumption at all.
 
 ### 2.9 Eight registered checks write no evidence file, and six matrix rows quote numbers from them
 

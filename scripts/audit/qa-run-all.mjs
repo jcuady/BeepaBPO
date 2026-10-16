@@ -153,6 +153,20 @@ const CHECKS = [
   // than a pass count. Reads the evidence the tier above just wrote.
   { id: "assertion-index", tier: "slow",  cmd: ["scripts/audit/qa-workflow-assertion-index.mjs"], evidence: "docs/evidence/workflow-assertion-index.json", what: "distinct named behaviours asserted across the workflow evidence" },
 
+  // Builds a state no demo account can be in, then renders it.
+  //
+  // Four `/app/my` pages branch on `employee ? <form> : <p>`, and every demo
+  // account that reaches them HAS an employee record — so the audit measured the
+  // form branch on every run and reported those pages clean, for the one user the
+  // message is written for. The fix was previously declined because seeding a 14th
+  // demo account would add a button to the public login page (`lib/demo/users.ts`
+  // feeds `DemoLoginPicker`). This builds the account per run instead, via the
+  // admin API, so nothing visible is added and the deletion is asserted.
+  //
+  // Slow tier: it needs the server, and it creates and deletes an auth user, so it
+  // runs with the workflow exercises that share the database — never in parallel.
+  { id: "unlinked-employee", tier: "slow", cmd: ["scripts/audit/qa-probe-unlinked-employee.mjs"], evidence: "docs/evidence/unlinked-employee-check.json", what: "renders the empty states no demo account can reach: a member with no employees row, across five pages and two viewports" },
+
   { id: "role-sweep",       tier: "slow",  cmd: ["scripts/audit/audit-role-sweep.mjs"],         evidence: "docs/evidence/role-sweep.json",             what: "13 roles across their reachable pages" },
 
   // Turns "every button works" from a hedge into a measurement: inventories every
