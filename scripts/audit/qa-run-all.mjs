@@ -54,13 +54,13 @@ const CHECKS = [
   // Static, no browser. Added because a form's Reset button existed in five
   // components and silently did nothing on most of its fields -- nothing caught
   // it because nothing asked what Reset *does*.
-  { id: "form-reset-defaults", tier: "fast", cmd: ["scripts/audit/audit-form-reset-defaults.mjs"], evidence: null, what: "every form that calls reset() defaults every field it registers" },
+  { id: "form-reset-defaults", tier: "fast", cmd: ["scripts/audit/audit-form-reset-defaults.mjs"], evidence: "docs/evidence/form-reset-defaults.json", what: "every form that calls reset() defaults every field it registers" },
 
   // Static, no browser. Two scripts defaulted to port 3000 while 44 used 3100, so
   // `pnpm audit:role-pages` reported "0/13 nav-reachable role pages clean" and
   // "13 page(s) a role can SEE but cannot USE" -- thirteen connection errors
   // reported as thirteen broken roles.
-  { id: "suite-base-url", tier: "fast", cmd: ["scripts/audit/audit-suite-base-url.mjs"], evidence: null, what: "every audit script agrees on QA_BASE_URL and port 3100" },
+  { id: "suite-base-url", tier: "fast", cmd: ["scripts/audit/audit-suite-base-url.mjs"], evidence: "docs/evidence/suite-base-url.json", what: "every audit script agrees on QA_BASE_URL and port 3100" },
 
   // May exit 2. The environment's outbound email budget allows roughly ONE
   // invite per window, and `qa-probe-invite-domains.mjs` spends an invite to
@@ -176,7 +176,7 @@ const CHECKS = [
   // creates and deletes attendance rows, which is why it sits after `workflows`
   // rather than beside it — this runner is serial, and the exercises share one
   // database.
-  { id: "seo-metadata",     tier: "slow", cmd: ["scripts/audit/audit-seo-metadata.mjs"], evidence: null, what: "titles, descriptions, canonicals, OG and JSON-LD on every sitemap URL, asserted against raw HTML" },
+  { id: "seo-metadata",     tier: "slow", cmd: ["scripts/audit/audit-seo-metadata.mjs"], evidence: "docs/evidence/seo-metadata.json", what: "titles, descriptions, canonicals, OG and JSON-LD on every sitemap URL, asserted against raw HTML" },
   // `evidence: null` used to be a way of declaring an exemption rather than
   // reporting a gap, and `role-pages` was the one that mattered: it wrote
   // nothing, so its result existed only as terminal scrollback and three
@@ -185,21 +185,21 @@ const CHECKS = [
   // figure nobody could trace. The script writes role-pages.json now, and this
   // registry is what keeps that file honest; see the rule at the top of the file.
   { id: "role-pages",       tier: "slow", cmd: ["scripts/audit-role-pages.mjs"],         evidence: "docs/evidence/role-pages.json",             what: "every nav-reachable page renders clean for each of the 13 roles" },
-  { id: "performance",      tier: "slow", cmd: ["scripts/audit-performance.mjs"],         evidence: null, what: "per-route timings against the running server" },
-  { id: "payslip-exposure", tier: "slow", cmd: ["scripts/audit/audit-unapproved-payslip-exposure.mjs"], evidence: null, what: "an employee cannot read a payslip from an unapproved period" },
-  { id: "attendance-tz",    tier: "slow", cmd: ["scripts/audit/verify-attendance-tz.mjs"], evidence: null, what: "attendance day boundaries resolve in the employee's timezone, not UTC" },
-  { id: "cron-smoke",       tier: "slow", cmd: ["scripts/smoke-cron.mjs"],               evidence: null, what: "cron endpoint refuses an unauthenticated call and honours a dry run" },
+  { id: "performance",      tier: "slow", cmd: ["scripts/audit-performance.mjs"],         evidence: "docs/evidence/performance.json", what: "per-route timings against the running server" },
+  { id: "payslip-exposure", tier: "slow", cmd: ["scripts/audit/audit-unapproved-payslip-exposure.mjs"], evidence: "docs/evidence/payslip-exposure.json", what: "an employee cannot read a payslip from an unapproved period" },
+  { id: "attendance-tz",    tier: "slow", cmd: ["scripts/audit/verify-attendance-tz.mjs"], evidence: "docs/evidence/attendance-tz.json", what: "attendance day boundaries resolve in the employee's timezone, not UTC" },
+  { id: "cron-smoke",       tier: "slow", cmd: ["scripts/smoke-cron.mjs"],               evidence: "docs/evidence/cron-smoke.json", what: "cron endpoint refuses an unauthenticated call and honours a dry run" },
 
   // First, because everything below it is measured against it. A full workflow
   // run once produced 482 assertions against a server 65 minutes older than the
   // build on disk, and one of them read as a live auth defect that the current
   // source cannot produce. "Is the server alive" is not "is the server running
   // the code I think it is".
-  { id: "server-fresh", tier: "fast", cmd: ["scripts/audit/audit-server-fresh.mjs"], evidence: null, what: "the process answering is not older than .next/BUILD_ID" },
+  { id: "server-fresh", tier: "fast", cmd: ["scripts/audit/audit-server-fresh.mjs"], evidence: "docs/evidence/server-fresh.json", what: "the process answering is not older than .next/BUILD_ID" },
 
   // Static, so fast tier — and this one gates itself. A coverage check that no
   // gate runs would be the same defect it exists to catch.
-  { id: "gate-coverage", tier: "fast", cmd: ["scripts/audit/audit-gate-coverage.mjs"], evidence: null, what: "every declared audit script is wired into a release gate" },
+  { id: "gate-coverage", tier: "fast", cmd: ["scripts/audit/audit-gate-coverage.mjs"], evidence: "docs/evidence/gate-coverage.json", what: "every declared audit script is wired into a release gate" },
 
   { id: "gate",             tier: "gate",  cmd: ["__GATE__"],                                   evidence: null, what: "vitest + tsc --noEmit" },
 ];

@@ -5,18 +5,92 @@
 // never indexed. So this asserts against the raw HTML string, before any script
 // runs.
 import { execFileSync } from "node:child_process";
+import { mkdirSync, writeFileSync } from "node:fs";
 
-const ORIGIN = process.argv[2] ?? "http://localhost:3100";
+const EVIDENCE = "docs/evidence/seo-metadata.json";
+
+// `QA_BASE_URL` first, positional second. It read only `argv[2]`, so it was the
+// one HTTP audit in `scripts/audit/` that could not be pointed at a deployed
+// preview by the documented convention — the operator sets `QA_BASE_URL`, this
+// script measures localhost anyway, and reports a clean run for a host nobody
+// crawled. Same defect `audit-suite-base-url` exists to catch, in the one script
+// that gate did not flag because it declares no env override at all.
+const ORIGIN = (process.env.QA_BASE_URL ?? process.argv[2] ?? "http://localhost:3100").replace(/\/$/, "");
+
+/**
+ * Write this gate's verdict to disk.
+ *
+ * WHY
+ * ---
+ * A metadata audit whose result lived in terminal scrollback could not be
+ * re-read, dated, or compared to a later run — and its whole subject (titles,
+ * descriptions) is precisely the kind of content that changes silently when
+ * someone edits a page. The per-URL numbers are what makes a regression visible:
+ * "description 47 chars" six months after the fact is answerable only from a
+ * file.
+ *
+ * `urlsChecked` is the denominator. "ALL CHECKS PASS" over a sitemap that
+ * resolved to zero URLs is the same string as a pass over twenty, and that is
+ * exactly the outage this gate would fail to notice.
+ */
+function writeEvidence(exitCode, verdict, verdictText, data = {}) {
+  mkdirSync("docs/evidence", { recursive: true });
+  writeFileSync(
+    EVIDENCE,
+    JSON.stringify(
+      {
+        check: "seo-metadata",
+        generatedAt: new Date().toISOString(),
+        origin: ORIGIN,
+        verdict,
+        verdictText,
+        urlsChecked: 0,
+        failureCount: 0,
+        urls: [],
+        failures: [],
+        ...data,
+        exitCode,
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  console.log(`wrote ${EVIDENCE}`);
+}
 
 const get = (path) => execFileSync("curl", ["-sS", "-L", "--max-time=25", `${ORIGIN}${path}`], {
   encoding: "utf8", maxBuffer: 1 << 28,
 });
 
-const sm = get("/sitemap.xml");
+let sm;
+try {
+  sm = get("/sitemap.xml");
+} catch (err) {
+  // A sitemap that cannot be fetched is not an empty list of URLs to check. It
+  // used to throw an unhandled ENOENT/curl error, which exits non-zero but writes
+  // nothing — so the runner saw a failure with no evidence to read it from.
+  console.error(`ABORT: could not fetch ${ORIGIN}/sitemap.xml — ${err.message}`);
+  writeEvidence(2, "unknown", `CANNOT TELL — could not fetch the sitemap from ${ORIGIN}`);
+  process.exit(2);
+}
 const urls = [...sm.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 
+if (!urls.length) {
+  // Zero URLs would otherwise report "ALL CHECKS PASS" — a green run that
+  // checked nothing, which is the failure mode this gate is supposed to prevent.
+  console.error("ABORT: the sitemap contains no <loc> entries, so no page was checked.");
+  writeEvidence(2, "unknown", "CANNOT TELL — the sitemap contains no <loc> entries");
+  process.exit(2);
+}
+
 let failures = 0;
-const fail = (path, msg) => { failures++; console.log(`  FAIL [${path}] ${msg}`); };
+const failureList = [];
+const urlResults = [];
+const fail = (path, msg) => {
+  failures++;
+  failureList.push({ path, problem: msg });
+  console.log(`  FAIL [${path}] ${msg}`);
+};
 
 for (const u of urls) {
   const path = u.includes("localhost") ? u.replace(ORIGIN, "") : u.replace("https://beepabpo.com", "");
@@ -59,7 +133,28 @@ for (const u of urls) {
   console.log(
     `${path.padEnd(38)} t=${String(title.length).padStart(3)} d=${String(desc.length).padStart(3)} og=${ogImage ? "y" : "n"} url=${ogUrl ? "y" : "n"} ld=[${ldTypes.join(",")}]`,
   );
+
+  // The measured numbers, not just the pass/fail. A title that is 3 characters
+  // from the limit today and 61 tomorrow is a different finding from one that
+  // has been at 12 all along, and only the number distinguishes them later.
+  urlResults.push({
+    path,
+    titleLength: title.length,
+    descriptionLength: desc.length,
+    canonicalCount: canonical.length,
+    hasOgImage: Boolean(ogImage),
+    hasOgUrl: Boolean(ogUrl),
+    hasOgTitle: Boolean(ogTitle),
+    hasTwitterCard: Boolean(twCard),
+    jsonLdTypes: ldTypes,
+  });
 }
 
 console.log(failures ? `\n${failures} issue(s) remain` : "\nALL CHECKS PASS");
+writeEvidence(
+  failures ? 1 : 0,
+  failures ? "issues" : "clean",
+  failures ? `${failures} metadata issue(s) remain` : `all ${urls.length} sitemap URL(s) carry complete metadata`,
+  { urlsChecked: urls.length, failureCount: failures, urls: urlResults, failures: failureList },
+);
 process.exit(failures ? 1 : 0);

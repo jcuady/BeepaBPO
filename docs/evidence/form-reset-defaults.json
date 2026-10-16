@@ -1,0 +1,18 @@
+{
+  "check": "form-reset-defaults",
+  "generatedAt": "2026-10-16T04:59:09.660Z",
+  "roots": [
+    "components",
+    "app"
+  ],
+  "scanningFixture": false,
+  "verdict": "clean",
+  "verdictText": "every form that resets defaults all the fields it registers, and no field is defaulted to a value its control cannot display",
+  "scanned": 28,
+  "withReset": 21,
+  "missingDefaultCount": 0,
+  "emptyOptionCount": 0,
+  "findings": [],
+  "emptyOptionFindings": [],
+  "exitCode": 0
+}

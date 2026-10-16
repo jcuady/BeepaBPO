@@ -1,0 +1,169 @@
+{
+  "check": "performance",
+  "generatedAt": "2026-10-16T04:27:32.214Z",
+  "base": "http://localhost:3100",
+  "routes": [
+    "/",
+    "/services",
+    "/about",
+    "/contact",
+    "/careers",
+    "/app/my",
+    "/app/dashboard"
+  ],
+  "authenticatedAs": null,
+  "budget": {
+    "lcp": 2500,
+    "fcp": 1800,
+    "cls": 0.1,
+    "ttfb": 800
+  },
+  "verdict": "within-budget",
+  "verdictText": "all 7 measured route(s) within budget",
+  "measured": 7,
+  "overBudget": 0,
+  "unmeasured": 0,
+  "rows": [
+    {
+      "route": "/",
+      "ttfb": 332.6000000014901,
+      "domContentLoaded": 929.5,
+      "load": 1305.300000000745,
+      "fcp": 1152,
+      "lcp": 1340,
+      "cls": 0.000030284422153635115,
+      "domNodes": 622,
+      "resBytes": {
+        "script": 209615,
+        "image": 127657,
+        "font": 213713,
+        "other": 1915
+      },
+      "resCount": 32,
+      "transfer": 552900,
+      "requests": 33,
+      "failed": []
+    },
+    {
+      "route": "/services",
+      "ttfb": 182.10000000149012,
+      "domContentLoaded": 215.80000000074506,
+      "load": 324,
+      "fcp": 336,
+      "lcp": 336,
+      "cls": 0,
+      "domNodes": 413,
+      "resBytes": {
+        "script": 183713,
+        "image": 0,
+        "font": 179087,
+        "other": 33170
+      },
+      "resCount": 36,
+      "transfer": 395970,
+      "requests": 37,
+      "failed": []
+    },
+    {
+      "route": "/about",
+      "ttfb": 252.2000000011176,
+      "domContentLoaded": 287.40000000037253,
+      "load": 401.40000000037253,
+      "fcp": 428,
+      "lcp": 428,
+      "cls": 0,
+      "domNodes": 403,
+      "resBytes": {
+        "script": 183713,
+        "image": 0,
+        "font": 179087,
+        "other": 33171
+      },
+      "resCount": 36,
+      "transfer": 395971,
+      "requests": 37,
+      "failed": []
+    },
+    {
+      "route": "/contact",
+      "ttfb": 99.5,
+      "domContentLoaded": 137.5,
+      "load": 247.90000000037253,
+      "fcp": 244,
+      "lcp": 244,
+      "cls": 0,
+      "domNodes": 300,
+      "resBytes": {
+        "script": 194550,
+        "image": 0,
+        "font": 179087,
+        "other": 33171
+      },
+      "resCount": 38,
+      "transfer": 406808,
+      "requests": 39,
+      "failed": []
+    },
+    {
+      "route": "/careers",
+      "ttfb": 104.5,
+      "domContentLoaded": 136,
+      "load": 248.2999999988824,
+      "fcp": 256,
+      "lcp": 256,
+      "cls": 0,
+      "domNodes": 337,
+      "resBytes": {
+        "script": 183713,
+        "image": 18492,
+        "font": 179087,
+        "other": 35530
+      },
+      "resCount": 39,
+      "transfer": 416822,
+      "requests": 40,
+      "failed": []
+    },
+    {
+      "route": "/app/my",
+      "ttfb": 167.5,
+      "domContentLoaded": 203.5,
+      "load": 334.09999999962747,
+      "fcp": 324,
+      "lcp": 324,
+      "cls": 0,
+      "domNodes": 308,
+      "resBytes": {
+        "script": 209573,
+        "image": 0,
+        "font": 218179,
+        "other": 52722
+      },
+      "resCount": 52,
+      "transfer": 480474,
+      "requests": 54,
+      "failed": []
+    },
+    {
+      "route": "/app/dashboard",
+      "ttfb": 30.799999998882413,
+      "domContentLoaded": 68.19999999925494,
+      "load": 182.7999999988824,
+      "fcp": 200,
+      "lcp": 200,
+      "cls": 0,
+      "domNodes": 308,
+      "resBytes": {
+        "script": 209573,
+        "image": 0,
+        "font": 218179,
+        "other": 53227
+      },
+      "resCount": 53,
+      "transfer": 480979,
+      "requests": 55,
+      "failed": []
+    }
+  ],
+  "exitCode": 0
+}

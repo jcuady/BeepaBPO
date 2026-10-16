@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -33,8 +33,29 @@ const ROOT = process.cwd();
 const BASE_URL_GATE = join(ROOT, "scripts", "audit", "audit-suite-base-url.mjs");
 const COVERAGE_GATE = join(ROOT, "scripts", "audit", "audit-gate-coverage.mjs");
 
-function runGate(script: string, args: string[]) {
-  const r = spawnSync(process.execPath, [script, ...args], { cwd: ROOT, encoding: "utf8" });
+/**
+ * Runs a gate against a fixture tree.
+ *
+ * `cwd` is the FIXTURE directory, not `ROOT`, and that is load-bearing now that
+ * these gates write evidence.
+ *
+ * The first version passed `cwd: ROOT`, which was invisible while the gates wrote
+ * nothing — a fixture run that printed a verdict and exited was self-contained.
+ * The moment `audit-suite-base-url.mjs` and `audit-form-reset-defaults.mjs` began
+ * writing `docs/evidence/*.json` — which is the whole point of this pass — every
+ * planted-bad-input test started OVERWRITING THE REPOSITORY'S REAL EVIDENCE with
+ * fixture results: `suite-base-url.json` claiming `httpScripts: 0, verdict:
+ * unknown`, `form-reset-defaults.json` claiming `scanned: 1`. Both were committed
+ * that way before it was caught, and both would have been read by the matrix as
+ * real measurements.
+ *
+ * `audit-gate-coverage` tests already did this correctly (`cwd: dir`); this one
+ * did not. The rule this establishes: a test that runs a gate which writes a
+ * committed file MUST run it in a disposable cwd. See also the identical helper
+ * in `tests/audit-evidence-coverage.test.ts`.
+ */
+function runGate(script: string, args: string[], cwd: string = ROOT) {
+  const r = spawnSync(process.execPath, [script, ...args], { cwd, encoding: "utf8" });
   return { status: r.status, out: (r.stdout ?? "") + (r.stderr ?? "") };
 }
 
@@ -43,7 +64,8 @@ function runOver(files: Record<string, string>, script = BASE_URL_GATE, extra: s
   const dir = mkdtempSync(join(tmpdir(), "gate-integrity-"));
   try {
     for (const [name, body] of Object.entries(files)) writeFileSync(join(dir, name), body, "utf8");
-    return runGate(script, [`--dir=${dir}`, ...extra]);
+    // cwd = the fixture dir, so any evidence the gate writes is discarded with it.
+    return runGate(script, [`--dir=${dir}`, ...extra], dir);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -135,9 +157,29 @@ describe("audit-suite-base-url sees the whole population", () => {
     expect(r.status).toBe(0);
   });
 
-  it("aborts rather than reporting agreement on a missing directory", () => {
-    const r = runGate(BASE_URL_GATE, ["--dir=" + join(tmpdir(), "definitely-not-here-xyz")]);
-    expect(r.status).not.toBe(0);
+  it("aborts rather than reporting agreement on a directory with no scripts", () => {
+    // This is the one that put `verdict: "unknown"` into the real
+    // `suite-base-url.json`: the abort path writes evidence, and this ran in
+    // `ROOT`. Two fixes now apply — the gate writes BESIDE ITS INPUT, and this
+    // runs in a disposable cwd — and either alone would have prevented it.
+    //
+    // The root is an EMPTY directory that exists, not a nonexistent path: the
+    // gate creates the directory it writes evidence into, so pointing `--dir` at
+    // a path that is not there would contradict the very behaviour under test.
+    const dir = mkdtempSync(join(tmpdir(), "gate-abort-"));
+    const empty = mkdtempSync(join(tmpdir(), "gate-empty-"));
+    try {
+      const r = runGate(BASE_URL_GATE, [`--dir=${empty}`], dir);
+      expect(r.status).not.toBe(0);
+      // And the abort is recorded in the disposable evidence, which is what makes
+      // it worth running here rather than just asserting the exit code.
+      const written = join(empty, "docs", "evidence", "suite-base-url.json");
+      expect(existsSync(written)).toBe(true);
+      expect(JSON.parse(readFileSync(written, "utf8")).verdict).toBe("unknown");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+      rmSync(empty, { recursive: true, force: true });
+    }
   });
 });
 

@@ -29,7 +29,61 @@
 //
 // Exit 1 when a genuine audit is ungated, 2 when the inputs cannot be compared.
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+
+const EVIDENCE = "docs/evidence/gate-coverage.json";
+
+/**
+ * Write this gate's verdict to disk.
+ *
+ * WHY
+ * ---
+ * This check exists because a declared audit can run by hand, pass, and change
+ * nothing. Its own number was in exactly that position: `35 declared, N gated, 0
+ * ungated` existed only as terminal scrollback, and the completion matrix quotes
+ * it. It also declared `evidence: null` in `qa-run-all.mjs`, which meant the
+ * runner's own `missingEvidence` rule could never see it — the check that exists
+ * to catch unwired audits was itself unwired, in the only sense available to it.
+ *
+ * The full lists are written, not just the counts. A count says "0 ungated"; the
+ * list says WHICH 35 scripts were considered, so a reader can tell coverage from
+ * a parsing accident that matched nothing.
+ *
+ * `data` is passed in rather than read from module scope on purpose: the abort
+ * paths below run BEFORE `gated` / `ungated` / `notGates` are declared, so a
+ * closure over them would throw a ReferenceError on exactly the paths that most
+ * need to record why they stopped.
+ */
+function writeEvidence(exitCode, verdict, verdictText, data = {}) {
+  mkdirSync("docs/evidence", { recursive: true });
+  writeFileSync(
+    EVIDENCE,
+    JSON.stringify(
+      {
+        check: "gate-coverage",
+        generatedAt: new Date().toISOString(),
+        pkg: PKG_PATH,
+        gateRunners: GATE_RUNNERS,
+        verdict,
+        verdictText,
+        // The denominator. Without it, "every audit is wired" is unfalsifiable:
+        // the same 0 ungated is reported when 35 scripts parse and when 1 does.
+        declaredCount: null,
+        gatedCount: null,
+        ungatedCount: null,
+        notGateCount: null,
+        gated: [],
+        ungated: [],
+        notGates: [],
+        ...data,
+        exitCode,
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  console.log(`wrote ${EVIDENCE}`);
+}
 
 // `--pkg=<path>` / `--runners=<a,b>` point this at fixtures instead of the repo.
 // Used by `tests/audit-gate-integrity.test.ts` to prove the gate can go red —
@@ -62,6 +116,7 @@ for (const runner of GATE_RUNNERS) {
   // compared" — and a crash is indistinguishable from the gate being broken.
   if (!existsSync(runner)) {
     console.error(`ABORT: gate runner not found: ${runner}`);
+    writeEvidence(2, "unknown", `CANNOT TELL — gate runner not found: ${runner}`);
     process.exit(2);
   }
   const src = readFileSync(runner, "utf8");
@@ -71,6 +126,7 @@ for (const runner of GATE_RUNNERS) {
 }
 if (!gatePaths.size) {
   console.error("ABORT: could not read any script paths out of the gate runners.");
+  writeEvidence(2, "unknown", "CANNOT TELL — no script paths parsed out of the gate runners");
   process.exit(2);
 }
 
@@ -82,6 +138,7 @@ for (const [name, cmd] of Object.entries(pkg.scripts ?? {})) {
 }
 if (!declared.length) {
   console.error("ABORT: no audit/verify scripts parsed out of package.json.");
+  writeEvidence(2, "unknown", "CANNOT TELL — no audit/verify scripts parsed out of package.json");
   process.exit(2);
 }
 
@@ -113,6 +170,15 @@ console.log(`  ${notGates.length} setup/repair/planning, not gates by nature\n`)
 if (!ungated.length) {
   console.log("VERDICT: every declared audit script is wired into a release gate.");
   for (const g of gated) console.log(`  gated:  ${g.name}`);
+  writeEvidence(0, "covered", "every declared audit script is wired into a release gate", {
+    declaredCount: declared.length,
+    gatedCount: gated.length,
+    ungatedCount: 0,
+    notGateCount: notGates.length,
+    gated,
+    ungated: [],
+    notGates,
+  });
   process.exit(0);
 }
 
@@ -122,5 +188,19 @@ console.log(
   "\nEach of these can be run by hand and pass, while nothing that gates a\n" +
     "release would ever invoke it. Either register it with a gate runner or move\n" +
     "it out of the audit: family — an audit nothing runs is not an audit.",
+);
+writeEvidence(
+  1,
+  "gap",
+  `${ungated.length} audit script(s) run by nothing that gates a release`,
+  {
+    declaredCount: declared.length,
+    gatedCount: gated.length,
+    ungatedCount: ungated.length,
+    notGateCount: notGates.length,
+    gated,
+    ungated,
+    notGates,
+  },
 );
 process.exit(1);

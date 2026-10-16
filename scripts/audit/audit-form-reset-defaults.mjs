@@ -29,8 +29,86 @@
 // Exit 0 when clean, 1 when any form is found, 2 when nothing could be scanned
 // (an audit that cannot see the files must not report success).
 
-import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { join, relative, resolve } from "node:path";
+
+/**
+ * Where the evidence belongs when this is NOT scanning a fixture.
+ *
+ * Absolute and derived from this file's own location, not from `process.cwd()`.
+ * The fixture guard below exists because the working directory is not something
+ * this script can trust: a caller that spawns it from the repo root would
+ * otherwise write a one-file fixture result over the real 28-form measurement.
+ *
+ * `fileURLToPath` rather than a stripped `URL.pathname` — the manual regex
+ * breaks on UNC paths and on percent-encoded directory names, and this repo sits
+ * under `OneDrive`, where a folder with a space is a matter of when.
+ */
+const ROOT = resolve(fileURLToPath(new URL("../..", import.meta.url)));
+const EVIDENCE = "docs/evidence/form-reset-defaults.json";
+
+/**
+ * Write this gate's verdict to disk.
+ *
+ * WHY
+ * ---
+ * The defect this gate exists for was real and expensive — a Reset button that
+ * cleared one field of four, letting a user submit dates they believed they had
+ * removed — and its own coverage existed only as terminal scrollback while the
+ * matrix quoted it. It declared `evidence: null`, which does not satisfy the
+ * runner's `missingEvidence` rule; it exempts itself from it.
+ *
+ * Both finding kinds are written verbatim, including the field names, because
+ * the counts alone cannot distinguish "10 forms reset correctly" from "10 forms
+ * were never scanned". `scanned` and `withReset` are the denominators that make
+ * the `findings` list mean something.
+ *
+ * `scanningFixture` is recorded so a test's planted input can never be mistaken
+ * for a clean run of the real codebase — the same reasoning as the evidence-name
+ * fix in `audit-app-responsive.mjs`.
+ */
+function writeEvidence(exitCode, verdict, verdictText, data = {}) {
+  // A fixture run must never overwrite the repository's real measurement.
+  //
+  // This gate already knew it was scanning a fixture (`SCANNING_FIXTURE`) and
+  // still wrote to the relative path `docs/evidence/...`, so with no `--dir=` the
+  // write depended entirely on the caller's working directory.
+  // `tests/audit-gate-integrity.test.ts` ran the planted-bad-input cases from the
+  // repo root, and the committed evidence became `scanned: 1` — one fixture form —
+  // presented as the whole-codebase result.
+  //
+  // The destination is the FIXTURE DIRECTORY, never `process.cwd()`. Writing to
+  // cwd looks like the fix and is not one: the caller is what controls the working
+  // directory, which is the thing that went wrong. `--dir` names the input, so
+  // evidence belongs beside the input.
+  const target = SCANNING_FIXTURE ? ROOTS[0] : ROOT;
+  mkdirSync(join(target, "docs", "evidence"), { recursive: true });
+  writeFileSync(
+    join(target, EVIDENCE),
+    JSON.stringify(
+      {
+        check: "form-reset-defaults",
+        generatedAt: new Date().toISOString(),
+        roots: ROOTS,
+        scanningFixture: SCANNING_FIXTURE,
+        verdict,
+        verdictText,
+        scanned: 0,
+        withReset: 0,
+        missingDefaultCount: 0,
+        emptyOptionCount: 0,
+        findings: [],
+        emptyOptionFindings: [],
+        ...data,
+        exitCode,
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  console.log(`wrote ${EVIDENCE}`);
+}
 
 const ROOTS_DEFAULT = ["components", "app"];
 
@@ -184,6 +262,9 @@ function selectsWithoutEmptyOption(src) {
 const files = ROOTS.flatMap((r) => tsxFiles(r));
 if (!files.length) {
   console.error(`ABORT: no .tsx files found under ${ROOTS.join(", ")}.`);
+  // An audit that cannot see the files must not report success — and must not
+  // report nothing either. Silence and a clean run look identical downstream.
+  writeEvidence(2, "unknown", `CANNOT TELL — no .tsx files found under ${ROOTS.join(", ")}`);
   process.exit(2);
 }
 
@@ -247,6 +328,19 @@ for (const f of emptyOptionFindings) {
 if (!findings.length && !emptyOptionFindings.length) {
   console.log("VERDICT: every form that resets defaults all the fields it registers,");
   console.log("and no field is defaulted to a value its control cannot display.");
+  writeEvidence(
+    0,
+    "clean",
+    "every form that resets defaults all the fields it registers, and no field is defaulted to a value its control cannot display",
+    {
+      scanned,
+      withReset,
+      missingDefaultCount: 0,
+      emptyOptionCount: 0,
+      findings: [],
+      emptyOptionFindings: [],
+    },
+  );
   process.exit(0);
 }
 
@@ -266,4 +360,21 @@ if (findings.length) {
   );
 }
 
+writeEvidence(1, "findings", describeFindings(), {
+  scanned,
+  withReset,
+  missingDefaultCount: findings.length,
+  emptyOptionCount: emptyOptionFindings.length,
+  findings,
+  emptyOptionFindings,
+});
 process.exit(findings.length || emptyOptionFindings.length ? 1 : 0);
+
+/** One sentence naming both failure modes, so a FAIL file is readable alone. */
+function describeFindings() {
+  const parts = [];
+  if (findings.length) parts.push(`${findings.length} form(s) reset without defaulting every registered field`);
+  if (emptyOptionFindings.length)
+    parts.push(`${emptyOptionFindings.length} field(s) defaulted to "" on a control that cannot display ""`);
+  return parts.join("; ");
+}

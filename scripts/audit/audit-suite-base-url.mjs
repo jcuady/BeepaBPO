@@ -53,8 +53,84 @@
 // be cheap enough to run on every change, and the failure it catches is visible
 // in the source anyway.
 
-import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
+import { readdirSync, readFileSync, statSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { join, relative, resolve } from "node:path";
+
+/**
+ * Where this gate's evidence belongs when it is NOT scanning a fixture.
+ *
+ * Absolute, and deliberately NOT `process.cwd()`: the whole point of the fixture
+ * guard below is that `process.cwd()` is untrustworthy here. A caller that spawns
+ * this gate from the wrong working directory would otherwise write its fixture
+ * result over the repository's real measurement — which is precisely the failure
+ * that put `httpScripts: 0` into the committed evidence.
+ *
+ * `fileURLToPath`, not a hand-stripped `URL.pathname`. The manual version
+ * (`replace(/^\/([A-Za-z]:)/, "$1")`) is the well-known wrong idiom: it breaks on
+ * a UNC path, on a percent-encoded directory name — and this repository sits
+ * under `OneDrive`, so a folder containing `%` or a space is a matter of when,
+ * not if. The first draft used the regex and the guard silently did nothing.
+ */
+const ROOT = resolve(fileURLToPath(new URL("../..", import.meta.url)));
+const EVIDENCE = "docs/evidence/suite-base-url.json";
+
+/**
+ * Write this gate's verdict to disk.
+ *
+ * WHY
+ * ---
+ * The matrix quotes this gate's number ("N of M scripts agree") in a row about
+ * suite integrity, and until now the number existed only as terminal scrollback.
+ * That is exactly the failure `qa-run-all.mjs` reports as `missingEvidence` —
+ * except this check declared `evidence: null`, which silences that report rather
+ * than satisfying it. A check can exempt itself from the evidence rule by
+ * declaring no evidence, and an exempt check is the one nobody audits.
+ *
+ * The counts are written because they are the part that gets quoted. `httpScripts`
+ * in particular: it is the denominator that proves the scan saw the whole tree,
+ * and a reader who cannot see it cannot tell "all 44 agree" from "the 12 it
+ * recognised agree".
+ */
+function writeEvidence(exitCode, verdict) {
+  // A fixture run must never touch the repository's evidence.
+  //
+  // `--dir=` exists so a test can plant known-bad input and prove this gate goes
+  // red. Once the gate started writing evidence, every such test began
+  // OVERWRITING `docs/evidence/suite-base-url.json` with the fixture's result — a
+  // planted "one script drifts" run replaced the real whole-tree measurement, and
+  // the repository committed `httpScripts: 0, verdict: "unknown"` as though it
+  // were a finding about the suite.
+  //
+  // The destination is the FIXTURE DIRECTORY (`ROOTS[0]`), never `process.cwd()`.
+  // That distinction cost a real debugging round: the first version of this guard
+  // used `SCANNING_FIXTURE ? process.cwd() : ROOT`, which reads like it fixes the
+  // problem and does not, because the caller is what controls the working
+  // directory — the very thing that went wrong. A test spawning from the repo
+  // root got the repo. `--dir` names the input; evidence belongs beside the input.
+  const target = SCANNING_FIXTURE ? ROOTS[0] : ROOT;
+  mkdirSync(join(target, "docs", "evidence"), { recursive: true });
+  writeFileSync(
+    join(target, EVIDENCE),
+    JSON.stringify(
+      {
+        check: "suite-base-url",
+        generatedAt: new Date().toISOString(),
+        roots: ROOTS,
+        // Recorded so a planted run is identifiable in the file itself, not only
+        // by where it was written.
+        scanningFixture: SCANNING_FIXTURE,
+        convention: { envFirst: "QA_BASE_URL", expectedDefault: EXPECTED_DEFAULT },
+        // Written by the caller; declared here so every exit path emits the
+        // same shape whether it passed, failed, or could not read the tree.
+        ...verdict,
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  console.log(`wrote ${EVIDENCE}`);
+}
 
 // `--dir=<path>` scans a different scripts root. Used by
 // `tests/audit-gate-integrity.test.ts` to plant known-bad input and assert this
@@ -65,6 +141,9 @@ import { join, relative, resolve } from "node:path";
 // and the one a reader trusts to be clean.
 const dirArg = process.argv.slice(2).find((a) => a.startsWith("--dir="));
 const ROOTS = dirArg ? [resolve(dirArg.slice("--dir=".length))] : ["scripts"];
+// True when `--dir=` pointed this run at a fixture rather than the real tree.
+// Consulted by `writeEvidence` above, which runs after this line.
+const SCANNING_FIXTURE = Boolean(dirArg);
 const SKIP = /node_modules|\.next|\.git/;
 const EXPECTED_DEFAULT = "http://localhost:3100";
 const WRONG_PORT = "localhost:3000";
@@ -138,6 +217,16 @@ function walk(dir) {
 const files = ROOTS.flatMap((r) => (existsSync(r) ? walk(r) : []));
 if (!files.length) {
   console.error(`ABORT: no scripts found under ${ROOTS.join(", ")}.`);
+  // "Could not look" is a verdict too, and it is the one worth keeping: an
+  // absent evidence file must not be the only signal that nothing ran.
+  writeEvidence(2, {
+    verdict: "unknown",
+    verdictText: "CANNOT TELL — no scripts found under the declared roots",
+    httpScripts: 0,
+    checked: 0,
+    findings: [],
+    exitCode: 2,
+  });
   process.exit(2);
 }
 
@@ -193,6 +282,14 @@ console.log(`convention: QA_BASE_URL first, default ${EXPECTED_DEFAULT}\n`);
 
 if (!findings.length) {
   console.log("VERDICT: every audit script agrees where the app lives.");
+  writeEvidence(0, {
+    verdict: "agree",
+    verdictText: "every audit script agrees where the app lives",
+    httpScripts,
+    checked,
+    findings: [],
+    exitCode: 0,
+  });
   process.exit(0);
 }
 
@@ -205,4 +302,12 @@ console.log(
   "\nA script pointed at the wrong port reports connection-refused as a product\n" +
     "finding. That is how thirteen healthy roles read as thirteen broken ones.",
 );
+writeEvidence(1, {
+  verdict: "drift",
+  verdictText: `${findings.length} script(s) disagree with the suite`,
+  httpScripts,
+  checked,
+  findings,
+  exitCode: 1,
+});
 process.exit(1);

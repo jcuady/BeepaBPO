@@ -1,0 +1,18 @@
+{
+  "check": "suite-base-url",
+  "generatedAt": "2026-10-16T04:59:09.266Z",
+  "roots": [
+    "scripts"
+  ],
+  "scanningFixture": false,
+  "convention": {
+    "envFirst": "QA_BASE_URL",
+    "expectedDefault": "http://localhost:3100"
+  },
+  "verdict": "agree",
+  "verdictText": "every audit script agrees where the app lives",
+  "httpScripts": 60,
+  "checked": 58,
+  "findings": [],
+  "exitCode": 0
+}

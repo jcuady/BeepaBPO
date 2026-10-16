@@ -10,7 +10,54 @@
  */
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+
+const EVIDENCE = "docs/evidence/attendance-tz.json";
+
+/**
+ * Write this check's verdict to disk.
+ *
+ * WHY
+ * ---
+ * The defect is invisible by construction: a clock time rendered in the server's
+ * zone looks like a perfectly reasonable clock time. Nothing about the page is
+ * "wrong" to a reader who does not know the intended zone, which is exactly why
+ * this needed to be a check — and why its result has to be re-readable later.
+ * A document claiming "attendance renders in the employee's timezone" is
+ * unfalsifiable without the expected string, the stored instant and the zone
+ * that were in force at the time.
+ *
+ * `workDate` is recorded because the fixture date MOVES. The script walks
+ * forward from 2026-09-15 to the first free day, so a reader comparing two runs
+ * is comparing different rows; only the recorded date tells them that.
+ */
+function writeEvidence(exitCode, verdict, verdictText, data = {}) {
+  mkdirSync("docs/evidence", { recursive: true });
+  writeFileSync(
+    EVIDENCE,
+    JSON.stringify(
+      {
+        check: "attendance-tz",
+        generatedAt: new Date().toISOString(),
+        base: BASE,
+        email: EMAIL,
+        verdict,
+        verdictText,
+        timezone: null,
+        workDate: null,
+        expectedClockIn: null,
+        expectedClockOut: null,
+        renderedClockIn: null,
+        renderedClockOut: null,
+        ...data,
+        exitCode,
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  console.log(`wrote ${EVIDENCE}`);
+}
 
 const BASE = process.env.QA_BASE_URL ?? process.env.BASE_URL ?? "http://localhost:3100";
 const EMAIL = process.argv[2] ?? "employee@demo.beepabpo.com";
@@ -50,6 +97,9 @@ const { data: emp } = await admin
 
 if (!emp) {
   console.log(`No employee record linked to ${EMAIL}. Nothing to verify.`);
+  // Nothing was verified, and that has to be distinguishable from "verified and
+  // correct" in the file — the same reason the fixture date is recorded above.
+  writeEvidence(2, "unknown", `no employee record linked to ${EMAIL}; nothing was verified`);
   process.exit(0);
 }
 
@@ -163,10 +213,31 @@ try {
       ? "VERDICT: PASS"
       : `VERDICT: FAIL - server-local rendering would show ${new Date(KNOWN_ISO).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}`,
   );
+
+  // `fixtureId` is recorded so a leaked row (the script deletes its own, but
+  // `catch` re-throws before cleanup if the browser throws first) is traceable.
+  writeEvidence(pass ? 0 : 1, pass ? "pass" : "fail", pass ? "clock times render in the employee's timezone" : "the rendered clock time does not match the employee's timezone", {
+    timezone: tz,
+    workDate: WORK_DATE,
+    fixtureId: inserted.id,
+    storedClockInUtc: KNOWN_ISO,
+    storedClockOutUtc: KNOWN_OUT_ISO,
+    expectedClockIn: expected,
+    expectedClockOut: expectedOut,
+    renderedClockIn: hasIn,
+    renderedClockOut: hasOut,
+  });
   await browser.close();
   await cleanup();
   process.exit(pass ? 0 : 1);
 } catch (err) {
+  // The fixture is deleted before the error propagates, and the failed attempt
+  // is recorded — a check that crashed is not a check that passed.
+  writeEvidence(2, "unknown", `could not complete: ${err.message}`, {
+    timezone: tz,
+    workDate: WORK_DATE,
+    fixtureId: inserted.id,
+  });
   await cleanup();
   throw err;
 }

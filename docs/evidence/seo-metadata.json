@@ -1,0 +1,336 @@
+{
+  "check": "seo-metadata",
+  "generatedAt": "2026-10-16T04:26:57.303Z",
+  "origin": "http://localhost:3100",
+  "verdict": "clean",
+  "verdictText": "all 24 sitemap URL(s) carry complete metadata",
+  "urlsChecked": 24,
+  "failureCount": 0,
+  "urls": [
+    {
+      "path": "/",
+      "titleLength": 55,
+      "descriptionLength": 156,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        [
+          "Organization",
+          "ProfessionalService"
+        ],
+        "WebSite",
+        "ItemList",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/services",
+      "titleLength": 19,
+      "descriptionLength": 139,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/why-beepa",
+      "titleLength": 20,
+      "descriptionLength": 142,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/careers",
+      "titleLength": 18,
+      "descriptionLength": 99,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/about",
+      "titleLength": 16,
+      "descriptionLength": 104,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/resources",
+      "titleLength": 20,
+      "descriptionLength": 74,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/case-studies",
+      "titleLength": 23,
+      "descriptionLength": 134,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/contact",
+      "titleLength": 48,
+      "descriptionLength": 135,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/security",
+      "titleLength": 39,
+      "descriptionLength": 143,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/pricing",
+      "titleLength": 18,
+      "descriptionLength": 159,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/privacy",
+      "titleLength": 25,
+      "descriptionLength": 93,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/terms",
+      "titleLength": 27,
+      "descriptionLength": 142,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/careers/hr",
+      "titleLength": 34,
+      "descriptionLength": 158,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "JobPosting"
+      ]
+    },
+    {
+      "path": "/careers/support",
+      "titleLength": 52,
+      "descriptionLength": 159,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "JobPosting"
+      ]
+    },
+    {
+      "path": "/careers/quality",
+      "titleLength": 46,
+      "descriptionLength": 160,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "JobPosting"
+      ]
+    },
+    {
+      "path": "/careers/customer-support-specialist",
+      "titleLength": 48,
+      "descriptionLength": 68,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "JobPosting"
+      ]
+    },
+    {
+      "path": "/careers/payroll",
+      "titleLength": 36,
+      "descriptionLength": 150,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "JobPosting"
+      ]
+    },
+    {
+      "path": "/resources/how-we-source-in-18-days",
+      "titleLength": 52,
+      "descriptionLength": 98,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "Article"
+      ]
+    },
+    {
+      "path": "/resources/us-hours-without-overtime",
+      "titleLength": 58,
+      "descriptionLength": 83,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "Article"
+      ]
+    },
+    {
+      "path": "/resources/payroll-back-vs-payroll-build",
+      "titleLength": 56,
+      "descriptionLength": 107,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "Article"
+      ]
+    },
+    {
+      "path": "/resources/when-not-to-outsource",
+      "titleLength": 39,
+      "descriptionLength": 68,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "Article"
+      ]
+    },
+    {
+      "path": "/case-studies/cloudpeak-support-pod",
+      "titleLength": 54,
+      "descriptionLength": 91,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "Article"
+      ]
+    },
+    {
+      "path": "/case-studies/northwind-dispatcher-coverage",
+      "titleLength": 58,
+      "descriptionLength": 95,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "Article"
+      ]
+    },
+    {
+      "path": "/case-studies/lumen-ramp-quality",
+      "titleLength": 59,
+      "descriptionLength": 65,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "Article"
+      ]
+    }
+  ],
+  "failures": [],
+  "exitCode": 0
+}

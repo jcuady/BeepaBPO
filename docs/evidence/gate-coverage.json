@@ -1,0 +1,169 @@
+{
+  "check": "gate-coverage",
+  "generatedAt": "2026-10-16T04:16:25.629Z",
+  "pkg": "package.json",
+  "gateRunners": [
+    "scripts/audit/qa-run-all.mjs",
+    "scripts/verify-all.mjs"
+  ],
+  "verdict": "covered",
+  "verdictText": "every declared audit script is wired into a release gate",
+  "declaredCount": 37,
+  "gatedCount": 30,
+  "ungatedCount": 0,
+  "notGateCount": 7,
+  "gated": [
+    {
+      "name": "smoke:cron",
+      "file": "scripts/smoke-cron.mjs"
+    },
+    {
+      "name": "audit:tables",
+      "file": "scripts/audit/audit-tables.mjs"
+    },
+    {
+      "name": "audit:rbac",
+      "file": "scripts/audit/audit-rbac.mjs"
+    },
+    {
+      "name": "audit:action-rbac",
+      "file": "scripts/audit/audit-action-rbac.mjs"
+    },
+    {
+      "name": "audit:wiring",
+      "file": "scripts/audit/audit-page-wiring.mjs"
+    },
+    {
+      "name": "audit:payroll",
+      "file": "scripts/audit/audit-payroll-period-overlap.mjs"
+    },
+    {
+      "name": "audit:payroll-status",
+      "file": "scripts/audit/audit-payroll-status-coherence.mjs"
+    },
+    {
+      "name": "audit:payslip-exposure",
+      "file": "scripts/audit/audit-unapproved-payslip-exposure.mjs"
+    },
+    {
+      "name": "audit:migrations",
+      "file": "scripts/audit/preflight-pending-migrations.mjs"
+    },
+    {
+      "name": "audit:attendance-tz",
+      "file": "scripts/audit/verify-attendance-tz.mjs"
+    },
+    {
+      "name": "audit:pages",
+      "file": "scripts/audit/generate-page-inventory.mjs"
+    },
+    {
+      "name": "audit:vapid",
+      "file": "scripts/audit/test-vapid.mjs"
+    },
+    {
+      "name": "audit:realtime",
+      "file": "scripts/audit/test-realtime-events.mjs"
+    },
+    {
+      "name": "audit:responsive",
+      "file": "scripts/audit-responsive.mjs"
+    },
+    {
+      "name": "audit:app-responsive",
+      "file": "scripts/audit-app-responsive.mjs"
+    },
+    {
+      "name": "audit:perf",
+      "file": "scripts/audit-performance.mjs"
+    },
+    {
+      "name": "audit:touch",
+      "file": "scripts/audit/audit-touch-overrides.mjs"
+    },
+    {
+      "name": "audit:design",
+      "file": "scripts/audit-design-system.mjs"
+    },
+    {
+      "name": "audit:filters",
+      "file": "scripts/audit-filter-persistence.mjs"
+    },
+    {
+      "name": "audit:role-pages",
+      "file": "scripts/audit-role-pages.mjs"
+    },
+    {
+      "name": "audit:form-reset-defaults",
+      "file": "scripts/audit/audit-form-reset-defaults.mjs"
+    },
+    {
+      "name": "audit:suite-base-url",
+      "file": "scripts/audit/audit-suite-base-url.mjs"
+    },
+    {
+      "name": "audit:gate-coverage",
+      "file": "scripts/audit/audit-gate-coverage.mjs"
+    },
+    {
+      "name": "audit:server-fresh",
+      "file": "scripts/audit/audit-server-fresh.mjs"
+    },
+    {
+      "name": "audit:runtime-radius",
+      "file": "scripts/audit/audit-runtime-radius.mjs"
+    },
+    {
+      "name": "audit:contrast",
+      "file": "scripts/audit/audit-contrast.mjs"
+    },
+    {
+      "name": "audit:typography",
+      "file": "scripts/audit/audit-typography.mjs"
+    },
+    {
+      "name": "verify:all",
+      "file": "scripts/verify-all.mjs"
+    },
+    {
+      "name": "verify:skip-migration",
+      "file": "scripts/verify-all.mjs"
+    },
+    {
+      "name": "audit:seo",
+      "file": "scripts/audit/audit-seo-metadata.mjs"
+    }
+  ],
+  "ungated": [],
+  "notGates": [
+    {
+      "name": "seed:demo",
+      "file": "scripts/seed-demo.mts"
+    },
+    {
+      "name": "seed:demo:extended",
+      "file": "scripts/seed-demo-extended.mts"
+    },
+    {
+      "name": "seed:demo:leave",
+      "file": "scripts/seed-demo-leave.mjs"
+    },
+    {
+      "name": "seed:demo:ats",
+      "file": "scripts/audit/qa-seed-ats-interviews.mjs"
+    },
+    {
+      "name": "seed:demo:documents",
+      "file": "scripts/audit/qa-seed-document-blobs.mjs"
+    },
+    {
+      "name": "seed:payroll:window",
+      "file": "scripts/seed-payroll-window.mjs"
+    },
+    {
+      "name": "audit:payroll-plan",
+      "file": "scripts/audit/plan-payroll-reconciliation.mjs"
+    }
+  ],
+  "exitCode": 0
+}

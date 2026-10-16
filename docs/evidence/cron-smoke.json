@@ -1,0 +1,13 @@
+{
+  "check": "cron-smoke",
+  "generatedAt": "2026-10-16T04:26:52.305Z",
+  "base": "http://localhost:3100",
+  "endpoint": "http://localhost:3100/api/jobs/cron",
+  "verdict": "closed",
+  "verdictText": "unauthenticated refused with 401; authorised dry run honoured",
+  "unauthenticatedStatus": 401,
+  "dryRunOk": true,
+  "dryRunFlag": true,
+  "jobsConsidered": null,
+  "exitCode": 0
+}

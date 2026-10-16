@@ -1,0 +1,15 @@
+{
+  "check": "payslip-exposure",
+  "generatedAt": "2026-10-16T04:27:59.904Z",
+  "base": "http://localhost:3100",
+  "email": "employee@demo.beepabpo.com",
+  "verdict": "clean",
+  "verdictText": "CLEAN - no payslip from an unapproved period exists for this employee",
+  "recordCount": 2,
+  "unapprovedCount": 0,
+  "exposedCount": 0,
+  "refusedCount": 0,
+  "downloadLinksListed": 1,
+  "unapproved": [],
+  "exitCode": 0
+}

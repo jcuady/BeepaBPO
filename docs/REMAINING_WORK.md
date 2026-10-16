@@ -594,21 +594,126 @@ offenders:
   they described. Now writes `server-fresh.json`, including the unreachable case
   so "we did not measure" can never read as "nothing was wrong".
 
-**Still open, P2:** `form-reset-defaults`, `suite-base-url`, `seo-metadata`,
-`performance`, `payslip-exposure`, `attendance-tz`, `cron-smoke`, `gate-coverage`.
+**Closed 2026-10-16.** All eight now write evidence, and the exemption is closed
+rather than merely unused:
 
-Matrix rows **2, 3, 7, 7b, 25 and 26** quote a specific figure from one of those
-— "58 HTTP-performing scripts", "0 ungated", "28 forms scanned, 21 that reset",
-"clean" — and every one is marked **✅ Verified today**. They are almost
-certainly correct; what they are not is *traceable*, and this repository's whole
-standard is that a figure nobody can trace to a run is not evidence.
+| Check | Evidence file | What it records beyond the verdict |
+|---|---|---|
+| `form-reset-defaults` | `form-reset-defaults.json` | every field that survives a reset, `scanned`/`withReset` denominators, `scanningFixture` |
+| `suite-base-url` | `suite-base-url.json` | the drifted scripts and why, plus `httpScripts`/`checked` |
+| `gate-coverage` | `gate-coverage.json` | `declaredCount`, and the gated / ungated / not-a-gate lists |
+| `seo-metadata` | `seo-metadata.json` | per-URL title/description lengths and JSON-LD types |
+| `performance` | `performance.json` | every measured row verbatim, plus the budget it was judged against |
+| `payslip-exposure` | `payslip-exposure.json` | `unapprovedCount` and each refused status code |
+| `attendance-tz` | `attendance-tz.json` | timezone, the **moving** fixture date, and the expected clock strings |
+| `cron-smoke` | `cron-smoke.json` | the observed unauthenticated status and the dry-run flag |
 
-**Suggested order, cheapest first:** `suite-base-url` and `gate-coverage` first —
-both are static, produce a single count, and are the two most quoted. Then
-`performance` and `seo-metadata`. `cron-smoke` and `attendance-tz` mutate or
-query real data and need care about what they snapshot. The rule should not be
-loosened to accommodate them: a check that genuinely has nothing durable to say
-should say so in its `what` string rather than by passing `evidence: null`.
+Every one of them writes on its **failure** and **"cannot tell"** paths too, not
+only when it passes. That is the half that was missing before: a gate whose
+evidence file appears only on success records nothing about the defect it was
+written to catch.
+
+Three of these needed a correctness fix to produce an honest file rather than
+just a file:
+
+- **`seo-metadata`** read only `argv[2]`, so `QA_BASE_URL` was ignored — the one
+  HTTP audit in `scripts/audit/` that could not be pointed at a preview by the
+  documented convention, reporting localhost's clean run for a host nobody
+  crawled. It now reads `QA_BASE_URL` first. It also **exited 0 on an empty
+  sitemap**, printing `ALL CHECKS PASS` over zero URLs; that is now exit 2.
+- **`payslip-exposure` is `clean` with `unapprovedCount: 0`.** The employee has a
+  `draft` record, but it is not in `(finalized|paid|approved)`, so there was
+  nothing unapproved to refuse and the refusal path was never exercised. That is
+  now visible in the file rather than reading as a pass. It is a **vacuous
+  clean**, not a defect, and it is labelled as one.
+- **`attendance-tz` moves its fixture date** — it walks forward from 2026-09-15 to
+  the first free day, and landed on 2026-09-18 this run. The date is recorded so
+  two runs are not silently compared across different rows.
+
+**The exemption is now closed by test, not by convention.**
+`tests/audit-evidence-coverage.test.ts` (17 tests) fails if any check outside the
+one named exemption declares `evidence: null`. **Mutation-proved:** setting
+`cron-smoke` back to `evidence: null` turns it red and names `cron-smoke`.
+
+That test also earned its keep by catching four defects in itself, all recorded
+in the file because each is a trap worth not re-entering:
+
+- Its first registry parser used a non-greedy `\{…\}` and matched **25 of 30
+  rows** — five carry an `env: { … }` block and the match stopped at that inner
+  brace. A parser that drops rows cannot find a missing field in them; it just
+  does not see them. It now parses line-anchored and cross-checks its own count.
+- A fixture helper returned a `read()` closure over a temp dir that a `finally`
+  had already deleted, so three fixture tests failed with `expected null not to
+  be null` while the gates were writing evidence perfectly. The read is now eager.
+- A "failing path writes evidence" test asserted `generatedAt` specifically and
+  failed on four files that were perfectly datable under `when`/`startedAt`. That
+  was inventing a schema violation out of a naming habit — the
+  confident-nonsense class — so three keys are accepted and no `check` field is
+  demanded, because attribution already exists via the registry row.
+- A "which gates guard their crash path" test counted `catch (` per file and got
+  **two of five wrong**: a regex cannot tell a guard wrapping the whole run from
+  one wrapping a single `await`. Deleted rather than made to pass.
+
+Two further tests were written and then **deleted as unfireable**, which is the
+point worth recording:
+
+- "Evidence must not predate `.next/BUILD_ID`" was red on 21 of 29 files
+  *permanently* — a build is newer than the evidence until you re-run the suite,
+  and this repo rebuilds many times per pass. A gate red by construction teaches
+  people to ignore red. Replaced with a 30-day staleness floor, which catches the
+  failure that actually happens (a file committed once and never regenerated)
+  without being red today.
+- The crash-path test above.
+
+**Known limit, recorded not asserted:** only `attendance-tz` wraps its browser work
+in `try/catch`. The other four leave the *previous* run's file in place on a
+mid-run crash — dated, parseable, describing a build that is gone. Closing it means
+wrapping four scripts, which is a change to product-adjacent tooling and belongs
+in its own pass.
+
+#### 2.9a Giving a gate an evidence file is itself a hazard — a fixture run overwrote the real measurement
+
+This pass **introduced** a defect and then found it, which is the only reliable way
+this class is ever found. The moment `audit-suite-base-url.mjs` and
+`audit-form-reset-defaults.mjs` began writing to `docs/evidence/`, every
+planted-bad-input test that ran them against a one-file fixture began
+**overwriting the repository's committed evidence with that fixture's result**:
+
+| Evidence file | Committed value | What it should have said |
+|---|---|---|
+| `suite-base-url.json` | `httpScripts: 0, verdict: "unknown"` | `httpScripts: 60, checked: 58, verdict: "agree"` |
+| `form-reset-defaults.json` | `scanned: 1` | `scanned: 28, withReset: 21` |
+
+Both numbers were quoted in this repository's own matrix. Nothing flagged it: the
+files parsed, carried a timestamp, and were newer than everything around them.
+
+The cause was pre-existing and invisible — while the gates wrote nothing, a fixture
+run that printed a verdict and exited was self-contained.
+`tests/audit-gate-integrity.test.ts` ran them with `cwd: ROOT`, which was harmless
+and became destructive the moment there was a file to write.
+
+**Fixed on both sides**, because either alone leaves the trap open:
+
+- The gates write **beside their input** (`ROOTS[0]`, which `--dir` names), never
+  to `process.cwd()`.
+- The two tests pass a disposable `cwd`.
+
+**Two wrong fixes came first, and both are worth recording:**
+
+1. `SCANNING_FIXTURE ? process.cwd() : ROOT` — reads like the fix and is not one.
+   The caller is what controls the working directory; that is the entire problem. A
+   test spawning from the repo root got the repo. Caught by the byte-comparison
+   test, not by reading the code.
+2. Deriving the absolute root by hand-stripping `URL.pathname`
+   (`replace(/^\/([A-Za-z]:)/, "$1")`) — the well-known wrong idiom. It compiled,
+   ran, and silently resolved to the wrong place on Windows. `fileURLToPath` is
+   the correct API, and this repo sits under `OneDrive`, where a directory name
+   containing `%` makes the regex wrong for a matter of when, not if.
+
+The byte-comparison test is the one that earned its place: it runs the gate from
+`ROOT` against a fixture and asserts the committed file is **byte-for-byte
+unchanged**, which catches both wrong fixes and any future one. A regex asserting
+the guard *looks* right passed against fix 1.
 
 **`CardTitle` renders a `<div>`, not a heading — fixed 2026-10-09.** It used to render a
 `<div>`, so every card title in the app was invisible to heading-navigation. axe does not

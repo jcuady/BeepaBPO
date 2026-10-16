@@ -1,0 +1,18 @@
+{
+  "check": "attendance-tz",
+  "generatedAt": "2026-10-16T04:28:29.511Z",
+  "base": "http://localhost:3100",
+  "email": "employee@demo.beepabpo.com",
+  "verdict": "pass",
+  "verdictText": "clock times render in the employee's timezone",
+  "timezone": "Asia/Manila",
+  "workDate": "2026-09-18",
+  "expectedClockIn": "8:00 AM",
+  "expectedClockOut": "5:00 PM",
+  "renderedClockIn": true,
+  "renderedClockOut": true,
+  "fixtureId": "efeef69b-e0df-467d-9b29-2646a1c4af9b",
+  "storedClockInUtc": "2026-09-18T00:00:00.000Z",
+  "storedClockOutUtc": "2026-09-18T09:00:00.000Z",
+  "exitCode": 0
+}

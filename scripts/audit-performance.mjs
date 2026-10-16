@@ -11,9 +11,57 @@
  *   AUTH_EMAIL=owner@demo.beepabpo.com node scripts/audit-performance.mjs
  */
 import { chromium } from "@playwright/test";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+
+const EVIDENCE = "docs/evidence/performance.json";
+
+/**
+ * Write this audit's measurements to disk.
+ *
+ * WHY
+ * ---
+ * A performance audit is the one check whose whole value is the NUMBER, and the
+ * numbers are worthless a week later if they only ever existed on screen.
+ * Worse, timings are not comparable without their conditions: the same route on
+ * a warm dev server and a production build differs by more than most budgets, so
+ * an unlabelled measurement invites being compared to the wrong thing. That is
+ * why `budget`, `routes`, `authenticatedAs` and `measured` are all recorded
+ * rather than just the verdict.
+ *
+ * `measured` is written for the same reason `unmeasured` is printed: the two
+ * are what stop "everything within budget" from being true of a run in which
+ * nothing loaded. An evidence file that only says PASS cannot be distinguished
+ * from a file that says PASS over zero routes.
+ */
+function writeEvidence(exitCode, verdict, verdictText, data = {}) {
+  mkdirSync("docs/evidence", { recursive: true });
+  writeFileSync(
+    EVIDENCE,
+    JSON.stringify(
+      {
+        check: "performance",
+        generatedAt: new Date().toISOString(),
+        base: BASE,
+        routes: [...routes],
+        authenticatedAs: AUTH_EMAIL ?? null,
+        budget: BUDGET,
+        verdict,
+        verdictText,
+        measured: 0,
+        overBudget: 0,
+        unmeasured: 0,
+        rows: [],
+        ...data,
+        exitCode,
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  console.log(`wrote ${EVIDENCE}`);
+}
 
 // Accept BASE_URL like the other audit scripts, and keep the positional form
 // for backwards compatibility. Previously only argv[2] was read, so setting
@@ -204,4 +252,21 @@ if (unmeasured > 0) {
     `${RED}Routes that failed to load cannot be judged. Fix the navigation before trusting this run.${RESET}`,
   );
 }
+
+const verdict =
+  overBudget || unmeasured ? "issues" : "within-budget";
+const verdictText =
+  overBudget || unmeasured
+    ? `${overBudget} route(s) over budget, ${unmeasured} not measured`
+    : `all ${measured} measured route(s) within budget`;
+
+// `rows` verbatim: each entry already carries ttfb/fcp/lcp/cls/transfer and,
+// where it failed to load, `error`. Writing them unchanged means a later reader
+// can recompute against a different budget without re-running a browser.
+writeEvidence(overBudget || unmeasured ? 1 : 0, verdict, verdictText, {
+  measured,
+  overBudget,
+  unmeasured,
+  rows,
+});
 process.exit(overBudget || unmeasured ? 1 : 0);
