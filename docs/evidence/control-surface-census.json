@@ -1,26 +1,26 @@
 {
   "base": "http://localhost:3100",
-  "when": "2026-10-15T13:44:25.424Z",
+  "when": "2026-10-16T17:34:19.089Z",
   "sources": {
     "roles": "docs/evidence/role-sweep.json",
     "assertions": "docs/evidence/workflow-assertion-index.json",
-    "rolesWhen": "2026-10-15T13:15:25.553Z",
-    "assertionsWhen": "2026-10-15T13:34:13.441Z"
+    "rolesWhen": "2026-10-16T17:24:30.397Z",
+    "assertionsWhen": "2026-10-16T02:10:30.871Z"
   },
   "rolesWalked": 13,
   "pagesVisited": 444,
   "pagesFailed": 0,
   "maxPagesPerRole": null,
-  "distinctControls": 538,
-  "namedControls": 538,
-  "actionControls": 339,
-  "actionControlsWithMatchingAssertion": 287,
+  "distinctControls": 541,
+  "namedControls": 541,
+  "actionControls": 342,
+  "actionControlsWithMatchingAssertion": 290,
   "actionControlsUnmatched": 52,
-  "actionControlLabelOverlap": 84.7,
+  "actionControlLabelOverlap": 84.8,
   "navigationControls": 45,
   "navigationControlsWithMatchingAssertion": 32,
   "navigationLabelOverlap": 71.1,
-  "namedControlsWithMatchingAssertion": 447,
+  "namedControlsWithMatchingAssertion": 450,
   "unnamedControls": 0,
   "caveat": "A 'matched' control means some assertion's NAME mentions its label as a word. It does NOT mean the control was pressed, nor pressed in every state. This metric is wrong in BOTH directions, so it is a proxy and not a measurement. It OVER-reports: a label appearing in an assertion name does not prove the control was pressed. It UNDER-reports, which is the direction that hides real gaps -- on the current build it flagged three buttons, and only one was real. 'Save' on /app/payroll/settings and 'Continue' on /app/payroll/periods are both pressed and both work (the assertions are named for the outcome, 'salary change persisted' and 'a new payroll period was created', not for the control). The third, 'Reject' on /app/cash-advances, was a genuine hole: the reject leg of a money workflow had zero executions while an assertion listed 'rejected' as an acceptable end state. Treat an unmatched control as a QUESTION, never as a finding.",
   "perRole": [
@@ -30,7 +30,7 @@
       "pagesFailed": 0,
       "signOuts": 0,
       "signInFailures": 0,
-      "controls": 3119
+      "controls": 3125
     },
     {
       "role": "superadmin",
@@ -38,7 +38,7 @@
       "pagesFailed": 0,
       "signOuts": 0,
       "signInFailures": 0,
-      "controls": 1399
+      "controls": 1401
     },
     {
       "role": "hr",
@@ -86,7 +86,7 @@
       "pagesFailed": 0,
       "signOuts": 0,
       "signInFailures": 0,
-      "controls": 559
+      "controls": 571
     },
     {
       "role": "finance",
@@ -10973,6 +10973,38 @@
     },
     {
       "kind": "button",
+      "name": "Leave request pendingDemo Employee requested 2 days of Emergency Leave (Oct 29 – Oct 30).",
+      "inNavigation": false,
+      "requestedRoute": "/app/my/notifications",
+      "exampleRoute": "/app/my/notifications",
+      "seenOn": [
+        "/app/my/notifications",
+        "/app/my/notifications"
+      ],
+      "assertedBy": {
+        "exercise": "admin-workflow",
+        "assertion": "member keeps their own leave/payroll/attendance access  "
+      },
+      "counted": true
+    },
+    {
+      "kind": "button",
+      "name": "Leave request pendingDemo Employee requested 2 days of Emergency Leave (Oct 30 – Oct 31).",
+      "inNavigation": false,
+      "requestedRoute": "/app/my/notifications",
+      "exampleRoute": "/app/my/notifications",
+      "seenOn": [
+        "/app/my/notifications",
+        "/app/my/notifications"
+      ],
+      "assertedBy": {
+        "exercise": "admin-workflow",
+        "assertion": "member keeps their own leave/payroll/attendance access  "
+      },
+      "counted": true
+    },
+    {
+      "kind": "button",
       "name": "Leave request pendingDemo HR requested 2 days of PTO (May 16 – May 17).",
       "inNavigation": false,
       "requestedRoute": "/app/my/notifications",
@@ -11393,6 +11425,8 @@
       "requestedRoute": "/app/admin/users",
       "exampleRoute": "/app/admin/users",
       "seenOn": [
+        "/app/admin/users",
+        "/app/admin/users",
         "/app/admin/users",
         "/app/admin/users",
         "/app/admin/users",
@@ -12021,7 +12055,21 @@
         "/app/crm/leads/65c75003-e5bc-4718-839c-cf3eb598b199",
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
-        "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809"
+      ],
+      "assertedBy": {
+        "exercise": "list-filters",
+        "assertion": "/app/applicant/notifications "
+      },
+      "counted": true
+    },
+    {
+      "kind": "button",
+      "name": "Notifications (21 unread)",
+      "inNavigation": false,
+      "requestedRoute": "/app/dashboard",
+      "exampleRoute": "/app/dashboard",
+      "seenOn": [
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
@@ -13019,6 +13067,10 @@
         "/app/my/notifications",
         "/app/my/notifications",
         "/app/my/notifications",
+        "/app/my/notifications",
+        "/app/my/notifications",
+        "/app/my/notifications",
+        "/app/my/notifications",
         "/app/billing",
         "/app/billing",
         "/app/billing",
@@ -13080,6 +13132,14 @@
       "requestedRoute": "/app/approvals",
       "exampleRoute": "/app/approvals",
       "seenOn": [
+        "/app/approvals",
+        "/app/approvals",
+        "/app/approvals",
+        "/app/approvals",
+        "/app/approvals",
+        "/app/approvals",
+        "/app/approvals",
+        "/app/approvals",
         "/app/approvals",
         "/app/approvals",
         "/app/approvals",
@@ -16773,6 +16833,8 @@
       "requestedRoute": "/app/admin/users",
       "exampleRoute": "/app/admin/users",
       "seenOn": [
+        "/app/admin/users",
+        "/app/admin/users",
         "/app/admin/users",
         "/app/admin/users",
         "/app/admin/users",
