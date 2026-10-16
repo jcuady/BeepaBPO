@@ -57,15 +57,21 @@ describe("realtime probe — subscription is confirmed before the insert", () =>
 
   it("gates the insert on a confirmed subscription", () => {
     expect(probeCode).toContain("if (!didSubscribe)");
-    // And the insert comes after that guard, not before it.
+    // And the insert comes after that guard, not before it. The anchor moved when
+    // the probe was split into a per-attempt function, so it now names the insert
+    // call itself rather than the log line that used to precede it.
+    expect(probeCode.indexOf("if (!didSubscribe)")).toBeGreaterThan(-1);
     expect(probeCode.indexOf("if (!didSubscribe)")).toBeLessThan(
-      probeCode.indexOf("Inserting test notification"),
+      probeCode.indexOf('from("notifications").insert'),
     );
   });
 
   it("reports a transport failure distinctly from a delivery failure", () => {
-    // Different faults need different fixes, so they get different exits.
-    expect(probeCode).toContain("PROBE_RESULT=NOT_SUBSCRIBED");
+    // Different faults need different fixes, so they get different exits. The
+    // transport marker was NOT_SUBSCRIBED and is now CHANNEL_UNSTABLE, which is
+    // the honest name for it: no channel was ever healthy long enough for the
+    // question of delivery to have been asked.
+    expect(probeCode).toContain("PROBE_RESULT=CHANNEL_UNSTABLE");
     expect(probeCode).toContain("PROBE_RESULT=DELIVERY_FAILED");
     expect(probeCode).toContain("PROBE_RESULT=OK");
     expect(probeCode).toMatch(/process\.exit\(3\)/);
@@ -89,7 +95,31 @@ describe("realtime probe — subscription is confirmed before the insert", () =>
 
   it("reports a late delivery distinctly from an outage", () => {
     expect(probeCode).toContain("PROBE_RESULT=LATE");
-    expect(probeCode).toMatch(/process\.exit\(fired && !late \? 0 : late \? 4 : 1\)/);
+    // Each outcome now calls process.exit itself rather than sharing one ternary,
+    // so the distinct exit codes are asserted where they are written.
+    expect(probeCode).toMatch(/if \(final\.fired\) \{[\s\S]{0,600}?process\.exit\(4\)/);
+  });
+
+  it("only declares an outage when a channel was healthy the whole time", () => {
+    // The gate failure this addresses: subscribed OK, row inserted, nothing in 60s.
+    // The probe could not tell a socket that died mid-attempt from a genuine
+    // delivery miss, because it stopped listening after the first SUBSCRIBED. The
+    // status is now watched for the entire attempt and an outage requires a
+    // channel that stayed SUBSCRIBED; otherwise it is a transport fault.
+    expect(probeCode).toContain("const channelStatusAtEnd = channelStatus;");
+    expect(probeCode).toContain('const healthy = channelStatusAtEnd === "SUBSCRIBED";');
+    expect(probeCode).toContain("runs.some((r) => r.healthy)");
+    expect(probeCode).toMatch(/if \(runs\.some\(\(r\) => r\.healthy\)\) \{[\s\S]{0,400}?PROBE_RESULT=DELIVERY_FAILED/);
+  });
+
+  it("reports the channel status captured while the channel was alive", () => {
+    // `removeChannel` fires the subscribe callback with CLOSED by design, so a
+    // status read after teardown reports every healthy channel as closed. The first
+    // run of this probe printed "CLOSED (healthy throughout)" — two contradictory
+    // claims at once — because `healthy` was computed before the teardown and
+    // `channelStatus` was read after it. The returned status must be the captured
+    // one, so the two can never disagree.
+    expect(probeCode).toContain("channelStatus: channelStatusAtEnd, healthy");
   });
 
   it("still subscribes as an authenticated user, not anon", () => {
@@ -181,11 +211,26 @@ describe("negative controls", () => {
     const noMarker = probeCode.replace("PROBE_RESULT=LATE", "PROBE_RESULT=OK");
     expect(noMarker).not.toContain("PROBE_RESULT=LATE");
 
-    const noDistinctExit = probeCode.replace(
-      "process.exit(fired && !late ? 0 : late ? 4 : 1)",
-      "process.exit(fired ? 0 : 1)",
+    const noDistinctExit = probeCode.replace("process.exit(4)", "process.exit(0)");
+    expect(noDistinctExit).not.toMatch(/process\.exit\(4\)/);
+  });
+
+  it("catches the healthy-channel requirement being dropped", () => {
+    // Without this control, the outage test could pass on a probe that declared
+    // DELIVERY_FAILED regardless of whether any channel was ever healthy — which
+    // is precisely the blind spot that let a transport fault be reported as a
+    // delivery outage.
+    const noHealthGate = probeCode.replace("runs.some((r) => r.healthy)", "true");
+    expect(noHealthGate).not.toContain("runs.some((r) => r.healthy)");
+    expect(probeCode).toContain("runs.some((r) => r.healthy)");
+  });
+
+  it("catches the status being read after the channel is torn down", () => {
+    const readAfterTeardown = probeCode.replace(
+      "channelStatus: channelStatusAtEnd, healthy",
+      "channelStatus, healthy",
     );
-    expect(noDistinctExit).not.toMatch(/late \? 4 : 1/);
+    expect(readAfterTeardown).not.toContain("channelStatus: channelStatusAtEnd");
   });
 
   it("catches the canned explanation returning to verify-all", () => {

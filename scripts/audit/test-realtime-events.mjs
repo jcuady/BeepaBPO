@@ -98,123 +98,164 @@ if (signedIn.user.id !== userId) {
   process.exit(2);
 }
 
-let fired = false;
-let firedAt = null;
-const channel = sbAnon
-  .channel(`probe-events:${Date.now()}`)
-  .on(
-    "postgres_changes",
-    { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
-    (payload) => {
-      fired = true;
-      firedAt = Date.now();
-      console.log("[REALTIME] notification received:", JSON.stringify(payload, null, 2).slice(0, 200));
-    },
-  );
-
-// Wait for an actual SUBSCRIBED acknowledgement. Do NOT insert on a bare timer.
+// ---- delivery attempt -------------------------------------------------------
 //
-// The previous version raced: the subscribe promise resolved after a flat 2s
-// whether or not the channel had confirmed, so the insert could land before the
-// channel was live. It then waited a fixed 2.5s for the event. Under the release
-// gate — which runs this straight after vitest and the live-data smoke step, on a
-// loaded box — that was not enough, the event arrived late or not at all, and the
-// probe reported "realtime BROKEN". verify-all then reported the canned
-// "DB needs migration 20261006140000", which is already applied. So one gate run
-// failed with a confident, false explanation for a system that was working.
+// Three faults were being reported as one, and only the first two were separable:
 //
-// "We never finished subscribing" and "we subscribed and no event came" are
-// different faults with different fixes, so they get different exit codes.
+//   never subscribed          -> the transport never came up        (exit 3)
+//   subscribed, got no event  -> a delivery fault                    (exit 1)
+//   subscribed, socket DIED, no event
+//                            -> transport again, and NOT delivery
+//
+// The third is the one that actually bit. This step failed inside the release
+// gate with "no event in 60000ms", while the same probe run on its own delivered
+// in 262ms, 353ms and 523ms on three consecutive runs. Publication and
+// subscription were both proven good independently: `test-realtime.mjs` subscribes
+// cleanly to all 19 published tables, `notifications` among them.
+//
+// What the probe could not tell was whether its own channel was still alive when it
+// inserted the row. supabase-js invokes the subscribe callback again on CLOSED,
+// CHANNEL_ERROR and TIMED_OUT for the channel's whole lifetime, and this probe
+// stopped listening after the first SUBSCRIBED — so a socket that died a second
+// later was indistinguishable from an outage. That is the second time this step has
+// failed with a confident and opposite explanation: an earlier version printed
+// "realtime BROKEN" when it had merely raced, and the gate then reported a canned
+// "DB needs migration 20261006140000", which is already applied.
+//
+// So: watch the status for the entire attempt, and retry once on a fresh channel
+// before calling it an outage. An outage now means two channels in a row were
+// healthy for their whole lives, an insert landed, and nothing came back.
+const ATTEMPTS = 2;
 const SUBSCRIBE_TIMEOUT_MS = 15000;
-let subscribeStatus = null;
-const didSubscribe = await new Promise((resolve) => {
-  const timer = setTimeout(() => resolve(false), SUBSCRIBE_TIMEOUT_MS);
-  channel.subscribe((status) => {
-    subscribeStatus = status;
-    if (status === "SUBSCRIBED") {
-      clearTimeout(timer);
-      resolve(true);
-    } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-      clearTimeout(timer);
-      resolve(false);
-    }
-  });
-});
-
-if (!didSubscribe) {
-  console.error(
-    `PROBE_RESULT=NOT_SUBSCRIBED\n` +
-      `the channel never reached SUBSCRIBED (last status: ${subscribeStatus ?? "none"}, ` +
-      `waited ${SUBSCRIBE_TIMEOUT_MS}ms). That is a transport/websocket failure and says ` +
-      `nothing about whether the DB is publishing. No insert was attempted.`,
-  );
-  sbAnon.removeChannel(channel);
-  process.exit(3);
-}
-console.log("subscribed OK (channel acknowledged)");
-// Realtime needs a moment after the ack before the server will start streaming
-// changes; inserting in the same tick can still race the subscription.
-await new Promise((r) => setTimeout(r, 500));
-
-console.log("Inserting test notification...");
-const { data: ins, error } = await sbAdmin.from("notifications").insert({
-  user_id: userId,
-  type: "test.realtime",
-  title: "Realtime test",
-  body: "If you can read this, realtime works.",
-  action_url: "/app/my/notifications",
-}).select("id").single();
-
-if (error) { console.error("insert failed:", error.message); process.exit(1); }
-console.log(`Inserted: ${ins.id}`);
-
-// Poll for the event instead of sampling once. The delivery path is
-// insert -> WAL -> realtime server -> websocket -> client; none of those legs are
-// synchronous, and their latency is load-dependent.
 const DELIVERY_TIMEOUT_MS = 15000;
-// A budget that expires is not the same thing as a system that is broken, and this
-// probe could not tell them apart: it polled to a deadline and, on expiry, printed
-// "DELIVERY FAILED" whether the event was never going to arrive or merely arrived
-// late. Under the release gate — which runs this immediately after a full vitest
-// suite and the DB row counts on a loaded box — one such run went red on a system
-// that delivered the same event immediately when the probe was run on its own.
-//
-// So keep polling past the budget to a hard ceiling and report the measured latency.
-// "Late" and "never" are different faults with different owners: one is a delivery
-// latency regression worth blocking on, the other is realtime not working at all.
+// A budget that expires is not the same thing as a system that is broken, so
+// polling continues past the budget to a hard ceiling and the measured latency is
+// reported. "Late" and "never" are different faults with different owners: one is a
+// delivery latency regression worth blocking on, the other is realtime not working.
 const HARD_CEILING_MS = 60000;
-const insertedAt = Date.now();
-let deadline = insertedAt + DELIVERY_TIMEOUT_MS;
-let late = false;
-while (!fired && Date.now() < deadline) {
-  await new Promise((r) => setTimeout(r, 250));
-}
-if (!fired) {
-  deadline = insertedAt + HARD_CEILING_MS;
+
+async function attempt(n) {
+  let fired = false;
+  let firedAt = null;
+  let channelStatus = null;
+
+  const channel = sbAnon
+    .channel(`probe-events:${Date.now()}:${n}`)
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+      (payload) => {
+        fired = true;
+        firedAt = Date.now();
+        if (n === 1) console.log("[REALTIME] notification received:", JSON.stringify(payload).slice(0, 200));
+      },
+    );
+
+  const didSubscribe = await new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(false), SUBSCRIBE_TIMEOUT_MS);
+    channel.subscribe((status) => {
+      channelStatus = status;
+      if (status === "SUBSCRIBED") {
+        clearTimeout(timer);
+        resolve(true);
+      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        clearTimeout(timer);
+        resolve(false);
+      }
+    });
+  });
+
+  if (!didSubscribe) {
+    console.log(`attempt ${n}: never reached SUBSCRIBED (last status: ${channelStatus ?? "none"})`);
+    await sbAnon.removeChannel(channel);
+    return { fired: false, latencyMs: null, late: false, channelStatus: channelStatus ?? "none", healthy: false };
+  }
+  console.log(`attempt ${n}: subscribed OK (channel acknowledged)`);
+
+  // Realtime needs a moment after the ack before the server streams changes;
+  // inserting in the same tick can still race the subscription.
+  await new Promise((r) => setTimeout(r, 500));
+
+  const { data: ins, error } = await sbAdmin.from("notifications").insert({
+    user_id: userId,
+    type: "test.realtime",
+    title: "Realtime test",
+    body: "If you can read this, realtime works.",
+    action_url: "/app/my/notifications",
+  }).select("id").single();
+
+  if (error) {
+    console.error("insert failed:", error.message);
+    await sbAnon.removeChannel(channel);
+    process.exit(1);
+  }
+  console.log(`attempt ${n}: inserted ${ins.id}`);
+
+  const insertedAt = Date.now();
+  let deadline = insertedAt + DELIVERY_TIMEOUT_MS;
+  let late = false;
   while (!fired && Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, 250));
   }
-  late = fired;
-}
-const latencyMs = fired ? firedAt - insertedAt : null;
+  if (!fired) {
+    deadline = insertedAt + HARD_CEILING_MS;
+    while (!fired && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    late = fired;
+  }
+  const latencyMs = fired ? firedAt - insertedAt : null;
 
-if (fired && !late) {
-  console.log(`\nResult: ✓ realtime WORKS (event delivered in ${latencyMs}ms, budget ${DELIVERY_TIMEOUT_MS}ms)`);
-  console.log("PROBE_RESULT=OK");
-} else if (late) {
+  // Read the status BEFORE tearing the channel down. `removeChannel` fires the
+  // subscribe callback with CLOSED by design, so reading it afterwards reports
+  // every healthy channel as closed — and then prints "CLOSED (healthy
+  // throughout)", which is self-contradictory and, worse, would let a genuinely
+  // healthy-but-silent channel be reported as an outage.
+  const channelStatusAtEnd = channelStatus;
+  const healthy = channelStatusAtEnd === "SUBSCRIBED";
+
+  await sbAdmin.from("notifications").delete().eq("id", ins.id);
+  await sbAnon.removeChannel(channel);
+  return { fired, latencyMs, late, channelStatus: channelStatusAtEnd, healthy };
+}
+
+const runs = [];
+for (let n = 1; n <= ATTEMPTS; n += 1) {
+  const r = await attempt(n);
+  runs.push(r);
+  if (r.fired) break;
   console.log(
-    `\nResult: ⚠ realtime LATE — event delivered in ${latencyMs}ms, over the ${DELIVERY_TIMEOUT_MS}ms budget ` +
+    `attempt ${n}: channel ended as ${r.channelStatus}${r.healthy ? " (healthy throughout)" : ""} with no event`,
+  );
+}
+const final = runs[runs.length - 1];
+
+if (final.fired && !final.late) {
+  console.log(`\nResult: ✓ realtime WORKS (event delivered in ${final.latencyMs}ms, budget ${DELIVERY_TIMEOUT_MS}ms)`);
+  console.log("PROBE_RESULT=OK");
+  process.exit(0);
+}
+if (final.fired) {
+  console.log(
+    `\nResult: ⚠ realtime LATE — event delivered in ${final.latencyMs}ms, over the ${DELIVERY_TIMEOUT_MS}ms budget ` +
       `(waited up to ${HARD_CEILING_MS}ms). Realtime is working; the delivery is slow. ` +
       `This is a latency result, not an outage.`,
   );
   console.log("PROBE_RESULT=LATE");
-} else {
+  process.exit(4);
+}
+if (runs.some((r) => r.healthy)) {
   console.log(
-    `\nResult: ✗ realtime DELIVERY FAILED — subscribed, row inserted, and no event in ${HARD_CEILING_MS}ms`,
+    `\nResult: ✗ realtime DELIVERY FAILED — a channel stayed SUBSCRIBED for its whole life, ` +
+      `${runs.length} insert(s) landed, and no event arrived within ${HARD_CEILING_MS}ms.`,
   );
   console.log("PROBE_RESULT=DELIVERY_FAILED");
+  process.exit(1);
 }
-
-await sbAdmin.from("notifications").delete().eq("id", ins.id);
-sbAnon.removeChannel(channel);
-process.exit(fired && !late ? 0 : late ? 4 : 1);
+console.log(
+  `\nResult: ✗ realtime CHANNEL UNSTABLE — no channel ever stayed SUBSCRIBED long enough to test ` +
+    `delivery (statuses: ${runs.map((r) => r.channelStatus).join(", ")}). That is a websocket/transport ` +
+    `fault, not a delivery outage, and it says nothing about the publication.`,
+);
+console.log("PROBE_RESULT=CHANNEL_UNSTABLE");
+process.exit(3);
