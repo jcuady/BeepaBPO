@@ -223,10 +223,18 @@ Stated plainly, because a checklist that only lists passes is a marketing docume
   hardcoding "signUp is rate limited", and warns when it consumed budget. **Wait, then run
   `qa-exercise-signup-workflow.mjs` on its own.**
 - **Admin invite is BLOCKED** for the same reason — one invite per email window.
-  `qa-exercise-client-invite.mjs` and `qa-exercise-reset-password.mjs` are registered nowhere
-  for the same reason and are listed in the runner's "not registered" report so the omission
-  reads as deliberate rather than forgotten. **Reset-password is blocked by a different cause**:
-  it needs a recovery token from an inbox, and there is no mail provider in this environment.
+  `qa-exercise-reset-password.mjs` is still registered nowhere, for that reason, and is
+  listed in the runner's "not registered" report so the omission reads as deliberate
+  rather than forgotten. Only its **new-address** legs need mail; the reset-action legs
+  do not and run clean at 8/8. `qa-exercise-client-invite.mjs` **is** registered now —
+  its existing-account leg needs no mail at all.
+- **`/auth/callback` needed no mailbox and was still untested.** It is now registered
+  (`auth-callback`, fast tier) and passes 8/8. Building it found a **real defect**: the
+  route has always redirected failures to `/login?error=auth_callback`, and nothing
+  anywhere read that parameter — `auth_callback` appeared exactly once in the codebase,
+  on the line that produced it. So every expired or already-used signup and reset link
+  dropped the person on a plain login form that said nothing at all. Fixed, and the fix
+  is mutation-proven: removing the read turns exactly one check red.
 - **The exercises share one database.** They must run serially; two at once corrupt each
   other's cleanup and the failure looks like a product bug. A notification raised by the leave
   exercise can land while the notifications exercise is running, so those assertions are scoped

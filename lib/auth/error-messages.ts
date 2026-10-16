@@ -167,3 +167,27 @@ export function inviteErrorMessage(
   // here, so no wording in this branch may imply the account exists or does not.
   return "Unable to send the invite right now. Try again in a moment.";
 }
+
+/**
+ * The notice `/auth/callback` sends when it could not finish a link.
+ *
+ * The route has redirected to `/login?error=auth_callback` since it existed, and
+ * nothing ever read that parameter. `auth_callback` appeared exactly once in the
+ * whole codebase — on the line that produced it. So every expired, already-used,
+ * or tampered signup and reset link dropped the person on a plain login form with
+ * no message at all. They had asked to reset a password, clicked the emailed
+ * link, and the only feedback was silence, which reads as "nothing happened" and
+ * sends them back to request the same email in a loop.
+ *
+ * Two rules, both asserted by `qa-exercise-auth-callback.mjs`:
+ *  - returns null for an unrecognised code, so an arbitrary `?error=` is never
+ *    echoed back into the page;
+ *  - never claims the account exists or does not, for the same reason every other
+ *    mapper in this file stays silent on that.
+ */
+export function authCallbackErrorMessage(code: string | null | undefined): string | null {
+  if (code === "auth_callback") {
+    return "This link is invalid or has expired. It may already have been used. Sign in below, or request a new one.";
+  }
+  return null;
+}

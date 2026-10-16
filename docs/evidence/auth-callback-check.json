@@ -1,0 +1,56 @@
+{
+  "check": "auth-callback",
+  "script": "scripts/audit/qa-exercise-auth-callback.mjs",
+  "baseUrl": "http://localhost:3100",
+  "when": "2026-10-16T08:48:23.560Z",
+  "assertions": 8,
+  "passed": 8,
+  "failed": 0,
+  "details": [
+    {
+      "name": "no code redirects to login carrying the error code",
+      "pass": true,
+      "detail": "status=307 location=http://localhost:3100/login?error=auth_callback"
+    },
+    {
+      "name": "a bad code is exchanged, fails, and takes the same failure branch",
+      "pass": true,
+      "detail": "status=307 location=http://localhost:3100/login?error=auth_callback"
+    },
+    {
+      "name": "the failed exchange signs nobody in",
+      "pass": true,
+      "detail": "landed on http://localhost:3100/login?error=auth_callback"
+    },
+    {
+      "name": "a dead link explains itself instead of failing silently",
+      "pass": true,
+      "detail": "alert reads: This link is invalid or has expired. It may already have been used. Sign in below, or requ"
+    },
+    {
+      "name": "the dead-link message leaves a way forward on the page",
+      "pass": true,
+      "detail": "forgot-password links on page = 1"
+    },
+    {
+      "name": "a normal sign-in shows no link error",
+      "pass": true,
+      "detail": "alerts=(none)"
+    },
+    {
+      "name": "an unrecognised ?error= is neither rendered nor echoed",
+      "pass": true,
+      "detail": "canary in visible text=false, in alerts=false"
+    },
+    {
+      "name": "0 console errors",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "notCovered": [
+    "the success branch: a genuine PKCE code exchanged for a session and redirected to next. Minting one requires the emailed link, so delivery is the blocker.",
+    "that the emailed link arrives at all."
+  ],
+  "verdict": "pass"
+}

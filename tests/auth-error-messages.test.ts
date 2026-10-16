@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  authCallbackErrorMessage,
   authErrorMessage,
   inviteErrorMessage,
 } from "@/lib/auth/error-messages";
@@ -138,5 +139,53 @@ describe("inviteErrorMessage", () => {
       expect(inviteErrorMessage({ status })).toMatch(/couldn't reach/i);
       expect(authErrorMessage({ status })).toMatch(/couldn't reach/i);
     }
+  });
+});
+
+/**
+ * The notice `/auth/callback` sends a person to when a signup or reset link
+ * could not be completed.
+ *
+ * This parameter had no reader at all. `auth_callback` appeared exactly once in
+ * the codebase -- on the redirect that produced it -- so every expired or
+ * already-used link dropped the user on a plain login form saying nothing.
+ *
+ * Asserted behaviourally, because the mapping is the whole point: the copy is
+ * what the user reads after a link dies.
+ */
+describe("authCallbackErrorMessage", () => {
+  it("explains a dead link", () => {
+    const message = authCallbackErrorMessage("auth_callback");
+    expect(message).toBeTruthy();
+    expect(message).toMatch(/invalid|expired/i);
+  });
+
+  it("offers a way forward rather than only reporting failure", () => {
+    // A bare "your link expired" tells the user what happened and nothing about
+    // what to do, which is what made the old silent page so costly: the obvious
+    // reading was "nothing happened", so they request the same email again.
+    expect(authCallbackErrorMessage("auth_callback")).toMatch(/sign in|request/i);
+  });
+
+  it("returns null for anything it does not recognise", () => {
+    // The parameter is attacker-controlled. Reflecting it would turn a redirect
+    // parameter into an injection surface, so an unknown code must render nothing.
+    expect(authCallbackErrorMessage("something_else")).toBeNull();
+    expect(authCallbackErrorMessage("CANARY_echoed_error_value")).toBeNull();
+    expect(authCallbackErrorMessage("<script>alert(1)</script>")).toBeNull();
+  });
+
+  it("renders nothing when there is no parameter at all", () => {
+    // Otherwise every ordinary sign-in would show a red banner.
+    expect(authCallbackErrorMessage(null)).toBeNull();
+    expect(authCallbackErrorMessage(undefined)).toBeNull();
+    expect(authCallbackErrorMessage("")).toBeNull();
+  });
+
+  it("keeps the account-existence oracle out, like its siblings", () => {
+    // Same rule as every other mapper in this file: a link that fails must not
+    // become a way to learn whether an account exists.
+    const message = authCallbackErrorMessage("auth_callback") ?? "";
+    expect(message).not.toMatch(/already (registered|exists)|no account|not found/i);
   });
 });

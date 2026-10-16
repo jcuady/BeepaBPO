@@ -107,17 +107,23 @@ describe("no QA check may exempt itself from the evidence rule", () => {
     // reason the count is compared against an independent count of the ids.
     //
     // The independent count scans the SAME region — between `const CHECKS = [` and
-    // its closing `];` — not the whole file. Counting the whole file finds 31,
+    // its closing `];` — not the whole file. Counting the whole file finds one more,
     // because `runGates()` below has a second `id:`, and the first draft of this
     // test failed 30-vs-31 for a reason that had nothing to do with the registry.
     // The rule: a cross-check must measure the same subject, or it is measuring
     // the wrong difference. Both bounds are needed — an index filter alone still
-    // matched all 31, because every one of them sits after the opening.
+    // matched every row, because all of them sit after the opening.
+    //
+    // The pinned number moves when a check is added, and that is the point of pinning
+    // it: adding `auth-callback` took this from 31 to 32 and turned this red until
+    // the count was acknowledged. A parser that had silently stopped matching rows
+    // would move this number too, which is why it is compared against an independent
+    // count on the line above rather than trusted as a constant.
     const start = src.indexOf("const CHECKS = [");
     const end = src.indexOf("\n];", start);
     const ids = [...src.slice(start, end).matchAll(/\{\s*id:\s*"([^"]+)"/g)];
     expect(rows.length).toBe(ids.length);
-    expect(rows.length).toBe(31);
+    expect(rows.length).toBe(32);
     // And the exempt one is the gate, named in this file's own EXEMPT set.
     expect(rows.filter((r) => EXEMPT.has(r.id)).map((r) => r.id)).toEqual(["gate"]);
   });

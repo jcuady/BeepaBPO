@@ -8,6 +8,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { LoginForm } from "@/components/auth/login-form";
 import { redirectIfAuthenticated } from "@/lib/auth/redirect-if-authenticated";
 import { safeNext } from "@/lib/auth/safe-next";
+import { authCallbackErrorMessage } from "@/lib/auth/error-messages";
 import { getDemoLoginConfig } from "@/lib/demo/login";
 import { DEMO_USERS } from "@/lib/demo/users";
 import { BRAND } from "@/lib/site";
@@ -21,11 +22,16 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; demo?: string }>;
+  searchParams: Promise<{ next?: string; demo?: string; error?: string }>;
 }) {
   const params = await searchParams;
   const nextPath = safeNext(params.next);
   await redirectIfAuthenticated(nextPath);
+
+  // `/auth/callback` sends people here with `?error=auth_callback` whenever a
+  // signup or reset link could not be completed. Nothing read it, so a dead link
+  // used to land on this form with no explanation at all.
+  const linkError = authCallbackErrorMessage(params.error);
 
   const demo = getDemoLoginConfig("client");
   const requested = params.demo?.toLowerCase();
@@ -61,6 +67,7 @@ export default async function LoginPage({
     >
       <LoginForm
         nextPath={nextPath}
+        linkError={linkError}
         demoUsers={demo?.users}
         demoPassword={demo?.password}
         initialDemoEmail={initialDemoEmail}

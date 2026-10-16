@@ -68,6 +68,14 @@ const CHECKS = [
   // two. Run this DIRECTLY after a wait rather than probing first.
   { id: "client-invite",    tier: "fast",  cmd: ["scripts/audit/qa-exercise-client-invite.mjs"], evidence: "docs/evidence/client-invite-check.json", what: "the last uncovered action, driven through its real form (BLOCKED when mail is rate limited)" },
 
+  // `/auth/callback` had no exercise at all, and it is where every failed signup
+  // and reset link goes. Its failure branch redirects to `/login?error=auth_callback`,
+  // and that parameter appeared exactly once in the codebase -- on the line that
+  // produced it. So a dead link dropped the user on a plain login form that said
+  // nothing at all, which reads as "nothing happened" and sends them back to
+  // request the same email in a loop.
+  { id: "auth-callback",    tier: "fast",  cmd: ["scripts/audit/qa-exercise-auth-callback.mjs"], evidence: "docs/evidence/auth-callback-check.json", what: "a dead link explains itself instead of failing silently" },
+
   // The square brand was previously only ever checked by *reading class
   // strings*. That proves no `rounded-[16px]` survives in the source, and stops
   // there: it cannot see a radius that arrives through a variable, a cascade or

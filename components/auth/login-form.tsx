@@ -38,6 +38,7 @@ function persistRemember(email: string, on: boolean) {
 
 type LoginFormProps = {
   nextPath?: string;
+  linkError?: string | null;
   demoUsers?: readonly DemoUser[];
   demoPassword?: string;
   initialDemoEmail?: string;
@@ -45,6 +46,7 @@ type LoginFormProps = {
 
 export function LoginForm({
   nextPath = "/app",
+  linkError = null,
   demoUsers,
   demoPassword,
   initialDemoEmail,
@@ -80,6 +82,15 @@ export function LoginForm({
           together.
         </p>
       </div>
+
+      {linkError && (
+        <p
+          className="mt-6 rounded-none bg-red-50 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
+          {linkError}
+        </p>
+      )}
 
       <form action={action} className="mt-8 space-y-5" noValidate>
         <input type="hidden" name="next" value={nextPath} />
