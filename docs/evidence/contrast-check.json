@@ -1,6 +1,6 @@
 {
   "check": "contrast",
-  "generatedAt": "2026-10-15T13:50:15.099Z",
+  "generatedAt": "2026-10-16T17:03:34.035Z",
   "base": "http://localhost:3100",
   "standard": "WCAG 2.2 SC 1.4.3 (AA)",
   "thresholds": {
@@ -556,11 +556,11 @@
       "route": "/app/admin/users",
       "group": "app",
       "status": 200,
-      "checked": 148,
+      "checked": 154,
       "failures": 0,
       "overPhotoSampled": 0,
       "unresolved": 0,
-      "skippedExempt": 8,
+      "skippedExempt": 9,
       "pageErrors": []
     },
     {
@@ -611,7 +611,7 @@
       "route": "/app/approvals",
       "group": "app",
       "status": 200,
-      "checked": 158,
+      "checked": 170,
       "failures": 0,
       "overPhotoSampled": 0,
       "unresolved": 0,
@@ -646,8 +646,8 @@
     "routesChecked": 57,
     "publicRoutes": 13,
     "appRoutes": 44,
-    "elementsMeasured": 5433,
-    "elementsMeasuredApp": 4465,
+    "elementsMeasured": 5451,
+    "elementsMeasuredApp": 4483,
     "overPhotoProbes": 50,
     "overPhotoResolved": 50,
     "failures": 0,

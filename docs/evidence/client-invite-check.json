@@ -1,8 +1,8 @@
 {
   "check": "client-invite",
-  "generatedAt": "2026-10-16T06:55:13.108Z",
+  "generatedAt": "2026-10-16T17:01:43.596Z",
   "base": "http://localhost:3100",
-  "marker": "qa-invite-mvam4prq",
+  "marker": "qa-invite-mvb7sq3x",
   "total": 24,
   "passed": 24,
   "failures": 0,
@@ -27,22 +27,22 @@
     {
       "name": "the form accepts the invite address",
       "pass": true,
-      "detail": "qa-invite-mvam4prq@beepabpo.com"
+      "detail": "qa-invite-mvb7sq3x@beepabpo.com"
     },
     {
       "name": "invite succeeds",
       "pass": true,
-      "detail": "auth user f0953121-eb1b-4471-be1f-b36512df54b2 — toast: Invite sent to qa-invite-mvam4prq@beepabpo.com for CloudPeak."
+      "detail": "auth user 08aa97ae-9970-4dbc-bb1e-898017c8996f — toast: Invite sent to qa-invite-mvb7sq3x@beepabpo.com for CloudPeak."
     },
     {
       "name": "an auth user was created for the invited address",
       "pass": true,
-      "detail": "f0953121-eb1b-4471-be1f-b36512df54b2"
+      "detail": "08aa97ae-9970-4dbc-bb1e-898017c8996f"
     },
     {
       "name": "the profile carries the names typed into the form",
       "pass": true,
-      "detail": "{\"id\":\"f0953121-eb1b-4471-be1f-b36512df54b2\",\"display_name\":\"Qa Invitee\",\"first_name\":\"Qa\",\"last_name\":\"Invitee\",\"status"
+      "detail": "{\"id\":\"08aa97ae-9970-4dbc-bb1e-898017c8996f\",\"display_name\":\"Qa Invitee\",\"first_name\":\"Qa\",\"last_name\":\"Invitee\",\"status"
     },
     {
       "name": "a membership was created",

@@ -1,15 +1,17 @@
 {
   "check": "qa-suite",
-  "generatedAt": "2026-10-13T03:05:38.759Z",
+  "generatedAt": "2026-10-16T17:05:17.023Z",
   "base": "http://localhost:3100",
   "tiersRun": [
     "fast",
     "gate"
   ],
-  "total": 10,
-  "passed": 10,
+  "total": 15,
+  "passed": 15,
   "failures": 0,
   "blocked": 0,
+  "skipped": 0,
+  "skipReason": null,
   "missingEvidence": [],
   "results": [
     {
@@ -18,7 +20,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 8,
+      "seconds": 13,
       "evidence": "docs/evidence/not-found-check.json",
       "evidenceWritten": true,
       "tail": "18/18 passed",
@@ -30,10 +32,10 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 6,
+      "seconds": 5,
       "evidence": "docs/evidence/dialog-keyboard-check.json",
       "evidenceWritten": true,
-      "tail": "PASS  changing status opens the confirm dialog | PASS  focus moves into the dialog on open  — activeElement BUTTON# \"Cancel\" | 16/16 passed",
+      "tail": "PASS  changing status opens the confirm dialog | PASS  focus moves into the dialog on open  — focus inside after 1ms (1 sample(s)) | 16/16 passed",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-probe-dialog-keyboard.mjs"
     },
     {
@@ -42,7 +44,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 12,
+      "seconds": 13,
       "evidence": "docs/evidence/command-palette-check.json",
       "evidenceWritten": true,
       "tail": "PASS  focus lands in the palette input on open  — activeElement placeholder Search pages… | PASS  focus returns to the control that opened the palette  — active",
@@ -66,11 +68,35 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 313,
+      "seconds": 293,
       "evidence": "docs/evidence/internal-links-check.json",
       "evidenceWritten": true,
       "tail": "PASS  applicant — no internal link lands on a page error  [none] | PASS  public — no internal link lands on a page error  [none] | 29/29 assertions passed",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-internal-links.mjs"
+    },
+    {
+      "id": "form-reset-defaults",
+      "what": "every form that calls reset() defaults every field it registers",
+      "tier": "fast",
+      "status": "PASS",
+      "code": 0,
+      "seconds": 0,
+      "evidence": "docs/evidence/form-reset-defaults.json",
+      "evidenceWritten": true,
+      "tail": "",
+      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/audit-form-reset-defaults.mjs"
+    },
+    {
+      "id": "suite-base-url",
+      "what": "every audit script agrees on QA_BASE_URL and port 3100",
+      "tier": "fast",
+      "status": "PASS",
+      "code": 0,
+      "seconds": 0,
+      "evidence": "docs/evidence/suite-base-url.json",
+      "evidenceWritten": true,
+      "tail": "",
+      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/audit-suite-base-url.mjs"
     },
     {
       "id": "client-invite",
@@ -78,11 +104,23 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 12,
+      "seconds": 16,
       "evidence": "docs/evidence/client-invite-check.json",
       "evidenceWritten": true,
-      "tail": "PASS  cleanup left no membership behind  — 0 row(s) | PASS  cleanup removed the invited auth user  — gone | 17/17 passed",
+      "tail": "PASS  cleanup left no membership behind  — 0 row(s) | PASS  cleanup removed the invited auth user  — gone | 24/24 passed",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-client-invite.mjs"
+    },
+    {
+      "id": "auth-callback",
+      "what": "a dead link explains itself instead of failing silently",
+      "tier": "fast",
+      "status": "PASS",
+      "code": 0,
+      "seconds": 1,
+      "evidence": "docs/evidence/auth-callback-check.json",
+      "evidenceWritten": true,
+      "tail": "PASS  an unrecognised ?error= is neither rendered nor echoed  — canary in visible text=false, in alerts=false | PASS  0 console errors | 8/8 checks passed",
+      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-auth-callback.mjs"
     },
     {
       "id": "runtime-radius",
@@ -102,7 +140,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 116,
+      "seconds": 95,
       "evidence": "docs/evidence/contrast-check.json",
       "evidenceWritten": true,
       "tail": "[ok   ] /app/cash-advances             app     status=200 dom=  75 photo=  0 fail=  0 | DISTINCT FAILURES (0 signatures, 0 elements) | proven failures         :",
@@ -114,11 +152,35 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 99,
+      "seconds": 81,
       "evidence": "docs/evidence/typography-check.json",
       "evidenceWritten": true,
       "tail": "",
       "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/audit-typography.mjs"
+    },
+    {
+      "id": "server-fresh",
+      "what": "the process answering is not older than .next/BUILD_ID",
+      "tier": "fast",
+      "status": "PASS",
+      "code": 0,
+      "seconds": 0,
+      "evidence": "docs/evidence/server-fresh.json",
+      "evidenceWritten": true,
+      "tail": "",
+      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/audit-server-fresh.mjs"
+    },
+    {
+      "id": "gate-coverage",
+      "what": "every declared audit script is wired into a release gate",
+      "tier": "fast",
+      "status": "PASS",
+      "code": 0,
+      "seconds": 0,
+      "evidence": "docs/evidence/gate-coverage.json",
+      "evidenceWritten": true,
+      "tail": "",
+      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/audit-gate-coverage.mjs"
     },
     {
       "id": "gate",
@@ -126,10 +188,10 @@
       "tier": "gate",
       "status": "PASS",
       "code": 0,
-      "seconds": 26,
+      "seconds": 22,
       "evidence": null,
       "evidenceWritten": null,
-      "tail": "vitest: 651 tests / 87 files | tsc: clean"
+      "tail": "vitest: 813 tests / 99 files | tsc: clean"
     }
   ]
 }

@@ -1023,7 +1023,12 @@ html:has(.beepaLanding) {
   gap: 8px;
   min-height: 44px;
   padding: 0 2px;
-  font-family: var(--lm-display);
+  /* Body face, not the display face. This is a 13px link inside an <a>, not a
+     heading and not opted into `font-display`, so the typography contract in
+     `audit-typography.mjs` puts it in the body band: DM Sans on marketing/auth.
+     It was the only element on `/` resolved to Manrope outside display type, and
+     the in-situ suite run caught it. */
+  font-family: var(--lm-sans);
   font-size: 13px;
   font-weight: 600;
   color: var(--color-lime);
