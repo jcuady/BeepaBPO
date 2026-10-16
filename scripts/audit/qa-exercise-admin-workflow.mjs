@@ -12,7 +12,7 @@
 //
 // Usage: node scripts/audit/qa-exercise-admin-workflow.mjs [--no-cleanup]
 
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
@@ -34,8 +34,17 @@ const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_
 
 const results = [];
 const blocked = [];
+const notes = [];
+/**
+ * `detail` is kept on the record, not just printed.
+ *
+ * It used to be dropped here and passed only to `console.log`, so the evidence
+ * file carried assertion names and pass/fail and nothing else — a reader had to
+ * re-run the exercise to learn WHICH roles the invite granted, or which status
+ * code came back. The detail is the part that makes a past verdict readable.
+ */
 const check = (name, pass, detail = "") => {
-  results.push({ name, pass });
+  results.push({ name, pass, detail });
   console.log(`${pass ? "PASS" : "FAIL"}  ${name}${detail ? `  — ${detail}` : ""}`);
 };
 
@@ -308,6 +317,117 @@ await page.getByRole("button", { name: "Send invite" }).click();
     invitedMembershipId = invMembership?.id ?? null;
   }
 
+  // ---- 2c. invite an account that ALREADY EXISTS -- the leg the quota does not block
+  //
+  // The block above is real: `inviteUserByEmail` on a NEW address spends SMTP
+  // quota, and this project's has none. But the same action has a second path,
+  // and it is the one a real admin hits most often — inviting somebody who
+  // already has an account. Supabase answers "A user with this email address has
+  // already been registered" and returns NO user, so `inviteOrResolveAuthUser`
+  // falls through to paging `listUsers` for the id.
+  //
+  // That path never sends mail, so it is not quota-bound, and it exercises
+  // everything the blocked leg would have: membership creation, the `employee`
+  // baseline alongside the chosen role, the audit row, and the UI's success copy.
+  // PROVEN BY PROBE before being built: an existing address returns "already
+  // registered" while a new one still returns 429/invalid, so the short-circuit is
+  // real and not an artefact of reading the helper.
+  //
+  // The fixture is a throwaway auth user on `@demo.beepabpo.com`. The domain
+  // matters and was chosen by measurement: `createUser` accepts
+  // `@nowhere.example`, but `inviteUserByEmail` VALIDATES the domain and rejected
+  // it — so a throwaway built on the domain the first probe used could never be
+  // invited at all, and this leg would have failed for a reason that looks like a
+  // product defect.
+  const existingEmail = `qa.invite.existing.${Date.now().toString(36)}@demo.beepabpo.com`;
+  const seeded = await db.auth.admin.createUser({
+    email: existingEmail,
+    password: "QaInvite#2026x",
+    email_confirm: true, // no confirmation mail, so this spends no quota
+  });
+  if (seeded.error) {
+    recordBlocked("invite an existing account", `could not seed the fixture account: ${seeded.error.message}`);
+  } else {
+    const existingUserId = seeded.data.user.id;
+    try {
+      await page.goto(`${BASE}/app/admin/users`, { waitUntil: "domcontentloaded" });
+      await page.waitForTimeout(2500);
+      await page.fill("#invite-first-name", "Qa");
+      await page.fill("#invite-last-name", "Existing");
+      await page.fill("#invite-email", existingEmail);
+      await page.selectOption("#invite-role", "hr");
+      await page.getByRole("button", { name: "Send invite" }).click();
+      // Sonner auto-dismisses in ~4s, so reading `body` after a fixed wait finds
+      // nothing — the toast is already gone by the time the page settles. The
+      // same trap the first invite block documents, which is why it polls from the
+      // moment of the click. Reading the page body here reported
+      // "(nothing recognisable)" on a run whose membership and roles were both
+      // correct: the check was measuring the absence of a message that had
+      // already been shown and dismissed, not a defect.
+      const existingToasts = new Set();
+      const existingWatcher = setInterval(async () => {
+        try {
+          const texts = await page.locator('[data-sonner-toast], [role="status"], [role="alert"]').allInnerTexts();
+          for (const t of texts) if (t.trim()) existingToasts.add(t.trim());
+        } catch { /* page navigating */ }
+      }, 200);
+      await page.waitForTimeout(6000);
+      clearInterval(existingWatcher);
+      const existingToastsText = [...existingToasts].join(" | ").trim();
+
+      // The action's own wording for the RESOLVE path, from `inviteInternalUser`:
+      // `invited ? "Invite sent to …" : "Existing user linked with role …"`.
+      //
+      // The first version of this check looked for a loose `/existing user/i`,
+      // guessed from the earlier `hint` regex rather than read from the action.
+      // An assertion written from imagination reports itself as a product defect.
+      // Matching the role in the sentence is what proves this specific branch ran
+      // rather than the mail one — which would say "Invite sent to".
+      const linkedCopy = existingToastsText.match(/Existing user linked with role [a-z_]+\./i)?.[0]?.trim();
+      check(
+        "inviting an existing account reports that the user was linked",
+        Boolean(linkedCopy),
+        linkedCopy ?? `page said: ${existingToastsText.slice(0, 110) || "(no toast was shown)"}`,
+      );
+
+      const { data: exMembership } = await db
+        .from("organization_memberships").select("id").eq("user_id", existingUserId).maybeSingle();
+      check("the existing account was given a membership", Boolean(exMembership?.id));
+
+      if (exMembership?.id) {
+        const exRoles = await roleCodesFor(exMembership.id);
+        // The same regression the blocked leg asserts: the chosen role ALONE would
+        // leave somebody unable to open their own leave, payslips or attendance.
+        check(
+          "existing-account invite grants BOTH the chosen role and self-service access",
+          exRoles.includes("hr") && exRoles.includes("employee"),
+          `roles [${exRoles.join(", ")}]`,
+        );
+
+        const { data: exAudit } = await db
+          .from("audit_logs").select("id, action").eq("action", "users.invite")
+          .order("created_at", { ascending: false }).limit(1);
+        check("existing-account invite is audit-logged", Boolean(exAudit?.length),
+          exAudit?.[0]?.action ?? "no users.invite row");
+      }
+    } finally {
+      // Remove what this leg created. The membership first (it has role links),
+      // then the auth user, and both are asserted rather than assumed — a silently
+      // failed cleanup would leave a real account behind and the next run would
+      // create a second one.
+      const { data: leftover } = await db
+        .from("organization_memberships").select("id").eq("user_id", existingUserId);
+      for (const m of leftover ?? []) {
+        await db.from("membership_roles").delete().eq("membership_id", m.id);
+        await db.from("organization_memberships").delete().eq("id", m.id);
+      }
+      const del = await db.auth.admin.deleteUser(existingUserId);
+      const gone = (await db.auth.admin.getUserById(existingUserId)).data?.user;
+      check("existing-account invite left nothing behind", !del.error && !gone,
+        del.error ? `deleteUser: ${del.error.message}` : gone ? "auth user still present" : "membership and auth user removed");
+    }
+  }
+
   // ---- 3. role change on a real membership ----
   await page.goto(`${BASE}/app/admin/users`, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(2500);
@@ -392,6 +512,51 @@ await page.getByRole("button", { name: "Send invite" }).click();
   console.log(`\naudit_logs ${auditBefore} -> ${auditAfter}, notifications ${notifBefore} -> ${notifAfter} (minus this run's test push)`);
 
   const failed = results.filter((r) => !r.pass);
+
+  // Evidence, not a claim.
+  //
+  // This exercise wrote nothing, so `docs/evidence/workflow-admin-workflow.json`
+  // was produced by `qa-run-workflows.mjs` rather than by the thing that
+  // measured. The consequence is visible and bad: running the exercise directly
+  // — which is how it is normally run, and how the invite budget is managed —
+  // left that file at its previous contents. It still said `assertions: 18` and
+  // `when: 02:07` after a 23-check run at 06:20, and a reader had no way to tell
+  // the file was stale except by noticing the date.
+  //
+  // Written in `finally`, so a crashed run still leaves a record of having run —
+  // the same rule as the other seven exercises fixed in this pass.
+  // `docs/evidence/` exists because every other exercise writes there, but this
+  // one may be the first thing to run on a fresh checkout.
+  mkdirSync("docs/evidence", { recursive: true });
+  writeFileSync(
+    "docs/evidence/workflow-admin-workflow.json",
+    JSON.stringify(
+      {
+        id: "admin-workflow",
+        script: "scripts/audit/qa-exercise-admin-workflow.mjs",
+        claim: "admin surfaces: cron dry run, test push, invite (both legs), role change, revoke",
+        base: BASE,
+        when: new Date().toISOString(),
+        exitCode: process.exitCode ?? 0,
+        // BLOCKED is a real outcome here, not a failure: the new-address invite
+        // needs SMTP quota this project does not have.
+        verdict: failed.length ? "FAIL" : blocked.length ? "BLOCKED" : "PASS",
+        assertions: results.length,
+        checks: results,
+        failedAssertions: failed.map((r) => r.name),
+        // Recorded, not just printed — the reason a path is unproven belongs next
+        // to the run that could not prove it.
+        blockedPaths: blocked,
+        notes,
+        auditLogs: { before: auditBefore, after: auditAfter },
+        notifications: { before: notifBefore, after: notifAfter },
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  console.log("wrote docs/evidence/workflow-admin-workflow.json");
+
   console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
   if (blocked.length) {
     console.log(`\n${blocked.length} path(s) could not be exercised in this environment:`);

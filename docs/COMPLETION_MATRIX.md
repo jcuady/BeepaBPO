@@ -32,7 +32,7 @@ Two columns are kept deliberately separate:
 | 10 | **Buttons** | ✅ Verified today | Census of 13 roles / 444 page visits: 339 action controls, **0 without an accessible name**. Every unmatched *button* is chased to ground: 3 flagged, **1 was a real hole** — the cash-advance `Reject` had never been pressed, so the reject leg of a money workflow had zero executions. Now covered end to end, and the census no longer flags it | The remaining 2 (`Save`, `Continue`) are **artefacts** of label-matching, not gaps — both are pressed and work, proved from the run evidence. Label overlap is wrong in **both** directions |
 | 11 | **Filters** | ✅ Verified today | `audit:filters` 33 paginated pages, every filter carried into its pager, exit 0; `list-filters` exercise 33 assertions | — |
 | 12 | **Signup — success path** | ✅ **Verified today** | The Supabase sign-up limiter had cleared after ~14h, so `qa-exercise-signup.mjs` ran for real: **PASS, 6 assertions** (was BLOCKED at 4). A real auth user was created, then deleted; `membership rows left: 0` | The row previously read "refuses `auth.signUp` from this network, durably (still refusing after 300s idle)" — **that is no longer true**, and leaving it would have kept a resolved blocker on the board. One leg remains partial: re-submitting an **already-registered** address trips the sign-up limiter, so the duplicate-registration branch is still unmeasured. The script says so itself — `BLOCKED_PARTIAL: first leg valid, duplicate leg unmeasurable` — rather than reporting the partial run as a clean pass |
-| 13 | **Admin invite — success path** | ⛔ **BLOCKED** (refusal path proven) | `qa-exercise-admin-workflow.mjs` is **18/18 PASS** and cleans up after itself (`roles now [employee, marketing]`, `status active`, unchanged). The single unproven path is `invite creates an account`: **Supabase SMTP quota**, HTTP 429 — a *different* limit from the sign-up limiter, since signup succeeded minutes earlier. The error is surfaced to the user, and that is asserted: *"a failing invite tells the user why — Too many invites have been sent from this network."* | Needs SMTP quota, not idle time. Retrying is safe — the exercise restores every membership row it touches and deletes the auth user it creates |
+| 13 | **Admin invite — success path** | ⚠️ **One leg proven, one still blocked** | `qa-exercise-admin-workflow.mjs` is **23/23 PASS**. The previously-untestable leg is now driven: inviting an address that **already has an account** takes the resolve path in `inviteOrResolveAuthUser`, which sends **no mail** and so is not quota-bound. It asserts the UI reports the user was linked, a membership was created, the chosen role arrived **alongside the `employee` baseline**, a `users.invite` audit row was written, and nothing was left behind | **Mutation-proven:** disabling the `already registered` short-circuit turns that check red, and the action then degrades to the mail path and reports *"Too many invites have been sent from this network"* for an account that already existed — a real defect the quota had been hiding. The **new-address** leg is still BLOCKED by Supabase SMTP quota (HTTP 429); that is the environment, and the failure is surfaced to the user, which is asserted |
 | 14 | **Password reset** | ⛔ **BLOCKED (narrowly, and it was overstated)** | Only one leg is unproven: **consuming the emailed recovery link and setting a new password through it**. That needs a real inbox token and there is no mail provider here | Everything else on this surface is **proven** by `auth` (35 assertions): forgot-password answers *identically* for a real and a fake address and never confirms that an account exists; and the whole post-reset change-password cycle runs end to end — wrong current password refused, the new password provably does **not** take effect, the original still works, the correct current password succeeds, the new one signs in, the change is undone from the UI, and the original works again. Only the emailed-link hop is missing |
 | 15 | **Signup — refusal path** | ✅ Verified today | 4 assertions: error shown, no success claimed, **no auth user and no membership row created** | — |
 | 16 | **Design system** | ✅ Verified today | `audit:design` exit 0 — 0 raw primitives, 0 hardcoded colours across 248 files | — |
@@ -59,17 +59,17 @@ Two columns are kept deliberately separate:
 **Proven and current: rows 1–11, 15–20, 23–27.** Every one of those was executed in this
 session against a production build and the real database.
 
-**Blocked by the environment, not by the code: rows 13 and 14.** These are not
-"probably fine". They are unproven, and reporting them as anything else is the
-failure this matrix exists to prevent. Row 12 used to be on that list and no
-longer is: the sign-up limiter cleared after ~14 hours, signup now runs for real
-and passes 6 assertions. Row 13 narrowed rather than cleared — the invite's
-**refusal** path is proven and asserted, its **success** path needs SMTP quota,
-which is a different resource from the sign-up limiter and does not clear by
-waiting. Row 14 was the most overstated row on this board: it read "password
-reset — blocked", when in fact `auth` already proves the anti-enumeration
-property and the entire change-password cycle including its undo. What is
-missing is one hop — the emailed recovery link — and only that is marked
+**Blocked by the environment, not by the code: one leg of row 13, and one hop of
+row 14.** These are not "probably fine". They are unproven, and reporting them as
+anything else is the failure this matrix exists to prevent. Row 12 used to be on
+that list and no longer is: the sign-up limiter cleared after ~14 hours, signup now
+runs for real and passes 6 assertions. Row 13 was reduced rather than cleared — its
+**existing-account** leg turned out not to need SMTP at all, so it is now proven
+(23/23); only the **new-address** leg is still blocked, and the error is surfaced to
+the user, which is asserted. Row 14 was the most overstated row on this board: it
+read "password reset — blocked", when in fact `auth` already proves the
+anti-enumeration property and the entire change-password cycle including its undo.
+What is missing is one hop — the emailed recovery link — and only that is marked
 unproven.
 
 **No row in this matrix is inherited evidence any more.** Row 21c was the last

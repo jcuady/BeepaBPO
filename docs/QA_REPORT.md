@@ -3652,6 +3652,85 @@ The emailed-link arrival and the PKCE exchange at `/auth/callback` remain uncove
 that genuinely needs a mailbox. The script prints that as a standing `NOT COVERED` line rather
 than letting 8/8 imply more than it did.
 
+**The invite "success path" was blocked on a premise that was half wrong, and the
+wrong half turned out to be a real defect waiting to be measured.**
+
+Matrix row 13 read *BLOCKED* for the whole success path. The true block is narrower
+than that: it is the **new-address** leg only. `inviteOrResolveAuthUser` has a
+second path, and it is the one a real admin hits most often — inviting somebody who
+**already has an account**:
+
+```
+const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(…)
+if (invited?.user?.id) return { userId: invited.user.id, invited: true };
+
+const already = inviteError?.message?.toLowerCase().includes("already")
+             || inviteError?.message?.toLowerCase().includes("registered");
+if (!already) return { error: inviteErrorMessage(inviteError) };
+
+// page through listUsers for the id
+```
+
+Supabase answers an invite for a known address with *"A user with this email address
+has already been registered"* and **no user**, so the helper resolves the id instead
+of sending mail. That path never touches SMTP, so it is not quota-bound.
+
+**Proven by probe before being built**, because reading the helper proves only that
+a branch exists, not that this provider takes it:
+
+```
+existing address -> "A user with this email address has already been registered"
+new address      -> "Email address ... is invalid"   (and 429 on a valid domain)
+VERDICT: an EXISTING account is recognised without sending mail
+```
+
+**One domain detail decided whether the leg was possible at all.**
+`inviteUserByEmail` **validates** the domain and rejected `@nowhere.example`, while
+`createUser` accepts it. A throwaway fixture built on the domain the first probe used
+could never be invited, and the leg would have failed for a reason that reads exactly
+like a product defect. The fixture uses `@demo.beepabpo.com`, chosen by measurement.
+
+**Now driven end to end — `23/23` (was 18/18):** the UI reports the user was linked, a
+membership was created, the chosen role arrived **alongside the `employee` baseline**
+(the regression the blocked leg could not see), a `users.invite` audit row was written,
+and nothing was left behind — the cleanup is asserted, so a silent failure cannot
+leave a real auth account behind for the next run.
+
+**Mutation-proven.** Disabling the `already registered` short-circuit turns exactly
+one check red, and the run then reports:
+
+```
+a failing invite tells the user why — Too many invites have been sent from this network.
+FAIL  inviting an existing account reports that the user was linked
+22/23
+```
+
+That is the defect the quota was hiding: an existing user is told their invite
+**failed**, because the action falls through to the mail path and reports the
+provider's refusal for an account that never needed one.
+
+**Two defects in the new check itself, both found by running it:**
+
+1. It looked for a loose `/existing user/i`, guessed from an earlier `hint` regex
+   rather than read from `inviteInternalUser`. The real copy is *"Existing user linked
+   with role `hr`."* — an assertion written from imagination reports itself as a
+   product defect.
+2. It then read `body.innerText()` after a 6s wait. The message is a `toast.success`
+   and Sonner dismisses it in ~4s, so it reported *"(nothing recognisable)"* on a run
+   whose membership and roles were both correct — measuring the absence of a message
+   that had already been shown. It now polls from the moment of the click, the way
+   the first invite block does.
+
+**And the exercise wrote no evidence at all**, so `workflow-admin-workflow.json` was
+produced by `qa-run-workflows.mjs` rather than by the thing that measured. Running it
+directly — which is how it is normally run, and how the invite budget is managed —
+left that file at `assertions: 18, when: 02:07` after a 23-check run at 06:20. It now
+writes its own, in a `finally`, with the `detail` string kept on each assertion rather
+than only printed.
+
+`inviteClientUser` still answers 429 on the **new-address** leg. That remains a
+project-level email budget with nothing in it, and retrying is safe.
+
 **One action left, and the budget reasoning still applies.** `inviteClientUser` calls
 `admin.inviteUserByEmail`, which is still answering HTTP 429. That is a **budget, not a
 wall** — which this session proved the hard way: `signupAction` sat in the "blocked forever"

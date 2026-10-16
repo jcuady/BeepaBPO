@@ -36,6 +36,59 @@ describe("admin invite slice", () => {
     expect(hire).toContain("inviteOrResolveAuthUser");
   });
 
+  /**
+   * The existing-account path is the only invite leg that runs in an environment
+   * with no SMTP quota, and it is the one a real admin hits most often.
+   *
+   * It works because Supabase answers an invite for a known address with
+   * "already registered" and NO user, so the helper must notice that specific
+   * wording and fall back to paging `listUsers` rather than treating it as a
+   * failure. Measured, not assumed: an existing address returns "already
+   * registered" while a new one returns the rate-limit refusal.
+   *
+   * If the short-circuit is removed the action silently degrades to the mail
+   * path, and the admin is told the invite failed even though the person already
+   * had an account — which is the defect the assertion below exists to catch.
+   */
+  it("resolves an already-registered address instead of treating it as a failure", () => {
+    // The wording check, and specifically that it is an OR of both phrasings
+    // rather than one of them — "registered" alone was enough to pass while
+    // "already" was the string this provider actually returns.
+    expect(inviteHelper).toMatch(/includes\("already"\)/);
+    expect(inviteHelper).toMatch(/includes\("registered"\)/);
+
+    // And the fallback really resolves an id, rather than only detecting the case.
+    expect(inviteHelper).toMatch(/listUsers/);
+    expect(inviteHelper).toContain("invited: false");
+
+    // Order matters: the resolve branch must come AFTER the invite attempt, or a
+    // genuinely new account would be resolved instead of created.
+    expect(inviteHelper.indexOf("inviteUserByEmail")).toBeLessThan(
+      inviteHelper.indexOf("invited: false"),
+    );
+  });
+
+  /**
+   * The exercise drives that leg end to end, and asserts it cleans up after
+   * itself. Without the cleanup assertion a failed run would leave a real auth
+   * account behind and every subsequent run would create a second one.
+   */
+  it("drives the existing-account invite leg and cleans up after it", () => {
+    const exercise = readFileSync(
+      join(process.cwd(), "scripts", "audit", "qa-exercise-admin-workflow.mjs"),
+      "utf8",
+    );
+    expect(exercise).toContain("existing-account invite");
+    // The role-baseline regression is asserted on THIS leg too, not only on the
+    // mail-blocked one — otherwise the quota would hide it.
+    expect(exercise).toContain("existing-account invite grants BOTH the chosen role and self-service access");
+    expect(exercise).toContain("existing-account invite left nothing behind");
+    expect(exercise).toContain("auth.admin.deleteUser");
+    // Seeded with `email_confirm` so the FIXTURE does not itself spend quota,
+    // which would defeat the point of a leg chosen for not needing any.
+    expect(exercise).toMatch(/createUser\(\{[\s\S]{0,200}email_confirm: true/);
+  });
+
   it("wires AdminInviteForm on users page with invited list", () => {
     expect(form).toContain("inviteInternalUser");
     expect(page).toContain("AdminInviteForm");
