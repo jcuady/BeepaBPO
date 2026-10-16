@@ -33,7 +33,7 @@ Two columns are kept deliberately separate:
 | 11 | **Filters** | ✅ Verified today | `audit:filters` 33 paginated pages, every filter carried into its pager, exit 0; `list-filters` exercise 33 assertions | — |
 | 12 | **Signup — success path** | ✅ **Verified today** | The Supabase sign-up limiter had cleared after ~14h, so `qa-exercise-signup.mjs` ran for real: **PASS, 6 assertions** (was BLOCKED at 4). A real auth user was created, then deleted; `membership rows left: 0` | The row previously read "refuses `auth.signUp` from this network, durably (still refusing after 300s idle)" — **that is no longer true**, and leaving it would have kept a resolved blocker on the board. One leg remains partial: re-submitting an **already-registered** address trips the sign-up limiter, so the duplicate-registration branch is still unmeasured. The script says so itself — `BLOCKED_PARTIAL: first leg valid, duplicate leg unmeasurable` — rather than reporting the partial run as a clean pass |
 | 13 | **Admin invite — success path** | ⛔ **BLOCKED** (refusal path proven) | `qa-exercise-admin-workflow.mjs` is **18/18 PASS** and cleans up after itself (`roles now [employee, marketing]`, `status active`, unchanged). The single unproven path is `invite creates an account`: **Supabase SMTP quota**, HTTP 429 — a *different* limit from the sign-up limiter, since signup succeeded minutes earlier. The error is surfaced to the user, and that is asserted: *"a failing invite tells the user why — Too many invites have been sent from this network."* | Needs SMTP quota, not idle time. Retrying is safe — the exercise restores every membership row it touches and deletes the auth user it creates |
-| 14 | **Password reset** | ⛔ **BLOCKED** | Needs a recovery token from an inbox; **no mail provider in this environment** | Different cause — will not clear by waiting |
+| 14 | **Password reset** | ⛔ **BLOCKED (narrowly, and it was overstated)** | Only one leg is unproven: **consuming the emailed recovery link and setting a new password through it**. That needs a real inbox token and there is no mail provider here | Everything else on this surface is **proven** by `auth` (35 assertions): forgot-password answers *identically* for a real and a fake address and never confirms that an account exists; and the whole post-reset change-password cycle runs end to end — wrong current password refused, the new password provably does **not** take effect, the original still works, the correct current password succeeds, the new one signs in, the change is undone from the UI, and the original works again. Only the emailed-link hop is missing |
 | 15 | **Signup — refusal path** | ✅ Verified today | 4 assertions: error shown, no success claimed, **no auth user and no membership row created** | — |
 | 16 | **Design system** | ✅ Verified today | `audit:design` exit 0 — 0 raw primitives, 0 hardcoded colours across 248 files | — |
 | 17 | **Unit tests** | ✅ Verified today | **680/680 across 90 files** | — |
@@ -64,7 +64,11 @@ longer is: the sign-up limiter cleared after ~14 hours, signup now runs for real
 and passes 6 assertions. Row 13 narrowed rather than cleared — the invite's
 **refusal** path is proven and asserted, its **success** path needs SMTP quota,
 which is a different resource from the sign-up limiter and does not clear by
-waiting.
+waiting. Row 14 was the most overstated row on this board: it read "password
+reset — blocked", when in fact `auth` already proves the anti-enumeration
+property and the entire change-password cycle including its undo. What is
+missing is one hop — the emailed recovery link — and only that is marked
+unproven.
 
 **No row in this matrix is inherited evidence any more.** Row 21c was the last
 one, and it went green the hard way: it had no runner at all, so it had been
