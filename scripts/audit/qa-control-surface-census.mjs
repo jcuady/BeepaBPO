@@ -237,6 +237,53 @@ function collectControls(selectors) {
     if (cs.visibility === "hidden" || cs.display === "none") return false;
     return true;
   };
+  const labelTextFor = (el) => {
+    // The label's OWN text, with the control it labels removed.
+    //
+    // Reading `label.textContent` directly is wrong whenever the label WRAPS
+    // its control, because the control's own text lives inside the label: a
+    // <select> contributes every one of its <option> texts. The first version
+    // of this fix produced names like
+    //   "StatusAll statusespendingmanager approvedhr approved..."
+    // which is not a name, it is the control's data spliced onto its label.
+    // The accessible name is the label's text with the labelled control's
+    // subtree taken out.
+    const textOf = (label) => {
+      if (!label) return null;
+      const clone = label.cloneNode(true);
+      for (const inner of clone.querySelectorAll("select, input, textarea, button")) {
+        inner.remove();
+      }
+      const t = (clone.textContent || "").replace(/\s+/g, " ").trim();
+      return t || null;
+    };
+
+    // The three standard accessible-name sources for a form control, in the
+    // order the accessibility APIs resolve them. `nameOf` used to skip all of
+    // them, which is why a <select> labelled "Pay frequency" was recorded
+    // under its SELECTED VALUE (`semi_monthly`, `25000`, `won`, `lost`).
+    // Two things then went wrong at once: the control was renamed, so
+    // `matchAssertion` compared a data value against assertion names and could
+    // never match -- inflating the "no matching assertion" gap; and the real
+    // gap, a control with no label at all, was hidden behind a plausible-looking
+    // name. The extractor was manufacturing the answer it then complained about.
+    const by = el.getAttribute("aria-labelledby");
+    if (by) {
+      const t = by
+        .split(/\s+/)
+        .map((id) => document.getElementById(id)?.textContent || "")
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (t) return t;
+    }
+    if (el.id) {
+      const t = textOf(document.querySelector(`label[for="${CSS.escape(el.id)}"]`));
+      if (t) return t;
+    }
+    return textOf(el.closest("label"));
+  };
+
   const nameOf = (el) => {
     // An <img alt> DOES contribute to its ancestor link's accessible name, but it
     // contributes nothing to `textContent` -- so a logo link came back unnamed and
@@ -244,13 +291,13 @@ function collectControls(selectors) {
     // was a defect in this extractor, not in the product: the sidebar's brand
     // link wraps <Image alt="BEEPA"> and is perfectly named. Read the alt.
     const imgAlt = el.querySelector("img[alt]")?.getAttribute("alt")?.trim() || null;
+    const isField = el.tagName === "INPUT" || el.tagName === "SELECT" || el.tagName === "TEXTAREA";
 
     const cand = [
       el.getAttribute("aria-label"),
+      isField ? labelTextFor(el) : null,
       el.getAttribute("title"),
-      el.tagName === "INPUT" || el.tagName === "SELECT" || el.tagName === "TEXTAREA"
-        ? el.getAttribute("placeholder") || el.getAttribute("name") || el.value
-        : null,
+      isField ? el.getAttribute("placeholder") || el.getAttribute("name") : null,
       imgAlt,
       el.textContent,
       el.getAttribute("data-testid"),
@@ -259,6 +306,12 @@ function collectControls(selectors) {
       const t = (c ?? "").replace(/\s+/g, " ").trim();
       if (t) return t.length > 120 ? `${t.slice(0, 117)}...` : t;
     }
+    // Deliberately NO `el.value` fallback. A form value is data the user chose;
+    // it is never an accessible name. Falling back to it means a control with no
+    // label is reported as named, so the one finding this census exists to make
+    // -- "this control has no accessible name" -- can never be made. A control
+    // that reaches the end of the chain genuinely has no name, and the
+    // icon-only count below is where that belongs.
     return null;
   };
   const kindOf = (el) => {
@@ -535,7 +588,7 @@ console.log(
     `\n    actionControlLabelOverlap = ${actionCoverage}%   <-- the number to quote` +
     `\n\n  NAVIGATION links (covered instead by qa-exercise-internal-links.mjs):` +
     `\n    ${navOnly.length} found, ${navCovered.length} with a matching assertion name (${navCoverage}%)` +
-    `\n\n${unnamed.length} icon-only control(s) with no accessible name at all.`,
+    `\n\n${unnamed.length} control(s) with no accessible name at all.`,
 );
 
 console.log(`\nACTION CONTROLS WITH NO MATCHING ASSERTION (${actionUncovered.length}) -- the real gap:`);
@@ -553,7 +606,7 @@ if (!verbose && navOnly.length - navCovered.length > 15) {
 }
 
 if (unnamed.length) {
-  console.log(`\nUNNAMED CONTROLS (${unnamed.length}) -- icon-only, no accessible name:`);
+  console.log(`\nUNNAMED CONTROLS (${unnamed.length}) -- no accessible name from any source:`);
   for (const c of unnamed) console.log(`  [${c.kind}] e.g. ${c.exampleRoute}`);
 }
 

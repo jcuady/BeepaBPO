@@ -1188,6 +1188,71 @@ stays open is worth stating plainly: the fix would be to log
 the failure to recur. A logger added now would be a guess about a shape nobody
 has seen.
 
+### 2.14 The control census was naming controls after their data
+
+§2.12 is about the workflow suite misattributing failures. This is the same
+class one level over: an audit that produced a *number* was wrong, and the
+number was reproducible, because it was measuring itself.
+
+`qa-control-surface-census.mjs` walked 444 pages across 13 roles and reported
+**85%** action-control coverage, with a "52 controls with no matching assertion"
+gap. Both figures were wrong, and the gap list showed why once read as data
+rather than as names:
+
+```
+"reason"  [field]      "semi_monthly"  [field]
+"notes"   [field]      "25000"         [field]
+"new"     [field]      "won"           [field]
+```
+
+`nameOf` read `aria-label`, `title`, `placeholder`, `name` — and then fell back
+to **`el.value`** — while never once consulting `<label for>`, a wrapping
+`<label>`, or `aria-labelledby`, which are the sources that actually name form
+controls. Two failures came out of that:
+
+1. A `<select>` labelled "Pay frequency" was recorded as `semi_monthly`, its
+   *selected value*. `matchAssertion` then compared a data value against
+   assertion names and could never match, so the gap it printed was
+   substantially an artifact of its own extractor.
+2. A control with no label at all was reported as **named**, because it had a
+   value. So the run's `0 controls with no accessible name` was partly true only
+   because a name had already been invented for them. **A form value is data the
+   user chose; it is never an accessible name**, and falling back to it converts
+   "I could not find a name" into "here is a name" — which makes the one finding
+   the census exists to report impossible to make.
+
+Fixing it exposed a second defect in the same function. Reading
+`label.textContent` is wrong when the label *wraps* its control, because the
+control's own text lives inside the label and a `<select>` contributes every
+`<option>`:
+
+```
+"StatusAll statusespendingmanager approvedhr approved..."
+```
+
+That is the control's data spliced onto its label, and it filled the gap report
+with rows that are not names at all. `labelTextFor` now clones the label and
+removes the control it labels before reading.
+
+**Corrected and complete: 92.7% over 444 pages, 13 roles, 0 pages failed, 0
+controls with no accessible name, 23 in the gap.** The gap went 52 → 44 → 23 as
+each layer of the extractor was corrected, and real labels replaced data values
+(`Reason`, `Visibility`, `Slug`, `Excerpt`, `Week of`).
+
+Guarded by `tests/census-accessible-name.test.ts` (6 tests), mutation-proven in
+both directions, with the same comment-strip control the other extractor tests
+use.
+
+**One measurement was refused rather than published.** An intermediate run
+reported **92.2%** and was *not* recorded. It had 24 page failures, all in
+`owner` — the first role walked — and `owner` reached 35 of its ~58 pages while
+carrying the most controls in the system. The percentage was computed over a
+partial denominator. Restarting the server and re-running gave 444 pages and 0
+failures, which identified the cause as **cold start**: `next start` loads route
+chunks lazily, and the first role's first hit of each route exceeds the 30s
+navigation timeout on a cold process. That is a property of the measurement,
+not of the product, and it is why the complete run is the one on record.
+
 ---
 
 ## 3. Recently completed (so nobody redoes it)
