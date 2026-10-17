@@ -17,7 +17,7 @@
 import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { fillHeld } from "./lib/browser-form.mjs";
+import { fillHeld, submitAndWaitOutcome } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -385,9 +385,11 @@ try {
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
   await fillHeld(page, page.locator('input[type=email]'), "hr@demo.beepabpo.com");
   await fillHeld(page, page.locator('input[type=password]'), env.DEMO_PASSWORD);
-  await page.click('button[type=submit]');
-  await page.waitForLoadState("domcontentloaded");
-  await page.waitForTimeout(3000);
+  // Wait for the OUTCOME, not a duration: the session existing, or the form
+  // publishing why not. The fixed sleep this replaced decided `check(...url())`
+  // by how busy the machine happened to be.
+  await submitAndWaitOutcome(page, 'button[type=submit]', { loginPath: "/login", timeout: 25000 });
+  await page.waitForLoadState("domcontentloaded").catch(() => {});
   check("signed in as HR (the role that can actually hire)", page.url().includes("/app"), page.url());
 
   await page.goto(`${BASE}/app/recruitment/applicants/${app.id}`, { waitUntil: "domcontentloaded" });
@@ -413,9 +415,8 @@ try {
     await recruiterPage.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
     await fillHeld(recruiterPage, recruiterPage.locator('input[type=email]'), "recruiter@demo.beepabpo.com");
     await fillHeld(recruiterPage, recruiterPage.locator('input[type=password]'), env.DEMO_PASSWORD);
-    await recruiterPage.click('button[type=submit]');
-    await recruiterPage.waitForLoadState("domcontentloaded");
-    await recruiterPage.waitForTimeout(3000);
+    await submitAndWaitOutcome(recruiterPage, 'button[type=submit]', { loginPath: "/login", timeout: 25000 });
+    await recruiterPage.waitForLoadState("domcontentloaded").catch(() => {});
     check("signed in as Recruiter (the role that cannot hire)", recruiterPage.url().includes("/app"), recruiterPage.url());
 
     await recruiterPage.goto(`${BASE}/app/recruitment/applicants/${app.id}`, { waitUntil: "domcontentloaded" });

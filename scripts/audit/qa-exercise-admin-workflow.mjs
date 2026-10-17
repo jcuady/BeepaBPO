@@ -15,7 +15,7 @@
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { fillHeld } from "./lib/browser-form.mjs";
+import { fillHeld, submitAndWaitOutcome } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -171,9 +171,12 @@ try {
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
   await fillHeld(page, page.locator('input[type=email]'), "superadmin@demo.beepabpo.com");
   await fillHeld(page, page.locator('input[type=password]'), env.DEMO_PASSWORD);
-  await page.click('button[type=submit]');
-  await page.waitForLoadState("domcontentloaded");
-  await page.waitForTimeout(3000);
+  // Wait for the OUTCOME — the session existing, or the form publishing why
+  // not — rather than for a fixed number of milliseconds. The sleep this
+  // replaced was long enough on a fast machine and short enough on a slow one,
+  // so `check(... page.url())` below was reporting the machine's mood.
+  await submitAndWaitOutcome(page, 'button[type=submit]', { loginPath: "/login", timeout: 25000 });
+  await page.waitForLoadState("domcontentloaded").catch(() => {});
   check("signed in as super admin", page.url().includes("/app"), page.url());
 
   // ---- 1. cron dry-run ----

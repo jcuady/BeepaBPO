@@ -14,7 +14,7 @@
 import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { fillHeld } from "./lib/browser-form.mjs";
+import { fillHeld, submitAndWaitOutcome } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -117,9 +117,11 @@ try {
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
   await fillHeld(page, page.locator('input[type=email]'), "owner@demo.beepabpo.com");
   await fillHeld(page, page.locator('input[type=password]'), env.DEMO_PASSWORD);
-  await page.click('button[type=submit]');
-  await page.waitForLoadState("domcontentloaded");
-  await page.waitForTimeout(3000);
+  // Wait for the OUTCOME — the session existing, or the form publishing why not —
+  // rather than for a fixed number of milliseconds, which decided this check
+  // by how busy the machine happened to be.
+  await submitAndWaitOutcome(page, 'button[type=submit]', { loginPath: "/login", timeout: 25000 });
+  await page.waitForLoadState("domcontentloaded").catch(() => {});
   check("signed in as owner", page.url().includes("/app"), page.url());
 
   // ---- 1. create lead ----

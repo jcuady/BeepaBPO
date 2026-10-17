@@ -1,142 +1,143 @@
 {
   "id": "admin-workflow",
   "script": "scripts/audit/qa-exercise-admin-workflow.mjs",
-  "claim": "admin actions behind their permission",
+  "claim": "admin surfaces: cron dry run, test push, invite (both legs), role change, revoke",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T03:11:30.224Z",
-  "exitCode": 2,
+  "when": "2026-10-17T08:20:29.130Z",
+  "exitCode": 0,
   "verdict": "BLOCKED",
   "assertions": 23,
   "checks": [
     {
+      "name": "signed in as super admin",
       "pass": true,
-      "name": "signed in as super admin  — http://localhost:3100/app",
-      "detail": null
+      "detail": "http://localhost:3100/app"
     },
     {
+      "name": "cron dry-run button reports per-job counts",
       "pass": true,
-      "name": "cron dry-run button reports per-job counts  — Dry-run OK — missing clock-out: 0, overdue invoices: 1, digests: 6.",
-      "detail": null
+      "detail": "Dry-run OK — missing clock-out: 0, overdue invoices: 1, digests: 6."
     },
     {
+      "name": "cron dry-run is audit-logged",
       "pass": true,
-      "name": "cron dry-run is audit-logged  — {\"invoice_overdue\":1,\"missing_clock_out\":0,\"notification_digest\":6,\"notification_digest_failed\":0,\"notification_digest_candidates\":6}",
-      "detail": null
+      "detail": "{\"invoice_overdue\":1,\"missing_clock_out\":0,\"notification_digest\":6,\"notification_digest_failed\":0,\"notification_digest_candidates\":6}"
     },
     {
+      "name": "test push wrote a notification to the admin",
       "pass": true,
-      "name": "test push wrote a notification to the admin  — \"Push and in-app delivery check from Admin.\"",
-      "detail": null
+      "detail": "\"Push and in-app delivery check from Admin.\""
     },
     {
+      "name": "a failing invite tells the user why",
       "pass": true,
-      "name": "a failing invite tells the user why  — Unable to send the invite right now. Try again in a moment.",
-      "detail": null
+      "detail": "Unable to send the invite right now. Try again in a moment."
     },
     {
+      "name": "inviting an existing account reports that the user was linked",
       "pass": true,
-      "name": "inviting an existing account reports that the user was linked  — Existing user linked with role hr.",
-      "detail": null
+      "detail": "Existing user linked with role hr."
     },
     {
-      "pass": true,
       "name": "the existing account was given a membership",
-      "detail": null
+      "pass": true,
+      "detail": ""
     },
     {
+      "name": "existing-account invite grants BOTH the chosen role and self-service access",
       "pass": true,
-      "name": "existing-account invite grants BOTH the chosen role and self-service access  — roles [employee, hr]",
-      "detail": null
+      "detail": "roles [employee, hr]"
     },
     {
+      "name": "existing-account invite is audit-logged",
       "pass": true,
-      "name": "existing-account invite is audit-logged  — users.invite",
-      "detail": null
+      "detail": "users.invite"
     },
     {
+      "name": "existing-account invite left nothing behind",
       "pass": true,
-      "name": "existing-account invite left nothing behind  — membership and auth user removed",
-      "detail": null
+      "detail": "membership and auth user removed"
     },
     {
-      "pass": true,
       "name": "target membership row rendered",
-      "detail": null
+      "pass": true,
+      "detail": ""
     },
     {
-      "pass": true,
       "name": "role select present on the row",
-      "detail": null
+      "pass": true,
+      "detail": ""
     },
     {
-      "pass": true,
       "name": "Update role is disabled while the role is unchanged",
-      "detail": null
+      "pass": true,
+      "detail": ""
     },
     {
-      "pass": true,
       "name": "Update role enables once a different role is chosen",
-      "detail": null
+      "pass": true,
+      "detail": ""
     },
     {
+      "name": "role change asks for confirmation",
       "pass": true,
-      "name": "role change asks for confirmation  — Change this member’s role? Their functional role becomes Finance. The",
-      "detail": null
+      "detail": "Change this member’s role? Their functional role becomes Finance. The"
     },
     {
+      "name": "role changed but the self-service baseline survived",
       "pass": true,
-      "name": "role changed but the self-service baseline survived  — roles now [employee, finance], expected [employee, finance]",
-      "detail": null
+      "detail": "roles now [employee, finance], expected [employee, finance]"
     },
     {
+      "name": "member keeps their own leave/payroll/attendance access",
       "pass": true,
-      "name": "member keeps their own leave/payroll/attendance access  — employee role retained",
-      "detail": null
+      "detail": "employee role retained"
     },
     {
+      "name": "role change is audit-logged with before and after",
       "pass": true,
-      "name": "role change is audit-logged with before and after  — {\"before_data\":{\"role_codes\":[\"marketing\",\"employee\"]},\"after_data\":{\"role_codes\":[\"employee\",\"finance\"]}}",
-      "detail": null
+      "detail": "{\"before_data\":{\"role_codes\":[\"marketing\",\"employee\"]},\"after_data\":{\"role_codes\":[\"employee\",\"finance\"]}}"
     },
     {
+      "name": "revoke asks for confirmation",
       "pass": true,
-      "name": "revoke asks for confirmation  — Revoke this membership? The user loses access for this organization.",
-      "detail": null
+      "detail": "Revoke this membership? The user loses access for this organization. "
     },
     {
+      "name": "revoke set the membership inactive",
       "pass": true,
-      "name": "revoke set the membership inactive  — status=inactive",
-      "detail": null
+      "detail": "status=inactive"
     },
     {
+      "name": "revoke is audit-logged",
       "pass": true,
-      "name": "revoke is audit-logged  — {\"before_data\":{\"status\":\"active\"},\"after_data\":{\"status\":\"inactive\"}}",
-      "detail": null
+      "detail": "{\"before_data\":{\"status\":\"active\"},\"after_data\":{\"status\":\"inactive\"}}"
     },
     {
-      "pass": true,
       "name": "no console errors during the admin run",
-      "detail": null
+      "pass": true,
+      "detail": ""
     },
     {
+      "name": "this run left the account exactly as it found it",
       "pass": true,
-      "name": "this run left the account exactly as it found it  — roles now [employee, marketing] (was [employee, marketing]), status active (was active)",
-      "detail": null
+      "detail": "roles now [employee, marketing] (was [employee, marketing]), status active (was active)"
     }
   ],
   "failedAssertions": [],
-  "notes": [],
-  "other": [
-    "target: marketing@demo.beepabpo.com membership=b5b127d0-b0c8-4a4b-96e6-12b5aeed839e",
-    "original roles: [employee, marketing] status=active",
-    "BLOCKED  invite creates an account  — Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a fresh SMTP quota or a project that is not being hammered; the error IS surfaced to the user.",
-    "audit_logs 670 -> 675, notifications 75 -> 75 (minus this run's test push)",
-    "wrote docs/evidence/workflow-admin-workflow.json",
-    "23/23 checks passed",
-    "1 path(s) could not be exercised in this environment:",
-    "  - invite creates an account",
-    "      Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a fresh SMTP quota or a project that is not being hammered; the error IS surfaced to the user.",
-    "  These are UNKNOWN, not passing. See docs/QA_REPORT.md."
+  "blockedPaths": [
+    {
+      "name": "invite creates an account",
+      "reason": "Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a fresh SMTP quota or a project that is not being hammered; the error IS surfaced to the user."
+    }
   ],
-  "confirmation": null
+  "notes": [],
+  "auditLogs": {
+    "before": 690,
+    "after": 695
+  },
+  "notifications": {
+    "before": 75,
+    "after": 75
+  }
 }

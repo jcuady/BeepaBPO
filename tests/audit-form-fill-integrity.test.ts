@@ -157,3 +157,56 @@ describe("every audit script signs in through a fill that proves the value held"
     expect(helper).toMatch(/throw new Error/);
   });
 });
+
+/**
+ * A submit whose VERDICT is read from `page.url()` after a fixed sleep.
+ *
+ * Scoped tightly on purpose. `waitForTimeout` appears all over these scripts —
+ * after a `goto`, before reading a table row, around a dialog animation — and
+ * banning it outright would be ceremony, not evidence. Those waits precede an
+ * assertion about content that either exists or does not, so they rarely flip a
+ * verdict.
+ *
+ * The shape that DOES flip verdicts is this one: submit, sleep, then read the
+ * URL. A duration is not an outcome — it is long enough on a fast machine and
+ * short enough on a slow one — so the check reports the machine's mood. It is
+ * what made `uncovered-roles` name four different accounts as broken across four
+ * runs, and it was the shape left in `admin-workflow`, `crm-workflow`,
+ * `hire-workflow` (twice), `auth-workflow`'s `signIn`, and `leave-workflow`.
+ *
+ * Non-login submits that sleep before reading page TEXT are deliberately not
+ * covered: their outcome is the copy, not the route, so the same race does not
+ * decide them.
+ */
+const SUBMIT = /click\(\s*['"`]button\[type=submit\][`'"]\s*\)/;
+
+describe("no submit decides a sign-in from the URL after a fixed sleep", () => {
+  it("finds submit clicks to examine (else the rule is vacuous)", () => {
+    const withSubmits = scanned.filter((s) => SUBMIT.test(s.code));
+    expect(withSubmits.length, "no audit script clicks a login submit any more").toBeGreaterThan(3);
+  });
+
+  it("every submit followed by a URL verdict waits on a condition, not a duration", () => {
+    const offenders: string[] = [];
+    for (const { file, code } of scanned) {
+      const lines = code.split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        if (!SUBMIT.test(lines[i])) continue;
+        // The click, then the handful of lines that decide what follows it.
+        const window = lines.slice(i, i + 6).join("\n");
+        const urlVerdict = /\.url\(\)/.test(window);
+        const sleeps = [...window.matchAll(/waitForTimeout\(\s*(\d+)\s*\)/g)]
+          .map((m) => Number(m[1]))
+          .filter((ms) => ms >= 2000);
+        const waits = /waitForURL|waitForFunction|waitForSelector|submitAndWaitOutcome/.test(window);
+        if (urlVerdict && sleeps.length && !waits) {
+          offenders.push(`${file}:${i + 1} submit -> waitForTimeout(${sleeps.join("/")}) -> url() verdict`);
+        }
+      }
+    }
+    expect(
+      offenders,
+      "a submit that decides from page.url() after a fixed sleep reports the machine's mood, not the product",
+    ).toEqual([]);
+  });
+});

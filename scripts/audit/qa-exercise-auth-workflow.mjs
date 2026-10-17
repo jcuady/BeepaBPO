@@ -31,7 +31,7 @@
 import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { fillHeld } from "./lib/browser-form.mjs";
+import { fillHeld, submitAndWaitOutcome } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -151,9 +151,12 @@ async function signIn(page, email, password, path = "/login") {
   await field.waitFor({ state: "visible", timeout: 20000 });
   await fillHeld(page, field, email);
   await fillHeld(page, page.locator('input[type=password], input[name=password]').first(), password);
-  await page.click('button[type=submit]');
-  await page.waitForLoadState("domcontentloaded");
-  await page.waitForTimeout(3500);
+  // Wait for the OUTCOME, not a duration: the session existing, or the form
+  // publishing why not. Every caller of this helper then reads `page.url()` to
+  // decide a check, so a fixed sleep here made those checks report whichever
+  // leg of the redirect they happened to catch.
+  await submitAndWaitOutcome(page, 'button[type=submit]', { loginPath: path, timeout: 25000 });
+  await page.waitForLoadState("domcontentloaded").catch(() => {});
 }
 
 try {

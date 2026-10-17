@@ -1073,16 +1073,28 @@ and clicking submit, and they all share two defects:
 | Defect | Status |
 |---|---|
 | **The fill is not verified.** React hydrates after the server-rendered HTML is already interactive, and hydration **resets** what `fill` wrote. A submit in that window sends an empty form, `loginSchema` rejects it, `signInWithPassword` is never called, and the exercise reports a false failure. | Fixed repo-wide via `scripts/audit/lib/browser-form.mjs` → `fillHeld`, which settles, reads the field back, and refuses to submit a form that is not holding its values. `tests/audit-form-fill-integrity.test.ts` prevents the pattern returning. |
-| **The outcome is decided by a duration.** `click` followed by a fixed `waitForTimeout(3000)` with no condition wait. A duration is not an outcome — it is long enough on a fast machine and short enough on a slow one. | **Still present** in `auth-workflow` (3500ms), `admin-workflow` (3000ms), `crm-workflow` (3000ms), `hire-workflow` (3000ms ×2), `leave-workflow` (2500ms), and the non-login submits in `auth-workflow` (4500ms, 6000ms) and `leave-workflow` (4000ms ×2). |
+| **The outcome is decided by a duration.** `click` followed by a fixed `waitForTimeout(3000)` with no condition wait, then a verdict read from `page.url()`. A duration is not an outcome — it is long enough on a fast machine and short enough on a slow one. | **Fixed** at all eight verdict-flipping sites via `submitAndWaitOutcome` — `admin-workflow`, `crm-workflow`, `hire-workflow` (×2), `auth-workflow`'s `signIn`, `leave-workflow`, `payroll-workflow`, `qa-probe-session-identity`. The last two were found by the new guard, not by hand. |
 
-The second row is the next thing to do, and the order is already written:
-`submitAndWaitOutcome()` in the same helper waits for one of the two facts a
-submit can produce — the session exists, or the app published why not. Applying
-it is mechanical but touches every exercise, so it is deliberately **not** bundled
-into a change that is otherwise about attribution; bundling them would make it
-impossible to tell which edit fixed what.
+The second row was left undone in the sweep commit on purpose: it touches every
+exercise, and bundling it with a change that is otherwise about attribution makes
+it impossible to tell which edit fixed what. It was done as its own change
+afterwards, and the guard earned its keep immediately — it named
+`payroll-workflow:165` and `qa-probe-session-identity:39`, two sites a search had
+missed and a directory-scoped sweep had not reached.
 
-One limit of the guard above, recorded so it is not over-read: it matches a fill
+`submitAndWaitOutcome()` waits for one of the two facts a submit can produce —
+the session exists, or the app published why not — and returns which.
+
+**The guard is scoped tightly, and deliberately.** `waitForTimeout` appears all
+over these scripts: after a `goto`, before reading a table row, around a dialog
+animation. Those waits precede an assertion about *content* that either exists
+or does not, so they rarely flip a verdict; banning them would be ceremony
+rather than evidence. The rule catches only the shape that does flip one —
+submit, fixed sleep of 2s or more, then `page.url()` read as the verdict. A
+submit that sleeps before reading page *text* is not covered, because its outcome
+is the copy rather than the route, and the same race does not decide it.
+
+One limit of the fill guard, recorded so it is not over-read: it matches a fill
 whose target expression names `password`. A locator held in a variable whose
 name does not — `pwInputs.nth(i).fill(...)` on the signup form in `auth-workflow`
 — is not covered, and neither are non-credential forms.
@@ -1158,6 +1170,23 @@ transient infrastructure condition must never read as a verdict on the user's
 address. If the browser's copy was accurate for some status I have not yet seen,
 then something *is* getting through the wrong branch, and the two measurements
 above are the only evidence for it.
+
+**One data point that narrows it, recorded 2026-10-17 afternoon.** A later run of
+`qa-exercise-auth-workflow.mjs` — with no change to `authFailureKind` or to any
+mapper — came back **35/35** with the signup leg reported `BLOCKED ... Supabase
+429 email rate limit (environment)` rather than `FAIL`. So when a genuine 429
+reaches the app, the app *does* render the rate-limited branch, and the exercise
+*does* classify it as environmental instead of as a product failure. That is
+evidence the mapper and the classification are both right for the shape I can
+reproduce, and it makes the earlier rejected copy more puzzling rather than less:
+something produced a non-429 status on that one occasion, and nothing recorded
+what it was.
+
+That is the whole of the update. The item stays **open**, and the reason it
+stays open is worth stating plainly: the fix would be to log
+`error.status` / `error.code` at the point `signupAction` returns, which needs
+the failure to recur. A logger added now would be a guess about a shape nobody
+has seen.
 
 ---
 

@@ -12,7 +12,7 @@
 // Usage: node scripts/audit/qa-probe-session-identity.mjs
 
 import { readFileSync } from "node:fs";
-import { fillHeld } from "./lib/browser-form.mjs";
+import { fillHeld, submitAndWaitOutcome } from "./lib/browser-form.mjs";
 import { chromium } from "@playwright/test";
 
 const env = {};
@@ -36,9 +36,11 @@ for (const who of ["recruiter@demo.beepabpo.com", "hr@demo.beepabpo.com"]) {
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
   await fillHeld(page, page.locator("input[type=email]"), who);
   await fillHeld(page, page.locator("input[type=password]"), env.DEMO_PASSWORD);
-  await page.click("button[type=submit]");
-  await page.waitForLoadState("domcontentloaded");
-  await page.waitForTimeout(3000);
+  // Wait for the OUTCOME, not a duration — this probe's whole output is the
+  // landing URL, so a fixed sleep made it report whichever leg of the redirect
+  // it happened to catch.
+  await submitAndWaitOutcome(page, "button[type=submit]", { loginPath: "/login", timeout: 25000 });
+  await page.waitForLoadState("domcontentloaded").catch(() => {});
 
   console.log(`\n=== ${who} ===`);
   console.log(`landed: ${page.url()}`);

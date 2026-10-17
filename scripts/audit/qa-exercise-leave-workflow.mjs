@@ -21,7 +21,7 @@
 import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { fillHeld } from "./lib/browser-form.mjs";
+import { fillHeld, submitAndWaitOutcome } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -60,9 +60,11 @@ async function signIn(email) {
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
   await fillHeld(page, page.locator('input[type=email]'), email);
   await fillHeld(page, page.locator('input[type=password]'), PW);
-  await page.click('button[type=submit]');
-  await page.waitForLoadState("domcontentloaded");
-  await page.waitForTimeout(2500);
+  // Wait for the OUTCOME, not a duration. The returned page is read by callers
+  // to decide whether the user got in, so a fixed sleep here turned "the
+  // machine was busy" into "this account cannot sign in".
+  await submitAndWaitOutcome(page, 'button[type=submit]', { loginPath: "/login", timeout: 25000 });
+  await page.waitForLoadState("domcontentloaded").catch(() => {});
   return { ctx, page };
 }
 
