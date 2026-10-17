@@ -1,6 +1,6 @@
 {
   "base": "http://localhost:3100",
-  "when": "2026-10-16T18:02:06.971Z",
+  "when": "2026-10-17T03:19:39.076Z",
   "registryTotal": 21,
   "ranThisInvocation": [
     "auth",
@@ -26,13 +26,14 @@
     "uncovered-roles"
   ],
   "totals": {
-    "pass": 18,
-    "blocked": 1,
+    "pass": 16,
+    "blocked": 2,
     "skipped": 0,
+    "flaky": 1,
     "fail": 2,
     "noEvidence": 0
   },
-  "totalAssertions": 478,
+  "totalAssertions": 489,
   "unregisteredScripts": [
     "qa-exercise-auth-callback.mjs"
   ],
@@ -43,16 +44,16 @@
       "assertions": 35,
       "what": "sign in/out, sign-out-everywhere, access-denied, no account leakage",
       "evidence": "docs/evidence/workflow-auth.json",
-      "when": "2026-10-16T17:42:21.584Z",
+      "when": "2026-10-17T02:48:01.093Z",
       "ranThisRun": true
     },
     {
       "id": "signup",
-      "verdict": "PASS",
-      "assertions": 6,
+      "verdict": "BLOCKED",
+      "assertions": 4,
       "what": "applicant and client registration reach verification",
       "evidence": "docs/evidence/workflow-signup.json",
-      "when": "2026-10-16T17:42:34.666Z",
+      "when": "2026-10-17T02:48:33.875Z",
       "ranThisRun": true
     },
     {
@@ -61,16 +62,16 @@
       "assertions": 19,
       "what": "salary edit, period, recalculate, 2-step approval to finalized",
       "evidence": "docs/evidence/workflow-payroll.json",
-      "when": "2026-10-16T17:44:00.346Z",
+      "when": "2026-10-17T02:50:08.397Z",
       "ranThisRun": true
     },
     {
       "id": "attendance",
-      "verdict": "FAIL",
-      "assertions": 21,
+      "verdict": "PASS",
+      "assertions": 31,
       "what": "clock in/out, corrections, HR approval, delete",
       "evidence": "docs/evidence/workflow-attendance.json",
-      "when": "2026-10-16T17:44:48.514Z",
+      "when": "2026-10-17T02:51:34.964Z",
       "ranThisRun": true
     },
     {
@@ -79,7 +80,7 @@
       "assertions": 21,
       "what": "request, approve/deny, balance impact",
       "evidence": "docs/evidence/workflow-leave.json",
-      "when": "2026-10-16T17:45:42.350Z",
+      "when": "2026-10-17T02:52:37.823Z",
       "ranThisRun": true
     },
     {
@@ -88,7 +89,7 @@
       "assertions": 16,
       "what": "mark one/all read, per-user isolation, digest preference",
       "evidence": "docs/evidence/workflow-notifications.json",
-      "when": "2026-10-16T17:46:05.893Z",
+      "when": "2026-10-17T02:53:14.867Z",
       "ranThisRun": true
     },
     {
@@ -97,16 +98,16 @@
       "assertions": 34,
       "what": "ticket list, create, status transitions",
       "evidence": "docs/evidence/workflow-tickets.json",
-      "when": "2026-10-16T17:47:01.948Z",
+      "when": "2026-10-17T02:54:39.538Z",
       "ranThisRun": true
     },
     {
       "id": "documents",
-      "verdict": "PASS",
+      "verdict": "FAIL",
       "assertions": 31,
       "what": "upload, list, visibility scoping",
       "evidence": "docs/evidence/workflow-documents.json",
-      "when": "2026-10-16T17:47:54.315Z",
+      "when": "2026-10-17T02:57:06.244Z",
       "ranThisRun": true
     },
     {
@@ -115,7 +116,7 @@
       "assertions": 24,
       "what": "notification to evaluate, accept/decline",
       "evidence": "docs/evidence/workflow-nte.json",
-      "when": "2026-10-16T17:48:25.530Z",
+      "when": "2026-10-17T02:57:49.571Z",
       "ranThisRun": true
     },
     {
@@ -124,7 +125,7 @@
       "assertions": 14,
       "what": "client approves submitted timesheets",
       "evidence": "docs/evidence/workflow-client-timesheet.json",
-      "when": "2026-10-16T17:49:04.106Z",
+      "when": "2026-10-17T02:58:45.020Z",
       "ranThisRun": true
     },
     {
@@ -133,7 +134,7 @@
       "assertions": 39,
       "what": "cash advances and billing across the lifecycle",
       "evidence": "docs/evidence/workflow-money.json",
-      "when": "2026-10-16T17:50:02.042Z",
+      "when": "2026-10-17T03:00:07.561Z",
       "ranThisRun": true
     },
     {
@@ -142,25 +143,25 @@
       "assertions": 23,
       "what": "job, applicant, pipeline stage moves",
       "evidence": "docs/evidence/workflow-recruitment.json",
-      "when": "2026-10-16T17:51:23.580Z",
+      "when": "2026-10-17T03:01:40.170Z",
       "ranThisRun": true
     },
     {
       "id": "crm",
-      "verdict": "PASS",
+      "verdict": "FLAKY",
       "assertions": 21,
       "what": "lead and deal lifecycle with activity log",
       "evidence": "docs/evidence/workflow-crm.json",
-      "when": "2026-10-16T17:52:49.733Z",
+      "when": "2026-10-17T03:05:01.609Z",
       "ranThisRun": true
     },
     {
       "id": "cms",
-      "verdict": "FAIL",
-      "assertions": 35,
+      "verdict": "PASS",
+      "assertions": 43,
       "what": "publish and unpublish round trip",
       "evidence": "docs/evidence/workflow-cms.json",
-      "when": "2026-10-16T17:56:13.794Z",
+      "when": "2026-10-17T03:09:52.484Z",
       "ranThisRun": true
     },
     {
@@ -169,7 +170,7 @@
       "assertions": 23,
       "what": "hire to employee, org membership, cleanup",
       "evidence": "docs/evidence/workflow-hire.json",
-      "when": "2026-10-16T17:56:46.728Z",
+      "when": "2026-10-17T03:10:33.023Z",
       "ranThisRun": true
     },
     {
@@ -178,7 +179,7 @@
       "assertions": 23,
       "what": "admin actions behind their permission",
       "evidence": "docs/evidence/workflow-admin-workflow.json",
-      "when": "2026-10-16T17:57:34.211Z",
+      "when": "2026-10-17T03:11:30.224Z",
       "ranThisRun": true
     },
     {
@@ -187,16 +188,16 @@
       "assertions": 19,
       "what": "profile read and write persistence",
       "evidence": "docs/evidence/workflow-profile.json",
-      "when": "2026-10-16T17:58:09.442Z",
+      "when": "2026-10-17T03:12:14.740Z",
       "ranThisRun": true
     },
     {
       "id": "list-filters",
       "verdict": "PASS",
-      "assertions": 35,
+      "assertions": 30,
       "what": "filtering, search and pagination on list views",
       "evidence": "docs/evidence/workflow-list-filters.json",
-      "when": "2026-10-16T18:00:35.493Z",
+      "when": "2026-10-17T03:16:50.462Z",
       "ranThisRun": true
     },
     {
@@ -205,7 +206,7 @@
       "assertions": 10,
       "what": "single ticket detail, assignment and status change",
       "evidence": "docs/evidence/workflow-ticket-detail.json",
-      "when": "2026-10-16T18:01:02.234Z",
+      "when": "2026-10-17T03:17:18.095Z",
       "ranThisRun": true
     },
     {
@@ -214,16 +215,16 @@
       "assertions": 12,
       "what": "unpublish leaves the sitemap and republish restores it",
       "evidence": "docs/evidence/workflow-sitemap.json",
-      "when": "2026-10-16T18:01:35.287Z",
+      "when": "2026-10-17T03:17:57.352Z",
       "ranThisRun": true
     },
     {
       "id": "uncovered-roles",
-      "verdict": "PASS",
+      "verdict": "FAIL",
       "assertions": 17,
       "what": "sales, finance, client_viewer: the three roles no other exercise drives",
       "evidence": "docs/evidence/workflow-uncovered-roles.json",
-      "when": "2026-10-16T18:02:06.929Z",
+      "when": "2026-10-17T03:19:39.043Z",
       "ranThisRun": true
     }
   ]

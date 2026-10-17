@@ -3,19 +3,19 @@
   "script": "scripts/audit/qa-exercise-crm-workflow.mjs",
   "claim": "lead and deal lifecycle with activity log",
   "base": "http://localhost:3100",
-  "when": "2026-10-16T17:52:49.733Z",
-  "exitCode": 0,
-  "verdict": "PASS",
+  "when": "2026-10-17T03:05:01.609Z",
+  "exitCode": 1,
+  "verdict": "FLAKY",
   "assertions": 21,
   "checks": [
     {
-      "pass": true,
-      "name": "signed in as owner  — http://localhost:3100/app/dashboard",
+      "pass": false,
+      "name": "signed in as owner  — http://localhost:3100/login",
       "detail": null
     },
     {
       "pass": true,
-      "name": "lead created  — {\"id\":\"85556888-2a72-4024-a7da-ec18d6eec4c9\",\"status\":\"new\",\"company_name\":\"QA CRM mvb9kymq Co\"}",
+      "name": "lead created  — {\"id\":\"65d498e0-cad8-4c3c-bbae-6bdab966a330\",\"status\":\"new\",\"company_name\":\"QA CRM mvbt8ltb Co\"}",
       "detail": null
     },
     {
@@ -30,7 +30,7 @@
     },
     {
       "pass": true,
-      "name": "deal created  — {\"id\":\"f999e2ce-ca9b-4833-80f4-24e5409aee95\",\"stage\":\"new_lead\",\"title\":\"QA CRM mvb9kymq Retainer\",\"estimated_value\":250000,\"currency\":\"PHP\"",
+      "name": "deal created  — {\"id\":\"226b09fa-b2ee-4bd8-9467-079ccc4d2549\",\"stage\":\"new_lead\",\"title\":\"QA CRM mvbt8ltb Retainer\",\"estimated_value\":250000,\"currency\":\"PHP\"",
       "detail": null
     },
     {
@@ -40,7 +40,7 @@
     },
     {
       "pass": true,
-      "name": "proposal created  — {\"id\":\"c69416ed-0614-4ae8-b44b-81817b2361ec\",\"status\":\"draft\",\"title\":\"QA CRM mvb9kymq Proposal\",\"amount\":250000}",
+      "name": "proposal created  — {\"id\":\"11b63175-a5ce-47f9-a8c5-5007eefc6396\",\"status\":\"draft\",\"title\":\"QA CRM mvbt8ltb Proposal\",\"amount\":250000}",
       "detail": null
     },
     {
@@ -80,7 +80,7 @@
     },
     {
       "pass": true,
-      "name": "client organization created  — {\"id\":\"113bc5f5-8113-4732-87ae-8116a489ff1a\",\"name\":\"QA CRM mvb9kymq Org\",\"slug\":\"qa-crm-mvb9kymq-org\",\"type\":\"client\",\"status\":\"active\"}",
+      "name": "client organization created  — {\"id\":\"aa3b2d10-18bf-442d-88f2-64ffad0c1d70\",\"name\":\"QA CRM mvbt8ltb Org\",\"slug\":\"qa-crm-mvbt8ltb-org\",\"type\":\"client\",\"status\":\"active\"}",
       "detail": null
     },
     {
@@ -114,10 +114,17 @@
       "detail": null
     }
   ],
-  "failedAssertions": [],
+  "failedAssertions": [
+    {
+      "pass": false,
+      "name": "signed in as owner  — http://localhost:3100/login",
+      "detail": null
+    }
+  ],
   "notes": [],
   "other": [
     "     billing account created: yes",
-    "21/21 checks passed"
-  ]
+    "20/21 checks passed"
+  ],
+  "confirmation": "failed under suite load (1 assertion(s)), passed when re-run on its own"
 }

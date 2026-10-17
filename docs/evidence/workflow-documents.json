@@ -3,9 +3,9 @@
   "script": "scripts/audit/qa-exercise-documents-workflow.mjs",
   "claim": "upload, list, visibility scoping",
   "base": "http://localhost:3100",
-  "when": "2026-10-16T17:47:54.315Z",
-  "exitCode": 0,
-  "verdict": "PASS",
+  "when": "2026-10-17T02:57:06.244Z",
+  "exitCode": 1,
+  "verdict": "FAIL",
   "assertions": 31,
   "checks": [
     {
@@ -16,7 +16,7 @@
     {
       "pass": true,
       "name": "uploadEmployeeDocument writes a document row",
-      "detail": "a6671f88"
+      "detail": "56be2a90"
     },
     {
       "pass": true,
@@ -39,7 +39,7 @@
       "detail": "1 row(s)"
     },
     {
-      "pass": true,
+      "pass": false,
       "name": "a Download control is offered for the document",
       "detail": null
     },
@@ -74,7 +74,7 @@
       "detail": "HTTP 200, 704 bytes"
     },
     {
-      "pass": true,
+      "pass": false,
       "name": "a disallowed MIME type is refused and writes nothing",
       "detail": "no row written"
     },
@@ -91,12 +91,12 @@
     {
       "pass": true,
       "name": "the admin upload writes a document",
-      "detail": "b8a3a380"
+      "detail": "6dcbac41"
     },
     {
       "pass": true,
       "name": "it is attached to the employee HR chose, not to HR",
-      "detail": "c6a9dd31-8b3d-4761-bb4d-7b1473bace2e"
+      "detail": "66453427-cecc-4ad6-8bf2-372f2e83366d"
     },
     {
       "pass": true,
@@ -121,7 +121,7 @@
     {
       "pass": true,
       "name": "uploadClientDocument writes a document",
-      "detail": "4c44eec3"
+      "detail": "eb60ff48"
     },
     {
       "pass": true,
@@ -164,16 +164,28 @@
       "detail": "8 vs 8"
     }
   ],
-  "failedAssertions": [],
+  "failedAssertions": [
+    {
+      "pass": false,
+      "name": "a Download control is offered for the document",
+      "detail": null
+    },
+    {
+      "pass": false,
+      "name": "a disallowed MIME type is refused and writes nothing",
+      "detail": "no row written"
+    }
+  ],
   "notes": [],
   "other": [
-    "employee: BEE-00020; other: BEE-00016",
+    "employee: BEE-00020; other: BEE-00017",
     "documents before: 8",
     "pre-existing document rows whose storage object is absent: 0 of 8",
     "(cleanup) document rows removed: 3; storage objects removed: 3",
     "(cleanup) document rows still carrying the marker: 0",
     "(cleanup) documents 8 -> 8; orphaned storage objects: 0",
     "the sweep left the demo data as it found it: yes",
-    "31/31 assertions passed"
-  ]
+    "29/31 assertions passed"
+  ],
+  "confirmation": "reproduced on re-run (1 assertion(s))"
 }

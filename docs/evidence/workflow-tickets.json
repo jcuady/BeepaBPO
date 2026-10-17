@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-tickets-workflow.mjs",
   "claim": "ticket list, create, status transitions",
   "base": "http://localhost:3100",
-  "when": "2026-10-16T17:47:01.948Z",
+  "when": "2026-10-17T02:54:39.538Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 34,
@@ -21,7 +21,7 @@
     {
       "pass": true,
       "name": "a ticket exists for this run",
-      "detail": "3f87b4bd"
+      "detail": "e4915f10"
     },
     {
       "pass": true,
@@ -36,7 +36,7 @@
     {
       "pass": true,
       "name": "the first staff reply stamps first_response_at",
-      "detail": "2026-10-16T17:46:19.47+00:00"
+      "detail": "2026-10-17T02:53:34.782+00:00"
     },
     {
       "pass": true,
@@ -51,7 +51,7 @@
     {
       "pass": true,
       "name": "a SECOND staff reply does not move the first-response clock",
-      "detail": "2026-10-16T17:46:19.47+00:00 -> 2026-10-16T17:46:19.47+00:00"
+      "detail": "2026-10-17T02:53:34.782+00:00 -> 2026-10-17T02:53:34.782+00:00"
     },
     {
       "pass": true,
@@ -71,7 +71,7 @@
     {
       "pass": true,
       "name": "resolving stamps resolved_at",
-      "detail": "2026-10-16T17:46:29.043+00:00"
+      "detail": "2026-10-17T02:53:47.579+00:00"
     },
     {
       "pass": true,
@@ -106,7 +106,7 @@
     {
       "pass": true,
       "name": "createTicketSlaPolicy writes a policy",
-      "detail": "8e47f468"
+      "detail": "a50593c7"
     },
     {
       "pass": true,
@@ -191,5 +191,6 @@
     "34/34 assertions passed",
     "notes:",
     "  - parked policy 510ba190 (priority 'low') under a scratch org to free that slot; the move is undone in the finally block"
-  ]
+  ],
+  "confirmation": null
 }

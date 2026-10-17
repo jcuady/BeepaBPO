@@ -3,9 +3,9 @@
   "script": "scripts/audit/qa-exercise-uncovered-roles.mjs",
   "claim": "sales, finance, client_viewer: the three roles no other exercise drives",
   "base": "http://localhost:3100",
-  "when": "2026-10-16T18:02:06.929Z",
-  "exitCode": 0,
-  "verdict": "PASS",
+  "when": "2026-10-17T03:19:39.043Z",
+  "exitCode": 1,
+  "verdict": "FAIL",
   "assertions": 17,
   "checks": [
     {
@@ -54,9 +54,9 @@
       "detail": "http://localhost:3100/app/client"
     },
     {
-      "pass": true,
+      "pass": false,
       "name": "client_viewer signs in",
-      "detail": "http://localhost:3100/app/client"
+      "detail": "http://localhost:3100/login"
     },
     {
       "pass": true,
@@ -94,13 +94,22 @@
       "detail": "money=0 [] url=http://localhost:3100/app/client/billing"
     }
   ],
-  "failedAssertions": [],
+  "failedAssertions": [
+    {
+      "pass": false,
+      "name": "client_viewer signs in",
+      "detail": "http://localhost:3100/login"
+    }
+  ],
   "notes": [
     "client billing renders its shell for client_viewer with zero amounts rather than a denial page. Nothing is exposed -- `billing.read` is not granted to the role -- but an empty surface a user cannot fill is worth a considered decision rather than a default."
   ],
   "other": [
-    "17/17 checks passed",
+    "16/17 checks passed",
     "NOTES:",
-    "  - client billing renders its shell for client_viewer with zero amounts rather than a denial page. Nothing is exposed -- `billing.read` is not granted to the role -- but an empty surface a user cannot fill is worth a considered decision rather than a default."
-  ]
+    "  - client billing renders its shell for client_viewer with zero amounts rather than a denial page. Nothing is exposed -- `billing.read` is not granted to the role -- but an empty surface a user cannot fill is worth a considered decision rather than a default.",
+    "FAILURES:",
+    "  - client_viewer signs in  [http://localhost:3100/login]"
+  ],
+  "confirmation": "reproduced on re-run (2 assertion(s))"
 }

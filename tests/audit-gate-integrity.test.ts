@@ -418,3 +418,70 @@ describe("the suite runner does not score checks against a dead server", () => {
     expect(noGuard).not.toMatch(/serverDown\s*\|\|\s*!\(await serverAlive\(\)\)/);
   });
 });
+
+/**
+ * A failure the suite cannot reproduce is not a verdict.
+ *
+ * 21 exercises of browser load take `next start` to its ~2.4 GB ceiling, and by the
+ * later exercises the server is *degraded* rather than dead — writes stop landing
+ * while every request still answers, so `serverAlive()` sees nothing wrong and the
+ * exercise's FAIL is believed.
+ *
+ * Measured on 2026-10-17: a full run reported six failures across five exercises
+ * (auth signup, notification read-state, two ticket SLA assertions, the documents
+ * Download control, the HR sign-in for `hire`) and **every one passed when its
+ * exercise was run alone**. A second full run failed six *different* assertions.
+ *
+ * So a FAIL earns one confirmation attempt in isolation before it is allowed to
+ * name a surface as broken — and when the retry passes the verdict is FLAKY, not
+ * PASS. Counting it green would repeat the mistake in the other direction: a clean
+ * board for a run that only went green on retry.
+ */
+describe("the workflow suite confirms a failure before blaming the product", () => {
+  const wf = readFileSync(join(ROOT, "scripts", "audit", "qa-run-workflows.mjs"), "utf8");
+
+  it("re-runs a failing exercise once, after a pause", () => {
+    expect(wf).toMatch(/if \(final === "FAIL"\) \{/);
+    // A pause, because a retry taken immediately samples the same loaded server
+    // that caused the failure. That is not a confirmation, and labelling it
+    // "isolation" made two non-reproducible exercises look like real defects.
+    expect(wf).toMatch(/re-running after a pause/);
+    expect(wf).toMatch(/setTimeout\(r, 15000\)/);
+    // The retry is the SAME exercise again, not a weaker check.
+    expect(wf).toMatch(/const again = await run\(w\.script\)/);
+  });
+
+  it("calls the outcome FLAKY rather than PASS", () => {
+    expect(wf).toContain('final = "FLAKY"');
+    // And only when the retry actually went clean.
+    expect(wf).toMatch(/if \(!stillFailing\) \{\s*final = "FLAKY"/);
+  });
+
+  it("counts FLAKY apart from both PASS and FAIL", () => {
+    expect(wf).toMatch(/const rollupFlaky = rollup\.filter\(\(r\) => r\.verdict === "FLAKY"\)/);
+    expect(wf).toMatch(/flaky: rollupFlaky\.length/);
+    expect(wf).not.toMatch(/const rollupPass = tally\("PASS"\) \|\| rollupFlaky\.length/);
+    expect(wf).not.toMatch(/rollup\.filter\(\(r\) => r\.verdict === "FAIL" \|\| r\.verdict === "FLAKY"\)/);
+  });
+
+  it("records both halves, not just the passing one", () => {
+    // A reader seeing FLAKY needs to know what failed first and what happened on
+    // retry; storing only the good attempt would be the misleading version.
+    expect(wf).toContain("failed under suite load");
+    expect(wf).toContain("may be real; run the exercise on its own");
+    expect(wf).toContain("confirmation: flakyNote");
+  });
+
+  it("never exits 0 for a run that could not tell", () => {
+    // 1 = a check failed. 2 = could not tell. Exiting 0 after skipping exercises or
+    // leaning on a retry reports a shortfall as a clean suite.
+    expect(wf).toMatch(
+      /process\.exit\(rollupFailed\.length \? 1 : rollupSkipped\.length \|\| rollupFlaky\.length \? 2 : 0\)/,
+    );
+  });
+
+  it("catches FLAKY being folded back into PASS", () => {
+    const folded = wf.replace('const rollupFlaky = rollup.filter((r) => r.verdict === "FLAKY")', "const rollupFlaky = []");
+    expect(folded).not.toContain('rollup.filter((r) => r.verdict === "FLAKY")');
+  });
+});

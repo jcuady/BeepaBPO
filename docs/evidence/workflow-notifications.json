@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-notifications-workflow.mjs",
   "claim": "mark one/all read, per-user isolation, digest preference",
   "base": "http://localhost:3100",
-  "when": "2026-10-16T17:46:05.893Z",
+  "when": "2026-10-17T02:53:14.867Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 16,
@@ -31,7 +31,7 @@
     {
       "pass": true,
       "name": "markNotificationRead sets read_at",
-      "detail": "2026-10-16T17:45:50.488+00:00"
+      "detail": "2026-10-17T02:52:50.039+00:00"
     },
     {
       "pass": true,
@@ -100,5 +100,6 @@
     "(cleanup) read_at values that do not match the snapshot: 0",
     "the sweep left the demo data as it found it: yes",
     "16/16 assertions passed"
-  ]
+  ],
+  "confirmation": null
 }

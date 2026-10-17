@@ -3,14 +3,14 @@
   "script": "scripts/audit/qa-exercise-sitemap-unpublish.mjs",
   "claim": "unpublish leaves the sitemap and republish restores it",
   "base": "http://localhost:3100",
-  "when": "2026-10-16T18:01:35.287Z",
+  "when": "2026-10-17T03:17:57.352Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 12,
   "checks": [
     {
       "pass": true,
-      "name": "the article is created  - 44ee27c9",
+      "name": "the article is created  - 4853fe9b",
       "detail": null
     },
     {
@@ -78,5 +78,6 @@
   ],
   "other": [
     "12/12 assertions passed"
-  ]
+  ],
+  "confirmation": null
 }

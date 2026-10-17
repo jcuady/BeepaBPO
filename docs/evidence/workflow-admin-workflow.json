@@ -3,14 +3,14 @@
   "script": "scripts/audit/qa-exercise-admin-workflow.mjs",
   "claim": "admin actions behind their permission",
   "base": "http://localhost:3100",
-  "when": "2026-10-16T17:57:34.211Z",
+  "when": "2026-10-17T03:11:30.224Z",
   "exitCode": 2,
   "verdict": "BLOCKED",
   "assertions": 23,
   "checks": [
     {
       "pass": true,
-      "name": "signed in as super admin  — http://localhost:3100/app/dashboard",
+      "name": "signed in as super admin  — http://localhost:3100/app",
       "detail": null
     },
     {
@@ -30,7 +30,7 @@
     },
     {
       "pass": true,
-      "name": "a failing invite tells the user why  — Too many invites have been sent from this network. Wait a moment, then try again.",
+      "name": "a failing invite tells the user why  — Unable to send the invite right now. Try again in a moment.",
       "detail": null
     },
     {
@@ -130,12 +130,13 @@
     "target: marketing@demo.beepabpo.com membership=b5b127d0-b0c8-4a4b-96e6-12b5aeed839e",
     "original roles: [employee, marketing] status=active",
     "BLOCKED  invite creates an account  — Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a fresh SMTP quota or a project that is not being hammered; the error IS surfaced to the user.",
-    "audit_logs 559 -> 564, notifications 72 -> 72 (minus this run's test push)",
+    "audit_logs 670 -> 675, notifications 75 -> 75 (minus this run's test push)",
     "wrote docs/evidence/workflow-admin-workflow.json",
     "23/23 checks passed",
     "1 path(s) could not be exercised in this environment:",
     "  - invite creates an account",
     "      Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a fresh SMTP quota or a project that is not being hammered; the error IS surfaced to the user.",
     "  These are UNKNOWN, not passing. See docs/QA_REPORT.md."
-  ]
+  ],
+  "confirmation": null
 }

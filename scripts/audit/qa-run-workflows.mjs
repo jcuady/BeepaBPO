@@ -392,6 +392,47 @@ for (const [ci, chunk] of chunks.entries()) {
       final = "SKIPPED";
     }
 
+    // A surviving server is not the same as an unfailed product. 21 exercises of
+    // browser load take `next start` to its ~2.4 GB ceiling, and by the later
+    // exercises it is degraded rather than dead: writes stop landing while every
+    // request still answers. Measured on 2026-10-17 — a full run reported six
+    // failures across five exercises (auth signup, notification read-state, two
+    // ticket SLA assertions, the documents Download control, and the HR sign-in
+    // for `hire`), and **every one of them passed when its exercise was run on
+    // its own**. Two consecutive full runs failed six *different* assertions, so
+    // the pattern is the load, not the code.
+    //
+    // So a failure here earns one confirmation attempt before it is allowed to name
+    // a surface as broken. The verdict when the retry passes is FLAKY, deliberately
+    // neither PASS nor FAIL: nothing was proven about the product, and counting it
+    // green would repeat the mistake in the other direction — publishing a clean
+    // board for a run that only passed on retry.
+    //
+    // "After a pause", not "in isolation". The first version printed "confirming in
+    // isolation" and re-ran immediately, with the server still carrying the load
+    // that caused the failure — and then reported "reproduced" for exercises that
+    // passed cleanly ten minutes later on their own. That is not a confirmation, it
+    // is a second sample from the same bad conditions, and calling it isolation
+    // would have made the verdict look stronger than it was. documents and
+    // uncovered-roles were both labelled "reproduced" on the run below, and both
+    // passed outright once actually run apart.
+    let flakyNote = null;
+    if (final === "FAIL") {
+      console.log(` FAIL — re-running after a pause…`);
+      await new Promise((r) => setTimeout(r, 15000));
+      const again = await run(w.script);
+      const reparsed = parseOutput(again.out);
+      const stillFailing =
+        again.code !== 0 ||
+        reparsed.checks.filter((c) => !c.pass).length > 0;
+      if (!stillFailing) {
+        final = "FLAKY";
+        flakyNote = `failed under suite load (${parsed.checks.filter((c) => !c.pass).length} assertion(s)), passed on a re-run 15s later`;
+      } else {
+        flakyNote = `still failing on a re-run 15s later (${reparsed.checks.filter((c) => !c.pass).length} assertion(s)) — this one may be real; run the exercise on its own before believing it`;
+      }
+    }
+
     const evidenceFile = `docs/evidence/workflow-${w.id}.json`;
     writeFileSync(
       evidenceFile,
@@ -412,6 +453,9 @@ for (const [ci, chunk] of chunks.entries()) {
           failedAssertions: parsed.checks.filter((c) => !c.pass),
           notes: parsed.notes,
           other: parsed.other,
+          // Present only when this exercise failed and was then re-run on its own.
+          // A reader seeing FLAKY needs to know both halves, not just the good one.
+          confirmation: flakyNote,
         },
         null,
         2,
@@ -425,6 +469,7 @@ for (const [ci, chunk] of chunks.entries()) {
       assertions: parsed.checks.length,
       evidence: evidenceFile,
       what: w.what,
+      confirmation: flakyNote,
     });
     console.log(
       ` ${final} (${parsed.checks.length} assertions${printedFailures && final !== "SKIPPED" ? `, ${printedFailures} failed` : ""})`,
@@ -475,6 +520,11 @@ const tally = (v) => rollup.filter((r) => r.verdict === v).length;
 const rollupPass = tally("PASS");
 const rollupBlocked = tally("BLOCKED");
 const rollupSkipped = tally("SKIPPED");
+// FLAKY is neither PASS nor FAIL. An exercise that failed under suite load and
+// passed when re-run on its own has proven nothing about the product, and
+// counting it green would publish a clean board for a run that only went green on
+// retry. It is counted apart, printed, and never silently absorbed into PASS.
+const rollupFlaky = rollup.filter((r) => r.verdict === "FLAKY");
 const rollupFailed = [...rollup.filter((r) => r.verdict === "FAIL"), ...rollup.filter((r) => r.verdict === "UNREADABLE")];
 const rollupMissing = rollup.filter((r) => r.verdict === "NO_EVIDENCE");
 
@@ -490,6 +540,7 @@ writeFileSync(
         pass: rollupPass,
         blocked: rollupBlocked,
         skipped: rollupSkipped,
+        flaky: rollupFlaky.length,
         fail: rollupFailed.length,
         noEvidence: rollupMissing.length,
       },
@@ -507,9 +558,19 @@ console.log(
     `${rollupPass} PASS, ${rollup.reduce((n, r) => n + r.assertions, 0)} assertions` +
     (rollupBlocked ? `, ${rollupBlocked} BLOCKED` : "") +
     (rollupSkipped ? `, ${rollupSkipped} SKIPPED` : "") +
+    (rollupFlaky.length ? `, ${rollupFlaky.length} FLAKY` : "") +
     (rollupFailed.length ? `, ${rollupFailed.length} FAIL` : "") +
     (rollupMissing.length ? `, ${rollupMissing.length} NO_EVIDENCE` : ""),
 );
+if (rollupFlaky.length) {
+  console.log(
+    `\nFLAKY  ${rollupFlaky.length} exercise(s) failed under suite load and passed when\n` +
+      "       re-run on their own. Neither PASS nor FAIL: nothing was proven, and the\n" +
+      "       suite is not a trustworthy attribution for these surfaces. Re-run them\n" +
+      "       individually before believing either outcome.\n" +
+      `       ${rollupFlaky.map((f) => f.id).join(", ")}`,
+  );
+}
 const thisRun = results.filter((r) => r.verdict === "SKIPPED");
 if (thisRun.length) {
   console.log(
@@ -538,4 +599,11 @@ console.log("\nwrote docs/evidence/workflow-summary.json");
 // A failure in ANY recorded exercise fails the suite, not only one in this
 // invocation: otherwise a chunked run of the healthy half would report green
 // over a red rollup sitting in the evidence directory.
-process.exit(rollupFailed.length ? 1 : 0);
+//
+// 1 = a check genuinely failed. 2 = the suite could not tell -- something was
+// skipped because the server went away, or an exercise only passed on a
+// confirmation re-run. Never 0 for either. A run that lost its server, or that
+// only went green on retry, measured less than it appears to have, and exiting 0
+// would report that shortfall as a clean suite. `qa-run-all.mjs` draws the same
+// line for the same reason.
+process.exit(rollupFailed.length ? 1 : rollupSkipped.length || rollupFlaky.length ? 2 : 0);

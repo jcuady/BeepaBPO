@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-client-timesheet-workflow.mjs",
   "claim": "client approves submitted timesheets",
   "base": "http://localhost:3100",
-  "when": "2026-10-16T17:49:04.106Z",
+  "when": "2026-10-17T02:58:45.020Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 14,
@@ -11,7 +11,7 @@
     {
       "pass": true,
       "name": "a draft timesheet exists for a client-assigned employee",
-      "detail": "77c1db0e"
+      "detail": "88e3abe2"
     },
     {
       "pass": true,
@@ -76,7 +76,7 @@
     {
       "pass": true,
       "name": "the attendance_records count is back to its starting size",
-      "detail": "202 vs 202"
+      "detail": "201 vs 201"
     }
   ],
   "failedAssertions": [],
@@ -85,8 +85,9 @@
     "client org: 1a91499c (approval enabled)",
     "assigned employee: 108f95ff (assignment from 2026-09-05)",
     "fixture work_date: 2026-09-06 (inside the assignment window)",
-    "(cleanup) attendance_records 202 -> 202; rows left on 2026-09-06: 0",
+    "(cleanup) attendance_records 201 -> 201; rows left on 2026-09-06: 0",
     "the sweep left the demo data as it found it: yes",
     "14/14 assertions passed"
-  ]
+  ],
+  "confirmation": null
 }

@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-nte-workflow.mjs",
   "claim": "notification to evaluate, accept/decline",
   "base": "http://localhost:3100",
-  "when": "2026-10-16T17:48:25.530Z",
+  "when": "2026-10-17T02:57:49.571Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 24,
@@ -21,7 +21,7 @@
     {
       "pass": true,
       "name": "createNteCase writes a case",
-      "detail": "NTE-MVB9GKA1"
+      "detail": "NTE-MVBT2WM7"
     },
     {
       "pass": true,
@@ -134,12 +134,12 @@
     "response_due_at stored as 2026-03-09T09:00:00+00:00 for a wall clock HR typed as 2026-03-09T17:00 (intended instant 2026-03-09T09:00:00.000Z, off by 0h)."
   ],
   "other": [
-    "(node:1684) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/jcuad/OneDrive/Documents/BeepoBeepa/lib/attendance/zoned-time.ts is not specified and it doesn't parse as CommonJS.",
+    "(node:22996) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/jcuad/OneDrive/Documents/BeepoBeepa/lib/attendance/zoned-time.ts is not specified and it doesn't parse as CommonJS.",
     "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
     "To eliminate this warning, add \"type\": \"module\" to C:\\Users\\jcuad\\OneDrive\\Documents\\BeepoBeepa\\package.json.",
     "(Use `node --trace-warnings ...` to show where the warning was created)",
     "subject employee: employee@demo.beepabpo.com -> 108f95ff-e47f-414f-8ec2-0e49f075edb0",
-    "other employee:   BEE-00016 -> c6a9dd31-8b3d-4761-bb4d-7b1473bace2e",
+    "other employee:   BEE-00017 -> 66453427-cecc-4ad6-8bf2-372f2e83366d",
     "before: cases=1 responses=0 actions=0",
     "(cleanup) cases still carrying the marker: 0",
     "(cleanup) before cases=1 responses=0 actions=0",
@@ -148,5 +148,6 @@
     "24/24 assertions passed",
     "notes:",
     "  - response_due_at stored as 2026-03-09T09:00:00+00:00 for a wall clock HR typed as 2026-03-09T17:00 (intended instant 2026-03-09T09:00:00.000Z, off by 0h)."
-  ]
+  ],
+  "confirmation": null
 }

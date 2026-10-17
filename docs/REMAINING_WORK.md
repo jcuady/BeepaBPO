@@ -937,6 +937,55 @@ than a code defect: the slow tier exists for exactly this reason and the role sw
 (479 visits, 13 roles) runs clean on its own. What is missing is a way to run the 21
 exercises without them accumulating in one process.
 
+### 2.12 A failure inside the workflow suite is not evidence of a product defect
+
+Three full runs on 2026-10-17 produced **six failures across five exercises**, then
+**six failures across five different exercises**, then two more. Not one of them
+reproduced when the exercise was run on its own:
+
+| Run | Reported | Outcome when the exercise ran alone |
+|---|---|---|
+| 1 | `attendance` (6), `cms` (2) | `attendance` was a **real audit bug** (UTC vs employee timezone, fixed); `cms` 43/43 |
+| 2 | `auth`, `notifications`, `tickets` (2), `documents`, `hire` | `tickets` 43/43 clean, SLA targets persisted, audit row written |
+| 3 | `documents` (2), `uncovered-roles`, and `crm` → **FLAKY** | `documents` exit 0, Download and MIME assertions green |
+
+The cause is load, and it has two faces. `next start` reaches its ~2.4 GB ceiling
+under 21 exercises' worth of browser driving; it sometimes dies outright, which
+§2.11's `serverAlive()` guard already catches. More often it **degrades**: every
+request still answers, so the guard sees nothing wrong, while writes stop landing.
+That is why an SLA edit reported success and persisted nothing, and why a `Download`
+control went missing on a page that renders it perfectly on its own.
+
+The other face is **sign-in throttling**. Most of the failures across runs 1 and 2
+were sign-ins landing back on `/login` — `hire` as HR, `uncovered-roles` as
+client_viewer, `crm` as owner, `auth` at signup. Twenty-one exercises each signing
+in several demo accounts exhausts the Supabase password-grant budget, and that
+looks identical to a broken login.
+
+**Consequence for reading this board: a red exercise here is a question, not an
+answer.** The suite is not currently a trustworthy attribution mechanism for any
+surface. It is still worth running — it just found a real bug in run 1, and it
+refreshes 489 assertions of coverage in about twenty minutes — but a failure from it
+must be re-run individually before anyone believes it.
+
+`qa-run-workflows.mjs` now earns a failure one confirmation re-run before it is
+allowed to name a surface, and reports `FLAKY` when that re-run clears. `FLAKY` is
+counted apart from both PASS and FAIL and exits 2, so a suite that only went green
+on retry is never published as a clean one.
+
+**Known limitation of that confirmation, recorded so it is not over-read:** the
+re-run happens 15 seconds later, against a server still carrying the load. That is
+a second sample from the same conditions, not isolation. Run 3 reported
+`documents` and `uncovered-roles` as still failing on re-run, and both passed
+outright ten minutes later on their own. The honest reading of "still failing on a
+re-run 15s later" is *this one may be real — go and run it alone*, and the evidence
+file now says exactly that rather than the firmer "reproduced".
+
+The structural fix is to stop accumulating: restart the app server between exercises
+(or run them against a fresh one), which would remove both faces of this at once.
+That is P2 and not urgent enough to attempt without a decision on whether a test
+runner is permitted to manage the server it is testing.
+
 ---
 
 ## 3. Recently completed (so nobody redoes it)
