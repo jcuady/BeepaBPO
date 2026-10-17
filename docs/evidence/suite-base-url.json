@@ -1,6 +1,6 @@
 {
   "check": "suite-base-url",
-  "generatedAt": "2026-10-16T17:01:27.159Z",
+  "generatedAt": "2026-10-17T07:42:30.464Z",
   "roots": [
     "scripts"
   ],
@@ -11,7 +11,7 @@
   },
   "verdict": "agree",
   "verdictText": "every audit script agrees where the app lives",
-  "httpScripts": 63,
+  "httpScripts": 64,
   "checked": 61,
   "findings": [],
   "exitCode": 0

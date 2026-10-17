@@ -1,6 +1,6 @@
 {
   "check": "gate-coverage",
-  "generatedAt": "2026-10-17T06:51:48.461Z",
+  "generatedAt": "2026-10-17T07:48:14.529Z",
   "pkg": "package.json",
   "gateRunners": [
     "scripts/audit/qa-run-all.mjs",

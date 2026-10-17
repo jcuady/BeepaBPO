@@ -1,11 +1,11 @@
 {
   "check": "client-invite",
-  "generatedAt": "2026-10-16T07:01:01.980Z",
+  "generatedAt": "2026-10-17T07:42:50.477Z",
   "base": "http://localhost:3100",
-  "marker": "qa-invite-mvamc8h5",
-  "total": 11,
-  "passed": 7,
-  "failures": 4,
+  "marker": "qa-invite-mvc39syp",
+  "total": 13,
+  "passed": 13,
+  "failures": 0,
   "blocked": true,
   "cleanupVerified": true,
   "results": [
@@ -27,27 +27,37 @@
     {
       "name": "the form accepts the invite address",
       "pass": true,
-      "detail": "qa-invite-mvamc8h5@beepabpo.com"
+      "detail": "qa-invite-mvc39syp@beepabpo.com"
     },
     {
       "name": "inviting an existing account reports that the user was linked",
-      "pass": false,
-      "detail": "toast: Unable to send the invite right now. Try again in a moment."
+      "pass": true,
+      "detail": "Existing user linked to CloudPeak as client_admin."
     },
     {
       "name": "the existing account was given a membership",
-      "pass": false,
-      "detail": "0 row(s)"
+      "pass": true,
+      "detail": "1 row(s)"
     },
     {
       "name": "the existing-account membership points at the selected organization",
-      "pass": false,
-      "detail": "undefined vs selected 1a91499c-56b5-4d60-ae9d-3835545b6ed5"
+      "pass": true,
+      "detail": "1a91499c-56b5-4d60-ae9d-3835545b6ed5 vs selected 1a91499c-56b5-4d60-ae9d-3835545b6ed5"
     },
     {
       "name": "the existing-account membership is client-scoped, not internal",
-      "pass": false,
-      "detail": "undefined"
+      "pass": true,
+      "detail": "client"
+    },
+    {
+      "name": "the existing-account membership carries the client portal role",
+      "pass": true,
+      "detail": "client_admin"
+    },
+    {
+      "name": "every role granted to an existing account is client-scoped",
+      "pass": true,
+      "detail": "client"
     },
     {
       "name": "existing-account invite left nothing behind",
