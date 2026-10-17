@@ -42,6 +42,7 @@
     "audit:pages": "node scripts/audit/generate-page-inventory.mjs",
     "audit:vapid": "node scripts/audit/test-vapid.mjs",
     "audit:realtime": "node scripts/audit/test-realtime-events.mjs",
+    "audit:auth": "node --env-file=.env.local scripts/audit/test-auth-direct.mjs",
     "audit:responsive": "node scripts/audit-responsive.mjs",
     "audit:app-responsive": "node scripts/audit-app-responsive.mjs",
     "audit:perf": "node scripts/audit-performance.mjs",

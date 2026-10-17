@@ -39,12 +39,38 @@
 //      an Approve button?" with a regex cannot work; asking "does the viewer
 //      have controls the admin has?" is the real invariant and self-adjusts.
 //
+//
+// AND WHY THE `signs in` CHECKS WERE ALSO WRONG
+// ----------------------------------------------
+// They read `page.url()` 2500ms after the submit and asserted the result
+// contained `/app` or `/app/client`. Four runs failed on four DIFFERENT
+// accounts -- finance on `/employee/login`, client_admin on `/app`,
+// client_viewer on `/login`, then all four at once -- and each passed on
+// re-run.
+//
+// The duration was the whole defect. It was long enough on a fast machine and
+// short enough on a slow one, so what it measured was the machine's mood. Both
+// explanations that looked available were measured and disproved first:
+// `scripts/audit/test-auth-direct.mjs` was written to answer them, and it
+// returned HTTP 200 for all six demo accounts (so not a provider throttle)
+// while the server sat at 142 MB working set with `audit-server-fresh`
+// reporting `fresh` (so not the degraded one described in 2.12). Neither face
+// of "the suite is under load" was active. The instrument was the defect.
+//
+// So a sign-in now WAITS for an outcome -- a session, or a `role="alert"`
+// saying why not -- and asserts what signing in actually means rather than
+// which route won the race. `lib/auth/actions.ts:92` sends every role to
+// `/app`; `landingPathFor` (`lib/auth/landing.ts:29`) then sends a client to
+// `/app/client`. The old check sampled the journey between those two hops and
+// called the sample a result. The second hop is no longer assumed either: it
+// is tested, against the rule in `landing.ts`.
+//
 // READ-ONLY. It signs in, navigates, reads the DOM, writes nothing.
 //
 // Usage:
 //   node --env-file=.env.local scripts/audit/qa-exercise-uncovered-roles.mjs
 
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
 const env = {};
@@ -66,29 +92,162 @@ const check = (name, pass, detail = "") => {
 };
 const note = (m) => { notes.push(m); console.log(`NOTE  ${m}`); };
 
-async function signInAs(context, email, portal) {
-  const page = await context.newPage();
-  await page.goto(`${BASE}${portal === "client" ? "/login" : "/employee/login"}`, { waitUntil: "domcontentloaded" });
-  await page.locator("#email").waitFor({ state: "visible", timeout: 20000 });
-  await page.fill("#email", email);
-  await page.fill("#password", env.DEMO_PASSWORD);
-  await page.click('button[type=submit]');
-  await page.waitForLoadState("domcontentloaded");
-  await page.waitForTimeout(2500);
-  return page;
+/**
+ * Wait for the URL to stop moving.
+ *
+ * TWO CONSECUTIVE UNCHANGED READS, not one. A single unchanged read breaks
+ * out immediately when the navigation has not started yet -- which is exactly
+ * the state a page is in for the moment after a submit is clicked. That made
+ * this a race, and a race cannot be the basis of a FAIL.
+ *
+ * The app redirects on permission boundaries, and that redirect can land
+ * *after* the URL has stopped moving -- the client-side navigation destroys
+ * the execution context between `goto` and `evaluate`, which surfaces as
+ * "Execution context was destroyed" and took out the whole run. `sampleAt`
+ * retries its evaluate against a page settled this way.
+ */
+async function settleUrl(page, rounds = 10, pause = 350) {
+  let last = page.url();
+  let stable = 0;
+  for (let i = 0; i < rounds; i++) {
+    await page.waitForTimeout(pause);
+    const now = page.url();
+    stable = now === last ? stable + 1 : 0;
+    last = now;
+    if (stable >= 2) break;
+  }
+  return last;
 }
 
 /** The app redirects on permission boundaries; wait for the URL to settle. */
 async function visit(page, path) {
   await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded" });
-  let last = page.url();
-  for (let i = 0; i < 8; i++) {
-    await page.waitForTimeout(350);
-    if (page.url() === last) break;
-    last = page.url();
-  }
-  return page.url();
+  return settleUrl(page, 8);
 }
+
+/** The form's own failure copy, read rather than guessed at. */
+const readAuthAlert = async (page) => {
+  try {
+    const text = await page.evaluate(() => {
+      const el = document.querySelector('[role="alert"]');
+      return el ? (el.textContent || "").replace(/\s+/g, " ").trim() : null;
+    });
+    return { text, read: true };
+  } catch (e) {
+    // NOT the same as "no alert". Returning null for both made a thrown
+    // evaluate -- this page's own history of "Execution context was
+    // destroyed" -- indistinguishable from a clean sign-in.
+    return { text: null, read: false, why: String(e).slice(0, 80) };
+  }
+};
+
+/**
+ * Sign in and wait for the OUTCOME, not for a duration.
+ *
+ * WHY A PREDICATE AND NOT A SLEEP
+ * -------------------------------
+ * This function used to sleep 2500ms and then let the caller read the URL.
+ * That measured the machine's mood: long enough on a fast run, short enough on
+ * a slow one. Across four runs of this exercise it produced four different
+ * "broken" accounts, and a server sitting at 142 MB with a direct
+ * password-grant probe answering 200 for all six demo accounts proved both
+ * the provider and the app were healthy while the browser run still failed.
+ *
+ * A sleep cannot express "the sign-in finished". This waits for one of two
+ * FACTS -- the session exists, or the app published why not -- and gives up at
+ * 20s, which is recorded rather than swallowed.
+ */
+async function signInAs(context, email, portal) {
+  const loginPath = portal === "client" ? "/login" : "/employee/login";
+  const page = await context.newPage();
+  await page.goto(`${BASE}${loginPath}`, { waitUntil: "domcontentloaded" });
+  await page.locator("#email").waitFor({ state: "visible", timeout: 20000 });
+
+  // Fill, then confirm the form still HOLDS the values before submitting.
+  //
+  // React hydrates after the server-rendered HTML is already interactive, and
+  // hydration RESETS the inputs `fill` just wrote to. A click landing in that
+  // window submits an empty form: `loginSchema` rejects it before
+  // `signInWithPassword` is ever called, the user is told "Please check the
+  // form and try again", and every probe taken outside the browser stays green
+  // while the browser refuses. Measured on 2026-10-17 -- finance failed this
+  // way with correct credentials, which is what made the direct password-grant
+  // probe exonerate the provider and send the investigation the wrong way.
+  //
+  // A value that survives a 250ms settle proves hydration has finished, since
+  // hydration is the only thing that clears it, so this cannot race.
+  let fills = 0;
+  let held = false;
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    await page.fill("#email", email);
+    await page.fill("#password", env.DEMO_PASSWORD);
+    await page.waitForTimeout(250);
+    fills = attempt;
+    held =
+      (await page.inputValue("#email")) === email &&
+      (await page.inputValue("#password")) === env.DEMO_PASSWORD;
+    if (held) break;
+  }
+  await page.click('button[type=submit]');
+
+  let outcome = "landed or was rejected";
+  await page
+    .waitForFunction(
+      (path) => !location.pathname.startsWith(path) || !!document.querySelector('[role="alert"]'),
+      loginPath,
+      { timeout: 20000 },
+    )
+    .catch(() => {
+      outcome = "no outcome within 20s (submit still pending, or the action never returned)";
+    });
+
+  const url = await settleUrl(page, 20);
+  const alert = await readAuthAlert(page);
+  return { page, url, loginPath, outcome, alert, fills, held };
+}
+
+/**
+ * "Signed in" means a session exists -- not that a particular route won the
+ * race to be read.
+ *
+ * Both failure modes are separated deliberately, because they are not the same
+ * bug: still sitting on the form means the credentials were refused, and a
+ * visible `role="alert"` means the app said why. The product's own copy is
+ * carried into the detail so a failure names its cause instead of naming a URL
+ * and leaving the reader to guess.
+ */
+/**
+ * Where each account actually ended up.
+ *
+ * Recorded because "the failing account changes every run" was the only honest
+ * description of this exercise for a day, and a reader of the evidence file
+ * needs to be able to check that claim against the destinations rather than
+ * take it on trust. `landingPathFor` decides these: internal CRM-first roles go
+ * to /app/crm, other internals to /app/my, clients to /app/client.
+ */
+const signIns = [];
+
+const checkSignIn = (label, s) => {
+  const stillOnForm = s.url.includes(s.loginPath);
+  const ok = !stillOnForm && !s.alert.text;
+  const cause = !s.held
+    ? `the form would not hold its values (${s.fills} fill attempt(s)); the submit sent something other than the credentials`
+    : stillOnForm
+      ? "still on the login form"
+      : s.alert.text
+        ? "left the form but showed an error"
+        : s.outcome;
+  signIns.push({ label, ok, url: s.url, cause: ok ? null : cause, alert: s.alert.text, fills: s.fills });
+  return check(
+    `${label} signs in`,
+    ok,
+    ok
+      ? s.url
+      : `${s.url} :: ${cause}` +
+          `${s.alert.text ? ` :: "${s.alert.text}"` : ""}` +
+          `${s.alert.read ? "" : ` :: alert unreadable (${s.alert.why})`}`,
+  );
+};
 
 /**
  * What is actually ON this page, as opposed to reachable.
@@ -119,11 +278,18 @@ const SAMPLE = () => {
  * trusted to land on the first try.
  */
 async function sampleAt(page, path) {
-  const url = await visit(page, path);
+  await visit(page, path);
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       await page.waitForLoadState("domcontentloaded");
       await page.waitForTimeout(900);
+      // Read the URL HERE, next to the DOM, and settle it first -- not when
+      // `visit()` returned. `/app` is a pure redirect, so the URL captured at
+      // the end of `visit` was the one BEFORE the redirect landed, and the
+      // check reported `/app` for a client genuinely sitting on `/app/client`.
+      // A URL and the DOM it describes have to be read at the same moment or
+      // neither can be trusted.
+      const url = await settleUrl(page, 6);
       const s = await page.evaluate(SAMPLE);
       return { url, ...s };
     } catch (e) {
@@ -172,10 +338,11 @@ try {
   // ---------------------------------------------------------------- finance
   {
     const ctx = await browser.newContext();
-    const page = await signInAs(ctx, "finance@demo.beepabpo.com", "employee");
+    const s = await signInAs(ctx, "finance@demo.beepabpo.com", "employee");
+    const page = s.page;
     const errors = [];
     page.on("pageerror", (e) => errors.push(String(e).slice(0, 100)));
-    check("finance signs in", page.url().includes("/app"), page.url());
+    checkSignIn("finance", s);
 
     // Finance is an internal role. It must not reach the client tenant's money.
     const billing = await sampleAt(page, "/app/client/billing");
@@ -191,10 +358,11 @@ try {
   // ------------------------------------------------------------------ sales
   {
     const ctx = await browser.newContext();
-    const page = await signInAs(ctx, "sales@demo.beepabpo.com", "employee");
+    const s = await signInAs(ctx, "sales@demo.beepabpo.com", "employee");
+    const page = s.page;
     const errors = [];
     page.on("pageerror", (e) => errors.push(String(e).slice(0, 100)));
-    check("sales signs in", page.url().includes("/app"), page.url());
+    checkSignIn("sales", s);
     check("sales lands on the CRM pipeline", page.url().includes("/app/crm"), page.url());
 
     // The whole question for sales: can a pipeline role read payroll figures?
@@ -206,12 +374,18 @@ try {
     );
 
     // And the page it does own should not be empty, or the role cannot work.
-    await visit(page, "/app/crm/leads");
+    //
+    // The URL is asserted FIRST. This check used to pass VACUOUSLY: an
+    // unauthenticated visit to /app/crm/leads lands on the public marketing
+    // page, and that page contains none of the negative phrases below, so
+    // "not empty" was satisfied by a page with nothing to do with leads. It
+    // reported PASS in the same run where every sign-in had failed.
+    const leads = await visit(page, "/app/crm/leads");
     const crmText = await page.evaluate(() => (document.body.innerText || "").replace(/\s+/g, " "));
     check(
       "sales sees a populated lead list",
-      !/(no leads|no records|nothing here)/i.test(crmText),
-      crmText.slice(0, 70),
+      leads.includes("/app/crm/leads") && !/(no leads|no records|nothing here)/i.test(crmText),
+      `url=${leads} ${crmText.slice(0, 60)}`,
     );
     check("no uncaught page errors as sales", errors.length === 0, errors.join(" | "));
     await ctx.close();
@@ -227,10 +401,21 @@ try {
     { label: "client_viewer", email: "clientviewer@demo.beepabpo.com" },
   ]) {
     const ctx = await browser.newContext();
-    const page = await signInAs(ctx, role.email, "client");
+    const s = await signInAs(ctx, role.email, "client");
+    const page = s.page;
     const errors = [];
     page.on("pageerror", (e) => errors.push(String(e).slice(0, 100)));
-    check(`${role.label} signs in`, page.url().includes("/app/client"), page.url());
+    checkSignIn(role.label, s);
+    // The SECOND hop, asserted against the product's actual rule rather than a
+    // guessed one. `landingPathFor` (`lib/auth/landing.ts:29`) sends a client to
+    // `/app/client`; login's first hop is `/app` for every role
+    // (`lib/auth/actions.ts:92`). The old check sampled between those two hops.
+    const landing = await sampleAt(page, "/app");
+    check(
+      `${role.label} on /app is routed to the client area, not refused`,
+      !landing.denied && landing.url.includes("/app/client"),
+      `url=${landing.url} denied=${landing.denied}`,
+    );
     byRole[role.label] = { buttons: {}, errors };
     for (const p of PAGES) {
       await visit(page, p);
@@ -254,7 +439,8 @@ try {
 
   {
     const ctx = await browser.newContext();
-    const page = await signInAs(ctx, "clientviewer@demo.beepabpo.com", "client");
+    const s = await signInAs(ctx, "clientviewer@demo.beepabpo.com", "client");
+    const page = s.page;
 
     const payroll = await sampleAt(page, "/app/payroll");
     check(
@@ -300,4 +486,49 @@ if (failed.length) {
   console.log("\nFAILURES:");
   for (const f of failed) console.log(`  - ${f.name}${f.detail ? `  [${f.detail}]` : ""}`);
 }
-process.exit(failed.length ? 1 : 0);
+process.exitCode = failed.length ? 1 : 0;
+
+// Evidence, written by the exercise itself rather than only by the
+// orchestrator. Same reason `qa-exercise-admin-workflow.mjs` and
+// `qa-exercise-attendance-workflow.mjs` were given it: the orchestrator reaches
+// ~20 exercises and the server degrades under that much browser load, so a run
+// that dies part-way leaves it unable to refresh anything. That is not
+// hypothetical here -- this file sat at `verdict: FAIL`, 16/17, recording a
+// defect in the instrument rather than the product, while the exercise it
+// describes was passing 19/19 twice in a row. A stale red record for something
+// already fixed is precisely what the evidence rule exists to prevent.
+try {
+  mkdirSync("docs/evidence", { recursive: true });
+  writeFileSync(
+    "docs/evidence/workflow-uncovered-roles.json",
+    JSON.stringify(
+      {
+        id: "uncovered-roles",
+        script: "scripts/audit/qa-exercise-uncovered-roles.mjs",
+        claim: "sales, finance, client_viewer: the three roles no other exercise drives",
+        base: BASE,
+        when: new Date().toISOString(),
+        exitCode: process.exitCode,
+        verdict: failed.length ? "fail" : "pass",
+        assertions: results.length,
+        failedAssertions: failed,
+        // Per-account destinations, so "the failing account changed every run"
+        // can be checked here instead of taken on trust. `landingPathFor`
+        // decides them: CRM-first internals to /app/crm, other internals to
+        // /app/my, clients to /app/client.
+        signIns,
+        notes,
+        results,
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  console.log("wrote docs/evidence/workflow-uncovered-roles.json");
+} catch (err) {
+  console.error(
+    "could not write evidence:",
+    err instanceof Error ? err.message : String(err),
+  );
+}
+process.exit(process.exitCode);

@@ -940,33 +940,136 @@ exercises without them accumulating in one process.
 ### 2.12 A failure inside the workflow suite is not evidence of a product defect
 
 Three full runs on 2026-10-17 produced **six failures across five exercises**, then
-**six failures across five different exercises**, then two more. Not one of them
-reproduced when the exercise was run on its own:
+**six failures across five different exercises**, then two more. A fourth run then
+took the four unconfirmed exercises and ran each **alone**, 25 seconds apart:
 
 | Run | Reported | Outcome when the exercise ran alone |
 |---|---|---|
 | 1 | `attendance` (6), `cms` (2) | `attendance` was a **real audit bug** (UTC vs employee timezone, fixed); `cms` 43/43 |
-| 2 | `auth`, `notifications`, `tickets` (2), `documents`, `hire` | `tickets` 43/43 clean, SLA targets persisted, audit row written |
-| 3 | `documents` (2), `uncovered-roles`, and `crm` → **FLAKY** | `documents` exit 0, Download and MIME assertions green |
+| 2 | `auth`, `notifications`, `tickets` (2), `documents`, `hire` | `hire` 23/23, `auth` 35/35, `tickets` 43/43 clean, SLA targets persisted, audit row written |
+| 3 | `documents` (2), `uncovered-roles`, `crm` → **FLAKY** | `documents` exit 0, Download and MIME assertions green |
+| 4 | `hire`, `notifications`, `auth`, `uncovered-roles`, each alone | `hire` 23/23 and `auth` 35/35 clean; **`notifications` failed**; `uncovered-roles` failed **on a different account each run** |
 
-The cause is load, and it has two faces. `next start` reaches its ~2.4 GB ceiling
-under 21 exercises' worth of browser driving; it sometimes dies outright, which
-§2.11's `serverAlive()` guard already catches. More often it **degrades**: every
-request still answers, so the guard sees nothing wrong, while writes stop landing.
-That is why an SLA edit reported success and persisted nothing, and why a `Download`
-control went missing on a page that renders it perfectly on its own.
+Run 4 is the useful one, because it produced two failures with **two entirely
+different causes** — and neither was the one the table above had been assuming.
+
+### 2.12a The one that really was the degraded server (`notifications`)
+
+`notifications` failed alone, and it was honest: four assertions, all of them
+about writes.
+
+```
+FAIL  markNotificationRead sets read_at  [null]
+FAIL  markAllRead marks every notification that existed at the click read  [24 still unread of 24]
+FAIL  the page shows no unread rows afterwards  [24 label(s) rendered, 0 arrived mid-run]
+FAIL  toggling back writes the original value  [expected true, stored false]
+```
+
+Reads were landing and writes were not — the degraded face described below, on a
+server that had been carrying the day's runs. The proof that it was not the
+product is in `docs/evidence/workflow-notifications.json`: **the same four
+assertions had passed 50 minutes earlier on the same 24 notifications**, with
+`read_at` → `2026-10-17T02:52:50.039+00:00` and `0 still unread of 24`. Same
+code, same database, same binary.
+
+Restarting the server **by listening port** (never by a recorded PID — that kills
+the npx wrapper and leaves `next-server` holding the port) and re-running it
+alone gave **16/16, exit 0**, with every value identical to the passing run. The
+curative step for this face is a restart; nothing about the notification code
+needed changing.
+
+### 2.12b The one that was never load at all (`uncovered-roles`)
+
+`uncovered-roles` failed on `finance`, then on `client_admin` and `client_viewer`
+together, then on `client_viewer` alone, then on all four. **A failing set that
+changes identity between runs is a question, not an answer**, and this one
+survived every re-run only because the re-runs were the *same* conditions.
+
+Two candidate explanations were available and both were wrong:
+
+1. *Provider throttling.* To test it rather than argue it,
+   **`scripts/audit/test-auth-direct.mjs`** now performs the same password grant
+   the login form performs, against Supabase's REST endpoint, with no browser and
+   no Next.js in the path. It returned **HTTP 200 for all six demo accounts.**
+   Not the provider.
+2. *The degraded server.* The process was at **142 MB working set / 160 MB
+   private** after 23 minutes of uptime, with `audit-server-fresh` reporting
+   `fresh`. Nothing like the ~2.4 GB ceiling, and not one byte written.
+
+The cause was the **instrument**. `signInAs` slept a fixed 2500ms and then read
+`page.url()`. A duration is not an outcome: it is long enough on a fast machine
+and short enough on a slow one, so what it measured was the machine's mood. It
+also asserted something the product never promises — both login actions end in
+`redirect(safeNext(next) || "/app")` (`lib/auth/actions.ts:92`), so `/app` is the
+default for **every** role, and `landingPathFor` (`lib/auth/landing.ts:29`) then
+sends a client to `/app/client` on a **second hop**. The check sampled the
+journey between those two hops and called the sample a result.
+
+Three defects in that one function, all now fixed and guarded:
+
+| Defect | Symptom | Fix |
+|---|---|---|
+| Fixed sleep after submit | four different accounts "broken" across four runs | `waitForFunction` on the outcome — a session, or a `role="alert"` saying why not |
+| `page.url()` read 2500ms after the click | client reported on `/app` while genuinely on `/app/client` | assert the **session** (form no longer present), not the destination |
+| `sampleAt` captured the URL before its 900ms settle | `/app`'s server redirect not reflected in the sample | read the URL **beside the DOM**, after `settleUrl` |
+
+A fourth, found by the new assertion rather than by a failure: `sales sees a
+populated lead list` was passing **vacuously**. An unauthenticated visit to
+`/app/crm/leads` lands on the public marketing page, which contains none of the
+negative phrases the check looked for — so it reported PASS in the same run where
+every sign-in had failed. It now asserts the URL first.
+
+**Result: 19/19, exit 0, on two consecutive independent runs** (up from 17
+assertions — the two added ones cover the second hop that used to be assumed).
+Determinism is deliberate: the sign-in assertion is about the session, so
+`client_viewer` may still be reported as settling on `/app` mid-hop and correctly
+passes, and the second-hop check is what pins where it actually ends up.
+
+`tests/audit-sign-in-instrument.test.ts` (9 tests) guards all of it on
+comments-stripped source, mutation-proven: re-introducing the 2500ms sleep turns
+exactly one assertion red.
+
+### 2.12c Load, and why it must not be assumed either
+
+The two faces above are real, and both were live during this session — §2.12a is
+the degraded one. But §2.12b is the reason they cannot be assumed: a failure that
+looks exactly like load was caused by neither.
+
+`next start` reaches its ~2.4 GB ceiling under 21 exercises' worth of browser
+driving; it sometimes dies outright, which §2.11's `serverAlive()` guard already
+catches. More often it **degrades**: every request still answers, so the guard
+sees nothing wrong, while writes stop landing. That is why an SLA edit reported
+success and persisted nothing, and why a `Download` control went missing on a page
+that renders it perfectly on its own.
 
 The other face is **sign-in throttling**. Most of the failures across runs 1 and 2
 were sign-ins landing back on `/login` — `hire` as HR, `uncovered-roles` as
 client_viewer, `crm` as owner, `auth` at signup. Twenty-one exercises each signing
-in several demo accounts exhausts the Supabase password-grant budget, and that
-looks identical to a broken login.
+in several demo accounts can exhaust the Supabase password-grant budget, and that
+looks identical to a broken login. **It is now testable rather than assumed:**
+`scripts/audit/test-auth-direct.mjs` performs the same grant outside the browser,
+and returns `THROTTLED` / `REJECTED` / `OK` / `UNKNOWN` (exit 3 unless `OK`). Run
+it before believing any sign-in failure.
+
+**The order that actually settles a failure**, learned the hard way on
+2026-10-17 and worth more than any of the tooling above:
+
+1. **Was the server degrading?** `audit-server-fresh.mjs` plus a working-set read.
+   If it is, restart **by listening port** and re-run. This alone cleared
+   `notifications`.
+2. **Was it the provider?** `test-auth-direct.mjs`. This cleared
+   `uncovered-roles`.
+3. **Only then is it the product.** If 1 and 2 are both clean and the failure
+   persists, it is real — and it is worth noting that steps 1 and 2 between them
+   cleared three of the four run-4 failures without a single line of product code
+   changing.
 
 **Consequence for reading this board: a red exercise here is a question, not an
 answer.** The suite is not currently a trustworthy attribution mechanism for any
-surface. It is still worth running — it just found a real bug in run 1, and it
-refreshes 489 assertions of coverage in about twenty minutes — but a failure from it
-must be re-run individually before anyone believes it.
+surface. It is still worth running — it found a real bug in run 1, it refreshed 489
+assertions of coverage in about twenty minutes, and it is what surfaced
+`uncovered-roles` — but a failure from it must be walked through the three steps
+above before anyone believes it.
 
 `qa-run-workflows.mjs` now earns a failure one confirmation re-run before it is
 allowed to name a surface, and reports `FLAKY` when that re-run clears. `FLAKY` is
@@ -980,6 +1083,12 @@ a second sample from the same conditions, not isolation. Run 3 reported
 outright ten minutes later on their own. The honest reading of "still failing on a
 re-run 15s later" is *this one may be real — go and run it alone*, and the evidence
 file now says exactly that rather than the firmer "reproduced".
+
+Run 4 then showed that **"alone" is necessary but not sufficient**. Each of the
+four exercises was run alone, 25 seconds apart, and two still failed — one because
+the server was degraded, one because the exercise's own instrument was. Running
+alone removes the accumulation; it does not tell you which of the three causes you
+have. That is what steps 1–3 in §2.12c are for.
 
 The structural fix is to stop accumulating: restart the app server between exercises
 (or run them against a fresh one), which would remove both faces of this at once.
@@ -1017,6 +1126,8 @@ pnpm audit:filters         # filters dropped when a ListPager changes page
 pnpm audit:payroll-plan    # READ-ONLY: blast radius + exact SQL per reconciliation option
 pnpm audit:migrations      # structural preflight for any not-yet-applied migration
 pnpm audit:wiring          # dead controls, unsubmittable forms, dead links
+pnpm audit:auth            # direct Supabase password grant: THROTTLED / REJECTED / OK
+node scripts/audit/audit-server-fresh.mjs   # is the running server the build on disk?
 pnpm audit:rbac            # route gates
 pnpm audit:action-rbac     # server-action gates
 pnpm audit:role-pages      # nav-driven crawl, needs a running server
