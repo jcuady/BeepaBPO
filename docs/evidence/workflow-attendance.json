@@ -1,168 +1,143 @@
 {
   "id": "attendance",
   "script": "scripts/audit/qa-exercise-attendance-workflow.mjs",
-  "claim": "clock in/out, corrections, HR approval, delete",
+  "claim": "an employee clocks in and out from /app/my/attendance, HR enters a record manually, and nothing is left behind",
   "base": "http://localhost:3100",
-  "when": "2026-10-16T17:44:48.514Z",
-  "exitCode": 1,
-  "verdict": "FAIL",
-  "assertions": 21,
-  "checks": [
-    {
-      "pass": true,
-      "name": "precondition: the employee has no attendance record for today  — clean slate",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "the employee can sign in and reach the app  — /app/my",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "Clock In creates today's record  — no row appeared",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "Clock In sets clock_in_at and leaves clock_out_at empty  — in= out=undefined",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "the card offers Clock Out once clocked in",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "Clock Out sets clock_out_at  — in= out=",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "worked_minutes matches the actual gap between the two clock times  — worked_minutes=undefined actual gap=null min",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "clock out is later than clock in  — undefined -> undefined",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "precondition: no record on 2026-03-02  — clean",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "the attendance page offers 'Add attendance record'",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "HR manual entry creates a record  — status=present",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "manual entry stores the times in the employee's timezone (the control)  — record shows 9:00 AM - 6:00 PM (stored 2026-03-02T01:00:00Z)",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "manual entry derives worked_minutes from the entered times  — worked_minutes=540 (expected 540)",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "the created record appears in the heatmap  — 10 cell(s) labelled with \"Mon 2 Mar\"; labels on screen: [\"Demo Owner, Mon 2 Mar, Empty. Open\",\"Demo Owner, Tue 3 Mar, Empty. Open\",\"Demo Owner, Wed 4 Mar, Empty. Open\"]",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "the cell for \"Demo Employee\" on 2026-03-02 is identifiable",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "opening an existing record offers Delete",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "HR delete removes the record  — removed",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "no uncaught page errors during the attendance run",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "no attendance records leaked  — 201 -> 202",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "no correction requests leaked  — 0 -> 0",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "no approval requests leaked  — 35 -> 35",
-      "detail": null
-    }
-  ],
-  "failedAssertions": [
-    {
-      "pass": false,
-      "name": "Clock In creates today's record  — no row appeared",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "Clock In sets clock_in_at and leaves clock_out_at empty  — in= out=undefined",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "Clock Out sets clock_out_at  — in= out=",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "worked_minutes matches the actual gap between the two clock times  — worked_minutes=undefined actual gap=null min",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "clock out is later than clock in  — undefined -> undefined",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "no attendance records leaked  — 201 -> 202",
-      "detail": null
-    }
-  ],
+  "when": "2026-10-17T01:45:17.230Z",
+  "timezone": "Asia/Manila",
+  "todayUsed": "2026-10-17",
+  "exitCode": 0,
+  "verdict": "pass",
+  "assertions": 31,
+  "failedAssertions": [],
   "notes": [
-    "clocked Z -> Z = undefined min",
+    "clocked 01:44:17Z -> 01:44:28Z = 0 min",
     "finalized-record guard: exercised only through the UI, never by deleting live rows"
   ],
-  "other": [
-    "employee: employee@demo.beepabpo.com -> 108f95ff-e47f-414f-8ec2-0e49f075edb0 (tz Asia/Manila)",
-    "(node:21288) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/jcuad/OneDrive/Documents/BeepoBeepa/lib/attendance/zoned-time.ts is not specified and it doesn't parse as CommonJS.",
-    "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
-    "To eliminate this warning, add \"type\": \"module\" to C:\\Users\\jcuad\\OneDrive\\Documents\\BeepoBeepa\\package.json.",
-    "(Use `node --trace-warnings ...` to show where the warning was created)",
-    "15/21 checks passed",
-    "FAILURES:",
-    "  - Clock In creates today's record",
-    "  - Clock In sets clock_in_at and leaves clock_out_at empty",
-    "  - Clock Out sets clock_out_at",
-    "  - worked_minutes matches the actual gap between the two clock times",
-    "  - clock out is later than clock in",
-    "  - no attendance records leaked"
+  "results": [
+    {
+      "name": "precondition: the employee has no attendance record for today",
+      "pass": true
+    },
+    {
+      "name": "the employee can sign in and reach the app",
+      "pass": true
+    },
+    {
+      "name": "Clock In creates today's record",
+      "pass": true
+    },
+    {
+      "name": "Clock In sets clock_in_at and leaves clock_out_at empty",
+      "pass": true
+    },
+    {
+      "name": "the card offers Clock Out once clocked in",
+      "pass": true
+    },
+    {
+      "name": "Clock Out sets clock_out_at",
+      "pass": true
+    },
+    {
+      "name": "worked_minutes matches the actual gap between the two clock times",
+      "pass": true
+    },
+    {
+      "name": "clock out is later than clock in",
+      "pass": true
+    },
+    {
+      "name": "the correction request was created",
+      "pass": true
+    },
+    {
+      "name": "the correction starts pending",
+      "pass": true
+    },
+    {
+      "name": "it raised an approval request on the attendance_correction workflow",
+      "pass": true
+    },
+    {
+      "name": "HR can sign in",
+      "pass": true
+    },
+    {
+      "name": "HR can see this pending correction on /app/attendance/corrections",
+      "pass": true
+    },
+    {
+      "name": "HR approved the correction",
+      "pass": true
+    },
+    {
+      "name": "*** the corrected clock-in reads back as the time that was requested ***",
+      "pass": true
+    },
+    {
+      "name": "*** the corrected clock-out reads back as the time that was requested ***",
+      "pass": true
+    },
+    {
+      "name": "worked_minutes matches the corrected shift (09:00 = 540 min)",
+      "pass": true
+    },
+    {
+      "name": "the approved record is marked finalized",
+      "pass": true
+    },
+    {
+      "name": "precondition: no record on 2026-03-02",
+      "pass": true
+    },
+    {
+      "name": "the attendance page offers 'Add attendance record'",
+      "pass": true
+    },
+    {
+      "name": "HR manual entry creates a record",
+      "pass": true
+    },
+    {
+      "name": "manual entry stores the times in the employee's timezone (the control)",
+      "pass": true
+    },
+    {
+      "name": "manual entry derives worked_minutes from the entered times",
+      "pass": true
+    },
+    {
+      "name": "the created record appears in the heatmap",
+      "pass": true
+    },
+    {
+      "name": "the cell for \"Demo Employee\" on 2026-03-02 is identifiable",
+      "pass": true
+    },
+    {
+      "name": "opening an existing record offers Delete",
+      "pass": true
+    },
+    {
+      "name": "HR delete removes the record",
+      "pass": true
+    },
+    {
+      "name": "no uncaught page errors during the attendance run",
+      "pass": true
+    },
+    {
+      "name": "no attendance records leaked",
+      "pass": true
+    },
+    {
+      "name": "no correction requests leaked",
+      "pass": true
+    },
+    {
+      "name": "no approval requests leaked",
+      "pass": true
+    }
   ]
 }

@@ -910,6 +910,33 @@ places (invoice dates, incident dates, hire dates) where the consequence is a
 business date that can be a day out rather than a wrong record; those were checked
 individually and left alone.
 
+### 2.11 Twenty exercises still depend on the orchestrator to write their evidence
+
+`qa-exercise-admin-workflow.mjs` and `qa-exercise-attendance-workflow.mjs` now write
+`docs/evidence/workflow-*.json` themselves. The other twenty do not: their evidence is
+written by `qa-run-workflows.mjs`, and only by it.
+
+That matters here because the orchestrator is the component that dies. 21 exercises
+of browser load take `next start` to its ~2.4 GB ceiling; on 2026-10-17 a full run was
+terminated before finishing its first exercise, leaving the app server dead as well.
+When that happens the exercises that already ran keep whatever they wrote, and the
+rest keep whatever the last completed run wrote — which can be a red record for a
+defect that was fixed afterwards. That is exactly what happened to attendance: it
+passed 31/31 on its own while its evidence file still read `FAIL`.
+
+**P3, deliberately not done now.** Porting the pattern is mechanical (copy the
+`finally`-shaped writer, assert on the failure and throw paths), and doing it one
+file at a time has already produced one real fix. It is not urgent while every
+exercise passes, because the orchestrator still refreshes the file on any run that
+completes. Doing all twenty at once would be a large diff for a condition that only
+bites when a run is killed — so it is filed here to be done as a batch when the
+server-death ceiling is addressed, not as twenty separate drive-by edits.
+
+The related root cause is the memory ceiling itself, which is environmental rather
+than a code defect: the slow tier exists for exactly this reason and the role sweep
+(479 visits, 13 roles) runs clean on its own. What is missing is a way to run the 21
+exercises without them accumulating in one process.
+
 ---
 
 ## 3. Recently completed (so nobody redoes it)

@@ -27,7 +27,7 @@
 //
 // Usage: node scripts/audit/qa-exercise-attendance-workflow.mjs
 
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
@@ -542,6 +542,49 @@ try {
     console.log("\nFAILURES:");
     for (const f of failed) console.log(`  - ${f.name}`);
     process.exitCode = 1;
+  }
+
+  // Evidence, not a claim -- written by the exercise itself, not only by the
+  // orchestrator. `qa-run-workflows.mjs` reaches ~20 exercises and the app server
+  // reaches ~2.4 GB under that much browser load; a run killed part-way leaves the
+  // orchestrator unable to refresh anything. That is not hypothetical here: after
+  // this exercise passed 31/31 on its own, `docs/evidence/workflow-attendance.json`
+  // still read FAIL from an earlier run, because nothing but the orchestrator wrote
+  // it. A stale red record for a defect that is already fixed is the exact failure
+  // the evidence rule exists to prevent. `qa-exercise-admin-workflow.mjs` was given
+  // the same treatment for the same reason.
+  try {
+    mkdirSync("docs/evidence", { recursive: true });
+    writeFileSync(
+      "docs/evidence/workflow-attendance.json",
+      JSON.stringify(
+        {
+          id: "attendance",
+          script: "scripts/audit/qa-exercise-attendance-workflow.mjs",
+          claim:
+            "an employee clocks in and out from /app/my/attendance, HR enters a record manually, " +
+            "and nothing is left behind",
+          base: BASE,
+          when: new Date().toISOString(),
+          timezone: EMPLOYEE_TZ,
+          todayUsed: TODAY,
+          exitCode: process.exitCode ?? 0,
+          verdict: failed.length ? "fail" : "pass",
+          assertions: results.length,
+          failedAssertions: failed,
+          notes,
+          results,
+        },
+        null,
+        2,
+      ) + "\n",
+    );
+    console.log("wrote docs/evidence/workflow-attendance.json");
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
   }
 }
 
