@@ -34,6 +34,7 @@ import { readFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -115,8 +116,8 @@ async function fillSignup(page, intent) {
   await page.locator("#fullName").fill(NAME);
   await page.locator("#email").fill(EMAIL);
   if (intent === "client") await page.locator("#company").fill("QA Signup Co");
-  await page.locator("#password").fill(PASSWORD);
-  await page.locator("#confirmPassword").fill(PASSWORD);
+  await fillHeld(page, page.locator("#password"), PASSWORD);
+  await fillHeld(page, page.locator("#confirmPassword"), PASSWORD);
   await page.locator("#acceptTerms").check();
 }
 

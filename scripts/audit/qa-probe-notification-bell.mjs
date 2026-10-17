@@ -21,6 +21,7 @@
 // Usage: node scripts/audit/qa-probe-notification-bell.mjs
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { fillHeld } from "./lib/browser-form.mjs";
 import { chromium } from "@playwright/test";
 
 const env = {};
@@ -63,8 +64,8 @@ const page = await ctx.newPage();
 
 await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
 await page.locator("input[type=email]").first().waitFor({ state: "visible", timeout: 20000 });
-await page.locator("input[type=email]").first().fill(OWNER);
-await page.locator("input[type=password]").first().fill(env.DEMO_PASSWORD);
+await fillHeld(page, page.locator("input[type=email]").first(), OWNER);
+await fillHeld(page, page.locator("input[type=password]").first(), env.DEMO_PASSWORD);
 await page.click("button[type=submit]");
 await page.waitForFunction(() => !location.pathname.includes("/login"), null, { timeout: 25000 });
 // Hydration settle before the first interaction — driving the UI before React

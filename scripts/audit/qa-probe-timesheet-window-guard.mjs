@@ -26,6 +26,7 @@
 // Usage: node scripts/audit/qa-probe-timesheet-window-guard.mjs
 
 import { readFileSync } from "node:fs";
+import { fillHeld } from "./lib/browser-form.mjs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
@@ -179,8 +180,8 @@ try {
 
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
   await page.locator("input[type=email]").first().waitFor({ state: "visible", timeout: 20000 });
-  await page.locator("input[type=email]").first().fill(EMAIL);
-  await page.locator("input[type=password]").first().fill(env.DEMO_PASSWORD);
+  await fillHeld(page, page.locator("input[type=email]").first(), EMAIL);
+  await fillHeld(page, page.locator("input[type=password]").first(), env.DEMO_PASSWORD);
   await page.click("button[type=submit]");
   await page.waitForURL(/\/app/, { timeout: 20000 }).catch(() => {});
   await page.waitForTimeout(2000);

@@ -45,6 +45,7 @@
 
 import { readFileSync, writeFileSync, existsSync, statSync } from "node:fs";
 import { chromium } from "@playwright/test";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const BASE = process.env.QA_BASE_URL ?? "http://localhost:3100";
 const args = process.argv.slice(2);
@@ -286,8 +287,8 @@ function collectControls(selectors) {
 
 async function signIn(page, email) {
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded", timeout: 30000 });
-  await page.fill('input[type=email]', email);
-  await page.fill('input[type=password]', PW);
+  await fillHeld(page, page.locator('input[type=email]'), email);
+  await fillHeld(page, page.locator('input[type=password]'), PW);
   await page.click('button[type=submit]');
   await page.waitForLoadState("domcontentloaded");
 

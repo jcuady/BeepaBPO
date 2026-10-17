@@ -26,6 +26,17 @@
 //
 // Usage:
 //   node --env-file=.env.local scripts/audit/test-auth-direct.mjs [email ...]
+//   pnpm qa:auth-probe
+//
+// The package alias is deliberately `qa:`, not `audit:`. `audit-gate-coverage.mjs`
+// treats every `audit:*` / `verify:*` / `smoke:*` / `seed:*` script as a claim that
+// some release gate runs it, and exits 1 when one is wired to nothing. This probe
+// is not a release gate: it makes a live network call to the auth provider, so it
+// could fail a release for a reason that has nothing to do with the release.
+// Declaring it `audit:` would have turned the gate red, and quietly renaming it
+// back to `qa:` would have hidden a real gap. Naming it for what it is -- a
+// diagnostic you reach for at step 2 of the attribution order in
+// REMAINING_WORK 2.12c -- is the honest option.
 //
 // Verdict:
 //   OK       every account granted a session

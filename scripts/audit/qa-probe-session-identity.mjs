@@ -12,6 +12,7 @@
 // Usage: node scripts/audit/qa-probe-session-identity.mjs
 
 import { readFileSync } from "node:fs";
+import { fillHeld } from "./lib/browser-form.mjs";
 import { chromium } from "@playwright/test";
 
 const env = {};
@@ -33,8 +34,8 @@ for (const who of ["recruiter@demo.beepabpo.com", "hr@demo.beepabpo.com"]) {
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
-  await page.fill("input[type=email]", who);
-  await page.fill("input[type=password]", env.DEMO_PASSWORD);
+  await fillHeld(page, page.locator("input[type=email]"), who);
+  await fillHeld(page, page.locator("input[type=password]"), env.DEMO_PASSWORD);
   await page.click("button[type=submit]");
   await page.waitForLoadState("domcontentloaded");
   await page.waitForTimeout(3000);

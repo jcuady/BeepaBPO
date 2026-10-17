@@ -31,6 +31,7 @@
 import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -148,8 +149,8 @@ async function signIn(page, email, password, path = "/login") {
   // there. Key off the name, which every login form shares.
   const field = page.locator('input[name=email], input[type=email]').first();
   await field.waitFor({ state: "visible", timeout: 20000 });
-  await field.fill(email);
-  await page.locator('input[type=password], input[name=password]').first().fill(password);
+  await fillHeld(page, field, email);
+  await fillHeld(page, page.locator('input[type=password], input[name=password]').first(), password);
   await page.click('button[type=submit]');
   await page.waitForLoadState("domcontentloaded");
   await page.waitForTimeout(3500);
@@ -188,7 +189,7 @@ try {
   const responseFor = async (email) => {
     await page.goto(`${BASE}/forgot-password`, { waitUntil: "domcontentloaded" });
     await page.waitForSelector('input[type=email]', { timeout: 20000 });
-    await page.fill('input[type=email]', email);
+    await fillHeld(page, page.locator('input[type=email]'), email);
     await page.click('button[type=submit]');
     await page.waitForTimeout(4500);
     const alerts = await page.locator('[role="alert"]').allInnerTexts();
@@ -255,10 +256,10 @@ try {
     await page.goto(`${BASE}/signup`, { waitUntil: "domcontentloaded" });
     await page.waitForSelector('input[type=email]', { timeout: 20000 });
     await page.fill('input[name=fullName]', "QA Throwaway");
-    await page.fill('input[type=email]', SIGNUP_EMAIL);
+    await fillHeld(page, page.locator('input[type=email]'), SIGNUP_EMAIL);
     const pwInputs = page.locator('input[type=password]');
     const pwCount = await pwInputs.count();
-    for (let i = 0; i < pwCount; i += 1) await pwInputs.nth(i).fill("QaSignup#2026x");
+    for (let i = 0; i < pwCount; i += 1) await fillHeld(page, pwInputs.nth(i), "QaSignup#2026x");
     const terms = page.locator('input[type=checkbox]').first();
     if (await terms.count()) await terms.check();
     await page.click('button[type=submit]');
@@ -367,9 +368,9 @@ try {
   async function attemptChange(currentPw, newPw) {
     await page.goto(`${BASE}/app/my/settings`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2500);
-    await page.locator("#settings-current").fill(currentPw);
-    await page.locator("#settings-password").fill(newPw);
-    await page.locator("#settings-confirm").fill(newPw);
+    await fillHeld(page, page.locator("#settings-current"), currentPw);
+    await fillHeld(page, page.locator("#settings-password"), newPw);
+    await fillHeld(page, page.locator("#settings-confirm"), newPw);
     await page.getByRole("button", { name: /update password/i }).click();
     await page.waitForTimeout(6000);
     return (await page.locator("body").innerText()).replace(/\s+/g, " ");

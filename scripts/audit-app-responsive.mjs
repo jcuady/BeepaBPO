@@ -34,6 +34,7 @@ import { chromium } from "@playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fillHeld } from "./audit/lib/browser-form.mjs";
 import { createHash } from "node:crypto";
 
 // `QA_BASE_URL` first, matching every other probe in this directory, so the
@@ -385,8 +386,8 @@ const authCtx = await browser.newContext();
 const authPage = await authCtx.newPage();
 const loginPath = IS_EXTERNAL_SEGMENT ? "/login" : "/employee/login";
 await authPage.goto(`${BASE}${loginPath}`, { waitUntil: "domcontentloaded" });
-await authPage.getByLabel(/email/i).fill(EMAIL);
-await authPage.getByLabel(/^password$/i).fill(PASSWORD);
+await fillHeld(authPage, authPage.getByLabel(/email/i), EMAIL);
+await fillHeld(authPage, authPage.getByLabel(/^password$/i), PASSWORD);
 await authPage
   .getByRole("button", { name: IS_EXTERNAL_SEGMENT ? /sign in/i : /access portal/i })
   .click();

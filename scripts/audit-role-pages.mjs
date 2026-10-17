@@ -26,6 +26,7 @@ import { existsSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
 // this workspace (pnpm + the pinned playwright-core override), matching
 // scripts/audit-app-responsive.mjs.
 import { chromium } from "@playwright/test";
+import { fillHeld } from "./audit/lib/browser-form.mjs";
 
 // `QA_BASE_URL` first, matching the other 44 audit scripts in this repo.
 //
@@ -93,8 +94,8 @@ async function login(browser, email) {
     try {
       const loginPath = isClientSegment(email) ? "/login" : "/employee/login";
       await page.goto(`${BASE}${loginPath}`, { waitUntil: "domcontentloaded" });
-      await page.getByLabel(/email/i).fill(email);
-      await page.getByLabel(/^password$/i).fill(PASSWORD);
+      await fillHeld(page, page.getByLabel(/email/i), email);
+      await fillHeld(page, page.getByLabel(/^password$/i), PASSWORD);
       await page
         .getByRole("button", {
           name: isClientSegment(email) ? /sign in/i : /access portal/i,

@@ -24,6 +24,7 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -115,8 +116,8 @@ async function inspect(page, emptySrc) {
 
 async function signIn(page, email) {
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded", timeout: 30000 });
-  await page.fill('input[type=email]', email);
-  await page.fill('input[type=password]', PW);
+  await fillHeld(page, page.locator('input[type=email]'), email);
+  await fillHeld(page, page.locator('input[type=password]'), PW);
   await page.click('button[type=submit]');
   await page.waitForLoadState("domcontentloaded");
 

@@ -30,6 +30,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -132,8 +133,8 @@ async function signIn(page, email, path = "/login") {
   await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded" });
   const field = page.locator('input[name=email], input[type=email]').first();
   await field.waitFor({ state: "visible", timeout: 20000 });
-  await field.fill(email);
-  await page.locator('input[type=password]').first().fill(env.DEMO_PASSWORD);
+  await fillHeld(page, field, email);
+  await fillHeld(page, page.locator('input[type=password]').first(), env.DEMO_PASSWORD);
   await page.click('button[type=submit]');
   // Wait for the redirect to settle rather than sampling the URL after a fixed
   // sleep. Sampling raced the redirect and reported "/login" for a session that

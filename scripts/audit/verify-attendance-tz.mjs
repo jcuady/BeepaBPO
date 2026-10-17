@@ -11,6 +11,7 @@
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const EVIDENCE = "docs/evidence/attendance-tz.json";
 
@@ -192,8 +193,8 @@ try {
   const browser = await chromium.launch();
   const page = await browser.newPage();
   await page.goto(`${BASE}/employee/login`, { waitUntil: "domcontentloaded" });
-  await page.getByLabel(/email/i).fill(EMAIL);
-  await page.getByLabel(/^password$/i).fill(e.DEMO_PASSWORD);
+  await fillHeld(page, page.getByLabel(/email/i), EMAIL);
+  await fillHeld(page, page.getByLabel(/^password$/i), e.DEMO_PASSWORD);
   await page.getByRole("button", { name: /access portal/i }).click();
   await page.waitForURL(/\/app/, { timeout: 45_000 });
 

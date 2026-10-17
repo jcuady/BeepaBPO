@@ -21,6 +21,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { waitForFocusInside } from "./lib/wait-for-focus.mjs";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -53,8 +54,8 @@ const page = await ctx.newPage();
 // ---- sign in ----------------------------------------------------------------
 await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
 await page.locator("input[name=email], input[type=email]").first().waitFor({ state: "visible", timeout: 20000 });
-await page.locator("input[name=email], input[type=email]").first().fill(OWNER);
-await page.locator("input[type=password]").first().fill(env.DEMO_PASSWORD);
+await fillHeld(page, page.locator("input[name=email], input[type=email]").first(), OWNER);
+await fillHeld(page, page.locator("input[type=password]").first(), env.DEMO_PASSWORD);
 await page.click("button[type=submit]");
 await page.waitForFunction(() => !window.location.pathname.includes("/login"), null, { timeout: 25000 });
 

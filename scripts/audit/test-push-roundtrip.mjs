@@ -25,6 +25,7 @@
 import { chromium } from "@playwright/test";
 import { webcrypto } from "node:crypto";
 import { readFileSync, existsSync } from "node:fs";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 // QA_BASE_URL first, defaulting to 3100 like every other browser script here.
 //
@@ -127,8 +128,8 @@ console.log(`Push subscription: endpoint=${subscription.endpoint.slice(0, 50)}â€
 // 3) POST to /api/push/subscribe. The endpoint expects a session â€” log in
 // as owner first. If /employee/login is gated, this test cannot run.
 await page.goto(`${BASE}/employee/login`, { waitUntil: "domcontentloaded" });
-await page.getByLabel(/email/i).fill("owner@demo.beepabpo.com");
-await page.getByLabel(/^password$/i).fill(password ?? "");
+await fillHeld(page, page.getByLabel(/email/i), "owner@demo.beepabpo.com");
+await fillHeld(page, page.getByLabel(/^password$/i), password ?? "");
 await page.getByRole("button", { name: /access portal/i }).click();
 await page.waitForURL(/\/app(\/|$)/, { timeout: 30_000 });
 

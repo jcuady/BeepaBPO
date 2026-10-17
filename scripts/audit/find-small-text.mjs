@@ -9,6 +9,7 @@ import { chromium } from "@playwright/test";
 import { readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const BASE = process.env.QA_BASE_URL ?? process.env.BASE_URL ?? "http://localhost:3100";
 const EMAIL = process.argv[2] ?? "employee@demo.beepabpo.com";
@@ -48,8 +49,8 @@ const ctx = await browser.newContext({ viewport: { width: WIDTH, height: 900 } }
 const page = await ctx.newPage();
 
 await page.goto(`${BASE}/employee/login`, { waitUntil: "domcontentloaded" });
-await page.getByLabel(/email/i).fill(EMAIL);
-await page.getByLabel(/^password$/i).fill(password);
+await fillHeld(page, page.getByLabel(/email/i), EMAIL);
+await fillHeld(page, page.getByLabel(/^password$/i), password);
 await page.getByRole("button", { name: /access portal/i }).click();
 await page.waitForURL(/\/app/, { timeout: 45_000 });
 console.log(`Authenticated as ${EMAIL} at ${WIDTH}px\n`);

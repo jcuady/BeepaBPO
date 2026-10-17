@@ -28,6 +28,7 @@
 import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -135,8 +136,8 @@ async function main() {
 
     // ---- leg 3: a real session -> the action works ----
     await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
-    await page.fill('input[type=email]', EMAIL);
-    await page.fill('input[type=password]', OLD_PASSWORD);
+    await fillHeld(page, page.locator('input[type=email]'), EMAIL);
+    await fillHeld(page, page.locator('input[type=password]'), OLD_PASSWORD);
     await page.click('button[type=submit]');
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(3000);
@@ -156,8 +157,8 @@ async function main() {
     const sessionForm = await page.locator("#password").count();
     check("a signed-in user is offered the password form", sessionForm > 0, `#password count=${sessionForm}`);
 
-    await page.fill("#password", NEW_PASSWORD);
-    await page.fill("#confirmPassword", NEW_PASSWORD);
+    await fillHeld(page, page.locator("#password"), NEW_PASSWORD);
+    await fillHeld(page, page.locator("#confirmPassword"), NEW_PASSWORD);
     await page.click('button[type="submit"]');
     await page.waitForTimeout(5000);
     const afterBody = (await page.locator("body").innerText()).replace(/\s+/g, " ");
@@ -168,8 +169,8 @@ async function main() {
     // requires signing out and signing back in with the new one.
     await ctx.clearCookies();
     await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
-    await page.fill('input[type=email]', EMAIL);
-    await page.fill('input[type=password]', NEW_PASSWORD);
+    await fillHeld(page, page.locator('input[type=email]'), EMAIL);
+    await fillHeld(page, page.locator('input[type=password]'), NEW_PASSWORD);
     await page.click('button[type=submit]');
     const newPwSignedIn = await page
       .waitForURL((u) => !u.pathname.startsWith("/login"), { timeout: 25000 })
@@ -183,8 +184,8 @@ async function main() {
     // And the old one must not. Wait for the REJECTION to appear rather than for a timeout --
     // asserting "still on /login" after N ms would also pass if the form had simply not
     // submitted yet, which is a check that cannot fail for the reason it claims.
-    await page.fill('input[type=email]', EMAIL);
-    await page.fill('input[type=password]', OLD_PASSWORD);
+    await fillHeld(page, page.locator('input[type=email]'), EMAIL);
+    await fillHeld(page, page.locator('input[type=password]'), OLD_PASSWORD);
     await page.click('button[type=submit]');
     const rejected = await page
       .waitForFunction(

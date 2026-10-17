@@ -1064,6 +1064,29 @@ it before believing any sign-in failure.
    cleared three of the four run-4 failures without a single line of product code
    changing.
 
+### 2.12d The same instrument defect is in every exercise, not one
+
+§2.12b was fixed in `qa-exercise-uncovered-roles.mjs`, but the cause was never
+specific to it. Roughly **twenty** audit scripts sign in by filling a login form
+and clicking submit, and they all share two defects:
+
+| Defect | Status |
+|---|---|
+| **The fill is not verified.** React hydrates after the server-rendered HTML is already interactive, and hydration **resets** what `fill` wrote. A submit in that window sends an empty form, `loginSchema` rejects it, `signInWithPassword` is never called, and the exercise reports a false failure. | Fixed repo-wide via `scripts/audit/lib/browser-form.mjs` → `fillHeld`, which settles, reads the field back, and refuses to submit a form that is not holding its values. `tests/audit-form-fill-integrity.test.ts` prevents the pattern returning. |
+| **The outcome is decided by a duration.** `click` followed by a fixed `waitForTimeout(3000)` with no condition wait. A duration is not an outcome — it is long enough on a fast machine and short enough on a slow one. | **Still present** in `auth-workflow` (3500ms), `admin-workflow` (3000ms), `crm-workflow` (3000ms), `hire-workflow` (3000ms ×2), `leave-workflow` (2500ms), and the non-login submits in `auth-workflow` (4500ms, 6000ms) and `leave-workflow` (4000ms ×2). |
+
+The second row is the next thing to do, and the order is already written:
+`submitAndWaitOutcome()` in the same helper waits for one of the two facts a
+submit can produce — the session exists, or the app published why not. Applying
+it is mechanical but touches every exercise, so it is deliberately **not** bundled
+into a change that is otherwise about attribution; bundling them would make it
+impossible to tell which edit fixed what.
+
+One limit of the guard above, recorded so it is not over-read: it matches a fill
+whose target expression names `password`. A locator held in a variable whose
+name does not — `pwInputs.nth(i).fill(...)` on the signup form in `auth-workflow`
+— is not covered, and neither are non-credential forms.
+
 **Consequence for reading this board: a red exercise here is a question, not an
 answer.** The suite is not currently a trustworthy attribution mechanism for any
 surface. It is still worth running — it found a real bug in run 1, it refreshed 489
@@ -1094,6 +1117,47 @@ The structural fix is to stop accumulating: restart the app server between exerc
 (or run them against a fresh one), which would remove both faces of this at once.
 That is P2 and not urgent enough to attempt without a decision on whether a test
 runner is permitted to manage the server it is testing.
+
+### 2.13 Signup is blocked by the provider's mail budget, and one error shape is unexplained
+
+**Blocked, environment.** Measured 2026-10-17 by calling `/auth/v1/signup` directly, with no
+browser and no Next.js in the path:
+
+```
+signup HTTP 429
+error_code   : over_email_send_rate_limit
+description  : email rate limit exceeded
+user created : false
+```
+
+Every signup is refused. This is the same ceiling that makes the forgot-password
+leg of `qa-exercise-auth-workflow.mjs` report `BLOCKED`, and it is why that
+exercise finished 34/35 rather than 35/35. No account can be created in this
+environment right now, by the form or by any other route, so the signup leg
+cannot be used to validate anything until the budget resets.
+
+**The unexplained part, recorded rather than guessed at.** The browser run
+showed **"Unable to create account with that email."** — `signupErrorMessage`'s
+*rejected* branch, which it only reaches when `status` is neither `429`, nor `0`,
+nor `>= 500`. But the SDK's own error object for exactly this condition carries
+`status: 429` and `code: "over_email_send_rate_limit"` (measured through
+`supabase.auth.signUp`, not raw fetch), and `authFailureKind` classifies `429` as
+rate-limited. So **the mapper is correct for the shape I could reproduce**, and
+the browser's error must have carried a different status that was not captured.
+
+That is the whole of what is known. It is **not** evidence of a defect in
+`authFailureKind`, and no change was made to `lib/auth/error-messages.ts` on the
+strength of it — publishing a fix for a defect that has not been reproduced is
+the same error as publishing a fix that does not exist. What it *is* is an
+unexplained disagreement between two measurements of the same action, and the
+honest next step is to capture `error.status`, `error.code` and `error.name` at
+the point the action returns them, then re-run once the mail budget resets.
+
+Worth noting because it is the failure mode that file exists to prevent: a
+transient infrastructure condition must never read as a verdict on the user's
+address. If the browser's copy was accurate for some status I have not yet seen,
+then something *is* getting through the wrong branch, and the two measurements
+above are the only evidence for it.
 
 ---
 
@@ -1126,7 +1190,7 @@ pnpm audit:filters         # filters dropped when a ListPager changes page
 pnpm audit:payroll-plan    # READ-ONLY: blast radius + exact SQL per reconciliation option
 pnpm audit:migrations      # structural preflight for any not-yet-applied migration
 pnpm audit:wiring          # dead controls, unsubmittable forms, dead links
-pnpm audit:auth            # direct Supabase password grant: THROTTLED / REJECTED / OK
+pnpm qa:auth-probe         # direct Supabase password grant: THROTTLED / REJECTED / OK
 node scripts/audit/audit-server-fresh.mjs   # is the running server the build on disk?
 pnpm audit:rbac            # route gates
 pnpm audit:action-rbac     # server-action gates

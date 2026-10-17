@@ -14,6 +14,7 @@ import { chromium } from "@playwright/test";
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { fillHeld } from "./audit/lib/browser-form.mjs";
 
 const EVIDENCE = "docs/evidence/performance.json";
 
@@ -113,8 +114,8 @@ if (AUTH_EMAIL && PASSWORD) {
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await page.goto(`${BASE}/employee/login`, { waitUntil: "domcontentloaded" });
-  await page.getByLabel(/email/i).fill(AUTH_EMAIL);
-  await page.getByLabel(/^password$/i).fill(PASSWORD);
+  await fillHeld(page, page.getByLabel(/email/i), AUTH_EMAIL);
+  await fillHeld(page, page.getByLabel(/^password$/i), PASSWORD);
   await page
     .getByRole("button", { name: /access portal/i })
     .click();

@@ -28,6 +28,7 @@
 import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -101,8 +102,8 @@ async function signIn(context, email) {
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
   const field = page.locator("input[name=email], input[type=email]").first();
   await field.waitFor({ state: "visible", timeout: 20000 });
-  await field.fill(email);
-  await page.locator("input[type=password]").first().fill(env.DEMO_PASSWORD);
+  await fillHeld(page, field, email);
+  await fillHeld(page, page.locator("input[type=password]").first(), env.DEMO_PASSWORD);
   await page.click("button[type=submit]");
   await page.waitForURL(/\/app/, { timeout: 20000 }).catch(() => {});
   await page.waitForLoadState("domcontentloaded");

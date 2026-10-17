@@ -17,6 +17,7 @@
 import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -382,8 +383,8 @@ try {
   page.on("pageerror", (e) => consoleErrors.push(`pageerror: ${e.message}`));
 
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
-  await page.fill('input[type=email]', "hr@demo.beepabpo.com");
-  await page.fill('input[type=password]', env.DEMO_PASSWORD);
+  await fillHeld(page, page.locator('input[type=email]'), "hr@demo.beepabpo.com");
+  await fillHeld(page, page.locator('input[type=password]'), env.DEMO_PASSWORD);
   await page.click('button[type=submit]');
   await page.waitForLoadState("domcontentloaded");
   await page.waitForTimeout(3000);
@@ -410,8 +411,8 @@ try {
   const recruiterPage = await recruiterCtx.newPage();
   try {
     await recruiterPage.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
-    await recruiterPage.fill('input[type=email]', "recruiter@demo.beepabpo.com");
-    await recruiterPage.fill('input[type=password]', env.DEMO_PASSWORD);
+    await fillHeld(recruiterPage, recruiterPage.locator('input[type=email]'), "recruiter@demo.beepabpo.com");
+    await fillHeld(recruiterPage, recruiterPage.locator('input[type=password]'), env.DEMO_PASSWORD);
     await recruiterPage.click('button[type=submit]');
     await recruiterPage.waitForLoadState("domcontentloaded");
     await recruiterPage.waitForTimeout(3000);

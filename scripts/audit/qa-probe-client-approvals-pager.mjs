@@ -24,6 +24,7 @@
 // Usage: node scripts/audit/qa-probe-client-approvals-pager.mjs
 
 import { readFileSync } from "node:fs";
+import { fillHeld } from "./lib/browser-form.mjs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
@@ -141,8 +142,8 @@ try {
   const page = await browser.newPage();
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
   await page.locator("input[type=email]").first().waitFor({ state: "visible", timeout: 20000 });
-  await page.locator("input[type=email]").first().fill("clientadmin@demo.beepabpo.com");
-  await page.locator("input[type=password]").first().fill(env.DEMO_PASSWORD);
+  await fillHeld(page, page.locator("input[type=email]").first(), "clientadmin@demo.beepabpo.com");
+  await fillHeld(page, page.locator("input[type=password]").first(), env.DEMO_PASSWORD);
   await page.click("button[type=submit]");
   await page.waitForURL(/\/app/, { timeout: 20000 }).catch(() => {});
   await page.waitForTimeout(2000);

@@ -77,6 +77,7 @@
  */
 
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { fillHeld } from "./lib/browser-form.mjs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
@@ -258,8 +259,8 @@ try {
     await page.goto(`${BASE}/employee/login`, { waitUntil: "domcontentloaded" });
     const emailField = page.locator("input[name=email], input[type=email]").first();
     await emailField.waitFor({ state: "visible", timeout: 20000 });
-    await emailField.fill(THROWAWAY);
-    await page.locator("input[name=password]").first().fill(PASSWORD);
+    await fillHeld(page, emailField, THROWAWAY);
+    await fillHeld(page, page.locator("input[name=password]").first(), PASSWORD);
     await page.getByRole("button", { name: /access portal/i }).click();
     await page.waitForURL(/\/app(\/|$)/, { timeout: 30000 });
     if (vp.w === VIEWPORTS[0].w) {

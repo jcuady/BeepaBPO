@@ -49,6 +49,7 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -201,8 +202,8 @@ for (const role of ROLES) {
   if (!isPublic) {
     await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
     await page.locator("input[name=email], input[type=email]").first().waitFor({ state: "visible", timeout: 20000 });
-    await page.locator("input[name=email], input[type=email]").first().fill(role.email);
-    await page.locator("input[type=password]").first().fill(env.DEMO_PASSWORD);
+    await fillHeld(page, page.locator("input[name=email], input[type=email]").first(), role.email);
+    await fillHeld(page, page.locator("input[type=password]").first(), env.DEMO_PASSWORD);
     await page.click("button[type=submit]");
     await page.waitForURL(/\/app/, { timeout: 20000 }).catch(() => {});
     await page.waitForLoadState("domcontentloaded");

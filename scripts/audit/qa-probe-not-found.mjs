@@ -13,6 +13,7 @@
 // Usage: node scripts/audit/qa-probe-not-found.mjs
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { fillHeld } from "./lib/browser-form.mjs";
 import { chromium } from "@playwright/test";
 
 const env = {};
@@ -44,8 +45,8 @@ async function signIn(page, email) {
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
   const field = page.locator("input[name=email], input[type=email]").first();
   await field.waitFor({ state: "visible", timeout: 20000 });
-  await field.fill(email);
-  await page.locator("input[type=password]").first().fill(env.DEMO_PASSWORD);
+  await fillHeld(page, field, email);
+  await fillHeld(page, page.locator("input[type=password]").first(), env.DEMO_PASSWORD);
   await page.click("button[type=submit]");
   await page.waitForURL((u) => !u.pathname.includes("/login"), { timeout: 30000 });
 }

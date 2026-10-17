@@ -14,6 +14,7 @@
 import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { fillHeld } from "./lib/browser-form.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -114,8 +115,8 @@ try {
   // Owner is the ONLY role holding both crm.manage and clients.manage, so the
   // whole flow runs as owner. HR has neither.
   await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
-  await page.fill('input[type=email]', "owner@demo.beepabpo.com");
-  await page.fill('input[type=password]', env.DEMO_PASSWORD);
+  await fillHeld(page, page.locator('input[type=email]'), "owner@demo.beepabpo.com");
+  await fillHeld(page, page.locator('input[type=password]'), env.DEMO_PASSWORD);
   await page.click('button[type=submit]');
   await page.waitForLoadState("domcontentloaded");
   await page.waitForTimeout(3000);

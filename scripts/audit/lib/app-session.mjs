@@ -15,6 +15,7 @@
 // Read-only. It signs in and navigates; it never writes.
 
 import { readFileSync } from "node:fs";
+import { fillHeld } from "./browser-form.mjs";
 
 /** Minimal `.env.local` reader. Same shape as the other audit scripts. */
 export function loadEnvLocal(file = ".env.local") {
@@ -128,8 +129,8 @@ export async function openSignedIn(browser, base) {
 
   try {
     await page.goto(`${base}/login`, { waitUntil: "domcontentloaded", timeout: 30000 });
-    await page.fill("input[type=email]", email);
-    await page.fill("input[type=password]", password);
+    await fillHeld(page, page.locator("input[type=email]"), email);
+    await fillHeld(page, page.locator("input[type=password]"), password);
     await page.click("button[type=submit]");
 
     // Wait for the condition, not a guessed duration.
