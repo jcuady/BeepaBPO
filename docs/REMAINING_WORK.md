@@ -1130,7 +1130,9 @@ The structural fix is to stop accumulating: restart the app server between exerc
 That is P2 and not urgent enough to attempt without a decision on whether a test
 runner is permitted to manage the server it is testing.
 
-### 2.13 Signup is blocked by the provider's mail budget, and one error shape is unexplained
+### 2.13 Signup was blocked by the provider's mail budget, and one error shape is unexplained
+
+**PARTLY RESOLVED 2026-10-18 — see the correction at the end. Read that first.**
 
 **Blocked, environment.** Measured 2026-10-17 by calling `/auth/v1/signup` directly, with no
 browser and no Next.js in the path:
@@ -1157,19 +1159,13 @@ nor `>= 500`. But the SDK's own error object for exactly this condition carries
 rate-limited. So **the mapper is correct for the shape I could reproduce**, and
 the browser's error must have carried a different status that was not captured.
 
-That is the whole of what is known. It is **not** evidence of a defect in
+That is the whole of what was known. It is **not** evidence of a defect in
 `authFailureKind`, and no change was made to `lib/auth/error-messages.ts` on the
 strength of it — publishing a fix for a defect that has not been reproduced is
 the same error as publishing a fix that does not exist. What it *is* is an
 unexplained disagreement between two measurements of the same action, and the
 honest next step is to capture `error.status`, `error.code` and `error.name` at
 the point the action returns them, then re-run once the mail budget resets.
-
-Worth noting because it is the failure mode that file exists to prevent: a
-transient infrastructure condition must never read as a verdict on the user's
-address. If the browser's copy was accurate for some status I have not yet seen,
-then something *is* getting through the wrong branch, and the two measurements
-above are the only evidence for it.
 
 **One data point that narrows it, recorded 2026-10-17 afternoon.** A later run of
 `qa-exercise-auth-workflow.mjs` — with no change to `authFailureKind` or to any
@@ -1182,11 +1178,35 @@ reproduce, and it makes the earlier rejected copy more puzzling rather than less
 something produced a non-429 status on that one occasion, and nothing recorded
 what it was.
 
-That is the whole of the update. The item stays **open**, and the reason it
-stays open is worth stating plainly: the fix would be to log
-`error.status` / `error.code` at the point `signupAction` returns, which needs
-the failure to recur. A logger added now would be a guess about a shape nobody
-has seen.
+**CORRECTION, 2026-10-18 — the cause is found, and no mapper was ever wrong.**
+
+With the budget exhausted, a fresh probe answered a different question: the
+throwaway address was the problem all along. `qa.signup.<ts>@nowhere.example`
+returns
+
+```
+HTTP 400  email_address_invalid
+"Email address "qa.probe.1792332172934@nowhere.example" is invalid"
+```
+
+`.example` is a **reserved TLD**, and user-initiated `signUp` validates the
+address. `authFailureKind(400)` returns `rejected`, so **"Unable to create
+account with that email" was accurate** — the address really was invalid. The
+mapper was right; the harness was submitting an address the provider refuses.
+The same file's admin-API paths accept the domain, which is why `createUser` and
+the cleanup calls worked on `@nowhere.example` while the signup leg could never
+have passed. This is §2.14's shape one layer over: a fixture's own property
+manufactured a finding that was then reported as a product defect.
+
+`SIGNUP_EMAIL` now uses `@demo.beepabpo.com`, the domain
+`qa-exercise-client-invite.mjs` already adopted for the identical reason
+(`inviteUserByEmail` validates the domain too).
+
+**What is still open, stated precisely.** That a reserved TLD is rejected is
+established. Whether signup **succeeds** on an accepted domain is not: the
+quota is exhausted again as of this writing (`429` for every domain, including
+`@beepabpo.com`), so the leg cannot be exercised. Re-run `qa-exercise-auth-workflow.mjs`
+once the budget resets; if the signup leg then passes, the item closes.
 
 ### 2.14 The control census was naming controls after their data
 

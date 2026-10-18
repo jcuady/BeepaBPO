@@ -93,7 +93,29 @@ async function listAuthUsers() {
 const TARGET_EMAIL = "marketing@demo.beepabpo.com";
 const CLIENT_EMAIL = "clientadmin@demo.beepabpo.com";
 const TEMP_PASSWORD = "QaTemp#2026x";
-const SIGNUP_EMAIL = `qa.signup.${Date.now()}@nowhere.example`;
+// The throwaway is NOT on `@nowhere.example`, even though the admin-API paths
+// in this file accept it.
+//
+// Measured 2026-10-18, with the provider's email budget available: a user-
+// initiated `signUp` for `qa.probe.<ts>@nowhere.example` returns
+//
+//     HTTP 400  email_address_invalid
+//     "Email address ... is invalid"
+//
+// `.example` is a reserved TLD, and this path validates the address. The admin
+// paths (`createUser`, and the cleanup calls) bypass that validation, which is
+// why `NOBODY_EMAIL` below can stay where it is and why this one could not: the
+// same file had the same domain working and not working depending on which API
+// created the user.
+//
+// That matters beyond the fixture. `signupAction` maps a 400 to "Unable to
+// create account with that email", so with the reserved TLD the leg could only
+// ever report a product failure for what was a harness bug -- the same shape as
+// §2.14, where the census's own fallback manufactured the finding it then
+// complained about. The repo already learned this for `inviteUserByEmail`; see
+// `qa-exercise-client-invite.mjs`, which uses `@demo.beepabpo.com` for the same
+// reason.
+const SIGNUP_EMAIL = `qa.signup.${Date.now()}@demo.beepabpo.com`;
 
 // `must` returns the DATA, not `{ data }`. Destructuring it as `{ data }` yields
 // undefined and every downstream check silently sees an empty world.
