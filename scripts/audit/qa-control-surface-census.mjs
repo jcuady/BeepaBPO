@@ -338,8 +338,40 @@ function collectControls(selectors) {
   return out;
 }
 
+/**
+ * Navigations that needed a second attempt because the first hit a cold route.
+ *
+ * COLD START IS A REAL FAILURE MODE HERE, measured 2026-10-18: on a freshly
+ * started `next start`, 24 of 444 pages timed out at the 30s navigation
+ * timeout. Every one of them was in `owner` -- the FIRST role walked -- which
+ * reached 35 of its ~58 pages while carrying the most controls in the system.
+ * Route chunks load lazily, so a route's first hit is the slow one and the
+ * second is fast.
+ *
+ * The consequence is the reason this exists: that run's coverage percentage was
+ * computed over a partial denominator. A number measured over a walk that did
+ * not complete must not be quoted, and the cheapest way to stop producing one
+ * is to let the cold hit be retried.
+ *
+ * This is NOT tolerance for a broken page. A genuinely broken page fails twice,
+ * and the second failure is recorded exactly as the first would have been. What
+ * it removes is the cold first hit, and `coldRetries` is printed with the
+ * results so a reader can see how often it was needed instead of inferring it.
+ */
+let coldRetries = 0;
+
+async function gotoWarm(page, url, timeout = 30000) {
+  try {
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout });
+  } catch {
+    await page.waitForTimeout(1500);
+    coldRetries++;
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout });
+  }
+}
+
 async function signIn(page, email) {
-  await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded", timeout: 30000 });
+  await gotoWarm(page, `${BASE}/login`);
   await fillHeld(page, page.locator('input[type=email]'), email);
   await fillHeld(page, page.locator('input[type=password]'), PW);
   await page.click('button[type=submit]');
@@ -418,7 +450,7 @@ try {
           }
           signedIn = true;
         }
-        await page.goto(`${BASE}${p.path}`, { waitUntil: "domcontentloaded", timeout: 30000 });
+        await gotoWarm(page, `${BASE}${p.path}`);
         await page.waitForTimeout(700); // let client components mount
 
         const actual = landedPath(page);
@@ -551,6 +583,10 @@ const out = {
   rolesWalked: roleNames.length,
   pagesVisited,
   pagesFailed,
+  // Printed and stored, never silently absorbed: a run that needed many of these
+  // is measuring a cold process, and a reader comparing two runs needs to know
+  // that the walks were not equivalent.
+  coldStartRetries: coldRetries,
   maxPagesPerRole: MAX_PAGES_PER_ROLE || null,
   distinctControls: controls.length,
   namedControls: named.length,
@@ -588,7 +624,9 @@ console.log(
     `\n    actionControlLabelOverlap = ${actionCoverage}%   <-- the number to quote` +
     `\n\n  NAVIGATION links (covered instead by qa-exercise-internal-links.mjs):` +
     `\n    ${navOnly.length} found, ${navCovered.length} with a matching assertion name (${navCoverage}%)` +
-    `\n\n${unnamed.length} control(s) with no accessible name at all.`,
+    `\n\n${unnamed.length} control(s) with no accessible name at all.` +
+    `\n${pagesFailed} page(s) failed.` +
+    (coldRetries ? `\n${coldRetries} navigation(s) needed a cold-start retry (first hit of a lazily loaded route).` : ""),
 );
 
 console.log(`\nACTION CONTROLS WITH NO MATCHING ASSERTION (${actionUncovered.length}) -- the real gap:`);

@@ -1267,11 +1267,36 @@ use.
 reported **92.2%** and was *not* recorded. It had 24 page failures, all in
 `owner` — the first role walked — and `owner` reached 35 of its ~58 pages while
 carrying the most controls in the system. The percentage was computed over a
-partial denominator. Restarting the server and re-running gave 444 pages and 0
-failures, which identified the cause as **cold start**: `next start` loads route
-chunks lazily, and the first role's first hit of each route exceeds the 30s
-navigation timeout on a cold process. That is a property of the measurement,
-not of the product, and it is why the complete run is the one on record.
+partial denominator. A later run on a fresh server gave 444 pages and 0
+failures, and **that** is the run on record.
+
+**The cold-start explanation was wrong, and the evidence that refutes it is in
+this repository.** `gotoWarm()` was then added to retry a navigation once on
+timeout, on the theory that lazy route chunks made the first hit slow. It is a
+sound defensive measure and it is still there, but the next run on a cold server
+recorded **`coldStartRetries: 0`** — the retry never fired, and that run still
+differed. The sequence on identical code with a freshly started server is:
+
+| Run | Pages | Failed | Cold-start retries |
+|---|---|---|---|
+| A | 420 | **24** | (no retry logic) |
+| B | 444 | 0 | 0 |
+| C | 443 | **1** | **0** |
+
+Same code, same cold server, outcomes spanning 0 to 24 failures. **The variance
+is load, not cold start** — which is §2.12's finding wearing a different coat,
+now reproduced on a third audit. `coldStartRetries` is printed and stored rather
+than swallowed precisely so a future reader can see that a retry-free run and a
+retry-heavy run are not comparable walks; it is an honest instrument, not a
+proven cure.
+
+The honest conclusion is the one §2.12 already reaches: **a single walk of this
+many pages is not a repeatable measurement on this machine**, and no amount of
+per-navigation retrying changes that. Only the P2 decision — whether a test
+runner may restart the server between phases, and measure in chunks that each
+fit inside the budget — makes the figure trustworthy. Until then, quote this
+number only from a run that reports its own failures and retry count, and treat
+two runs as comparable only when both do.
 
 ---
 
