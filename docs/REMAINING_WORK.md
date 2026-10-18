@@ -1208,6 +1208,39 @@ quota is exhausted again as of this writing (`429` for every domain, including
 `@beepabpo.com`), so the leg cannot be exercised. Re-run `qa-exercise-auth-workflow.mjs`
 once the budget resets; if the signup leg then passes, the item closes.
 
+**SECOND CORRECTION, 2026-10-18 late — the domain swap is not a fix, and is
+probably still wrong.** A probe run against the fixed fixture produced one
+clean request *before* the limiter re-engaged, and it did not come back `429`:
+
+```
+email : qa.signup.1792336277713@demo.beepabpo.com
+error : 400 Email address "qa.signup.1792336277713@demo.beepabpo.com" is invalid
+```
+
+`@demo.beepabpo.com` is refused by **user-initiated** `signUp` for the same
+reason `@nowhere.example` was. This is the §2.14 shape again, and it is now
+the third instance of it: the same file's admin-API paths accept the domain and
+the user path does not, so "the domain this project uses everywhere" is not
+evidence that any given domain is accepted. **Revise the expectation above** —
+the fixture change in `237a53e` should not be expected to close this leg, and
+the next attempt should be one signup on a genuinely deliverable address, not
+another swap between domains this project already uses.
+
+**Two things this section must not be read as claiming.** First, this is **one**
+observation on one address and it is recorded as such; it is not a proven cause,
+and it is the reason to re-test, not a reason to have already fixed something.
+Second, the follow-up probe in the same run — four addresses, one per domain —
+came back `429` for **all four**, including `gmail.com` and including
+`@nowhere.example`, which was independently observed returning `400` hours
+earlier. That is not a contradiction and it is not a domain result: while the
+limiter is firing, `signUp` answers `429` *before* it reaches address
+validation, so a rate-limited response says nothing at all about which domains
+would be accepted. A domain sweep run during a quota outage cannot answer the
+question, and the five requests it costs make the outage worse. That sweep was
+the mistake here, and it is recorded so the next attempt does not repeat it: the
+clean experiment is **exactly one** signup, on a deliverable domain, with the
+budget confirmed available first.
+
 ### 2.14 The control census was naming controls after their data
 
 §2.12 is about the workflow suite misattributing failures. This is the same
