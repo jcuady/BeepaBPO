@@ -419,11 +419,11 @@ if (!roleNames.length) {
   process.exit(2);
 }
 
-const browser = await chromium.launch();
 const perRole = [];
 const seen = new Map(); // key -> census row
 let pagesVisited = 0;
 let pagesFailed = 0;
+let browser = null;
 
 try {
   for (const role of roleNames) {
@@ -436,6 +436,27 @@ try {
       continue;
     }
 
+    // A fresh browser PROCESS per role, not one for the whole walk.
+    //
+    // Measured 2026-10-18: on identical code with a freshly started server, this
+    // same audit produced 24 failed pages, then 0, then 1. The retry added for
+    // cold routes never fired (coldStartRetries: 0), so cold start was ruled out
+    // and what was left is the thing every run here has in common -- one
+    // long-lived process carrying the entire measurement.
+    //
+    // Recreating the CONTEXT per role was already here, but the browser process
+    // outlived all thirteen. Its queues, its accumulated memory and its cache
+    // grow across 444 page loads, and every later role inherits that. Relaunching
+    // costs about a second per role against a twenty-minute walk, and it makes
+    // each role depend only on its own pages.
+    //
+    // Note what this does NOT claim: it is the change that makes each role's
+    // measurement independent, so a walk can be compared to another. It is not
+    // proof that process lifetime was the whole cause -- `pagesFailed` and
+    // `coldStartRetries` are both reported so that claim can be checked or
+    // refuted on the next run rather than taken on trust.
+    await browser?.close().catch(() => {});
+    browser = await chromium.launch();
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
     let signedIn = false;
@@ -501,7 +522,7 @@ try {
     console.log(`  ${role.padEnd(16)} ${roleRow.pagesVisited} pages, ${roleRow.controls} controls`);
   }
 } finally {
-  await browser.close().catch(() => {});
+  await browser?.close().catch(() => {});
 }
 
 const controls = [...seen.values()];

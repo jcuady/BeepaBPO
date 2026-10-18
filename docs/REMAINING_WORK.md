@@ -1275,28 +1275,44 @@ this repository.** `gotoWarm()` was then added to retry a navigation once on
 timeout, on the theory that lazy route chunks made the first hit slow. It is a
 sound defensive measure and it is still there, but the next run on a cold server
 recorded **`coldStartRetries: 0`** — the retry never fired, and that run still
-differed. The sequence on identical code with a freshly started server is:
+differed. `coldStartRetries` is printed and stored rather than swallowed
+precisely so a reader can see that a retry-free run and a retry-heavy run are
+not comparable walks; it is an honest instrument, not a proven cure.
 
-| Run | Pages | Failed | Cold-start retries |
-|---|---|---|---|
-| A | 420 | **24** | (no retry logic) |
-| B | 444 | 0 | 0 |
-| C | 443 | **1** | **0** |
+The browser is now also **relaunched per role** rather than once for all
+thirteen, so each role's measurement depends only on its own pages rather than
+inheriting everything loaded before it. That is the right shape for the
+instrument. **It is not a cure either, and it is not claimed as one:** two
+consecutive cold runs after the change still gave 1 failed page and 0 failed
+pages.
 
-Same code, same cold server, outcomes spanning 0 to 24 failures. **The variance
-is load, not cold start** — which is §2.12's finding wearing a different coat,
-now reproduced on a third audit. `coldStartRetries` is printed and stored rather
-than swallowed precisely so a future reader can see that a retry-free run and a
-retry-heavy run are not comparable walks; it is an honest instrument, not a
-proven cure.
+What the whole series actually shows, on identical code with a freshly started
+server each time:
 
-The honest conclusion is the one §2.12 already reaches: **a single walk of this
-many pages is not a repeatable measurement on this machine**, and no amount of
-per-navigation retrying changes that. Only the P2 decision — whether a test
-runner may restart the server between phases, and measure in chunks that each
-fit inside the budget — makes the figure trustworthy. Until then, quote this
-number only from a run that reports its own failures and retry count, and treat
-two runs as comparable only when both do.
+| Run | Pages | Failed | Cold-start retries | Overlap | Unmatched |
+|---|---|---|---|---|---|
+| A | 420 | **24** | (no retry logic) | 92.2% | — |
+| B | 444 | 0 | 0 | 92.7% | 23 |
+| C | 443 | 1 | 0 | 92.7% | 23 |
+| D | 443 | 1 | 0 | 92.7% | 23 |
+| E | 444 | 0 | 0 | 92.7% | 23 |
+
+Two things are true at once, and the second is the one that matters:
+
+1. **Page-level failures still vary** — 24 once, then 0 to 1. Neither the
+   per-navigation retry nor the per-role browser relaunch removed that, so the
+   cause is still open and is still §2.12's: something about running a long walk
+   in one environment.
+2. **The published figures did not move.** Every run since the extractor fix
+   reports **92.7%** overlap and **23** unmatched, including the run that lost 24
+   pages. The 92.2% outlier moved because those 24 failures all landed in
+   `owner`, the most control-rich role; losing one or two pages does not.
+
+So the derived coverage number is far less fragile than the walk that produces
+it, which is a better place to be than the reverse — but it is stable by luck of
+where the failures fall, not because the walk is repeatable. **Quote these
+numbers only from a run that reports its own `pagesFailed` and `coldStartRetries`
+alongside them**, and treat two runs as comparable only when both do.
 
 ---
 
