@@ -1,69 +1,71 @@
 {
   "id": "ticket-detail",
   "script": "scripts/audit/qa-exercise-ticket-workflow.mjs",
-  "claim": "single ticket detail, assignment and status change",
+  "claim": "the live ticket hand-off: a client admin raises a ticket, operations assigns it, and ticket.created and ticket.assigned both fire",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T03:17:18.095Z",
+  "when": "2026-10-19T02:42:57.399Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 10,
   "checks": [
     {
-      "pass": true,
-      "name": "ticket created by the client contact  — TKT-20261017-00026",
-      "detail": null
+      "name": "ticket created by the client contact",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "ticket starts in 'new'  — status=new",
-      "detail": null
+      "name": "ticket starts in 'new'",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "requester received ticket.created  — \"We received your request: QA ticket exercise mvbts44y — payroll question\"",
-      "detail": null
+      "name": "requester received ticket.created",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "ticket.created names the subject  — We received your request: QA ticket exercise mvbts44y — payroll question",
-      "detail": null
+      "name": "ticket.created names the subject",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "assignment exercised  — assignee selected",
-      "detail": null
+      "name": "assignment exercised",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "ticket has an assignee  — assignee=set",
-      "detail": null
+      "name": "ticket has an assignee",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "assignee received ticket.assigned  — \"TKT-20261017-00026: QA ticket exercise mvbts44y — payroll question\"",
-      "detail": null
+      "name": "assignee received ticket.assigned",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "ticket.assigned names the ticket number  — TKT-20261017-00026: QA ticket exercise mvbts44y — payroll question",
-      "detail": null
+      "name": "ticket.assigned names the ticket number",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "notifications were actually created  — 75 -> 77",
-      "detail": null
+      "name": "notifications were actually created",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "this run left no ticket behind  — 0 residual before -> 0 after",
-      "detail": null
+      "name": "this run left no ticket behind",
+      "pass": true
     }
   ],
   "failedAssertions": [],
   "notes": [],
-  "other": [
-    "baseline: 75 notifications, 0 residual exercise tickets",
-    "10/10 checks passed"
-  ],
-  "confirmation": null
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "residualBefore": 0,
+    "createdTicketId": "2a241618-2a75-45d7-a02e-08ee34b15918"
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 10,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 10,
+    "printedFailures": 0
+  }
 }

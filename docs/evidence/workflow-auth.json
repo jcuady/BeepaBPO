@@ -1,187 +1,152 @@
 {
   "id": "auth",
   "script": "scripts/audit/qa-exercise-auth-workflow.mjs",
-  "claim": "sign in/out, sign-out-everywhere, access-denied, no account leakage",
+  "claim": "the auth surface: sign-in, sign-out, account switching, password reset and the throwaway-account cleanup that proves none of it leaked",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T02:48:01.093Z",
-  "exitCode": 0,
-  "verdict": "PASS",
+  "when": "2026-10-19T02:19:43.399Z",
+  "exitCode": 1,
+  "verdict": "FLAKY",
   "assertions": 35,
   "checks": [
     {
-      "pass": true,
-      "name": "a wrong password does not sign you in  — /login",
-      "detail": null
+      "name": "a wrong password does not sign you in",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the rejection tells the user what happened  — Work email Password Remember me Forgot password? Invalid email or password.",
-      "detail": null
+      "name": "the rejection tells the user what happened",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "forgot-password answers identically for a real and a fake address  — IDENTICAL COPY CONFIRMED via the sibling assertion — real hit the delivery ceiling: \"Too many password reset requests. Wait a minute,\"",
-      "detail": null
+      "name": "forgot-password answers identically for a real and a fake address",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "forgot-password does not confirm that an account exists  — If an account exists for that email, we sent reset instructions.",
-      "detail": null
+      "name": "forgot-password does not confirm that an account exists",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a bad verification link is refused with a usable message  — Home Services Why Beepa Careers Resources About Sign In Let's Talk Verification needed Thi",
-      "detail": null
+      "name": "a bad verification link is refused with a usable message",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a rate limit is reported as a rate limit, not as a bad address  — Too many sign-up attempts from this network.",
-      "detail": null
+      "name": "a rate limit is reported as a rate limit, not as a bad address",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a client user can sign in at /login  — /app/client",
-      "detail": null
+      "name": "a client user can sign in at /login",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the employee portal refuses a non-internal account  —  Work email or Employee ID Password Forgot password? Use the client or applicant",
-      "detail": null
+      "name": "the employee portal refuses a non-internal account",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "that refusal did NOT sign the client out of their real portal  — /app/client/settings",
-      "detail": null
+      "name": "that refusal did NOT sign the client out of their real portal",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "an internal user gets through the employee portal  — /app/cms",
-      "detail": null
+      "name": "an internal user gets through the employee portal",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "signed in with the current password  — /app/cms",
-      "detail": null
+      "name": "signed in with the current password",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the settings page rendered  — /app/my/settings",
-      "detail": null
+      "name": "the settings page rendered",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "SECURITY: change-password asks for the CURRENT password  — current-password field present",
-      "detail": null
+      "name": "SECURITY: change-password asks for the CURRENT password",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the change-password form rendered",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a password change with a WRONG current password is refused  — Password Current password That is not your current password.",
-      "detail": null
+      "name": "a password change with a WRONG current password is refused",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "...and the new password really did NOT take effect  — the takeover password is not active — the credential is unchanged",
-      "detail": null
+      "name": "...and the new password really did NOT take effect",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "...and the real password still works  — the owner can still sign in",
-      "detail": null
+      "name": "...and the real password still works",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a password change with the CORRECT current password succeeds  — Password Current password New password Confirm password Password updated.",
-      "detail": null
+      "name": "a password change with the CORRECT current password succeeds",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the NEW password works for sign-in",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the change can be undone from the UI  — Password Current password New password Confirm password Password updated.",
-      "detail": null
+      "name": "the change can be undone from the UI",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the ORIGINAL password works again after the restore  — accepted — the demo login is intact",
-      "detail": null
+      "name": "the ORIGINAL password works again after the restore",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a second session was established for the logout check",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the account menu is reachable",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "there is a 'sign out everywhere' control for a compromised session  — found in the account menu",
-      "detail": null
+      "name": "there is a 'sign out everywhere' control for a compromised session",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "Sign out from the account menu ends THIS browser's session  — /",
-      "detail": null
+      "name": "Sign out from the account menu ends THIS browser's session",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a normal sign-out leaves the other device signed in (local scope)  — still signed in — correct, matches the documented intent",
-      "detail": null
+      "name": "a normal sign-out leaves the other device signed in (local scope)",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "'sign out everywhere' really does revoke the other device  — the other device was signed out",
-      "detail": null
+      "name": "'sign out everywhere' really does revoke the other device",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a signed-in user with no membership lands on the access-denied page  — /app/access-denied",
-      "detail": null
+      "name": "a signed-in user with no membership lands on the access-denied page",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the access-denied page offers 'Sign out & switch account'",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "'Sign out & switch account' signs the user out and lands on /login  — /login",
-      "detail": null
+      "name": "'Sign out & switch account' signs the user out and lands on /login",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no uncaught page errors during the auth run",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no throwaway auth account leaked  — all cleaned up",
-      "detail": null
+      "name": "no throwaway auth account leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no membership rows leaked  — 14 -> 14",
-      "detail": null
+      "name": "no membership rows leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no notification rows leaked  — 74 -> 74",
-      "detail": null
+      "name": "no notification rows leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no auth users leaked  — 14 -> 14",
-      "detail": null
+      "name": "no auth users leaked",
+      "pass": true
     }
   ],
   "failedAssertions": [],
@@ -189,15 +154,23 @@
     "both paths return the same wording when a send succeeds; the difference here is the environment's mail budget, not the copy",
     "account menu items: Demo Marketing Marketing · Beepa BPO Profile Settings Notifications Sign out Sign out everywhere"
   ],
-  "other": [
-    "target account: marketing@demo.beepabpo.com (found)",
-    "signup throwaway: qa.signup.1792205138174@nowhere.example",
-    "BLOCKED  forgot-password anti-enumeration comparison  — the real address returned a delivery error (\"Too many password reset requests. Wait a minute,\") while the fake address returned the confirmation copy",
-    "BLOCKED  signup account creation  — Supabase 429 email rate limit (environment)",
-    "  (cleanup) removed throwaway auth user qa.nobody.1792205267844@nowhere.example",
-    "  (safety net) password restored via admin API",
-    "35/35 checks passed",
-    "2 path(s) BLOCKED by the environment: forgot-password anti-enumeration comparison, signup account creation"
-  ],
-  "confirmation": null
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "blockedPaths": [
+      "forgot-password anti-enumeration comparison",
+      "signup account creation"
+    ]
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 35,
+    "failed": 0
+  },
+  "confirmation": "failed under suite load (1 assertion(s)), passed on a re-run 15s later",
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 35,
+    "printedFailures": 1
+  }
 }

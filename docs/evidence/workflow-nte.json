@@ -1,153 +1,137 @@
 {
   "id": "nte",
   "script": "scripts/audit/qa-exercise-nte-workflow.mjs",
-  "claim": "notification to evaluate, accept/decline",
+  "claim": "the NTE domain end to end: HR issues a case, the named employee responds, HR resolves it with a disciplinary outcome",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T02:57:49.571Z",
+  "when": "2026-10-19T02:24:31.651Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 24,
   "checks": [
     {
-      "pass": true,
       "name": "HR reaches /app/hr/nte with the case form",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "incident type is a free-text field",
-      "detail": "input"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "createNteCase writes a case",
-      "detail": "NTE-MVBT2WM7"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "new case starts in status 'issued'",
-      "detail": "issued"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "case is issued by the HR user",
-      "detail": "9e72049e"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "incident date stored as typed",
-      "detail": "2026-03-02"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "employee sees their own case on /app/my/nte",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "deadline shown to the employee is the date HR typed",
-      "detail": "Incident Mar 2, 2026 · Due Mar 9, 2026"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "employee gets a response form for their case",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "submitNteResponse writes a response",
-      "detail": "1 row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "responding moves the case to 'under_review'",
-      "detail": "under_review"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "second case created for another employee",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "another employee's NTE case is not visible to this employee",
-      "detail": "0 shown"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the HR search filter narrows the list to the case under test",
-      "detail": "1 resolve button(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "resolve form is shown while the case is open",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "resolve confirmation dialog opens",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "resolveNteCase sets status 'resolved'",
-      "detail": "resolved"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "resolveNteCase stores the resolution type",
-      "detail": "verbal_warning"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a non-cleared resolution writes a disciplinary action",
-      "detail": "1 row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a stale tab is refused: the case cannot be resolved from status 'resolved'",
-      "detail": "cannot be resolved from status “resolved”"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the refused attempt wrote no second disciplinary action",
-      "detail": "1 row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the refusal left the resolution untouched",
-      "detail": "resolved/verbal_warning"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no unexpected console errors",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no page errors",
-      "detail": null
+      "pass": true
     }
   ],
   "failedAssertions": [],
   "notes": [
     "response_due_at stored as 2026-03-09T09:00:00+00:00 for a wall clock HR typed as 2026-03-09T17:00 (intended instant 2026-03-09T09:00:00.000Z, off by 0h)."
   ],
-  "other": [
-    "(node:22996) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/jcuad/OneDrive/Documents/BeepoBeepa/lib/attendance/zoned-time.ts is not specified and it doesn't parse as CommonJS.",
-    "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
-    "To eliminate this warning, add \"type\": \"module\" to C:\\Users\\jcuad\\OneDrive\\Documents\\BeepoBeepa\\package.json.",
-    "(Use `node --trace-warnings ...` to show where the warning was created)",
-    "subject employee: employee@demo.beepabpo.com -> 108f95ff-e47f-414f-8ec2-0e49f075edb0",
-    "other employee:   BEE-00017 -> 66453427-cecc-4ad6-8bf2-372f2e83366d",
-    "before: cases=1 responses=0 actions=0",
-    "(cleanup) cases still carrying the marker: 0",
-    "(cleanup) before cases=1 responses=0 actions=0",
-    "(cleanup) after  cases=1 responses=0 actions=0",
-    "the sweep left the demo data as it found it: yes",
-    "24/24 assertions passed",
-    "notes:",
-    "  - response_due_at stored as 2026-03-09T09:00:00+00:00 for a wall clock HR typed as 2026-03-09T17:00 (intended instant 2026-03-09T09:00:00.000Z, off by 0h)."
-  ],
-  "confirmation": null
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "before": {
+      "cases": 1,
+      "responses": 0,
+      "actions": 0
+    },
+    "after": {
+      "cases": 1,
+      "responses": 0,
+      "actions": 0
+    }
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 24,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 24,
+    "printedFailures": 0
+  }
 }

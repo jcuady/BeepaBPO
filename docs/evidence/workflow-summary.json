@@ -1,32 +1,32 @@
 {
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:02:56.096Z",
+  "when": "2026-10-19T02:42:57.443Z",
   "registryTotal": 21,
   "ranThisInvocation": [
-    "payroll",
-    "client-timesheet",
-    "hire"
+    "signup",
+    "tickets",
+    "ticket-detail"
   ],
   "totals": {
-    "pass": 17,
+    "pass": 18,
     "blocked": 2,
     "skipped": 0,
     "flaky": 1,
-    "fail": 1,
+    "fail": 0,
     "noEvidence": 0
   },
-  "totalAssertions": 491,
+  "totalAssertions": 495,
   "unregisteredScripts": [
     "qa-exercise-auth-callback.mjs"
   ],
   "results": [
     {
       "id": "auth",
-      "verdict": "PASS",
+      "verdict": "FLAKY",
       "assertions": 35,
       "what": "sign in/out, sign-out-everywhere, access-denied, no account leakage",
       "evidence": "docs/evidence/workflow-auth.json",
-      "when": "2026-10-17T02:48:01.093Z",
+      "when": "2026-10-19T02:19:43.399Z",
       "ranThisRun": false
     },
     {
@@ -35,8 +35,8 @@
       "assertions": 4,
       "what": "applicant and client registration reach verification",
       "evidence": "docs/evidence/workflow-signup.json",
-      "when": "2026-10-17T02:48:33.875Z",
-      "ranThisRun": false
+      "when": "2026-10-19T02:41:30.562Z",
+      "ranThisRun": true
     },
     {
       "id": "payroll",
@@ -45,7 +45,7 @@
       "what": "salary edit, period, recalculate, 2-step approval to finalized",
       "evidence": "docs/evidence/workflow-payroll.json",
       "when": "2026-10-19T02:01:44.521Z",
-      "ranThisRun": true
+      "ranThisRun": false
     },
     {
       "id": "attendance",
@@ -62,7 +62,7 @@
       "assertions": 21,
       "what": "request, approve/deny, balance impact",
       "evidence": "docs/evidence/workflow-leave.json",
-      "when": "2026-10-17T02:52:37.823Z",
+      "when": "2026-10-19T02:20:31.307Z",
       "ranThisRun": false
     },
     {
@@ -71,7 +71,7 @@
       "assertions": 16,
       "what": "mark one/all read, per-user isolation, digest preference",
       "evidence": "docs/evidence/workflow-notifications.json",
-      "when": "2026-10-17T02:53:14.867Z",
+      "when": "2026-10-19T02:20:54.367Z",
       "ranThisRun": false
     },
     {
@@ -80,16 +80,16 @@
       "assertions": 34,
       "what": "ticket list, create, status transitions",
       "evidence": "docs/evidence/workflow-tickets.json",
-      "when": "2026-10-17T02:54:39.538Z",
-      "ranThisRun": false
+      "when": "2026-10-19T02:42:32.550Z",
+      "ranThisRun": true
     },
     {
       "id": "documents",
-      "verdict": "FAIL",
+      "verdict": "PASS",
       "assertions": 31,
       "what": "upload, list, visibility scoping",
       "evidence": "docs/evidence/workflow-documents.json",
-      "when": "2026-10-17T02:57:06.244Z",
+      "when": "2026-10-19T02:21:47.207Z",
       "ranThisRun": false
     },
     {
@@ -98,7 +98,7 @@
       "assertions": 24,
       "what": "notification to evaluate, accept/decline",
       "evidence": "docs/evidence/workflow-nte.json",
-      "when": "2026-10-17T02:57:49.571Z",
+      "when": "2026-10-19T02:24:31.651Z",
       "ranThisRun": false
     },
     {
@@ -108,7 +108,7 @@
       "what": "client approves submitted timesheets",
       "evidence": "docs/evidence/workflow-client-timesheet.json",
       "when": "2026-10-19T02:02:28.712Z",
-      "ranThisRun": true
+      "ranThisRun": false
     },
     {
       "id": "money",
@@ -116,7 +116,7 @@
       "assertions": 39,
       "what": "cash advances and billing across the lifecycle",
       "evidence": "docs/evidence/workflow-money.json",
-      "when": "2026-10-17T03:00:07.561Z",
+      "when": "2026-10-19T02:25:42.346Z",
       "ranThisRun": false
     },
     {
@@ -125,16 +125,16 @@
       "assertions": 23,
       "what": "job, applicant, pipeline stage moves",
       "evidence": "docs/evidence/workflow-recruitment.json",
-      "when": "2026-10-17T03:01:40.170Z",
+      "when": "2026-10-19T02:27:03.835Z",
       "ranThisRun": false
     },
     {
       "id": "crm",
-      "verdict": "FLAKY",
+      "verdict": "PASS",
       "assertions": 21,
       "what": "lead and deal lifecycle with activity log",
       "evidence": "docs/evidence/workflow-crm.json",
-      "when": "2026-10-17T03:05:01.609Z",
+      "when": "2026-10-19T02:28:22.115Z",
       "ranThisRun": false
     },
     {
@@ -143,7 +143,7 @@
       "assertions": 43,
       "what": "publish and unpublish round trip",
       "evidence": "docs/evidence/workflow-cms.json",
-      "when": "2026-10-17T03:09:52.484Z",
+      "when": "2026-10-19T02:34:36.772Z",
       "ranThisRun": false
     },
     {
@@ -153,7 +153,7 @@
       "what": "hire to employee, org membership, cleanup",
       "evidence": "docs/evidence/workflow-hire.json",
       "when": "2026-10-19T02:02:56.043Z",
-      "ranThisRun": true
+      "ranThisRun": false
     },
     {
       "id": "admin-workflow",
@@ -170,16 +170,16 @@
       "assertions": 19,
       "what": "profile read and write persistence",
       "evidence": "docs/evidence/workflow-profile.json",
-      "when": "2026-10-17T03:12:14.740Z",
+      "when": "2026-10-19T02:35:13.606Z",
       "ranThisRun": false
     },
     {
       "id": "list-filters",
       "verdict": "PASS",
-      "assertions": 30,
+      "assertions": 34,
       "what": "filtering, search and pagination on list views",
       "evidence": "docs/evidence/workflow-list-filters.json",
-      "when": "2026-10-17T03:16:50.462Z",
+      "when": "2026-10-19T02:37:46.943Z",
       "ranThisRun": false
     },
     {
@@ -188,8 +188,8 @@
       "assertions": 10,
       "what": "single ticket detail, assignment and status change",
       "evidence": "docs/evidence/workflow-ticket-detail.json",
-      "when": "2026-10-17T03:17:18.095Z",
-      "ranThisRun": false
+      "when": "2026-10-19T02:42:57.399Z",
+      "ranThisRun": true
     },
     {
       "id": "sitemap",
@@ -197,7 +197,7 @@
       "assertions": 12,
       "what": "unpublish leaves the sitemap and republish restores it",
       "evidence": "docs/evidence/workflow-sitemap.json",
-      "when": "2026-10-17T03:17:57.352Z",
+      "when": "2026-10-19T02:38:20.624Z",
       "ranThisRun": false
     },
     {

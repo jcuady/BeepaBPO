@@ -1,140 +1,129 @@
 {
   "id": "recruitment",
   "script": "scripts/audit/qa-exercise-recruitment-workflow.mjs",
-  "claim": "job, applicant, pipeline stage moves",
+  "claim": "the five remaining recruitment actions: create, update, publish and close a job post, and submit an application",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T03:01:40.170Z",
+  "when": "2026-10-19T02:27:03.835Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 23,
   "checks": [
     {
-      "pass": true,
-      "name": "a recruitment.manage holder can open /app/recruitment/jobs  — /app/recruitment/jobs",
-      "detail": null
+      "name": "a recruitment.manage holder can open /app/recruitment/jobs",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "createJobPost creates the post  — status=draft",
-      "detail": null
+      "name": "createJobPost creates the post",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "createJobPost leaves it as a draft  — draft",
-      "detail": null
+      "name": "createJobPost leaves it as a draft",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the job detail page renders the edit form",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "updateJobPost persists the change  — title is now \"QA Job Edited qamvbt6m8y\"",
-      "detail": null
+      "name": "updateJobPost persists the change",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the detail page offers Publish",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "publishJobPost moves it to published  — status=published",
-      "detail": null
+      "name": "publishJobPost moves it to published",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "publishJobPost stamps published_at  — 2026-10-17T03:00:41.543+00:00",
-      "detail": null
+      "name": "publishJobPost stamps published_at",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "publishing an already-published post is refused or is a no-op  — status=published",
-      "detail": null
+      "name": "publishing an already-published post is refused or is a no-op",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the detail page offers Close",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "closeJobPost moves it to closed  — status=closed",
-      "detail": null
+      "name": "closeJobPost moves it to closed",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "closeJobPost preserves the original published_at  — 2026-10-17T03:00:41.543+00:00",
-      "detail": null
+      "name": "closeJobPost preserves the original published_at",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a CLOSED job is not offered to an applicant  — /app/applicant/jobs/53128b8a-22bc-4a15-bdee-1863bc75609c",
-      "detail": null
+      "name": "a CLOSED job is not offered to an applicant",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a CLOSED job can be re-published",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a PUBLISHED job offers the apply form to an applicant",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "submitJobApplication creates the application  — stage=applied",
-      "detail": null
+      "name": "submitJobApplication creates the application",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the new application starts at stage 'applied'  — applied",
-      "detail": null
+      "name": "the new application starts at stage 'applied'",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the applicant profile was UPDATED in place, not duplicated  — applicant now reads \"Quah Applicant\" — this is a real demo row and is restored below",
-      "detail": null
+      "name": "the applicant profile was UPDATED in place, not duplicated",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a second application for the same role is refused  — only 1 application(s) exist",
-      "detail": null
+      "name": "a second application for the same role is refused",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no uncaught page errors during the recruitment run",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no job posts leaked  — 5 -> 5",
-      "detail": null
+      "name": "no job posts leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no job applications leaked  — 6 -> 6",
-      "detail": null
+      "name": "no job applications leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the demo applicant row is exactly as it was found  — row absent again",
-      "detail": null
+      "name": "the demo applicant row is exactly as it was found",
+      "pass": true
     }
   ],
   "failedAssertions": [],
-  "notes": [
-    "no Publish button remained after publishing — cannot exercise the idempotent path",
-    "the apply form disappeared after applying, so the duplicate guard cannot be re-driven from the UI"
-  ],
-  "other": [
-    "marker: qamvbt6m8y",
-    "applicant row before: (none)",
-    "  (cleanup) removed 1 job post(s) and their applications",
-    "  (cleanup) applicant row removed — it did not exist before this run",
-    "23/23 checks passed"
-  ],
-  "confirmation": null
+  "notes": [],
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "before": {
+      "jobs": 5,
+      "applications": 6
+    },
+    "afterCounts": {
+      "jobs": 5,
+      "applications": 6
+    }
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 23,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 23,
+    "printedFailures": 0
+  }
 }

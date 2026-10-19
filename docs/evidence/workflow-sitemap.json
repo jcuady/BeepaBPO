@@ -1,83 +1,79 @@
 {
   "id": "sitemap",
   "script": "scripts/audit/qa-exercise-sitemap-unpublish.mjs",
-  "claim": "unpublish leaves the sitemap and republish restores it",
+  "claim": "archiving a published article removes it from the live sitemap.xml, read back from the running server rather than from a build artifact",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T03:17:57.352Z",
+  "when": "2026-10-19T02:38:20.624Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 12,
   "checks": [
     {
-      "pass": true,
-      "name": "the article is created  - 4853fe9b",
-      "detail": null
+      "name": "the article is created",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a Publish control exists on its row",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "publishing moves it to published  - status=published",
-      "detail": null
+      "name": "publishing moves it to published",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "*** a published article is in the sitemap WITHOUT a rebuild ***  - present on the next request - the sitemap is generated per request",
-      "detail": null
+      "name": "*** a published article is in the sitemap WITHOUT a rebuild ***",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "while published, the article URL resolves  - HTTP 200",
-      "detail": null
+      "name": "while published, the article URL resolves",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "while published, the index lists it",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "an Archive control exists on its row",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "archiving moves it to archived  - status=archived",
-      "detail": null
+      "name": "archiving moves it to archived",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "after archiving, the article URL no longer resolves  - HTTP 404",
-      "detail": null
+      "name": "after archiving, the article URL no longer resolves",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "after archiving, the index no longer lists it",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "*** after archiving, the sitemap no longer advertises it ***  - correctly dropped",
-      "detail": null
+      "name": "*** after archiving, the sitemap no longer advertises it ***",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "revalidateCmsPublic() does not include /sitemap.xml, which is why  - function revalidateCmsPublic() { revalidatePath(\"/app/cms\"); revalidatePath(\"/resources\"); revalidatePath(\"/services\"); revalidatePath(\"/about\"); reva",
-      "detail": null
+      "name": "revalidateCmsPublic() does not include /sitemap.xml, which is why",
+      "pass": true
     }
   ],
   "failedAssertions": [],
-  "notes": [
-    "cleanup: QA article deleted",
-    "rows still carrying the marker: 0",
-    "the live sitemap still mentions the QA article: false",
-    "the real articles are still listed: true"
-  ],
-  "other": [
-    "12/12 assertions passed"
-  ],
-  "confirmation": null
+  "notes": [],
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "slug": "qa-sitemap-qasmmven9m6w",
+    "marker": "qasmmven9m6w"
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 12,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 12,
+    "printedFailures": 0
+  }
 }

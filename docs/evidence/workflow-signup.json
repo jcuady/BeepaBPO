@@ -1,49 +1,46 @@
 {
   "id": "signup",
   "script": "scripts/audit/qa-exercise-signup-workflow.mjs",
-  "claim": "applicant and client registration reach verification",
+  "claim": "signupAction end to end: account created, duplicate-address wording matched, membership rows and the auth user cleaned up",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T02:48:33.875Z",
+  "when": "2026-10-19T02:41:30.562Z",
   "exitCode": 2,
   "verdict": "BLOCKED",
   "assertions": 4,
   "checks": [
     {
-      "pass": true,
-      "name": "a refused signup still tells the user something went wrong  — Too many sign-up attempts from this network. Wait a minute, then try again. |",
-      "detail": null
+      "name": "a refused signup still tells the user something went wrong",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a refused signup does not claim success  — no success copy",
-      "detail": null
+      "name": "a refused signup does not claim success",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a refused signup creates no auth user  — no user created",
-      "detail": null
+      "name": "a refused signup creates no auth user",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a refused signup creates no membership  — 0 membership row(s) left behind",
-      "detail": null
+      "name": "a refused signup creates no membership",
+      "pass": true
     }
   ],
   "failedAssertions": [],
-  "notes": [
-    "action error report: \"Too many sign-up attempts from this network. Wait a minute, then try again. |\"",
-    "cleanup: no auth user remained to delete",
-    "cleanup: membership rows left for this run: 0"
-  ],
-  "other": [
-    "BLOCKED — this environment refused to send the signup email (\"Too many sign-up attempts from this network. Wait a minute, then try again. |\").",
-    "That is an environment rate limit, not a product result: the SUCCESS path is",
-    "unproven and is not counted as passing. The refusal path above WAS exercised.",
-    "Do NOT run check-auth-email-rate-limit.mjs first -- it calls auth.signUp for real,",
-    "consumes the very budget this exercise needs, and has been observed burning it.",
-    "Wait out the project's signup limit, then run this file on its own.",
-    "RUN ERROR: BLOCKED: signup email rate limited (refusal path asserted above)",
-    "4/4 assertions passed"
-  ],
-  "confirmation": null
+  "notes": [],
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "createdUserId": null
+  },
+  "self": {
+    "verdict": "BLOCKED",
+    "assertions": 4,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 4,
+    "printedFailures": 0
+  }
 }

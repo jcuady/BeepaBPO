@@ -1063,6 +1063,34 @@ so -- a grep-based guard finds twenty writers where `readFileSync` finds
 twenty-one. The difference between a scan and a checker can itself be the blind
 spot.
 
+**The verification sweep is complete, and it is what settles §2.12's P2.** The
+remaining fifteen were run in four chunks, **restarting the app server between
+chunks by listening port**:
+
+| Chunk | Exercises | Outcome |
+|---|---|---|
+| 1 | `auth`, `leave`, `notifications`, `documents` | 3 PASS; `auth` FLAKY on its signup leg |
+| 2 | `nte`, `money`, `recruitment`, `crm` | 4 PASS |
+| 3 | `cms`, `profile`, `list-filters`, `sitemap` | 4 PASS |
+| 4 | `signup`, `tickets`, `ticket-detail` | 2 PASS; `signup` BLOCKED (email quota) |
+
+Result: **21 files, all `writer: "exercise"`, all carrying a verdict the rollup
+counts, none stale -- 18 PASS, 2 BLOCKED, 1 FLAKY, 0 FAIL, 495 assertions.**
+
+Two things that sweep settled, both of which had been standing open:
+
+- **`documents` passed 31/31**, retiring a `FAIL` that had been sitting in its
+  evidence file since 2026-10-17. That is precisely the failure §2.11 was filed
+  about, and the self-writing is what let a passing run correct it.
+- **`crm` passed 21/21** on a fresh server after carrying FLAKY across two
+  earlier runs. §2.12c's load face, reproduced -- and the restart is what
+  cleared it.
+
+The one remaining FLAKY is `auth`, whose failing leg is the signup path the
+provider's email quota refuses; the two BLOCKED are `signup` (same cause) and
+`admin-workflow` (its invite leg, same cause). **Every remaining non-PASS is the
+email quota, not a product defect.**
+
 **P3, deliberately not done now.** Porting the pattern is mechanical (copy the
 `finally`-shaped writer, assert on the failure and throw paths), and doing it one
 file at a time has already produced one real fix. It is not urgent while every

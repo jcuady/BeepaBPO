@@ -1,161 +1,181 @@
 {
   "id": "list-filters",
   "script": "scripts/audit/qa-exercise-list-filters.mjs",
-  "claim": "filtering, search and pagination on list views",
+  "claim": "every filter control on every internal list page can actually change the result set, across all demo roles",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T03:16:50.462Z",
+  "when": "2026-10-19T02:37:46.943Z",
   "exitCode": 0,
   "verdict": "PASS",
-  "assertions": 30,
+  "assertions": 34,
   "checks": [
     {
-      "pass": true,
       "name": "/app/tickets — a search that matches nothing changes the list",
+      "pass": true,
       "detail": "list changed"
     },
     {
-      "pass": true,
       "name": "/app/tickets — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "status=new of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/employees — a search that matches nothing changes the list",
+      "pass": true,
       "detail": "list changed"
     },
     {
-      "pass": true,
       "name": "/app/attendance — a search that matches nothing changes the list",
+      "pass": true,
       "detail": "list changed"
     },
     {
-      "pass": true,
       "name": "/app/leave — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "status=manager_approved of 2 tried"
     },
     {
-      "pass": true,
       "name": "/app/billing — a search that matches nothing changes the list",
+      "pass": true,
       "detail": "list changed"
     },
     {
-      "pass": true,
       "name": "/app/billing — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "status=draft of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/cash-advances — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "status=pending of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/crm/leads — a search that matches nothing changes the list",
+      "pass": true,
       "detail": "list changed"
     },
     {
-      "pass": true,
       "name": "/app/crm/leads — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "status=new of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/crm/deals — a search that matches nothing changes the list",
+      "pass": true,
       "detail": "list changed"
     },
     {
-      "pass": true,
       "name": "/app/crm/deals — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "stage=new_lead of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/crm/proposals — a search that matches nothing changes the list",
+      "pass": true,
       "detail": "list changed"
     },
     {
-      "pass": true,
       "name": "/app/crm/proposals — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "status=draft of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/hr/nte — a search that matches nothing changes the list",
+      "pass": true,
       "detail": "list changed"
     },
     {
-      "pass": true,
       "name": "/app/hr/nte — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "status=draft of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/payroll/periods — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "status=draft of 1 tried"
     },
     {
+      "name": "/app/recruitment/jobs — a search that matches nothing changes the list",
       "pass": true,
-      "name": "/app/admin/users — a search that matches nothing changes the list",
       "detail": "list changed"
     },
     {
+      "name": "/app/recruitment/jobs — at least one dropdown option changes the list",
       "pass": true,
+      "detail": "status=draft of 1 tried"
+    },
+    {
+      "name": "/app/recruitment/applicants — a search that matches nothing changes the list",
+      "pass": true,
+      "detail": "list changed"
+    },
+    {
+      "name": "/app/recruitment/applicants — at least one dropdown option changes the list",
+      "pass": true,
+      "detail": "stage=applied of 1 tried"
+    },
+    {
+      "name": "/app/admin/users — a search that matches nothing changes the list",
+      "pass": true,
+      "detail": "list changed"
+    },
+    {
       "name": "/app/admin/users — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "role=account_manager of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/admin/organizations — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "type=internal of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/my/leave — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "status=pending of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/my/notifications — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "read=unread of 2 tried"
     },
     {
-      "pass": true,
       "name": "/app/client/attendance — at least one dropdown option changes the list",
-      "detail": "status=present of 1 tried"
+      "pass": true,
+      "detail": "status=late of 2 tried"
     },
     {
-      "pass": true,
       "name": "/app/client/billing — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "status=draft of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/client/documents — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "category=contract of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/client/notifications — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "read=read of 3 tried"
     },
     {
-      "pass": true,
       "name": "/app/client/requests — a search that matches nothing changes the list",
+      "pass": true,
       "detail": "list changed"
     },
     {
-      "pass": true,
       "name": "/app/client/requests — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "status=new of 1 tried"
     },
     {
-      "pass": true,
       "name": "/app/client/team — a search that matches nothing changes the list",
+      "pass": true,
       "detail": "list changed"
     },
     {
-      "pass": true,
       "name": "/app/applicant/notifications — at least one dropdown option changes the list",
+      "pass": true,
       "detail": "read=read of 3 tried"
     }
   ],
@@ -166,8 +186,6 @@
     "/app/attendance: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "/app/attendance/corrections: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "/app/approvals: no Apply form on this page — skipped",
-    "/app/recruitment/jobs: content is not stable across two identical loads — skipped",
-    "/app/recruitment/applicants: content is not stable across two identical loads — skipped",
     "/app/my/cash-advances: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "/app/my/documents: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "signed in as clientadmin@demo.beepabpo.com (client)",
@@ -176,25 +194,23 @@
     "/app/client/team: filter form has no dropdowns",
     "signed in as applicant@demo.beepabpo.com (applicant)"
   ],
-  "other": [
-    "========================================================================",
-    "filters exercised on 25 page(s) across 3 role(s); 5 page(s) skipped",
-    "30/30 assertions passed",
-    "notes:",
-    "  - signed in as owner@demo.beepabpo.com (internal)",
-    "  - /app/employees: filter form has no dropdowns",
-    "  - /app/attendance: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
-    "  - /app/attendance/corrections: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
-    "  - /app/approvals: no Apply form on this page — skipped",
-    "  - /app/recruitment/jobs: content is not stable across two identical loads — skipped",
-    "  - /app/recruitment/applicants: content is not stable across two identical loads — skipped",
-    "  - /app/my/cash-advances: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
-    "  - /app/my/documents: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
-    "  - signed in as clientadmin@demo.beepabpo.com (client)",
-    "  - /app/client/tickets: no Apply form on this page — skipped",
-    "  - /app/client/timesheets: no Apply form on this page — skipped",
-    "  - /app/client/team: filter form has no dropdowns",
-    "  - signed in as applicant@demo.beepabpo.com (applicant)"
-  ],
-  "confirmation": null
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "pagesTested": 27,
+    "pagesSkipped": 3,
+    "rolesDriven": 3,
+    "noEffectDropdownCandidates": []
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 34,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 34,
+    "printedFailures": 0
+  }
 }

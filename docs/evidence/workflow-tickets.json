@@ -1,196 +1,178 @@
 {
   "id": "tickets",
   "script": "scripts/audit/qa-exercise-tickets-workflow.mjs",
-  "claim": "ticket list, create, status transitions",
+  "claim": "the four remaining ticket actions: post a message, change a status, create an SLA policy, edit one",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T02:54:39.538Z",
+  "when": "2026-10-19T02:42:32.550Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 34,
   "checks": [
     {
-      "pass": true,
       "name": "staff sees the create-ticket form",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the create form requires a deliberate category",
-      "detail": "chose \"general\""
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a ticket exists for this run",
-      "detail": "e4915f10"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the ticket detail page shows a reply box",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a brand-new ticket has no first response yet",
-      "detail": "null"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the first staff reply stamps first_response_at",
-      "detail": "2026-10-17T02:53:34.782+00:00"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "exactly one message row exists",
-      "detail": "1 row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the message is stored as public, not internal",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a SECOND staff reply does not move the first-response clock",
-      "detail": "2026-10-17T02:53:34.782+00:00 -> 2026-10-17T02:53:34.782+00:00"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "both messages are stored",
-      "detail": "2 row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the status control is present",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "updateTicketStatus sets the status to resolved",
-      "detail": "resolved"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "resolving stamps resolved_at",
-      "detail": "2026-10-17T02:53:47.579+00:00"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the status change writes an audit row",
-      "detail": "1 row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the ticket can be moved back to an open status",
-      "detail": "in_progress"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "reopening CLEARS resolved_at rather than leaving a stale resolution date",
-      "detail": "null"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the SLA page lists policies",
-      "detail": "4 row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a create form is offered once the 'low' priority is free",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "an SLA whose resolution target is shorter than its first-response target is refused",
-      "detail": "no row written"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "createTicketSlaPolicy writes a policy",
-      "detail": "a50593c7"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the first-response target is stored as typed",
-      "detail": "30"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the resolution target is stored as typed",
-      "detail": "240"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the created policy is editable on the SLA page",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "updateTicketSlaPolicy refuses resolution < first-response too",
-      "detail": "stored 30/240"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "updateTicketSlaPolicy persists the new targets",
-      "detail": "45/300"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the SLA edit writes an audit row",
-      "detail": "1 row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no ticket is left carrying the marker",
-      "detail": "0"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no SLA policy is left carrying the marker",
-      "detail": "0"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the tickets table is back to its starting size",
-      "detail": "13 vs 13"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "ticket messages are back to their starting size",
-      "detail": "37 vs 37"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "SLA policies are back to their starting size",
-      "detail": "4 vs 4"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "every pre-existing SLA policy is back to exactly the values the run found",
-      "detail": "4 polic(ies) verified field by field"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no policy is left parked outside Beepa",
-      "detail": "none"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the scratch organization was removed",
-      "detail": "gone"
+      "pass": true
     }
   ],
   "failedAssertions": [],
   "notes": [
     "parked policy 510ba190 (priority 'low') under a scratch org to free that slot; the move is undone in the finally block"
   ],
-  "other": [
-    "before: tickets=13 messages=37 policies=4",
-    "(cleanup) tickets 13->13, messages 37->37, policies 4->4",
-    "(cleanup) rows still carrying the marker: 0 ticket(s), 0 policy(ies)",
-    "the sweep left the demo data as it found it: yes",
-    "34/34 assertions passed",
-    "notes:",
-    "  - parked policy 510ba190 (priority 'low') under a scratch org to free that slot; the move is undone in the finally block"
-  ],
-  "confirmation": null
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "before": {
+      "tickets": 13,
+      "messages": 37,
+      "policies": 4
+    },
+    "after": {
+      "tickets": 13,
+      "messages": 37,
+      "policies": 4
+    },
+    "driftedPolicies": []
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 34,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 34,
+    "printedFailures": 0
+  }
 }

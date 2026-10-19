@@ -1,207 +1,168 @@
 {
   "id": "money",
   "script": "scripts/audit/qa-exercise-money-workflow.mjs",
-  "claim": "cash advances and billing across the lifecycle",
+  "claim": "the two money paths: invoice plus payments against it, and a cash advance requested as an employee then reviewed as HR",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T03:00:07.561Z",
+  "when": "2026-10-19T02:25:42.346Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 39,
   "checks": [
     {
-      "pass": true,
       "name": "owner sees the issue-invoice form",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "issueInvoice creates an invoice",
-      "detail": "INV-20261017-8524"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the invoice total is quantity x unit rate",
-      "detail": "3751.5"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the currency is stored upper-cased",
-      "detail": "PHP"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a new invoice starts in status 'issued'",
-      "detail": "issued"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "issueInvoice writes exactly one line item",
-      "detail": "1 row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the line amount matches the invoice total",
-      "detail": "3751.5"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "issueInvoice writes an audit row",
-      "detail": "1 row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the invoice detail page shows the payment form",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a partial payment moves the invoice to 'partially_paid'",
-      "detail": "partially_paid"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "exactly one payment row exists",
-      "detail": "1 row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a date-only 'paid on' round-trips to the same calendar day",
-      "detail": "2026-03-05T00:00:00+00:00 -> 2026-03-05"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "settling the balance moves the invoice to 'paid'",
-      "detail": "paid"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the payment form is hidden once the invoice is fully paid",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "employee sees the cash advance request form",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "createCashAdvanceRequest writes a request",
-      "detail": "402ed7d7"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "submitting the request opened an approval workflow",
-      "detail": "step 1, pending"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a new request starts at 'hr_review'",
-      "detail": "hr_review"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the remaining balance starts equal to the amount requested",
-      "detail": "5000"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "HR sees the request in the review queue",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "an Approve control is offered on that row",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the confirmation dialog opens",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no unhandled error is shown to HR",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the approval engine recorded an action",
-      "detail": "1 action row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "reviewCashAdvance advances the request out of hr_review",
-      "detail": "hr_review -> finance_review"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the advanced status is one the workflow defines",
-      "detail": "finance_review"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the approval workflow wrote request rows",
-      "detail": "1 row(s)"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a second request exists to be rejected",
-      "detail": "a9916ddd"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "HR sees the rejection candidate in the queue",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "a Reject control is offered on that row",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "rejecting asks for confirmation that names the consequence",
-      "detail": "Reject cash advance? This request will be marked rejected. Cancel Reject"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "reviewCashAdvance('reject') moves the request to rejected",
-      "detail": "hr_review -> rejected"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the approval engine recorded the rejection, not an approval",
-      "detail": "reject; request rejected"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no unexpected console errors",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no page errors",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "invoice table is back to its starting size",
-      "detail": "7 vs 7"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "invoice items are back to their starting size",
-      "detail": "27 vs 27"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "invoice payments are back to their starting size",
-      "detail": "4 vs 4"
+      "pass": true
     },
     {
-      "pass": true,
       "name": "cash advance requests are back to their starting size",
-      "detail": "2 vs 2"
+      "pass": true
     }
   ],
   "failedAssertions": [],
@@ -209,17 +170,31 @@
     "paid_at is type=date, so the value is a bare YYYY-MM-DD parsed as UTC midnight, which stays on the same day for hosts between UTC-12 and UTC+11. This is the shape the NTE deadline got WRONG: that field carried a time component.",
     "Cash advance approval produced 'finance_review'. advanceApprovalRequest decides whether the two-step workflow completes; the run asserts the status it produced rather than assuming 'approved'."
   ],
-  "other": [
-    "client: CloudPeak (1a91499c)",
-    "employee: BEE-00020",
-    "before: invoices=7 items=27 payments=4 advances=2",
-    "(cleanup) approval rows created by this run and removed: 2",
-    "(cleanup) invoices 7->7, items 27->27, payments 4->4, advances 2->2",
-    "the sweep left the demo data as it found it: yes",
-    "39/39 assertions passed",
-    "notes:",
-    "  - paid_at is type=date, so the value is a bare YYYY-MM-DD parsed as UTC midnight, which stays on the same day for hosts between UTC-12 and UTC+11. This is the shape the NTE deadline got WRONG: that field carried a time component.",
-    "  - Cash advance approval produced 'finance_review'. advanceApprovalRequest decides whether the two-step workflow completes; the run asserts the status it produced rather than assuming 'approved'."
-  ],
-  "confirmation": null
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "before": {
+      "invoices": 7,
+      "items": 27,
+      "payments": 4,
+      "advances": 2
+    },
+    "after": {
+      "invoices": 7,
+      "items": 27,
+      "payments": 4,
+      "advances": 2
+    }
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 39,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 39,
+    "printedFailures": 0
+  }
 }

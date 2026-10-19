@@ -1,245 +1,230 @@
 {
   "id": "cms",
   "script": "scripts/audit/qa-exercise-cms-workflow.mjs",
-  "claim": "publish and unpublish round trip",
+  "claim": "the CMS end to end across all six content types plus the About page: create, edit, publish, archive, and the absence of any delete action",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T03:09:52.484Z",
+  "when": "2026-10-19T02:34:36.772Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 43,
   "checks": [
     {
-      "pass": true,
-      "name": "a cms.manage holder can open /app/cms  — /app/cms",
-      "detail": null
+      "name": "a cms.manage holder can open /app/cms",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "a user WITHOUT cms.manage sees no CMS content or forms  — url=/app/cms creationForms=0 cmsLists=0 (no denial banner — see note)",
-      "detail": null
+      "name": "a user WITHOUT cms.manage sees no CMS content or forms",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "owner can now reach the CMS (the cms.manage recovery grant works)  — url=/app/cms creationForms=7",
-      "detail": null
+      "name": "owner can now reach the CMS (the cms.manage recovery grant works)",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "create blog post: a draft row exists  — status=draft",
-      "detail": null
+      "name": "create blog post: a draft row exists",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "create blog post: it starts as a draft  — draft",
-      "detail": null
+      "name": "create blog post: it starts as a draft",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "update blog post: the edit is persisted  — row now reads \"QA Blog Edited qamvbtcx5q\"",
-      "detail": null
+      "name": "update blog post: the edit is persisted",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "status blog post: publish moves it to published  — published_at=set",
-      "detail": null
+      "name": "status blog post: publish moves it to published",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "status blog post: archive moves it to archived  — archived",
-      "detail": null
+      "name": "status blog post: archive moves it to archived",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "create service: a draft row exists  — status=draft",
-      "detail": null
+      "name": "create service: a draft row exists",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "create service: it starts as a draft  — draft",
-      "detail": null
+      "name": "create service: it starts as a draft",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "update service: the edit is persisted  — row now reads \"QA Service Edited qamvbtcx5q\"",
-      "detail": null
+      "name": "update service: the edit is persisted",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "status service: publish moves it to published  — published",
-      "detail": null
+      "name": "status service: publish moves it to published",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "status service: archive moves it to archived  — archived",
-      "detail": null
+      "name": "status service: archive moves it to archived",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "create FAQ: a draft row exists  — status=draft",
-      "detail": null
+      "name": "create FAQ: a draft row exists",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "create FAQ: it starts as a draft  — draft",
-      "detail": null
+      "name": "create FAQ: it starts as a draft",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "update FAQ: the edit is persisted  — row now reads \"QA question edited qamvbtcx5q?\"",
-      "detail": null
+      "name": "update FAQ: the edit is persisted",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "status FAQ: publish moves it to published  — published",
-      "detail": null
+      "name": "status FAQ: publish moves it to published",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "status FAQ: archive moves it to archived  — archived",
-      "detail": null
+      "name": "status FAQ: archive moves it to archived",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "create industry: a draft row exists  — status=draft",
-      "detail": null
+      "name": "create industry: a draft row exists",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "create industry: it starts as a draft  — draft",
-      "detail": null
+      "name": "create industry: it starts as a draft",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "update industry: the edit is persisted  — row now reads \"QA Industry Edited qamvbtcx5q\"",
-      "detail": null
+      "name": "update industry: the edit is persisted",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "status industry: publish moves it to published  — published",
-      "detail": null
+      "name": "status industry: publish moves it to published",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "status industry: archive moves it to archived  — archived",
-      "detail": null
+      "name": "status industry: archive moves it to archived",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "create testimonial: a draft row exists  — status=draft",
-      "detail": null
+      "name": "create testimonial: a draft row exists",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "create testimonial: it starts as a draft  — draft",
-      "detail": null
+      "name": "create testimonial: it starts as a draft",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "update testimonial: the edit is persisted  — row now reads \"QA Client Edited qamvbtcx5q\"",
-      "detail": null
+      "name": "update testimonial: the edit is persisted",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "status testimonial: publish moves it to published  — published",
-      "detail": null
+      "name": "status testimonial: publish moves it to published",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "status testimonial: archive moves it to archived  — archived",
-      "detail": null
+      "name": "status testimonial: archive moves it to archived",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "create case study: a draft row exists  — status=draft",
-      "detail": null
+      "name": "create case study: a draft row exists",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "create case study: it starts as a draft  — draft",
-      "detail": null
+      "name": "create case study: it starts as a draft",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "update case study: the edit is persisted  — row now reads \"QA Case Edited qamvbtcx5q\"",
-      "detail": null
+      "name": "update case study: the edit is persisted",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "status case study: publish moves it to published  — published",
-      "detail": null
+      "name": "status case study: publish moves it to published",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "status case study: archive moves it to archived  — archived",
-      "detail": null
+      "name": "status case study: archive moves it to archived",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "upsertAboutPage writes the About content  — headline=\"QA About headline qamvbtcx5q\"",
-      "detail": null
+      "name": "upsertAboutPage writes the About content",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "*** there is NO delete action for CMS content ***  — confirmed: content can be created, edited, published and archived, but never deleted",
-      "detail": null
+      "name": "*** there is NO delete action for CMS content ***",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no uncaught page errors during the CMS run",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no blog_posts rows leaked  — 5 -> 5",
-      "detail": null
+      "name": "no blog_posts rows leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no services rows leaked  — 10 -> 10",
-      "detail": null
+      "name": "no services rows leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no faqs rows leaked  — 14 -> 14",
-      "detail": null
+      "name": "no faqs rows leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no industries rows leaked  — 6 -> 6",
-      "detail": null
+      "name": "no industries rows leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no testimonials rows leaked  — 8 -> 8",
-      "detail": null
+      "name": "no testimonials rows leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no case_studies rows leaked  — 3 -> 3",
-      "detail": null
+      "name": "no case_studies rows leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the About page is exactly as it was found  — row absent again",
-      "detail": null
+      "name": "the About page is exactly as it was found",
+      "pass": true
     }
   ],
   "failedAssertions": [],
-  "notes": [
-    "no explicit \"access denied\" banner was shown; the page body began: \"Dashboard Attendance Schedule Leave Payroll Cash advances NTE Requests Documents Profile Support HR HR Attendance NTE Cases RECRUITMENT Recr\"",
-    "about page before this run: never set — the row will be removed again"
-  ],
-  "other": [
-    "marker: qamvbtcx5q",
-    "about page before: (never set)",
-    "  (cleanup) removed 1 blog post row(s) created by this run",
-    "  (cleanup) removed 1 service row(s) created by this run",
-    "  (cleanup) removed 1 FAQ row(s) created by this run",
-    "  (cleanup) removed 1 industry row(s) created by this run",
-    "  (cleanup) removed 1 testimonial row(s) created by this run",
-    "  (cleanup) removed 1 case study row(s) created by this run",
-    "  (cleanup) About row removed — it did not exist before this run",
-    "43/43 checks passed"
-  ],
-  "confirmation": null
+  "notes": [],
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "createdIds": [
+      {
+        "table": "blog_posts",
+        "id": "2386e0d3-552c-4c8f-99b9-cf0cbd433dc2"
+      },
+      {
+        "table": "services",
+        "id": "fb9fab2b-c2cf-479c-add5-9b1f5aa3de83"
+      },
+      {
+        "table": "faqs",
+        "id": "536d373f-bab0-4c45-9424-7d0457c46135"
+      },
+      {
+        "table": "industries",
+        "id": "c462d03e-8f67-4c8e-9fc8-4d889d1780b4"
+      },
+      {
+        "table": "testimonials",
+        "id": "5dfd625b-99a1-4348-acc5-3a54a2957e4b"
+      },
+      {
+        "table": "case_studies",
+        "id": "bb3e384b-8ea0-4dd2-9f3f-0611d2d20a75"
+      }
+    ],
+    "publicAbout": {
+      "key": "public_about"
+    }
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 43,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 43,
+    "printedFailures": 0
+  }
 }

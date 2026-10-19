@@ -1,124 +1,137 @@
 {
   "id": "leave",
   "script": "scripts/audit/qa-exercise-leave-workflow.mjs",
-  "claim": "request, approve/deny, balance impact",
+  "claim": "leave end to end: employee submits, team lead approves, HR approves, plus the cancel leg and the notifications each step sends",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T02:52:37.823Z",
+  "when": "2026-10-19T02:20:31.307Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 21,
   "checks": [
     {
+      "name": "Reset clears a dirty form back to defaults",
       "pass": true,
-      "name": "Reset clears a dirty form back to defaults  — start=(empty) end=(empty) reason=(empty)",
-      "detail": null
+      "detail": "start=(empty) end=(empty) reason=(empty)"
     },
     {
+      "name": "Reset returns the leave type to its placeholder",
       "pass": true,
-      "name": "Reset returns the leave type to its placeholder  — leave_type_id=(empty)",
-      "detail": null
+      "detail": "leave_type_id=(empty)"
     },
     {
+      "name": "Reset submits nothing",
       "pass": true,
-      "name": "Reset submits nothing  — 0 -> 0 leave requests created",
-      "detail": null
+      "detail": "0 -> 0 leave requests created"
     },
     {
+      "name": "leave request created",
       "pass": true,
-      "name": "leave request created  — id=847f4110-212e-4368-8b86-6494bf552c66 status=pending",
-      "detail": null
+      "detail": "id=96fb5441-180b-4aa9-8597-30f48b98534f status=pending"
     },
     {
+      "name": "leave request is pending",
       "pass": true,
-      "name": "leave request is pending  — status=pending",
-      "detail": null
+      "detail": "status=pending"
     },
     {
+      "name": "approval request created",
       "pass": true,
-      "name": "approval request created  — status=pending step=1",
-      "detail": null
+      "detail": "status=pending step=1"
     },
     {
+      "name": "team lead received leave.request",
       "pass": true,
-      "name": "team lead received leave.request  — \"Demo Employee requested 3 days of Emergency Leave (Nov 7 – Nov 9).\"",
-      "detail": null
+      "detail": "\"Demo Employee requested 3 days of Emergency Leave (Nov 9 – Nov 11).\""
     },
     {
+      "name": "notification body is specific (days + dates, not the old generic string)",
       "pass": true,
-      "name": "notification body is specific (days + dates, not the old generic string)  — Demo Employee requested 3 days of Emergency Leave (Nov 7 – Nov 9).",
-      "detail": null
+      "detail": "Demo Employee requested 3 days of Emergency Leave (Nov 9 – Nov 11)."
     },
     {
+      "name": "team lead approved step 1",
       "pass": true,
-      "name": "team lead approved step 1  — clicked + confirmed",
-      "detail": null
+      "detail": "clicked + confirmed"
     },
     {
+      "name": "workflow advanced to step 2 after one approval",
       "pass": true,
-      "name": "workflow advanced to step 2 after one approval  — step=2 status=pending",
-      "detail": null
+      "detail": "step=2 status=pending"
     },
     {
+      "name": "hr approved step 2",
       "pass": true,
-      "name": "hr approved step 2  — clicked + confirmed",
-      "detail": null
+      "detail": "clicked + confirmed"
     },
     {
+      "name": "approval_actions row written",
       "pass": true,
-      "name": "approval_actions row written  — 18 -> 20",
-      "detail": null
+      "detail": "26 -> 28"
     },
     {
+      "name": "leave request left pending",
       "pass": true,
-      "name": "leave request left pending  — status=approved",
-      "detail": null
+      "detail": "status=approved"
     },
     {
+      "name": "employee received leave.decision",
       "pass": true,
-      "name": "employee received leave.decision  — \"Your leave request for 3 days (Nov 7 – Nov 9) was approved by Demo HR.\"",
-      "detail": null
+      "detail": "\"Your leave request for 3 days (Nov 9 – Nov 11) was approved by Demo HR.\""
     },
     {
+      "name": "decision body names who decided / which dates",
       "pass": true,
-      "name": "decision body names who decided / which dates  — Your leave request for 3 days (Nov 7 – Nov 9) was approved by Demo HR.",
-      "detail": null
+      "detail": "Your leave request for 3 days (Nov 9 – Nov 11) was approved by Demo HR."
     },
     {
+      "name": "a second pending request exists to cancel",
       "pass": true,
-      "name": "a second pending request exists to cancel  — id=14612169-92fa-4b4a-a7b8-6cb8c63f821e",
-      "detail": null
+      "detail": "id=bf8986d7-5388-49aa-a1cf-416a9c029e89"
     },
     {
+      "name": "the pending request offers a Cancel control",
       "pass": true,
-      "name": "the pending request offers a Cancel control  — found",
-      "detail": null
+      "detail": "found"
     },
     {
+      "name": "Cancel asks for confirmation before withdrawing",
       "pass": true,
-      "name": "Cancel asks for confirmation before withdrawing  — confirm dialog shown",
-      "detail": null
+      "detail": "confirm dialog shown"
     },
     {
+      "name": "Cancel withdraws the request",
       "pass": true,
-      "name": "Cancel withdraws the request  — status=cancelled",
-      "detail": null
+      "detail": "status=cancelled"
     },
     {
+      "name": "Cancel leaves no actionable approval behind",
       "pass": true,
-      "name": "Cancel leaves no actionable approval behind  — cancelled",
-      "detail": null
+      "detail": "cancelled"
     },
     {
+      "name": "this run left no leave request behind",
       "pass": true,
-      "name": "this run left no leave request behind  — 0 residual before -> 0 after",
-      "detail": null
+      "detail": "0 residual before -> 0 after"
     }
   ],
   "failedAssertions": [],
   "notes": [],
-  "other": [
-    "baseline: 74 notifications, 18 approval actions, 0 residual exercise leaves",
-    "21/21 checks passed"
-  ],
-  "confirmation": null
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "residualBefore": 0,
+    "createdLeaveId": "96fb5441-180b-4aa9-8597-30f48b98534f",
+    "cancelledLeaveId": "bf8986d7-5388-49aa-a1cf-416a9c029e89"
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 21,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 21,
+    "printedFailures": 0
+  }
 }
