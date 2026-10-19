@@ -1479,6 +1479,34 @@ provider is not the cause. A failing set that changes identity between runs is a
 question, not an answer (§2.12b). It is **not** filed as a defect and is not
 chased further while each retry costs email budget.
 
+**RETRY 2026-10-19 13:20 — the moving failure set did not recur, and signup is
+still 429.** Run alone on a freshly restarted server, with no probe in front of
+it, exactly as recorded above: **35/35, exit 0**, including every password-change
+and sign-out-everywhere leg that failed in one of the two earlier runs. So the
+instability is not reproducing on demand, which is a data point and **not** a
+resolution — an intermittent fault that has not appeared in one run is still
+unexplained, and the password-grant hypothesis stands untested.
+
+The two BLOCKED paths now carry their reasons into the evidence file, which is
+what this batch fixed, and they are **different causes**:
+
+| Path | Reason |
+|---|---|
+| `forgot-password anti-enumeration comparison` | the real address hit the delivery ceiling; a sibling assertion confirms the COPY is identical when a send is allowed through |
+| `signup account creation` | `Supabase 429 email rate limit (environment)` |
+
+The first is the documented, deliberately accepted cost of surfacing a failed
+send as an error rather than masking it (`15a5193`), and the exercise classifies
+it correctly. The second is the quota, unchanged.
+
+**On the signup window specifically — a correction to how it was described.**
+It was recorded as "roughly one signup" per window, and two attempts 45 minutes
+apart both returned `429`. That is not an hourly window; it is a longer cap, and
+scheduling an hourly retry is the wrong response to it. **No further probe will
+be spent**: every probe costs the one attempt the exercise needs, which is
+exactly the mistake this section records. The next attempt should be made when
+the provider reports the quota reset, not on a timer.
+
 **The leading hypothesis, labelled as one — password grants, not email.** The
 obvious suspect was ruled out by reading rather than by re-running: `signIn()`
 already uses `fillHeld` and `submitAndWaitOutcome`, the employee portal's button

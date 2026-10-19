@@ -3,9 +3,9 @@
   "script": "scripts/audit/qa-exercise-auth-workflow.mjs",
   "claim": "the auth surface: sign-in, sign-out, account switching, password reset and the throwaway-account cleanup that proves none of it leaked",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T04:20:57.392Z",
-  "exitCode": 1,
-  "verdict": "FAIL",
+  "when": "2026-10-19T05:18:13.467Z",
+  "exitCode": 0,
+  "verdict": "PASS",
   "assertions": 35,
   "checks": [
     {
@@ -82,7 +82,7 @@
     },
     {
       "name": "the NEW password works for sign-in",
-      "pass": false
+      "pass": true
     },
     {
       "name": "the change can be undone from the UI",
@@ -149,12 +149,7 @@
       "pass": true
     }
   ],
-  "failedAssertions": [
-    {
-      "name": "the NEW password works for sign-in",
-      "pass": false
-    }
-  ],
+  "failedAssertions": [],
   "notes": [
     "both paths return the same wording when a send succeeds; the difference here is the environment's mail budget, not the copy",
     "account menu items: Demo Marketing Marketing · Beepa BPO Profile Settings Notifications Sign out Sign out everywhere"
@@ -163,8 +158,14 @@
   "writer": "exercise",
   "extra": {
     "blockedPaths": [
-      "forgot-password anti-enumeration comparison",
-      "signup account creation"
+      {
+        "what": "forgot-password anti-enumeration comparison",
+        "why": "the real address returned a delivery error (\"We couldn't send reset instructions. Try again i\") while the fake address returned the confirmation copy"
+      },
+      {
+        "what": "signup account creation",
+        "why": "Supabase 429 email rate limit (environment)"
+      }
     ]
   }
 }
