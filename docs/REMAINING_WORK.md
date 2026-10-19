@@ -1525,11 +1525,38 @@ on where in the sequence the ceiling is reached — which is exactly the observe
 signature, different assertions on different runs, a clean provider probe, and a
 server that a restart does not help.
 
-**This is a hypothesis, not a finding, and it has not been tested.** The test that
-would settle it costs email budget: run `auth-workflow` alone and have it record
-*which* grant number first fails, or probe the password grant directly N times
-without any browser. Recorded so the next attempt starts from a stated cause
-rather than repeating the same run and hoping the failing set matches.
+**This is a hypothesis, not a finding, and it has now been TESTED AND REFUTED.**
+
+The test cost no mail, which is why it was the right experiment: **password grants
+send no email**, so the quota that gates signup and forgot-password is untouched.
+Twenty consecutive grants against the REST endpoint, mirroring the accounts
+`auth-workflow` actually uses and in the order it uses them:
+
+```
+grants 1..20   HTTP 200 for all twenty, across owner / marketing /
+               clientadmin / hr @demo.beepabpo.com
+```
+
+The exercise performs roughly ten grants per run. **Twenty in a row, none
+refused**, so there is no password-grant ceiling being reached mid-run, and the
+hypothesis is wrong. The cheap explanation is now eliminated rather than merely
+unproven — which is a better position than the one it replaces, because the next
+person no longer has to test it.
+
+**What remains open, stated honestly.** The moving failure set has some cause
+that is neither the provider (200 for every account, from cold and now in a
+20-long run), nor accumulated server load (both failures came on freshly
+restarted servers), nor a grant ceiling (above). It has not reproduced in the
+run since. Chasing it further would mean repeating a multi-minute browser run
+that costs email budget, to chase a fault that appears in roughly 2 runs of 10.
+
+**The honest position is that this is unresolved and is not being resolved by
+guessing.** A failing set that changes identity between runs, with a clean
+provider and a clean server, is exactly the situation §2.12b describes; the
+answer to it is a reproduction with instrumentation, and the instrumentation
+does not exist yet. Adding a probe that records *which grant preceded the first
+failing assertion* is the smallest next step and is not implemented, because
+building it means editing an exercise whose every run currently costs a signup.
 
 ### 2.14 The control census was naming controls after their data
 
