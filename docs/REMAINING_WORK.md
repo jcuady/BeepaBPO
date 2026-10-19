@@ -1479,6 +1479,30 @@ provider is not the cause. A failing set that changes identity between runs is a
 question, not an answer (§2.12b). It is **not** filed as a defect and is not
 chased further while each retry costs email budget.
 
+**The leading hypothesis, labelled as one — password grants, not email.** The
+obvious suspect was ruled out by reading rather than by re-running: `signIn()`
+already uses `fillHeld` and `submitAndWaitOutcome`, the employee portal's button
+really is `button[type="submit"]`, and `submitAndWaitOutcome` waits for either a
+leave from `loginPath` or an `[role="alert"]` — so the instrument is not deciding
+the verdict on a timer or on a selector that does not match.
+
+What is left is the **order of operations inside one run**. `auth-workflow`
+performs roughly eight to ten password grants in sequence — wrong-password, real
+sign-in, "sign out everywhere", the second device, the client account, the
+employee portal, then the password-change leg. `test-auth-direct.mjs` performs
+**six** grants from a cold start and reports them all healthy. Those are not the
+same question: a budget that satisfies six grants from cold can still be
+exhausted part-way through a run, and the assertion that fails would then depend
+on where in the sequence the ceiling is reached — which is exactly the observed
+signature, different assertions on different runs, a clean provider probe, and a
+server that a restart does not help.
+
+**This is a hypothesis, not a finding, and it has not been tested.** The test that
+would settle it costs email budget: run `auth-workflow` alone and have it record
+*which* grant number first fails, or probe the password grant directly N times
+without any browser. Recorded so the next attempt starts from a stated cause
+rather than repeating the same run and hoping the failing set matches.
+
 ### 2.14 The control census was naming controls after their data
 
 §2.12 is about the workflow suite misattributing failures. This is the same
