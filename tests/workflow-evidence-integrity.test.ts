@@ -119,13 +119,19 @@ describe("evidence on disk", () => {
     const doc = JSON.parse(readFileSync(join(EVIDENCE_DIR, file), "utf8"));
     // The message goes on `expect`, not on `toContain`: vitest's matcher takes a
     // single argument, and a second one is a type error rather than a note.
+    //
+    // `.toBe(true)` is not optional. A bare `expect(bool, msg)` records nothing
+    // and always passes -- it is the no-op this repo's own
+    // `tests/no-bare-expect.test.ts` now forbids. It was written without the
+    // matcher here, and this assertion silently asserted nothing for as long as
+    // it existed.
     expect(
       EVIDENCE_VERDICTS.includes(doc.verdict),
       `${file} has verdict ${JSON.stringify(doc.verdict)}, which the rollup tallies in no ` +
         `bucket. It is not counted as a failure either, so it disappears from the tally ` +
         `while still contributing its assertions. Write evidence through ` +
         `scripts/audit/lib/evidence.mjs, which derives the verdict instead of taking it.`,
-    );
+    ).toBe(true);
   });
 });
 
@@ -205,7 +211,7 @@ describe("exercise evidence writers", () => {
       `${f} builds its evidence file by hand. Twenty copies of a verdict decision is how the ` +
         `lowercase/uppercase split happened in the first place. Import writeEvidence from ` +
         `scripts/audit/lib/evidence.mjs instead.`,
-    );
+    ).toBe(true);
     expect(code).not.toMatch(/verdict:\s*failed\.length\s*\?\s*"(pass|fail)"/);
   });
 

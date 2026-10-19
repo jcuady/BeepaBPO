@@ -139,7 +139,7 @@ describe("workflow evidence ownership", () => {
         `scripts/audit/lib/evidence.mjs. Twenty copies of a verdict decision is how the ` +
         `lowercase/uppercase split happened in the first place: the shared writer derives the ` +
         `verdict from the exit code so no caller can pass one, and a hand-rolled writer can.`,
-    );
+    ).toBe(true);
   });
 
   it.each(CASES)("%s writes its evidence after the exit code is decided", (_name, s) => {
@@ -154,7 +154,7 @@ describe("workflow evidence ownership", () => {
           : " writeEvidence derives the verdict from that code, so a write above it records 0 " +
             "and reports PASS for a run that failed. Move the writeEvidence call below the " +
             "last process.exitCode assignment."),
-    );
+    ).toBe(true);
   });
 
   it("the comment-stripping is load-bearing", () => {
@@ -213,5 +213,71 @@ describe("workflow evidence ownership", () => {
     // is no `process.exitCode =` assignment at all, so a rule without the
     // exemption would be reading this case the same way as the bad one above.
     expect(result.ok).toBe(true);
+  });
+});
+
+/**
+ * A blocked path must carry its REASON into the evidence file, not just its name.
+ *
+ * Two exercises recorded `blockedPaths` as a bare list of names, so the file said
+ * what was blocked and nothing about why. That is the whole distinction a reader
+ * needs: "the provider's mail budget" means wait, "the route 500s" means fix it.
+ * §2.13 exists because that distinction was lost — a blocked signup leg and a
+ * broken signup leg produced evidence that could not tell them apart.
+ *
+ * Asserted on source because the on-disk files predate the fix, and re-running
+ * the exercises to regenerate them costs the one email window being held.
+ */
+describe("blocked paths keep their reason", () => {
+  const auditDir = join(process.cwd(), "scripts", "audit");
+
+  const carriers = readdirSync(auditDir)
+    .filter((f) => /^qa-exercise-.*\.mjs$/.test(f))
+    .filter((f) => /blockedPaths:/.test(readFileSync(join(auditDir, f), "utf8")))
+    .sort();
+
+  it("the scan finds the carriers, so it is not vacuously empty", () => {
+    expect(carriers.length).toBeGreaterThan(0);
+  });
+
+  it.each(carriers)("%s does not reduce blockedPaths to bare names", (f) => {
+    const src = readFileSync(join(auditDir, f), "utf8");
+    // Comments stripped: the fix's own explanation names the old expression.
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    // Asserted POSITIVELY and with its own inputs in the failure text. The first
+    // version was `expect(!matches)`, which reports only "expected true, got
+    // false" when it fires -- and, worse, cannot be diagnosed when it does not,
+    // which is exactly what happened while this rule was being proven.
+    expect(
+      /blockedPaths:[^,\n]*\.map\(\(?\s*\w+\s*\)?\s*=>\s*\w+\.name\s*\)/.test(code),
+      `${f} maps blockedPaths down to a bare name (raw length ${src.length}, stripped ` +
+        `${code.length}), so the reason is printed and lost. A reader cannot tell ` +
+        `whether to wait for the environment or fix the product.`,
+    ).toBe(false);
+  });
+
+  it("a blocked record is stored with its reason, not printed and discarded", () => {
+    // The other half: `blocked()` had to start KEEPING the reason, or the
+    // `blockedPaths` mapping above would have nothing to map.
+    //
+    // Three idioms are accepted, because the repo does not have one:
+    //   qa-exercise-admin-workflow.mjs   push({ name, reason })  <- already correct
+    //   qa-exercise-auth-workflow.mjs    push({ what, why })
+    //   qa-exercise-client-timesheet...  push({ name, pass: null, reason })
+    //
+    // `admin-workflow` was the correct model all along and is what the other two
+    // were measured against -- its own comment says "recorded, not just printed".
+    for (const f of carriers) {
+      const code = readFileSync(join(auditDir, f), "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/^\s*\/\/.*$/gm, "");
+      const stores =
+        /pass:\s*null\s*,\s*reason/.test(code) ||
+        /push\(\{\s*\w+\s*,\s*(reason|why)\s*\}\)/.test(code);
+      expect(
+        stores,
+        `${f} has a blockedPaths mapping but nothing that puts a reason next to the name.`,
+      ).toBe(true);
+    }
   });
 });

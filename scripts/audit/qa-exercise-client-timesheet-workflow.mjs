@@ -64,7 +64,10 @@ const db = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_
 const results = [];
 const notes = [];
 const blocked = (name, reason) => {
-  results.push({ name, pass: null });
+  // The reason is stored, not only printed, so it reaches `blockedPaths` in the
+  // evidence file. An entry naming WHAT was blocked without WHY cannot tell a
+  // reader whether to wait for the environment or fix the product.
+  results.push({ name, pass: null, reason });
   console.log(`BLOCKED  ${name}  — ${reason}`);
 };
 const check = (name, pass, detail = "") => {
@@ -448,7 +451,7 @@ if ((await cliPage.getByRole("button", { name: "Approve" }).count()) === 0) {
         // whole file away. So the evaluable checks go to `checks` and the
         // refused paths to `extra`, which is where
         // `qa-exercise-admin-workflow.mjs` keeps its own.
-        blockedPaths: results.filter((r) => typeof r.pass !== "boolean").map((r) => r.name),
+        blockedPaths: results.filter((r) => typeof r.pass !== "boolean").map((r) => ({ name: r.name, reason: r.reason })),
         // The date the fixture was pinned to, which is why the record was
         // visible to the client queue at all.
         workDate: WORK_DATE,

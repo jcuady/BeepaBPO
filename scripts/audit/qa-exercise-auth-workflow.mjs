@@ -58,7 +58,15 @@ const check = (name, pass, detail = "") => {
   console.log(`${pass ? "PASS" : "FAIL"}  ${name}${detail ? `  — ${detail}` : ""}`);
 };
 const note = (msg) => { notes.push(msg); console.log(`NOTE  ${msg}`); };
-const markBlocked = (what, why) => { blocked.push(what); console.log(`BLOCKED  ${what}  — ${why}`); };
+// The reason is kept, not just printed. `blockedPaths` reaches the evidence file,
+// and an evidence entry that says WHAT was blocked but not WHY cannot answer the
+// only question a reader has about a blocked path: is this the environment (wait
+// for the quota) or the product (fix the code)? Those look identical in a file
+// that stores only the name, and 2.13 exists because that distinction was lost.
+const markBlocked = (what, why) => {
+  blocked.push({ what, why });
+  console.log(`BLOCKED  ${what}  — ${why}`);
+};
 async function must(p, what) {
   const { data, error } = await p;
   if (error) throw new Error(`${what}: ${error.message}`);
@@ -603,7 +611,7 @@ try {
 
   const failed = results.filter((r) => !r.pass);
   console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
-  if (blocked.length) console.log(`${blocked.length} path(s) BLOCKED by the environment: ${blocked.join(", ")}`);
+  if (blocked.length) console.log(`${blocked.length} path(s) BLOCKED by the environment: ${blocked.map((b) => b.what).join(", ")}`);
   if (failed.length) {
     console.log("\nFAILURES:");
     for (const f of failed) console.log(`  - ${f.name}`);
