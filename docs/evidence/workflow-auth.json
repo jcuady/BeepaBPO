@@ -3,9 +3,9 @@
   "script": "scripts/audit/qa-exercise-auth-workflow.mjs",
   "claim": "the auth surface: sign-in, sign-out, account switching, password reset and the throwaway-account cleanup that proves none of it leaked",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:19:43.399Z",
+  "when": "2026-10-19T04:20:57.392Z",
   "exitCode": 1,
-  "verdict": "FLAKY",
+  "verdict": "FAIL",
   "assertions": 35,
   "checks": [
     {
@@ -82,7 +82,7 @@
     },
     {
       "name": "the NEW password works for sign-in",
-      "pass": true
+      "pass": false
     },
     {
       "name": "the change can be undone from the UI",
@@ -149,7 +149,12 @@
       "pass": true
     }
   ],
-  "failedAssertions": [],
+  "failedAssertions": [
+    {
+      "name": "the NEW password works for sign-in",
+      "pass": false
+    }
+  ],
   "notes": [
     "both paths return the same wording when a send succeeds; the difference here is the environment's mail budget, not the copy",
     "account menu items: Demo Marketing Marketing · Beepa BPO Profile Settings Notifications Sign out Sign out everywhere"
@@ -161,16 +166,5 @@
       "forgot-password anti-enumeration comparison",
       "signup account creation"
     ]
-  },
-  "self": {
-    "verdict": "PASS",
-    "assertions": 35,
-    "failed": 0
-  },
-  "confirmation": "failed under suite load (1 assertion(s)), passed on a re-run 15s later",
-  "confirmedBy": "qa-run-workflows",
-  "suite": {
-    "parsedAssertions": 35,
-    "printedFailures": 1
   }
 }

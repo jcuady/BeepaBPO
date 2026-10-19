@@ -116,7 +116,7 @@ const TEMP_PASSWORD = "QaTemp#2026x";
 // complained about. The repo already learned this for `inviteUserByEmail`; see
 // `qa-exercise-client-invite.mjs`, which uses `@demo.beepabpo.com` for the same
 // reason.
-const SIGNUP_EMAIL = `qa.signup.${Date.now()}@demo.beepabpo.com`;
+const SIGNUP_EMAIL = `qa.signup.${Date.now()}@beepabpo.com`;
 
 // `must` returns the DATA, not `{ data }`. Destructuring it as `{ data }` yields
 // undefined and every downstream check silently sees an empty world.

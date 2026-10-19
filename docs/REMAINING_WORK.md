@@ -1425,6 +1425,60 @@ the mistake here, and it is recorded so the next attempt does not repeat it: the
 clean experiment is **exactly one** signup, on a deliverable domain, with the
 budget confirmed available first.
 
+**THIRD CORRECTION, 2026-10-19 — the domain question is answered, and then I
+spent the evidence myself.**
+
+One request on the **apex** domain, at a moment the window was open:
+
+```
+qa.signup.1792382903777@beepabpo.com    ->  no error, user created, deleted
+```
+
+So `@beepabpo.com` is **accepted** where `@demo.beepabpo.com` is refused `400`
+by user-initiated `signUp`. A `400` means the request got *past* the limiter and
+then failed validation, so this is a property of the address rather than of the
+budget — and the third instance in this repo of one domain, two APIs, one valid
+and one not. `inviteUserByEmail` (admin) accepts `demo.`; `signUp` (user) does
+not. Copying the precedent from `qa-exercise-client-invite.mjs` was correct for
+the admin API and wrong for the user path. The fixture now uses the apex.
+
+**Then I ran the auth exercise, and its signup leg was BLOCKED on "Supabase 429"
+— and that 429 was mine.** A second single probe, minutes later:
+
+```
+qa.probe.<ts>@beepabpo.com  ->  429 email rate limit exceeded
+```
+
+**The window holds roughly one signup.** My probe took it, and the exercise that
+followed had nothing left. I announced "signup accepted, 2.13 closes" and then
+reported a suite in which signup was blocked; both statements were true and the
+second was caused by the first. This is the confound §2.12's "change one
+variable" entry warns about, committed against myself: **a probe that consumes
+the resource under test invalidates the next measurement, and the invalidation is
+invisible because the next measurement's failure reads as a fresh fact.**
+
+**Established, and not established.**
+
+- *Established:* the apex is accepted, the `demo.` subdomain is refused by
+  user-initiated `signUp`. The fixture change is correct on its own evidence.
+- *Not established:* that the signup leg passes end to end. It has never run with
+  a window available, and every attempt costs one signup, so **the window must be
+  left for the exercise rather than spent on a probe.**
+
+**How this closes.** Wait for the window, then run `qa-exercise-auth-workflow.mjs`
+**alone, with no probe before it**. If the leg passes, §2.13 closes. Until then the
+correct reading of BLOCKED is *"unverified for want of one email send"*, not
+*"the fix did not work"*.
+
+**Separately, an open question recorded rather than claimed.** Two runs of that
+exercise on a freshly restarted server failed **different** assertions — first
+`a client user can sign in at /login` and `an internal user gets through the
+employee portal`, then `the NEW password works for sign-in` — while
+`test-auth-direct.mjs` reported HTTP 200 for all six demo accounts, so the
+provider is not the cause. A failing set that changes identity between runs is a
+question, not an answer (§2.12b). It is **not** filed as a defect and is not
+chased further while each retry costs email budget.
+
 ### 2.14 The control census was naming controls after their data
 
 §2.12 is about the workflow suite misattributing failures. This is the same
