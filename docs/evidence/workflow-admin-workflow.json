@@ -3,8 +3,8 @@
   "script": "scripts/audit/qa-exercise-admin-workflow.mjs",
   "claim": "admin surfaces: cron dry run, test push, invite (both legs), role change, revoke",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T08:20:29.130Z",
-  "exitCode": 0,
+  "when": "2026-10-19T00:38:46.944Z",
+  "exitCode": 2,
   "verdict": "BLOCKED",
   "assertions": 23,
   "checks": [
@@ -125,19 +125,23 @@
     }
   ],
   "failedAssertions": [],
-  "blockedPaths": [
-    {
-      "name": "invite creates an account",
-      "reason": "Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a fresh SMTP quota or a project that is not being hammered; the error IS surfaced to the user."
-    }
-  ],
   "notes": [],
-  "auditLogs": {
-    "before": 690,
-    "after": 695
-  },
-  "notifications": {
-    "before": 75,
-    "after": 75
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "blockedPaths": [
+      {
+        "name": "invite creates an account",
+        "reason": "Supabase auth rate-limited outbound email (HTTP 429). The invite path needs a fresh SMTP quota or a project that is not being hammered; the error IS surfaced to the user."
+      }
+    ],
+    "auditLogs": {
+      "before": 700,
+      "after": 705
+    },
+    "notifications": {
+      "before": 75,
+      "after": 75
+    }
   }
 }

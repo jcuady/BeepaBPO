@@ -63,7 +63,29 @@ for (const f of files) {
     console.error(`ABORT: ${f} is unreadable (${e.message}). A corrupt evidence file is not evidence.`);
     process.exit(2);
   }
-  const checks = Array.isArray(doc.checks) ? doc.checks : [];
+  // A missing `checks` array is a MALFORMED evidence file, not an empty one.
+  //
+  // This read `Array.isArray(doc.checks) ? doc.checks : []`, which looks like a
+  // harmless default and was not. Three exercises wrote their own evidence with
+  // the assertions under `results` instead of `checks`; after any standalone run
+  // of one of them, this index read that exercise as ZERO assertions --
+  // silently, no warning -- shrinking the behaviour universe that
+  // `qa-control-surface-census.mjs` measures its control-overlap against. An
+  // instrument that cannot distinguish "this exercise asserted nothing" from
+  // "this file is shaped wrong" will report the second as the first, and both
+  // are reported as a smaller number.
+  const checks = Array.isArray(doc.checks) ? doc.checks : null;
+  if (!checks) {
+    console.error(
+      `ABORT: ${f} has no \`checks\` array.\n` +
+        "       An evidence file that records no assertions is malformed, not empty.\n" +
+        "       Every exercise writes through scripts/audit/lib/evidence.mjs, which\n" +
+        "       emits `checks`; a file without it predates that or has been edited by\n" +
+        "       hand. Reading it as zero assertions would quietly shrink every number\n" +
+        "       derived from this index, so nothing is indexed and nothing is reported.",
+    );
+    process.exit(2);
+  }
   exercises.push({
     id: doc.id ?? f.replace(/^workflow-|\.json$/g, ""),
     claim: doc.claim ?? null,

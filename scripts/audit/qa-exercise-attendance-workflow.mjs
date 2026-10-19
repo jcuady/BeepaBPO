@@ -27,10 +27,11 @@
 //
 // Usage: node scripts/audit/qa-exercise-attendance-workflow.mjs
 
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -554,33 +555,29 @@ try {
   // it. A stale red record for a defect that is already fixed is the exact failure
   // the evidence rule exists to prevent. `qa-exercise-admin-workflow.mjs` was given
   // the same treatment for the same reason.
+  //
+  // The verdict is derived by `writeEvidence` rather than spelled here. It was
+  // `failed.length ? "fail" : "pass"` -- lowercase -- and the rollup tallies
+  // UPPERCASE, so a standalone run of this exercise put its 31 assertions in
+  // `totalAssertions` while appearing in no bucket at all. A full suite run hid
+  // it, because the orchestrator overwrites every file it touches afterwards.
   try {
-    mkdirSync("docs/evidence", { recursive: true });
-    writeFileSync(
-      "docs/evidence/workflow-attendance.json",
-      JSON.stringify(
-        {
-          id: "attendance",
-          script: "scripts/audit/qa-exercise-attendance-workflow.mjs",
-          claim:
-            "an employee clocks in and out from /app/my/attendance, HR enters a record manually, " +
-            "and nothing is left behind",
-          base: BASE,
-          when: new Date().toISOString(),
-          timezone: EMPLOYEE_TZ,
-          todayUsed: TODAY,
-          exitCode: process.exitCode ?? 0,
-          verdict: failed.length ? "fail" : "pass",
-          assertions: results.length,
-          failedAssertions: failed,
-          notes,
-          results,
-        },
-        null,
-        2,
-      ) + "\n",
-    );
-    console.log("wrote docs/evidence/workflow-attendance.json");
+    const { file } = writeEvidence({
+      id: "attendance",
+      script: "scripts/audit/qa-exercise-attendance-workflow.mjs",
+      claim:
+        "an employee clocks in and out from /app/my/attendance, HR enters a record manually, " +
+        "and nothing is left behind",
+      base: BASE,
+      checks: results,
+      notes,
+      exitCode: process.exitCode ?? 0,
+      // The timezone this run used is part of the claim. §2.12a traced one real
+      // audit bug to UTC-vs-employee-timezone, so a reader must be able to see
+      // which zone produced the numbers rather than trust that it was the same.
+      extra: { timezone: EMPLOYEE_TZ, todayUsed: TODAY },
+    });
+    console.log(`wrote ${file}`);
   } catch (err) {
     console.error(
       "could not write evidence:",

@@ -1,184 +1,147 @@
 {
   "id": "attendance",
   "script": "scripts/audit/qa-exercise-attendance-workflow.mjs",
-  "claim": "clock in/out, corrections, HR approval, delete",
+  "claim": "an employee clocks in and out from /app/my/attendance, HR enters a record manually, and nothing is left behind",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T02:51:34.964Z",
+  "when": "2026-10-19T00:37:08.996Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 31,
   "checks": [
     {
-      "pass": true,
-      "name": "precondition: the employee has no attendance record for today  — clean slate",
-      "detail": null
+      "name": "precondition: the employee has no attendance record for today",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the employee can sign in and reach the app  — /app/my",
-      "detail": null
+      "name": "the employee can sign in and reach the app",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "Clock In creates today's record  — status=incomplete",
-      "detail": null
+      "name": "Clock In creates today's record",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "Clock In sets clock_in_at and leaves clock_out_at empty  — in=02:50:33 out=null",
-      "detail": null
+      "name": "Clock In sets clock_in_at and leaves clock_out_at empty",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the card offers Clock Out once clocked in",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "Clock Out sets clock_out_at  — in=02:50:33 out=02:50:42",
-      "detail": null
+      "name": "Clock Out sets clock_out_at",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "worked_minutes matches the actual gap between the two clock times  — worked_minutes=0 actual gap=0 min",
-      "detail": null
+      "name": "worked_minutes matches the actual gap between the two clock times",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "clock out is later than clock in  — 2026-10-17T02:50:33.227527+00:00 -> 2026-10-17T02:50:42.424894+00:00",
-      "detail": null
+      "name": "clock out is later than clock in",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the correction request was created  — status=pending",
-      "detail": null
+      "name": "the correction request was created",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the correction starts pending  — pending",
-      "detail": null
+      "name": "the correction starts pending",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "it raised an approval request on the attendance_correction workflow  — status=pending step=1 entity=b4c12aa6",
-      "detail": null
+      "name": "it raised an approval request on the attendance_correction workflow",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "HR can sign in  — /app/my",
-      "detail": null
+      "name": "HR can sign in",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "HR can see this pending correction on /app/attendance/corrections  — found \"wrong\"",
-      "detail": null
+      "name": "HR can see this pending correction on /app/attendance/corrections",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "HR approved the correction",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "*** the corrected clock-in reads back as the time that was requested ***  — asked for 8:00 AM, record shows 8:00 AM (stored 2026-10-17T00:00:00Z)",
-      "detail": null
+      "name": "*** the corrected clock-in reads back as the time that was requested ***",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "*** the corrected clock-out reads back as the time that was requested ***  — asked for 5:00 PM, record shows 5:00 PM (stored 2026-10-17T09:00:00Z)",
-      "detail": null
+      "name": "*** the corrected clock-out reads back as the time that was requested ***",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "worked_minutes matches the corrected shift (09:00 = 540 min)  — worked_minutes=540 (expected 540)",
-      "detail": null
+      "name": "worked_minutes matches the corrected shift (09:00 = 540 min)",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the approved record is marked finalized  — finalized",
-      "detail": null
+      "name": "the approved record is marked finalized",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "precondition: no record on 2026-03-02  — clean",
-      "detail": null
+      "name": "precondition: no record on 2026-03-02",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the attendance page offers 'Add attendance record'",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "HR manual entry creates a record  — status=present",
-      "detail": null
+      "name": "HR manual entry creates a record",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "manual entry stores the times in the employee's timezone (the control)  — record shows 9:00 AM - 6:00 PM (stored 2026-03-02T01:00:00Z)",
-      "detail": null
+      "name": "manual entry stores the times in the employee's timezone (the control)",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "manual entry derives worked_minutes from the entered times  — worked_minutes=540 (expected 540)",
-      "detail": null
+      "name": "manual entry derives worked_minutes from the entered times",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the created record appears in the heatmap  — 10 cell(s) labelled with \"Mon 2 Mar\"; labels on screen: [\"Demo Owner, Mon 2 Mar, Empty. Open\",\"Demo Owner, Tue 3 Mar, Empty. Open\",\"Demo Owner, Wed 4 Mar, Empty. Open\"]",
-      "detail": null
+      "name": "the created record appears in the heatmap",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "the cell for \"Demo Employee\" on 2026-03-02 is identifiable",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
       "name": "opening an existing record offers Delete",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "HR delete removes the record  — removed",
-      "detail": null
+      "name": "HR delete removes the record",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no uncaught page errors during the attendance run",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no attendance records leaked  — 201 -> 201",
-      "detail": null
+      "name": "no attendance records leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no correction requests leaked  — 0 -> 0",
-      "detail": null
+      "name": "no correction requests leaked",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no approval requests leaked  — 37 -> 37",
-      "detail": null
+      "name": "no approval requests leaked",
+      "pass": true
     }
   ],
   "failedAssertions": [],
   "notes": [
-    "clocked 02:50:33Z -> 02:50:42Z = 0 min",
+    "clocked 00:36:18Z -> 00:36:26Z = 0 min",
     "finalized-record guard: exercised only through the UI, never by deleting live rows"
   ],
-  "other": [
-    "employee: employee@demo.beepabpo.com -> 108f95ff-e47f-414f-8ec2-0e49f075edb0 (tz Asia/Manila)",
-    "today in Asia/Manila: 2026-10-17 (host UTC date would be 2026-10-17)",
-    "(node:9212) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/jcuad/OneDrive/Documents/BeepoBeepa/lib/attendance/zoned-time.ts is not specified and it doesn't parse as CommonJS.",
-    "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
-    "To eliminate this warning, add \"type\": \"module\" to C:\\Users\\jcuad\\OneDrive\\Documents\\BeepoBeepa\\package.json.",
-    "(Use `node --trace-warnings ...` to show where the warning was created)",
-    "  (cleanup) removed 1 approval request(s) this run created",
-    "31/31 checks passed",
-    "wrote docs/evidence/workflow-attendance.json"
-  ],
-  "confirmation": null
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "timezone": "Asia/Manila",
+    "todayUsed": "2026-10-19"
+  }
 }

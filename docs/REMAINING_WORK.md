@@ -924,6 +924,62 @@ rest keep whatever the last completed run wrote — which can be a red record fo
 defect that was fixed afterwards. That is exactly what happened to attendance: it
 passed 31/31 on its own while its evidence file still read `FAIL`.
 
+**THE THREE THAT WROTE IT THEMSELVES WROTE A VERDICT NOBODY COULD COUNT — fixed
+2026-10-19.** Porting the pattern is what exposed this. All three self-writers
+spelled their own verdict, and two of them spelled it **lowercase**:
+
+```js
+verdict: failed.length ? "fail" : "pass",     // uncovered-roles, attendance
+verdict: failed.length ? "FAIL" : blocked.length ? "BLOCKED" : "PASS",   // admin
+```
+
+The rollup tallies **uppercase** — `tally("PASS")`, `tally("FAIL")`,
+`tally("BLOCKED")`, `tally("SKIPPED")`, FLAKY — and `rollupFailed` filters on
+`"FAIL"`. A lowercase verdict therefore matched **no bucket at all**, and was not
+counted as a failure either. Measured on the evidence directory before the fix:
+
+```
+workflow-uncovered-roles.json   verdict="pass"  19 assertions
+workflow-attendance.json        verdict="fail"/"pass"
+workflow-admin-workflow.json    verdict="BLOCKED" (correct)
+```
+
+So a standalone run of `uncovered-roles` put its 19 assertions into
+`totalAssertions` while making the exercise **invisible in the tally** — and §2.12c
+tells you to run an exercise alone when the suite is untrustworthy, so the defect
+was guaranteed to surface exactly when it mattered. It was hidden in a full suite
+run only because the orchestrator overwrites every file it touches with its own
+uppercase verdict afterwards. Two silent-zero paths in the same audit chain: an
+exercise disappears from the rollup, and the assertion index drops it to zero.
+
+**A second silent path, in the consumer.** `qa-workflow-assertion-index.mjs` read
+`Array.isArray(doc.checks) ? doc.checks : []`, and the three self-writers put their
+assertions under `results`. So after any standalone run, the index read that
+exercise as **zero assertions, with no warning** — shrinking the behaviour universe
+that `qa-control-surface-census.mjs` measures its 92.7% control-overlap against. The
+committed index was generated 2026-10-16, before those writers existed in that
+shape, and shows no exercise at zero, so nothing published was wrong. The path was
+live, though, and a fallback that cannot tell "asserted nothing" from "shaped wrong"
+reports the second as the first. That read now aborts the run instead.
+
+**The fix is one shared writer, not three corrections.** `scripts/audit/lib/evidence.mjs`
+derives the verdict from the exit code and the checks, and **no caller may pass one**
+— so the lowercase form is unrepresentable rather than discouraged, which is the only
+durable answer to a convention held by twenty files. It also removes a third copy of
+the rule. One real ordering bug fell out of the conversion:
+`qa-exercise-admin-workflow.mjs` wrote its evidence **before** setting
+`process.exitCode`, so the file recorded `0` whatever happened; the write now sits
+after the exit code is decided, which is also what makes deriving the verdict
+correct rather than approximate.
+
+Verified by running each converted exercise standalone, the path that used to hide
+this: `uncovered-roles` **19/19**, `attendance` **31/31**, `admin-workflow` **23/23
+exit 2 (1 BLOCKED — the invite leg, email quota)**. All three now write
+`verdict` uppercase, `writer: "exercise"`, and their assertions under `checks`.
+`tests/workflow-evidence-integrity.test.ts` (35 tests) holds the line: it fails on
+any evidence file whose verdict the rollup cannot count, on any exercise that
+hand-rolls its writer, and on a scan that finds no writers at all.
+
 **P3, deliberately not done now.** Porting the pattern is mechanical (copy the
 `finally`-shaped writer, assert on the failure and throw paths), and doing it one
 file at a time has already produced one real fix. It is not urgent while every

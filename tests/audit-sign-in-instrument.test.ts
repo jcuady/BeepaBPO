@@ -151,12 +151,21 @@ describe("uncovered-roles exercise — the instrument, not the product, decides 
     // This file sat at `verdict: FAIL`, 16/17, describing a defect in its own
     // instrument while passing 19/19 twice in a row -- because nothing but the
     // orchestrator wrote it, and the orchestrator could not finish under load.
-    expect(code).toContain("docs/evidence/workflow-uncovered-roles.json");
+    //
+    // These assertions changed shape when the writer moved into
+    // `scripts/audit/lib/evidence.mjs`: the file no longer spells the evidence
+    // path or an `assertions:` field itself, so matching on those would have
+    // tested the old shape rather than the property. What is asserted is the
+    // property -- this exercise writes its OWN evidence, for ITS OWN id, with
+    // the per-account detail and a measurement rather than a bare verdict.
+    // `tests/workflow-evidence-integrity.test.ts` covers what the writer emits.
+    expect(code).toMatch(/writeEvidence\(\{/);
+    expect(code).toMatch(/id:\s*"uncovered-roles"/);
     // The per-account destinations, so "the failing account changed every run"
     // is checkable from the evidence rather than taken on trust.
     expect(code).toMatch(/signIns/);
-    // A measurement, not a bare verdict.
-    expect(code).toMatch(/assertions:\s*results\.length/);
+    // A measurement, not a bare verdict: the assertions themselves are handed over.
+    expect(code).toMatch(/checks:\s*results/);
   });
 
   it("proves stripComments is load-bearing rather than silently passing", () => {

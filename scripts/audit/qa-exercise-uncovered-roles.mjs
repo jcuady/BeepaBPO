@@ -70,7 +70,8 @@
 // Usage:
 //   node --env-file=.env.local scripts/audit/qa-exercise-uncovered-roles.mjs
 
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { writeEvidence } from "./lib/evidence.mjs";
 import { chromium } from "@playwright/test";
 
 const env = {};
@@ -497,34 +498,33 @@ process.exitCode = failed.length ? 1 : 0;
 // defect in the instrument rather than the product, while the exercise it
 // describes was passing 19/19 twice in a row. A stale red record for something
 // already fixed is precisely what the evidence rule exists to prevent.
+//
+// Written BEFORE `process.exit` rather than in a `finally`: `process.exit` does
+// not unwind the stack, so a `finally` here would never run at all.
+//
+// The verdict is derived by `writeEvidence`, not spelled here. It used to be
+// `failed.length ? "fail" : "pass"` -- lowercase -- and the rollup tallies
+// UPPERCASE, so a standalone run of this exercise landed its 19 assertions in
+// `totalAssertions` while appearing in no bucket at all. See
+// `scripts/audit/lib/evidence.mjs`.
 try {
-  mkdirSync("docs/evidence", { recursive: true });
-  writeFileSync(
-    "docs/evidence/workflow-uncovered-roles.json",
-    JSON.stringify(
-      {
-        id: "uncovered-roles",
-        script: "scripts/audit/qa-exercise-uncovered-roles.mjs",
-        claim: "sales, finance, client_viewer: the three roles no other exercise drives",
-        base: BASE,
-        when: new Date().toISOString(),
-        exitCode: process.exitCode,
-        verdict: failed.length ? "fail" : "pass",
-        assertions: results.length,
-        failedAssertions: failed,
-        // Per-account destinations, so "the failing account changed every run"
-        // can be checked here instead of taken on trust. `landingPathFor`
-        // decides them: CRM-first internals to /app/crm, other internals to
-        // /app/my, clients to /app/client.
-        signIns,
-        notes,
-        results,
-      },
-      null,
-      2,
-    ) + "\n",
-  );
-  console.log("wrote docs/evidence/workflow-uncovered-roles.json");
+  const { file } = writeEvidence({
+    id: "uncovered-roles",
+    script: "scripts/audit/qa-exercise-uncovered-roles.mjs",
+    claim: "sales, finance, client_viewer: the three roles no other exercise drives",
+    base: BASE,
+    checks: results,
+    notes,
+    exitCode: process.exitCode ?? 0,
+    extra: {
+      // Per-account destinations, so "the failing account changed every run"
+      // can be checked here instead of taken on trust. `landingPathFor`
+      // decides them: CRM-first internals to /app/crm, other internals to
+      // /app/my, clients to /app/client.
+      signIns,
+    },
+  });
+  console.log(`wrote ${file}`);
 } catch (err) {
   console.error(
     "could not write evidence:",

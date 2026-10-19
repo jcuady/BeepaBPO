@@ -12,7 +12,8 @@
 //
 // Usage: node scripts/audit/qa-exercise-admin-workflow.mjs [--no-cleanup]
 
-import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { writeEvidence } from "./lib/evidence.mjs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld, submitAndWaitOutcome } from "./lib/browser-form.mjs";
@@ -527,39 +528,13 @@ await page.getByRole("button", { name: "Send invite" }).click();
   // `when: 02:07` after a 23-check run at 06:20, and a reader had no way to tell
   // the file was stale except by noticing the date.
   //
-  // Written in `finally`, so a crashed run still leaves a record of having run —
-  // the same rule as the other seven exercises fixed in this pass.
-  // `docs/evidence/` exists because every other exercise writes there, but this
-  // one may be the first thing to run on a fresh checkout.
-  mkdirSync("docs/evidence", { recursive: true });
-  writeFileSync(
-    "docs/evidence/workflow-admin-workflow.json",
-    JSON.stringify(
-      {
-        id: "admin-workflow",
-        script: "scripts/audit/qa-exercise-admin-workflow.mjs",
-        claim: "admin surfaces: cron dry run, test push, invite (both legs), role change, revoke",
-        base: BASE,
-        when: new Date().toISOString(),
-        exitCode: process.exitCode ?? 0,
-        // BLOCKED is a real outcome here, not a failure: the new-address invite
-        // needs SMTP quota this project does not have.
-        verdict: failed.length ? "FAIL" : blocked.length ? "BLOCKED" : "PASS",
-        assertions: results.length,
-        checks: results,
-        failedAssertions: failed.map((r) => r.name),
-        // Recorded, not just printed — the reason a path is unproven belongs next
-        // to the run that could not prove it.
-        blockedPaths: blocked,
-        notes,
-        auditLogs: { before: auditBefore, after: auditAfter },
-        notifications: { before: notifBefore, after: notifAfter },
-      },
-      null,
-      2,
-    ) + "\n",
-  );
-  console.log("wrote docs/evidence/workflow-admin-workflow.json");
+  // Written in `finally`, so a crashed run still leaves a record of having run.
+  //
+  // The write sits at the END of this block, after `process.exitCode` is set.
+  // It used to sit at the top, which meant `process.exitCode` was still unset
+  // when the verdict was computed, so the file recorded `0` whatever happened.
+  // `writeEvidence` derives the verdict from the exit code, so the write has to
+  // come after it is decided. See the call below.
 
   console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
   if (blocked.length) {
@@ -573,4 +548,27 @@ await page.getByRole("button", { name: "Send invite" }).click();
   // maps 0 to PASS. Exit 2 is the code the runners already treat as BLOCKED.
   if (failed.length) process.exitCode = 1;
   else if (blocked.length) process.exitCode = 2;
+
+  // Written here, after the exit code is set, because `writeEvidence` derives the
+  // verdict from it: 1 -> FAIL, 2 -> BLOCKED, 0 -> PASS. That reproduces the rule
+  // this file spelled out by hand (`failed ? FAIL : blocked ? BLOCKED : PASS`)
+  // without a second copy of it. BLOCKED is a real outcome here, not a failure:
+  // the new-address invite needs SMTP quota this project does not have.
+  const { file } = writeEvidence({
+    id: "admin-workflow",
+    script: "scripts/audit/qa-exercise-admin-workflow.mjs",
+    claim: "admin surfaces: cron dry run, test push, invite (both legs), role change, revoke",
+    base: BASE,
+    checks: results,
+    notes,
+    exitCode: process.exitCode ?? 0,
+    extra: {
+      // Recorded, not just printed: the reason a path is unproven belongs next
+      // to the run that could not prove it.
+      blockedPaths: blocked,
+      auditLogs: { before: auditBefore, after: auditAfter },
+      notifications: { before: notifBefore, after: notifAfter },
+    },
+  });
+  console.log(`wrote ${file}`);
 }

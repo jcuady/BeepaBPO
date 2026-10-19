@@ -3,49 +3,11 @@
   "script": "scripts/audit/qa-exercise-uncovered-roles.mjs",
   "claim": "sales, finance, client_viewer: the three roles no other exercise drives",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T06:30:08.363Z",
+  "when": "2026-10-19T00:31:44.911Z",
   "exitCode": 0,
-  "verdict": "pass",
+  "verdict": "PASS",
   "assertions": 19,
-  "failedAssertions": [],
-  "signIns": [
-    {
-      "label": "finance",
-      "ok": true,
-      "url": "http://localhost:3100/app/my",
-      "cause": null,
-      "alert": null,
-      "fills": 1
-    },
-    {
-      "label": "sales",
-      "ok": true,
-      "url": "http://localhost:3100/app/crm",
-      "cause": null,
-      "alert": null,
-      "fills": 1
-    },
-    {
-      "label": "client_admin",
-      "ok": true,
-      "url": "http://localhost:3100/app/client",
-      "cause": null,
-      "alert": null,
-      "fills": 1
-    },
-    {
-      "label": "client_viewer",
-      "ok": true,
-      "url": "http://localhost:3100/app/client",
-      "cause": null,
-      "alert": null,
-      "fills": 1
-    }
-  ],
-  "notes": [
-    "client billing renders its shell for client_viewer with zero amounts rather than a denial page. Nothing is exposed -- `billing.read` is not granted to the role -- but an empty surface a user cannot fill is worth a considered decision rather than a default."
-  ],
-  "results": [
+  "checks": [
     {
       "name": "finance signs in",
       "pass": true,
@@ -141,5 +103,47 @@
       "pass": true,
       "detail": "money=0 [] url=http://localhost:3100/app/client/billing"
     }
-  ]
+  ],
+  "failedAssertions": [],
+  "notes": [
+    "client billing renders its shell for client_viewer with zero amounts rather than a denial page. Nothing is exposed -- `billing.read` is not granted to the role -- but an empty surface a user cannot fill is worth a considered decision rather than a default."
+  ],
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "signIns": [
+      {
+        "label": "finance",
+        "ok": true,
+        "url": "http://localhost:3100/app/my",
+        "cause": null,
+        "alert": null,
+        "fills": 1
+      },
+      {
+        "label": "sales",
+        "ok": true,
+        "url": "http://localhost:3100/app/crm",
+        "cause": null,
+        "alert": null,
+        "fills": 1
+      },
+      {
+        "label": "client_admin",
+        "ok": true,
+        "url": "http://localhost:3100/app/client",
+        "cause": null,
+        "alert": null,
+        "fills": 1
+      },
+      {
+        "label": "client_viewer",
+        "ok": true,
+        "url": "http://localhost:3100/app/client",
+        "cause": null,
+        "alert": null,
+        "fills": 1
+      }
+    ]
+  }
 }
