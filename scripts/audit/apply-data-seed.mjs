@@ -130,7 +130,13 @@ async function main() {
   await upsert("site_settings", [
     { key: "public_contact", value: { email: "hello@beepabpo.com", phone: "+63 (2) 8123 4567", address_line1: "Beepa BPO", address_line2: "Makati City, Metro Manila, Philippines" }, description: "Public contact info shown in footer and /contact page." },
     { key: "public_social", value: { linkedin: "https://www.linkedin.com/company/beepa", facebook: "https://www.facebook.com/beepa", instagram: "https://www.instagram.com/beepa", youtube: "https://www.youtube.com/@beepa" }, description: "Public social URLs shown in footer." },
-    { key: "public_seo", value: { title: "BeepoBPO | People-First BPO Outsourcing Partner", description: "BeepoBPO is a people-first BPO partner for dependable support, ops, and talent teams. Scale with confidence.", og_image: "/images/og.png", twitter_handle: "@beepabpo" }, description: "Default SEO overrides for the public site." },
+    // The brand string here was the retired "BeepoBPO" until 2026-10-19, and
+    // this row is readable by an ANONYMOUS visitor -- it is one of the three
+    // `site_settings` keys the public RLS policy exposes. Re-running this seed
+    // would have put the old spelling back into a public setting, in a
+    // database the source tree does not describe. Kept in step with
+    // `lib/site.ts`; see migration 20261019221500_public_seo_brand.sql.
+    { key: "public_seo", value: { title: "Beepa BPO | People-First Outsourcing in the Philippines", description: "Beepa BPO is a people-first outsourcing partner in the Philippines for customer support, operations and offshore teams. Tell us what you need.", og_image: "/images/og.png", twitter_handle: "@beepabpo" }, description: "Default SEO overrides for the public site. Kept in step with the brand in lib/site.ts." },
   ], "key");
 
   console.log("\n=== BATCH 1 DONE ===\n");

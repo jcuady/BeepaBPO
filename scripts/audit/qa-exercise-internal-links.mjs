@@ -47,9 +47,10 @@
 //
 // Usage: node scripts/audit/qa-exercise-internal-links.mjs
 
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -208,7 +209,17 @@ for (const role of ROLES) {
     await page.waitForURL(/\/app/, { timeout: 20000 }).catch(() => {});
     await page.waitForLoadState("domcontentloaded");
     if (page.url().includes("/login")) {
-      note(`${role.label}: ${role.email} could not sign in — skipped`);
+      // A role that cannot sign in is a FAILED crawl, not a note. This used to
+      // `note()` and `continue`, which dropped the role's entire link sweep while
+      // the run still printed a clean tally and exited 0 — so on 2026-10-19 the
+      // `internal` (owner) group silently vanished, taking 102 of the 167 links
+      // this gate exists to check, and the evidence still read `PASS`.
+      // "We did not look" is not a pass. It is a smaller run wearing a green badge.
+      check(
+        `${role.label} — the crawler could sign in and reach the app`,
+        false,
+        `${role.email} was still on ${page.url()}`,
+      );
       await context.close();
       continue;
     }
@@ -436,28 +447,33 @@ if (notes.length) {
   for (const n of notes) console.log(`  - ${n}`);
 }
 
-// Evidence, not a claim. This was the last check in the suite with no evidence
-// file at all, so a broken internal link existed only as terminal scrollback.
-// The runner reports `evidence: null` for a check, which is how the gap stayed
-// invisible: nothing flagged it, because nothing was asked.
-mkdirSync("docs/evidence", { recursive: true });
-writeFileSync(
-  "docs/evidence/internal-links-check.json",
-  JSON.stringify(
-    {
-      check: "internal-links",
-      generatedAt: new Date().toISOString(),
-      base: BASE,
-      total: results.length,
-      passed,
-      failures: results.length - passed,
-      results,
-      notes,
-    },
-    null,
-    2,
-  ) + "\n",
-);
-console.log("wrote docs/evidence/internal-links-check.json");
-
 process.exitCode = passed === results.length ? 0 : 1;
+
+// Evidence, written by the exercise itself, after the last `process.exitCode`
+// assignment because `writeEvidence` derives the verdict from it. Assigning the
+// exit code afterwards would record 0 and certify a failed run as PASS.
+// See `scripts/audit/lib/evidence.mjs`.
+//
+// This used to hand-roll its own `internal-links-check.json` with
+// `{check, generatedAt, total, passed, results}` and no verdict at all. Nothing
+// was wrong with the result -- 29/29, 0 failures -- but the shape meant the
+// assertion index could not read it (no `checks` key, no `verdict`), so the one
+// gate the census defers all navigation coverage to was invisible to the rollup.
+// A gate that passes and cannot be counted is not yet evidence.
+try {
+  const { file } = writeEvidence({
+    id: "internal-links",
+    script: "scripts/audit/qa-exercise-internal-links.mjs",
+    claim: "no internal anchor lands on a 404, a forbidden page, a /login bounce or an unexpected redirect, for every role that can see it",
+    base: BASE,
+    checks: results,
+    notes,
+    exitCode: process.exitCode ?? 0,
+  });
+  console.log(`wrote ${file}`);
+} catch (err) {
+  console.error(
+    "could not write evidence:",
+    err instanceof Error ? err.message : String(err),
+  );
+}

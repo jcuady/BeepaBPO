@@ -41,7 +41,7 @@ export function clampDescription(text: string, max = DESCRIPTION_MAX): string {
 /**
  * Fit a title into the SERP budget *including* the brand suffix.
  *
- * The root layout applies a `%s | BeepoBPO` template, so a 58-character CMS
+ * The root layout applies a `%s | ${BRAND.name}` template, so a 58-character CMS
  * title becomes a 68-character result and Google cuts it mid-word. Measuring
  * the page title alone therefore hides the overflow — the number that matters is
  * the composed one.

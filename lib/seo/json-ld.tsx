@@ -62,7 +62,7 @@ export function servicesItemListJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "BeepoBPO outsourcing services",
+    name: `${BRAND.name} outsourcing services`,
     itemListElement: SERVICES_CATALOG.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,

@@ -1,6 +1,6 @@
 {
   "check": "gate-coverage",
-  "generatedAt": "2026-10-17T07:48:14.529Z",
+  "generatedAt": "2026-10-19T14:13:24.444Z",
   "pkg": "package.json",
   "gateRunners": [
     "scripts/audit/qa-run-all.mjs",
@@ -8,14 +8,18 @@
   ],
   "verdict": "covered",
   "verdictText": "every declared audit script is wired into a release gate",
-  "declaredCount": 37,
-  "gatedCount": 30,
+  "declaredCount": 38,
+  "gatedCount": 31,
   "ungatedCount": 0,
   "notGateCount": 7,
   "gated": [
     {
       "name": "smoke:cron",
       "file": "scripts/smoke-cron.mjs"
+    },
+    {
+      "name": "audit:careers",
+      "file": "scripts/audit/qa-exercise-public-careers.mjs"
     },
     {
       "name": "audit:tables",

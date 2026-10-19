@@ -1,6 +1,6 @@
 {
   "check": "seo-metadata",
-  "generatedAt": "2026-10-16T04:26:57.303Z",
+  "generatedAt": "2026-10-19T13:21:38.513Z",
   "origin": "http://localhost:3100",
   "verdict": "clean",
   "verdictText": "all 24 sitemap URL(s) carry complete metadata",
@@ -9,7 +9,7 @@
   "urls": [
     {
       "path": "/",
-      "titleLength": 55,
+      "titleLength": 56,
       "descriptionLength": 156,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -28,7 +28,7 @@
     },
     {
       "path": "/services",
-      "titleLength": 19,
+      "titleLength": 20,
       "descriptionLength": 139,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -41,7 +41,7 @@
     },
     {
       "path": "/why-beepa",
-      "titleLength": 20,
+      "titleLength": 21,
       "descriptionLength": 142,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -54,8 +54,8 @@
     },
     {
       "path": "/careers",
-      "titleLength": 18,
-      "descriptionLength": 99,
+      "titleLength": 19,
+      "descriptionLength": 142,
       "canonicalCount": 1,
       "hasOgImage": true,
       "hasOgUrl": true,
@@ -67,7 +67,7 @@
     },
     {
       "path": "/about",
-      "titleLength": 16,
+      "titleLength": 17,
       "descriptionLength": 104,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -80,7 +80,7 @@
     },
     {
       "path": "/resources",
-      "titleLength": 20,
+      "titleLength": 21,
       "descriptionLength": 74,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -93,7 +93,7 @@
     },
     {
       "path": "/case-studies",
-      "titleLength": 23,
+      "titleLength": 24,
       "descriptionLength": 134,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -106,7 +106,7 @@
     },
     {
       "path": "/contact",
-      "titleLength": 48,
+      "titleLength": 49,
       "descriptionLength": 135,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -119,7 +119,7 @@
     },
     {
       "path": "/security",
-      "titleLength": 39,
+      "titleLength": 40,
       "descriptionLength": 143,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -132,7 +132,7 @@
     },
     {
       "path": "/pricing",
-      "titleLength": 18,
+      "titleLength": 19,
       "descriptionLength": 159,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -145,7 +145,7 @@
     },
     {
       "path": "/privacy",
-      "titleLength": 25,
+      "titleLength": 26,
       "descriptionLength": 93,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -158,7 +158,7 @@
     },
     {
       "path": "/terms",
-      "titleLength": 27,
+      "titleLength": 28,
       "descriptionLength": 142,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -170,9 +170,9 @@
       ]
     },
     {
-      "path": "/careers/hr",
-      "titleLength": 34,
-      "descriptionLength": 158,
+      "path": "/careers/customer-support-specialist",
+      "titleLength": 49,
+      "descriptionLength": 68,
       "canonicalCount": 1,
       "hasOgImage": true,
       "hasOgUrl": true,
@@ -185,7 +185,7 @@
     },
     {
       "path": "/careers/support",
-      "titleLength": 52,
+      "titleLength": 53,
       "descriptionLength": 159,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -198,36 +198,8 @@
       ]
     },
     {
-      "path": "/careers/quality",
-      "titleLength": 46,
-      "descriptionLength": 160,
-      "canonicalCount": 1,
-      "hasOgImage": true,
-      "hasOgUrl": true,
-      "hasOgTitle": true,
-      "hasTwitterCard": true,
-      "jsonLdTypes": [
-        "BreadcrumbList",
-        "JobPosting"
-      ]
-    },
-    {
-      "path": "/careers/customer-support-specialist",
-      "titleLength": 48,
-      "descriptionLength": 68,
-      "canonicalCount": 1,
-      "hasOgImage": true,
-      "hasOgUrl": true,
-      "hasOgTitle": true,
-      "hasTwitterCard": true,
-      "jsonLdTypes": [
-        "BreadcrumbList",
-        "JobPosting"
-      ]
-    },
-    {
       "path": "/careers/payroll",
-      "titleLength": 36,
+      "titleLength": 37,
       "descriptionLength": 150,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -240,8 +212,36 @@
       ]
     },
     {
+      "path": "/careers/quality",
+      "titleLength": 47,
+      "descriptionLength": 160,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "JobPosting"
+      ]
+    },
+    {
+      "path": "/careers/hr",
+      "titleLength": 35,
+      "descriptionLength": 158,
+      "canonicalCount": 1,
+      "hasOgImage": true,
+      "hasOgUrl": true,
+      "hasOgTitle": true,
+      "hasTwitterCard": true,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "JobPosting"
+      ]
+    },
+    {
       "path": "/resources/how-we-source-in-18-days",
-      "titleLength": 52,
+      "titleLength": 53,
       "descriptionLength": 98,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -254,7 +254,7 @@
     },
     {
       "path": "/resources/us-hours-without-overtime",
-      "titleLength": 58,
+      "titleLength": 59,
       "descriptionLength": 83,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -267,7 +267,7 @@
     },
     {
       "path": "/resources/payroll-back-vs-payroll-build",
-      "titleLength": 56,
+      "titleLength": 57,
       "descriptionLength": 107,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -280,7 +280,7 @@
     },
     {
       "path": "/resources/when-not-to-outsource",
-      "titleLength": 39,
+      "titleLength": 40,
       "descriptionLength": 68,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -293,7 +293,7 @@
     },
     {
       "path": "/case-studies/cloudpeak-support-pod",
-      "titleLength": 54,
+      "titleLength": 55,
       "descriptionLength": 91,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -306,7 +306,7 @@
     },
     {
       "path": "/case-studies/northwind-dispatcher-coverage",
-      "titleLength": 58,
+      "titleLength": 59,
       "descriptionLength": 95,
       "canonicalCount": 1,
       "hasOgImage": true,
@@ -319,7 +319,7 @@
     },
     {
       "path": "/case-studies/lumen-ramp-quality",
-      "titleLength": 59,
+      "titleLength": 60,
       "descriptionLength": 65,
       "canonicalCount": 1,
       "hasOgImage": true,

@@ -99,6 +99,7 @@ const WORKFLOWS = [
 const REGISTERED_ELSEWHERE = {
   "qa-exercise-client-invite.mjs": "qa-run-all.mjs (email budget — one invite per window)",
   "qa-exercise-internal-links.mjs": "qa-run-all.mjs (public + app link sweep)",
+  "qa-exercise-public-careers.mjs": "qa-run-all.mjs (public careers search + filters; creates no fixtures)",
   "qa-exercise-reset-password.mjs": "email budget — run directly after a wait",
 };
 

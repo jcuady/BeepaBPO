@@ -168,6 +168,45 @@ describeIf("live data smoke (nwvnawgxkzwiercllgmg)", () => {
     expect(synced).toBeGreaterThanOrEqual(10);
   });
 
+  test("the public site_settings carry no retired brand spelling", async () => {
+    // Read with the ANON key, not the service key. `public_seo`, `public_contact`
+    // and `public_social` are the three `site_settings` rows the RLS policy
+    // exposes to an anonymous visitor, so the question is not "what does the
+    // database contain" but "what does the PUBLIC get".
+    //
+    // The retired spelling was live here until 2026-10-19: `public_seo` served
+    // "BeepoBPO | People-First BPO Outsourcing Partner" to anyone who asked,
+    // while the site's own metadata came from `lib/site.ts` and said "Beepa
+    // BPO". The source tree does not describe this row, so a source-level
+    // check cannot see it -- only a read of the live public surface can.
+    const anon = createClient(URL!, env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+      auth: { persistSession: false },
+    });
+
+    const { data, error } = await anon
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["public_seo", "public_contact", "public_social"]);
+
+    expect(error, "anonymous read of the public settings failed").toBeNull();
+    // Not vacuous: if the anon policy changed and this read returned nothing,
+    // every assertion below would pass for the wrong reason.
+    expect(data?.length, "the anon read returned no public settings").toBe(3);
+
+    for (const row of data ?? []) {
+      const serialised = JSON.stringify(row.value);
+      expect(
+        serialised,
+        `${row.key} still publishes the retired brand spelling`,
+      ).not.toMatch(/BeepoBPO/i);
+    }
+
+    // And the row that names the site names it the way the site does.
+    const seo = (data ?? []).find((r) => r.key === "public_seo");
+    const seoValue = (seo?.value ?? {}) as Record<string, string>;
+    expect(String(seoValue.title ?? ""), "public_seo title").toContain("Beepa BPO");
+  });
+
   test("Stuck ticket TKT-DEMO-0001 was re-opened with an SLA", async () => {
     // This used to assert `sla_due_at > Date.now()` and failed on 2026-10-14 with
     // every assertion about the CODE true, because the seed had set the SLA to

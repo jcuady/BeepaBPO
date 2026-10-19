@@ -174,8 +174,10 @@ describe("exercise evidence writers", () => {
 
   it("the scan finds the known writers, so it is not vacuously empty", () => {
     // Grown from three to twenty-one when the remaining exercises were moved onto
-    // the shared writer. The list stays exact and stays sorted: it is the cheapest
-    // place a new `qa-exercise-*.mjs` shows up as NOT writing its own evidence.
+    // the shared writer, then to twenty-three when the public link sweep and the
+    // public careers sweep were converted. The list stays exact and stays sorted:
+    // it is the cheapest place a new `qa-exercise-*.mjs` shows up as NOT writing
+    // its own evidence.
     expect(owners).toEqual([
       "qa-exercise-admin-workflow.mjs",
       "qa-exercise-attendance-workflow.mjs",
@@ -185,6 +187,7 @@ describe("exercise evidence writers", () => {
       "qa-exercise-crm-workflow.mjs",
       "qa-exercise-documents-workflow.mjs",
       "qa-exercise-hire-workflow.mjs",
+      "qa-exercise-internal-links.mjs",
       "qa-exercise-leave-workflow.mjs",
       "qa-exercise-list-filters.mjs",
       "qa-exercise-money-workflow.mjs",
@@ -192,6 +195,7 @@ describe("exercise evidence writers", () => {
       "qa-exercise-nte-workflow.mjs",
       "qa-exercise-payroll-workflow.mjs",
       "qa-exercise-profile-workflow.mjs",
+      "qa-exercise-public-careers.mjs",
       "qa-exercise-recruitment-workflow.mjs",
       "qa-exercise-signup-workflow.mjs",
       "qa-exercise-sitemap-unpublish.mjs",

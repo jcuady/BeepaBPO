@@ -1,6 +1,6 @@
 # Remaining work — what is still needed to finish
 
-**Updated:** 2026-10-09 · **Branch:** `fix/auth-signout-scope-and-payroll-coherence` (working tree clean)
+**Updated:** 2026-10-19 · **Branch:** `main`
 > No HEAD SHA is pinned here on purpose — a doc committed in commit X cannot name X, so the pin goes stale on the next commit. `PROJECT_STATUS.md` holds the live gate numbers.
 
 This is the forward-looking document: what is done, what is blocked, and the exact
@@ -12,15 +12,19 @@ lives in `SYSTEM_AUDIT.md`.
 
 ## 0. One-paragraph state
 
-**The platform is shippable.** The 18-step gate passes end to end — *"All checks passed.
-Ship it."* exit 0 — covering typecheck, lint, 504 unit tests, production build, RBAC, page
-wiring, page inventory, design-system and filter-persistence audits, a nav-driven crawl of 219
-pages across all 13 roles, a 224-combination responsive sweep, and 100 Playwright tests against
-a production build. The two blockers that remained on 2026-10-08 are closed: the payroll overlap
-was **fiction, not a conflict** (the draft period's records were `engine: stub_v1` with zero
-statutory deductions, so there was no second payroll result to reconcile), and all eight
-migrations are applied with zero pending. Nothing now blocks a release. What remains is
-optional follow-up, listed in §1.
+**The platform is shippable.** The release gate passes end to end — *"All checks passed.
+Ship it."* exit 0 — covering typecheck, lint, **991 unit tests across 106 files**,
+production build, RBAC, page wiring, page inventory, design-system and filter-persistence
+audits, plus a nav-driven crawl of the app across all 13 roles, a responsive sweep, and
+Playwright tests against a production build. Two blockers that remained on 2026-10-08 are
+closed: the payroll overlap was **fiction, not a conflict** (the draft period's records were
+`engine: stub_v1` with zero statutory deductions, so there was no second payroll result to
+reconcile), and all eight migrations are applied with zero pending.
+
+The **email quota** that blocked signup since 2026-10-17 is also closed as of 2026-10-19:
+run alone on a freshly restarted server with no probe in front of it, the auth exercise
+returned 36/36 with the signup leg **PASS** (§2.13). Nothing now blocks a release. What
+remains is optional follow-up, listed in §1.
 
 ---
 
@@ -1316,7 +1320,8 @@ testing, which is a question about authority rather than about the cause.
 
 ### 2.13 Signup was blocked by the provider's mail budget, and one error shape is unexplained
 
-**PARTLY RESOLVED 2026-10-18 — see the correction at the end. Read that first.**
+**RESOLVED 2026-10-19 — the signup leg PASSED. See "CLOSURE" at the end of this
+section. One question inside it remains open and is stated as open there.**
 
 **Blocked, environment.** Measured 2026-10-17 by calling `/auth/v1/signup` directly, with no
 browser and no Next.js in the path:
@@ -1493,7 +1498,7 @@ what this batch fixed, and they are **different causes**:
 | Path | Reason |
 |---|---|
 | `forgot-password anti-enumeration comparison` | the real address hit the delivery ceiling; a sibling assertion confirms the COPY is identical when a send is allowed through |
-| `signup account creation` | `Supabase 429 email rate limit (environment)` |
+| `signup account creation` | `Supabase 429 email rate limit (environment)` — **superseded 2026-10-19: this path now PASSES. See the CLOSURE below.** |
 
 The first is the documented, deliberately accepted cost of surfacing a failed
 send as an error rather than masking it (`15a5193`), and the exercise classifies
@@ -1557,6 +1562,58 @@ answer to it is a reproduction with instrumentation, and the instrumentation
 does not exist yet. Adding a probe that records *which grant preceded the first
 failing assertion* is the smallest next step and is not implemented, because
 building it means editing an exercise whose every run currently costs a signup.
+
+**CLOSURE 2026-10-19 19:51 +08:00 — the signup leg PASSED, and §2.13 closes.**
+
+Run exactly the way this section specified, because the way it is run is what
+made the previous attempts uninformative: **the production build was rebuilt and
+the server on 3100 was restarted, and `qa-exercise-auth-workflow.mjs` was then run
+ALONE with no probe in front of it.** No signup was spent on a probe first.
+
+```
+36/36 checks passed
+1 path(s) BLOCKED by the environment: forgot-password anti-enumeration comparison
+exit 0
+```
+
+The two assertions this section existed to produce:
+
+```
+PASS  signup creates an account and asks for email verification
+PASS  a new signup lands in the applicant membership with the applicant role
+      — type=applicant roles=[applicant]
+```
+
+So **signup on an accepted domain works end to end**: the account is created, the
+verification notice is sent, the row lands in the applicant membership with the
+applicant role, and the throwaway account is cleaned up afterwards (the run's
+own leak checks passed — auth users 14 -> 14, membership rows 14 -> 14,
+notifications 76 -> 76). Evidence: `docs/evidence/workflow-auth.json`.
+
+**The remaining BLOCKED path is the documented one, not a new problem.**
+`forgot-password anti-enumeration comparison` is BLOCKED because the real
+address hit the delivery ceiling while the fake address returned the
+confirmation copy. The sibling assertion that actually tests the property
+PASSED — *"IDENTICAL COPY CONFIRMED via the sibling assertion"* — because both
+paths return the same wording when a send is allowed through, and the
+difference here is the environment's mail budget, not the copy. This is the
+accepted cost of surfacing a failed send as an error rather than masking it
+(`15a5193`).
+
+**One question inside this section is NOT closed, and is not closed by this
+run.** The moving failure set — the one where different assertions fail on
+different runs — did not recur: every password-change and sign-out-everywhere
+leg passed, on a freshly restarted server, with no code change to the auth
+path. That is the **third** consecutive non-reproduction (the 13:20 retry
+above, the run of 2026-10-18, and this one). A fault that has not appeared in
+three runs out of three is still **unexplained** — non-reproduction is a data
+point, not a resolution, and nothing here should be read as "the
+password-grant hypothesis was right" (it was tested and refuted) or as "the
+instability is fixed". The instrumentation that would answer it — a probe
+recording which grant preceded the first failing assertion — is still not
+built, for the same reason it was not built before: every run of that exercise
+costs a signup, and that signup is worth more as a measurement than as a
+reproduction attempt.
 
 ### 2.14 The control census was naming controls after their data
 

@@ -49,7 +49,25 @@ const CHECKS = [
   { id: "dialog-keyboard",  tier: "fast",  cmd: ["scripts/audit/qa-probe-dialog-keyboard.mjs"],  evidence: "docs/evidence/dialog-keyboard-check.json", what: "confirm dialogs: focus in, focus back, Escape and Cancel" },
   { id: "command-palette",  tier: "fast",  cmd: ["scripts/audit/qa-probe-command-palette.mjs"],  evidence: "docs/evidence/command-palette-check.json", what: "cmd-K opens, filters, navigates, returns focus" },
   { id: "notification-bell",tier: "fast",  cmd: ["scripts/audit/qa-probe-notification-bell.mjs"],evidence: "docs/evidence/notification-bell-check.json",what: "bell accessible name, AA contrast, keyboard exit" },
-  { id: "internal-links",   tier: "fast",  cmd: ["scripts/audit/qa-exercise-internal-links.mjs"],evidence: "docs/evidence/internal-links-check.json", what: "no internal link lands on an error page" },
+  { id: "internal-links",   tier: "fast",  cmd: ["scripts/audit/qa-exercise-internal-links.mjs"],evidence: "docs/evidence/workflow-internal-links.json", what: "no internal link lands on an error page" },
+
+  // `/careers` grew a search box, three filter selects, filter chips and two
+  // distinct empty states, and NOTHING asserted any of it. `internal-links` walks
+  // the routes; it never types in a box. So the page could have had a filter that
+  // matched nothing, a chip that cleared the wrong param, or an empty state that
+  // said "no jobs" while five were open — every other check green, because every
+  // other check looks at the page, not at what it does when you touch it.
+  //
+  // Fast tier on purpose: it is 16 assertions over ~10 unauthenticated GETs of
+  // server-rendered HTML, so it needs only a running server. It is NOT in the
+  // workflow tier because it creates no fixtures — those exercises share one
+  // Supabase database, and this one can run beside anything.
+  //
+  // HTTP, not a browser. The claim under test is "the server emitted these rows
+  // for these params", and a browser sits between the reader and that question.
+  // It asserts over the corpus size before trusting any negative, so an empty
+  // result cannot be reported as a working filter.
+  { id: "public-careers",   tier: "fast",  cmd: ["scripts/audit/qa-exercise-public-careers.mjs"],evidence: "docs/evidence/workflow-public-careers.json", what: "careers search, three filters, chips, both empty states, and the account CTA return path" },
 
   // Static, no browser. Added because a form's Reset button existed in five
   // components and silently did nothing on most of its fields -- nothing caught

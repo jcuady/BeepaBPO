@@ -1,7 +1,7 @@
 # QA REPORT — BeepoBeepa
 
-**Date:** 2026-10-10 · **Role:** Principal Full-Stack Engineer + QA Engineer
-**Branch:** `fix/auth-signout-scope-and-payroll-coherence` · **Target:** production build on `:3100`
+**Date:** 2026-10-10 (current state: the 2026-10-19 addendum below) · **Role:** Principal Full-Stack Engineer + QA Engineer
+**Branch:** `main` · **Target:** production build on `:3100`
 **Supabase:** `nwvnawgxkzwiercllgmg`
 
 This pass answers a question the existing audits did not ask. `audit-role-pages.mjs`
@@ -10,6 +10,106 @@ typecheck?* Neither asks **does the page work once you are there, and does it sh
 user anything real?**
 
 ---
+
+## 0. Addendum — brand, careers and AI-readiness pass (2026-10-19)
+
+**Read this first.** The sections below it are dated reports of runs made on the dates
+they carry; they are history, and their numbers were true when measured. This section is
+the current state.
+
+| Check | Result |
+|---|---|
+| **Ship gate** (`verify-all.mjs`) | **23/23 steps passed** — *"All checks passed. Ship it."* exit 0 |
+| **Vitest** | **993/993 across 106 files** |
+| **Fast QA tier** (`qa-run-all.mjs`) | **15/16 passed, 1 BLOCKED by the environment** (`client-invite`, the mail quota) — exit 0. Evidence in `docs/evidence/qa-suite.json` |
+| **Contrast** | PASS — 5,495 elements measured across 13 public + 44 app routes, 50 over-photo probes resolved, **0 failures** |
+| **SEO metadata** | PASS — every sitemap URL asserted against raw HTML |
+| **Public careers** | **17/17** |
+| **Auth workflow** | **36/36** — the signup leg **PASS** (see `docs/REMAINING_WORK.md` §2.13) |
+| **Brand icons** | 13 assets re-derived from the real mark, byte-for-byte, no drift |
+| **OG card** | 1200x630, composed from the real logo and the tagline in `lib/site.ts` |
+| **Migrations** | 39, 0 pending; `20261019221500_public_seo_brand.sql` applied |
+
+### What the pass actually found
+
+Seven defects, none of which any existing gate could see:
+
+1. **`app/icon.png` was still the old navy tile** — and it is Next's *file-convention*
+   icon, so it takes precedence over the `icons` array in `app/layout.tsx`. Every public
+   favicon could be regenerated correctly while the browser tab, Chrome and Google were
+   all still served the fabricated artwork.
+2. **`public/apple-icon.png` did not exist** — `app/layout.tsx` referenced it, so every
+   page's apple-touch icon was a 404. A metadata URL is not a module import, and the
+   build does not check it.
+3. **Two live brand generators wrote the icons from a hand-drawn SVG in the retired
+   green.** `pnpm brand:icons` would have reverted every fix in this pass, silently,
+   because nothing connected the source artwork to the output. Both are deleted; the
+   real generator now owns all 13 assets.
+4. **The OG card declared 1672x941 while the file was 1200x630**, so every social share
+   cropped the logo off, and the brand name on it was a hand-typed "BEEPA" pill rather
+   than the actual artwork.
+5. **The careers page shipped two invisible elements.** `app/globals.css` applies
+   `text-navy` to every `h1-h4`, and an element rule beats inheritance — so the heading
+   on the navy panel rendered navy-on-navy at a contrast ratio of **1.0**. The outline
+   `Button` variant carries `bg-background` (the off-white mist), so white text landed on
+   near-white at **1.05**. Both were caught by the contrast gate, which is the gate
+   earning its keep.
+6. **The page promised a filter it does not have.** The meta description, the
+   instruction line and the search placeholder all said "team"; `departments` is
+   `to authenticated` (internal HR) and returns 0 rows to the anon key, so no team
+   filter exists. A page that promises a filter and does not have one renders
+   perfectly — every other gate was green.
+7. **The database was still publishing the retired brand.** `public_seo` is one of
+   three `site_settings` rows the RLS policy lets an **anonymous visitor** read.
+   Probed with the anon key, it returned `"title": "BeepoBPO | People-First BPO
+   Outsourcing Partner"` — the old spelling, in the database, in a row whose own
+   `description` column calls it "Default SEO overrides for the public site". The
+   source tree does not describe that row, so no source-level check can see it.
+   Corrected by `20261019221500_public_seo_brand.sql` (applied) and by the
+   re-runnable seed, and guarded by a test that reads it **with the anon key** and
+   asserts the public surface carries no retired spelling. The guard was
+   mutation-proved: the retired value makes that one assertion fail, the corrected
+   value passes 13/13.
+
+### What was fixed, and how it was proven
+
+Each brand asset is **derived** from `public/brand/logo-mark-raw.png` and compared byte
+for byte by `generate-brand-icons.mjs --check`, which the ship gate now runs. Four
+defects in that generator were caught by asserting on the *rendered result* rather than
+on the arithmetic: a 49x48 "48x48" icon; a 16px favicon with **zero opaque pixels**; a
+white plate whose "white" was transparent black (83% of its non-white pixels were
+`(0,0,0)`, so the colour guard was measuring the void); and a tolerance-radius colour
+guard that fired on every good render, because the recolour moves each pixel only *part*
+way to the new hue.
+
+Every new assertion was **mutation-proved** — the brand plate, the ICO container, the
+`/careers` "no team filter" promise, and the careers exercise's own failure path were
+each made to fail and were confirmed to turn the suite red. The careers exercise was
+caught writing its evidence file *above* the last `process.exitCode` assignment, which
+records 0 and reports PASS for a run that failed; it is now one write, after every
+assignment, and a deliberately broken assertion produces exit 1 and a `FAIL` verdict on
+disk.
+
+### One check was red, and it was not the product
+
+`dialog-keyboard` failed its **"Shift+Tab cycles back inside the dialog too"** assertion
+in a tier run, having passed in every run before it. It is a keyboard-focus measurement,
+and the cause turned out to be a **headed browser window owned by another process** — the
+Playwright MCP session, sitting on an unrelated app — being open on the same desktop. On
+Windows, window focus is a system-level resource: a visible browser window can take
+keyboard focus from the headless browser the probe drives, and the probe then correctly
+reports that focus is *not* inside the dialog.
+
+The evidence, not the guess, is what settled it:
+
+- the same probe, same build, same server: **3/3 PASS** in isolation;
+- 8 `chrome.exe` processes found, all children of the MCP browser's own node process,
+  on a page belonging to a different application entirely;
+- with that window closed, the identical tier run reports `dialog-keyboard … PASS 16/16`.
+
+That is the shape of a measurement of the machine rather than of the code, and the
+remedy was to change one variable and re-run rather than to "fix" a dialog that was
+never broken. No product code was changed for it.
 
 ## 0. Addendum — post-redesign re-run (2026-10-12)
 

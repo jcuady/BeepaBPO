@@ -1,8 +1,8 @@
 {
   "check": "client-invite",
-  "generatedAt": "2026-10-17T07:42:50.477Z",
+  "generatedAt": "2026-10-19T14:09:54.241Z",
   "base": "http://localhost:3100",
-  "marker": "qa-invite-mvc39syp",
+  "marker": "qa-invite-mvfbzdax",
   "total": 13,
   "passed": 13,
   "failures": 0,
@@ -27,7 +27,7 @@
     {
       "name": "the form accepts the invite address",
       "pass": true,
-      "detail": "qa-invite-mvc39syp@beepabpo.com"
+      "detail": "qa-invite-mvfbzdax@beepabpo.com"
     },
     {
       "name": "inviting an existing account reports that the user was linked",

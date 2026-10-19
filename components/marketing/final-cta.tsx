@@ -48,8 +48,14 @@ export function FinalCTA() {
                   <span className="block text-navy">Tell us the role.</span>
                   <span className="block">
                     <span className="relative inline-block whitespace-nowrap">
+                      {/*
+                        No full stop in the green span. The navy "." that follows
+                        is the sentence's terminator, so the green text already
+                        carrying one rendered "We staff it.." -- two full stops,
+                        on every page that uses this band.
+                      */}
                       <span className="relative text-green-strong">
-                        We staff it.
+                        We staff it
                       </span>
                     </span>
                     <span className="text-navy">.</span>

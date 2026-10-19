@@ -51,6 +51,44 @@ describe("robots and sitemap Search Console readiness", () => {
     expect(layout).toContain("index: false");
   });
 
+  it("serves an llms.txt for AI crawlers, derived not hand-typed", () => {
+    // The llmstxt.org convention: an H1, a summary blockquote, then links with a
+    // sentence about each. A model asked "what is Beepa BPO" has no sitemap to
+    // read, so this is the one SEO surface aimed at that reader.
+    const route = readFileSync(join(process.cwd(), "app/llms.txt/route.ts"), "utf8");
+
+    // The structural parts of the format.
+    expect(route).toContain('"# Beepa BPO"');
+    expect(route).toContain('"> Beepa is a people-first outsourcing partner');
+    expect(route).toContain("## Company");
+    expect(route).toContain("## Services");
+    expect(route).toContain("## Careers");
+    expect(route).toContain("## Resources");
+    expect(route).toContain("## Case studies");
+
+    // Derived, not typed: the job, resource and case-study lists come from the
+    // same published-row query the sitemap uses, so publishing a role puts it in
+    // here without anyone remembering to add it.
+    expect(route).toContain("createAnonClient");
+    expect(route).toContain('from("job_posts")');
+    expect(route).toContain('from("blog_posts")');
+    expect(route).toContain('from("case_studies")');
+    expect(route).toContain('eq("status", "published")');
+
+    // The production origin, the same guard robots.ts and sitemap.ts use.
+    expect(route).toContain("PRODUCTION_SITE_URL");
+
+    // Plain text, and served as plain text. A crawler asked for a text file
+    // and handed HTML has to guess, and the format is the whole point.
+    expect(route).toContain('"content-type": "text/plain; charset=utf-8"');
+
+    // NOT a robots.txt directive. `MetadataRoute.Robots` only serialises the
+    // fields it knows about, so a `llms-txt` key added to that object is
+    // dropped on the way out -- it was in robots.ts, it rendered nothing, and
+    // the file that was served did not contain it. Discovery of /llms.txt is
+    // by convention at that path; the directive was a change that never fired.
+  });
+
   it("career detail emits JobPosting JSON-LD", () => {
     const page = readFileSync(
       join(process.cwd(), "app/(marketing)/careers/[slug]/page.tsx"),

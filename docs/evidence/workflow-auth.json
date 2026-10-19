@@ -3,10 +3,10 @@
   "script": "scripts/audit/qa-exercise-auth-workflow.mjs",
   "claim": "the auth surface: sign-in, sign-out, account switching, password reset and the throwaway-account cleanup that proves none of it leaked",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T05:18:13.467Z",
+  "when": "2026-10-19T11:53:50.908Z",
   "exitCode": 0,
   "verdict": "PASS",
-  "assertions": 35,
+  "assertions": 36,
   "checks": [
     {
       "name": "a wrong password does not sign you in",
@@ -29,7 +29,11 @@
       "pass": true
     },
     {
-      "name": "a rate limit is reported as a rate limit, not as a bad address",
+      "name": "signup creates an account and asks for email verification",
+      "pass": true
+    },
+    {
+      "name": "a new signup lands in the applicant membership with the applicant role",
       "pass": true
     },
     {
@@ -161,10 +165,104 @@
       {
         "what": "forgot-password anti-enumeration comparison",
         "why": "the real address returned a delivery error (\"We couldn't send reset instructions. Try again i\") while the fake address returned the confirmation copy"
+      }
+    ],
+    "signIns": [
+      {
+        "account": "marketing@demo.beepabpo.com",
+        "path": "/login",
+        "outcome": "alert",
+        "landed": "/login",
+        "leftLogin": false,
+        "said": "Invalid email or password."
       },
       {
-        "what": "signup account creation",
-        "why": "Supabase 429 email rate limit (environment)"
+        "account": "clientadmin@demo.beepabpo.com",
+        "path": "/login",
+        "outcome": "alert",
+        "landed": "/app",
+        "leftLogin": true,
+        "said": ""
+      },
+      {
+        "account": "clientadmin@demo.beepabpo.com",
+        "path": "/employee/login",
+        "outcome": "alert",
+        "landed": "/employee/login",
+        "leftLogin": false,
+        "said": "Use the client or applicant sign-in at /login"
+      },
+      {
+        "account": "marketing@demo.beepabpo.com",
+        "path": "/employee/login",
+        "outcome": "alert",
+        "landed": "/app",
+        "leftLogin": true,
+        "said": ""
+      },
+      {
+        "account": "marketing@demo.beepabpo.com",
+        "path": "/login",
+        "outcome": "alert",
+        "landed": "/app",
+        "leftLogin": true,
+        "said": ""
+      },
+      {
+        "account": "marketing@demo.beepabpo.com",
+        "path": "/login",
+        "outcome": "alert",
+        "landed": "/login",
+        "leftLogin": false,
+        "said": "Invalid email or password."
+      },
+      {
+        "account": "marketing@demo.beepabpo.com",
+        "path": "/login",
+        "outcome": "alert",
+        "landed": "/app",
+        "leftLogin": true,
+        "said": ""
+      },
+      {
+        "account": "marketing@demo.beepabpo.com",
+        "path": "/login",
+        "outcome": "alert",
+        "landed": "/app",
+        "leftLogin": true,
+        "said": ""
+      },
+      {
+        "account": "marketing@demo.beepabpo.com",
+        "path": "/login",
+        "outcome": "alert",
+        "landed": "/app",
+        "leftLogin": true,
+        "said": ""
+      },
+      {
+        "account": "marketing@demo.beepabpo.com",
+        "path": "/login",
+        "outcome": "alert",
+        "landed": "/app",
+        "leftLogin": true,
+        "said": ""
+      },
+      {
+        "account": "marketing@demo.beepabpo.com",
+        "path": "/login",
+        "outcome": "alert",
+        "landed": "/app",
+        "leftLogin": true,
+        "said": ""
+      },
+      {
+        "account": "qa.nobody.1792410821035@nowhere.example",
+        "path": "/login",
+        "outcome": "alert",
+        "landed": "/app",
+        "leftLogin": true,
+        "said": ""
       }
     ]
   }

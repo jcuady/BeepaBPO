@@ -178,7 +178,7 @@ splits Automated vs Manual.
 ## Gates
 
 ```bash
-node scripts/audit/qa-run-all.mjs        # the 10 fast-tier checks
+node scripts/audit/qa-run-all.mjs        # the 15 fast-tier checks + the gate
 node scripts/audit/qa-run-all.mjs --all  # adds the slow role sweep (~20 min)
 ```
 
@@ -192,7 +192,13 @@ node scripts/audit/qa-run-all.mjs --all  # adds the slow role sweep (~20 min)
 | `command-palette` | cmd-K opens, filters, navigates, returns focus |
 | `notification-bell` | Accessible name, AA contrast, keyboard exit |
 | `internal-links` | No internal link lands on an error page |
+| `public-careers` | The careers list searches, filters, and says honestly when nothing matches |
 | `client-invite` | The invite flow, driven through its real form |
+| `form-reset-defaults` | Every form that calls `reset()` defaults every field it registers |
+| `suite-base-url` | Every audit script agrees on `QA_BASE_URL` and port 3100 |
+| `auth-callback` | A dead verification link explains itself instead of failing silently |
+| `server-fresh` | The process answering is not older than `.next/BUILD_ID` |
+| `gate-coverage` | Every declared audit script is wired into a release gate |
 | `gate` | vitest + `tsc --noEmit` |
 
 Individually:

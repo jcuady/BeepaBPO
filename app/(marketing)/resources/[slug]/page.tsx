@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return { title: "Resources" };
 
   // The title used to be `${post.title} — Resources`, which the root layout's
-  // `%s | BeepoBPO` template then suffixed again. The two together shipped
+  // `%s | ${BRAND.name}` template then suffixed again. The two together shipped
   // 84-character titles that Google truncates mid-word. The brand is already in
   // the template; the page needs only its own name.
   return pageMetadata({

@@ -2,6 +2,101 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## The brand was a drawing of the logo, and the logo was in a drawer (2026-10-19)
+
+**Found by asking what Google actually receives.** The brief was: make sure it says *Beepa BPO*,
+use the correct logo, and use the third supplied image as the favicon. Answering that meant
+asking what a crawler gets, and the answers were wrong in three separate ways.
+
+### What Google was being served
+
+| Asset | What it actually was |
+|---|---|
+| `app/icon.png` | a hand-drawn navy rounded tile, overriding every other icon |
+| `public/favicon-*.png`, `favicon.ico` | the same tile, at four sizes |
+| `public/apple-icon.png` | **did not exist** — `app/layout.tsx` referenced it, so every page's apple-touch icon was a 404 |
+| `public/brand/icon-192/512.png`, `icon-*.svg` | the same tile, with a navy `<rect>` painted behind the mark |
+| `public/brand/google-organization-logo.png` | the "connected growth" mark drawn as an SVG path, in the **retired** green |
+| `public/images/og.png` | a green pill with **"BEEPA" typed into it**, the tagline baked as "Partnership" instead of the brand's "Process", declared as **1672x941 while the file was 1200x630** |
+| brand name in `lib/site.ts`, layout keywords, JSON-LD | `BeepoBPO` |
+
+`app/icon.png` is the reason the rest went unnoticed: it is Next's **file-convention** icon, so
+it takes precedence over the `icons` array in `app/layout.tsx`. Every public favicon could be
+regenerated correctly while the browser tab, Chrome and Google were all still served the tile.
+
+### The real artwork was already in the repo
+
+`public/brand/logo-mark-raw.png` (381x395) is the supplied mark, and it had never been used for
+an icon. It also still carried the **retired** green `#119446`, because
+`scripts/recolor-brand-assets.mjs` deliberately left it out of its file list.
+
+`scripts/generate-brand-icons.mjs` now derives **13 brand assets** from that one file: the
+favicons, the `.ico` containers (including `app/favicon.ico`, which existed only because a third
+script happened to write it), the PWA icons, `app/icon.png`, the transparent mark, and the two
+Google Organization plates. The retired green is recoloured with the same map and tolerance as
+`recolor-brand-assets.mjs`, so the favicon and the header wordmark agree.
+
+### Three generators wrote icons; two of them were landmines
+
+`scripts/generate-google-brand-assets.cjs` (`pnpm brand:icons`) and
+`scripts/generate-favicons-from-logo.cjs` both drew the mark as an SVG path in the retired green
+and wrote over the favicons, the PWA icons, `app/icon.png` and `app/favicon.ico`. Running either
+would have reverted every fix in this entry — silently, because nothing connected the source to
+the output. Both are deleted. `pnpm brand:icons` now points at the real generator, so the
+familiar command name does the right thing.
+
+### Guards that can fail
+
+`--check` re-derives every asset into memory and compares bytes. Four defects were caught by
+asserting on the *rendered result* rather than on the arithmetic:
+
+- an off-by-one in the centring produced a **49x48** "48x48" icon, because the source is not
+  square and both sides were rounded the same way;
+- the 16px favicon had **zero opaque pixels** — a smooth resample of strokes ~15px wide in a
+  381px source, which still looks like a written file;
+- the white plates came back with a **transparent-black** "white" background, because `flatten`
+  after `extend` does not composite the way it reads; 83% of the plate's non-white pixels were
+  `(0,0,0)`, so a colour guard that counted non-white pixels was measuring the void;
+- the first colour guard used a **tolerance radius**, which is mathematically guaranteed to fire
+  on a good render: the recolour moves each pixel only *part* way to the new hue, so antialiased
+  edges stay near the old colour by design. It now asserts on **exact** equality, which asks the
+  question that matters — is there an interior pixel the recolour never reached.
+
+### What else changed
+
+- **`BeepoBPO` → `Beepa BPO`** in `lib/site.ts`, the layout keywords, the services JSON-LD and
+  two stale comments. `formerName` and `alternateNames` keep the old spelling discoverable as an
+  alias, and the old spelling survives in keywords for search.
+- The **OG card** is now composed from the hero photo, the real horizontal logo on a white chip
+  and the tagline read out of `lib/site.ts` — so it cannot drift from the brand by hand, and the
+  declared size matches the file.
+- `/careers` is a **standard careers page**: server-rendered search plus three filters
+  (employment type, setup, location) driven by URL `searchParams`, so it stays indexable,
+  shareable and works without JavaScript. "No roles match that search" and "Nothing open at the
+  moment" are different messages — telling an applicant there are no jobs when there are five
+  loses the hire. An unrecognised filter value is ignored rather than honoured, so a stale link
+  does not silently show everything and read as though the filter worked.
+- The filters are built from **anon-readable** `job_posts`, not from `departments`. `departments`
+  has 5 rows with the service key but **0 to the anon key** — its policy is `to authenticated`
+  using `is_internal_user() or employees.read`, commented "Departments / teams (internal HR)". A
+  Team dropdown built on it would have rendered empty in production and green in review.
+- **`/careers` now has a gate.** `qa-exercise-public-careers.mjs` asserts 16 things over the
+  rendered HTML: search, each filter, the filter chips, the clear-all, both empty states, the
+  canonical, and the account CTA return path. It asserts over the corpus size before trusting
+  any negative, so an empty result cannot be reported as a working filter.
+
+### §2.13 closes
+
+Run alone on a freshly restarted server with **no probe in front of it** — the condition the
+section itself specified, and the reason earlier attempts were uninformative — the auth exercise
+returned **36/36, exit 0**, with `signup creates an account` and `a new signup lands in the
+applicant membership` both **PASS**. The only BLOCKED path is the documented one: the real
+address hit the delivery ceiling while the fake address returned the confirmation copy, and the
+sibling assertion confirms the copy is identical when a send is allowed through.
+
+The **moving failure set** did not recur — the third consecutive non-reproduction — and it is
+still **unexplained**. Non-reproduction is a data point, not a resolution.
+
 ## The header logo was still the old brand (2026-10-13)
 
 **Found while verifying the deploy, not by reading the code.** With the redesign live I

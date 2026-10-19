@@ -1,8 +1,9 @@
 # PROJECT_STATUS — Beepa / BeepoBeepa
 
-**Updated:** 2026-10-10 · **Branch:** `fix/auth-signout-scope-and-payroll-coherence`
+**Updated:** 2026-10-19 · **Branch:** `main`
 > No HEAD SHA is pinned here on purpose: a doc committed in commit X cannot name X, so the pin is always stale by the next commit. Live state is `node scripts/verify-all.mjs`; the numbers below are the ones that command prints.
-**Overall:** **Shippable.** The 18-step gate passes end to end: *"All checks passed. Ship it."* exit 0. Zero pending migrations, zero overlapping payroll periods, realtime delivery confirmed end to end. Forward roadmap: `docs/REMAINING_WORK.md`.
+> **What the 2026-10-19 pass re-ran:** the ship gate, the fast QA tier, the contrast, SEO-metadata, public-careers and server-fresh gates, and the auth workflow exercise. The role sweep, the responsive sweeps and the Playwright figures are **from their own last runs and were not re-verified by that pass** — they are not stale because they are wrong, and they are not fresh either.
+**Overall:** **Shippable.** The 23-step gate passes end to end: *"All checks passed. Ship it."* exit 0. Zero pending migrations, zero overlapping payroll periods, realtime delivery confirmed end to end. Forward roadmap: `docs/REMAINING_WORK.md`.
 
 > Supersedes the 2026-09-14 "READY" claim, which asserted gates that were not being enforced. Evidence in `docs/SYSTEM_AUDIT.md`.
 
@@ -14,10 +15,13 @@
 |---|---|---|
 | TypeScript | **PASS** | `tsc --noEmit` exit 0 |
 | Lint | **PASS** | `eslint . --max-warnings=0` exit 0 |
-| Unit tests | **PASS** | **504/504 across 84 files** (6 guard suites added 2026-10-09: encoding integrity, migration function clauses, payroll overlap reconciliation, payroll seed window, `lead_attribution` RLS, realtime probe contract — each negative-controlled) |
+| Unit tests | **PASS** | **991/991 across 106 files** (re-measured 2026-10-19) |
 | Production build | **PASS** | `next build` exit 0 |
 | E2E (Playwright) | **PASS** | **100 passed, 4 skipped, 0 failed** — prod build, cold `.auth`, 59.5s |
-| Ship gate | **PASS** | `verify-all.mjs` → **18/18 passed. "All checks passed. Ship it."** exit 0 |
+| Ship gate | **PASS** | `verify-all.mjs` → **23/23 passed. "All checks passed. Ship it."** exit 0 (2026-10-19) |
+| **Brand icons** | **PASS** | `generate-brand-icons.mjs --check` — 13 favicon / PWA / Google-Organization assets re-derived from `public/brand/logo-mark-raw.png` and compared byte for byte. `app/icon.png` is Next's file-convention icon and overrides the `icons` array in `app/layout.tsx`, so it is the file a browser tab actually shows. `public/apple-icon.png` was a **404 on every page** and did not exist until this pass |
+| **OG share card** | **PASS** | `generate-og-image.mjs --check` — 1200x630 composed from the hero photo, the real horizontal logo and the tagline read out of `lib/site.ts`. It had declared 1672x941 while the file was 1200x630, so every social share cropped the logo off |
+| **Public careers** | **PASS** | `qa-exercise-public-careers.mjs` — **16/16** over the rendered HTML: search, three filters, filter chips, clear-all, both empty states, the canonical, and the account CTA return path. Filters are built from anon-readable `job_posts`; `departments` is `to authenticated` (internal HR) and returns 0 rows to the anon key |
 | **Role × page sweep** | **PASS** | `audit-role-sweep.mjs` — every nav-reachable page for all 13 roles, plus 10 marketing pages: **0 console errors, 0 page errors, 0 error states**. Download endpoints recorded separately (they are not navigable by design) |
 | **Data population** | **PASS** | `audit-data-population.mjs` — every table the app queries, distinguishing **missing** from **empty** (a `head:true` count returns `null` for a nonexistent table *or* a nonexistent column, with no error). **996 rows** across app tables |
 | **Live workflow exercises** | **PASS** | `qa-exercise-leave-workflow.mjs` — employee → team lead → HR, asserting against the database rather than the DOM: **13/13**. `qa-exercise-ticket-workflow.mjs` — client admin → assignee: **10/10**. `qa-exercise-admin-workflow.mjs` — cron, test push, role change, revoke: **18/18** (1 path BLOCKED by Supabase email rate limiting). `qa-exercise-hire-workflow.mjs` — stage → offer → hire: **18/18**. `qa-exercise-crm-workflow.mjs` — lead → deal → proposal → won → client org: **21/21**. `qa-exercise-payroll-workflow.mjs` — salary → run → recalc → 2-step approval → finalized: **19/19**. All restore what they change and assert the restoration |
@@ -57,7 +61,7 @@
 ## Release gate — `node scripts/verify-all.mjs`
 
 ```
-18/18 steps passed
+23/23 steps passed
 
 All checks passed. Ship it.
 ```
@@ -74,12 +78,20 @@ was double-counted as a failure (13 + 3 + 1 = 17 "failures" out of 16 steps).
 | Step | Result |
 |---|---|
 | 1 Node · 2 VAPID present · 3 VAPID accepted · 4 route RBAC · 5 action RBAC · 6 page wiring · 7 page inventory | PASS |
-| **8 Design system consistency** | **PASS** — 0 raw primitives, 0 hardcoded colours |
-| **9 Filters survive pagination** | **PASS** — 32 paginated pages, 0 dropped filters, 0 unverified |
-| **10 Payroll periods do not overlap** | **PASS** — stub period retired; 0 overlapping pairs |
-| 11 Payroll period/record status coherent | **PASS** — ₱0 exposed before approval |
-| 12 TypeScript · 13 lint · 14 vitest · 15 live data smoke · 17 DB row counts · 18 production build | PASS |
-| 16 Realtime event delivery | **PASS** — event received end to end |
+| **8 Brand icons derived from the logo mark** | **PASS** — 13 assets re-derived from `logo-mark-raw.png` and compared byte for byte; no drift |
+| **9 OG image matches the declared brand** | **PASS** — 1200x630, composed from the real logo and the tagline in `lib/site.ts` |
+| **10 Design system consistency** | **PASS** — 0 raw primitives, 0 hardcoded colours |
+| **11 Filters survive pagination** | **PASS** — 33 paginated pages, 0 dropped filters, 0 unverified |
+| 12 Touch targets meet 44px · 13 every app page declares its data shape | PASS |
+| **14 Payroll periods do not overlap** | **PASS** — stub period retired; 0 overlapping pairs |
+| 15 Payroll period/record status coherent | **PASS** — ₱0 exposed before approval |
+| 16 TypeScript clean · 17 Lint clean | PASS |
+| **18 Vitest (full suite)** | **PASS** — **991/991 across 106 files** |
+| 19 Migration structural preflight | PASS — 38 migrations preflighted |
+| 20 Live data smoke (DB state) | PASS |
+| 21 Realtime event delivery | **PASS** — event received end to end |
+| 22 DB row counts (target) | PASS |
+| **23 Production build** | **PASS** — `next build` compiled successfully |
 
 ## The gate is 18/18 — "All checks passed. Ship it." (2026-10-09)
 

@@ -1,11 +1,13 @@
 {
-  "check": "internal-links",
-  "generatedAt": "2026-10-17T07:42:29.260Z",
+  "id": "internal-links",
+  "script": "scripts/audit/qa-exercise-internal-links.mjs",
+  "claim": "no internal anchor lands on a 404, a forbidden page, a /login bounce or an unexpected redirect, for every role that can see it",
   "base": "http://localhost:3100",
-  "total": 29,
-  "passed": 29,
-  "failures": 0,
-  "results": [
+  "when": "2026-10-19T14:09:38.795Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 29,
+  "checks": [
     {
       "name": "internal — the crawl actually found links to verify",
       "pass": true,
@@ -152,6 +154,7 @@
       "detail": "none"
     }
   ],
+  "failedAssertions": [],
   "notes": [
     "signed in as owner@demo.beepabpo.com (internal)",
     "internal: discovered 102 distinct internal link(s)",
@@ -162,5 +165,7 @@
     "applicant: discovered 5 distinct internal link(s)",
     "public: not signed in",
     "public: discovered 28 distinct internal link(s)"
-  ]
+  ],
+  "other": [],
+  "writer": "exercise"
 }

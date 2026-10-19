@@ -313,7 +313,18 @@ for (const role of ROLES) {
   await page.waitForURL(/\/app/, { timeout: 20000 }).catch(() => {});
   await page.waitForLoadState("domcontentloaded");
   if (page.url().includes("/login")) {
-    note(`${role.label}: ${role.email} could not sign in — skipped`);
+    // A role that cannot sign in is a FAILED crawl, not a note. This used to
+    // `note()` and `continue`, and the exit code is computed purely from
+    // `passed === results.length` — so the role's pages vanished from the tally
+    // and the run still exited 0. `skipped` counted them but nothing asserted on
+    // it. Legitimate skips exist here (an empty unfiltered list, a page with no
+    // Apply form) and those stay skips; a credential failure is not one of them.
+    // It means the filter coverage this gate exists to report was never produced.
+    check(
+      `${role.label} — the crawler could sign in and reach the app`,
+      false,
+      `${role.email} was still on ${page.url()}`,
+    );
     skipped += role.pages.length;
     await context.close();
     continue;

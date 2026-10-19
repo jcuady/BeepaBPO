@@ -116,14 +116,15 @@ describe("no QA check may exempt itself from the evidence rule", () => {
     //
     // The pinned number moves when a check is added, and that is the point of pinning
     // it: adding `auth-callback` took this from 31 to 32 and turned this red until
-    // the count was acknowledged. A parser that had silently stopped matching rows
+    // the count was acknowledged, and adding `public-careers` took it from 32 to 33
+    // the same way. A parser that had silently stopped matching rows
     // would move this number too, which is why it is compared against an independent
     // count on the line above rather than trusted as a constant.
     const start = src.indexOf("const CHECKS = [");
     const end = src.indexOf("\n];", start);
     const ids = [...src.slice(start, end).matchAll(/\{\s*id:\s*"([^"]+)"/g)];
     expect(rows.length).toBe(ids.length);
-    expect(rows.length).toBe(32);
+    expect(rows.length).toBe(33);
     // And the exempt one is the gate, named in this file's own EXEMPT set.
     expect(rows.filter((r) => EXEMPT.has(r.id)).map((r) => r.id)).toEqual(["gate"]);
   });

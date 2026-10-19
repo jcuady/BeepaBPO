@@ -1,5 +1,17 @@
+<!--
+  The Beepa mark on a transparent canvas.
+
+  This file previously carried a `<rect>` navy tile (#1F1C4F, rx=40) behind the
+  two strokes. That tile was a hand-drawn re-interpretation of the logo, not the
+  company's artwork, and it contradicted every favicon on the site: the shipped
+  rasters in public/favicon-*.png and public/brand/icon-*.png are now generated
+  from the real mark at public/brand/logo-mark-raw.png by
+  scripts/generate-brand-icons.mjs. Removing the tile is what makes the vector
+  and the raster the same brand mark rather than two different ones.
+
+  Stroke colours are the current palette: green #008338, lime #93C63D.
+-->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" fill="none">
-  <rect width="192" height="192" rx="40" fill="#1F1C4F"/>
   <path
     d="M54 128V72c0-14 11-25 25-25h52"
     stroke="#008338"

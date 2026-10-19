@@ -1,0 +1,103 @@
+{
+  "id": "public-careers",
+  "script": "scripts/audit/qa-exercise-public-careers.mjs",
+  "claim": "the public careers list searches and filters, and says so honestly when nothing matches",
+  "base": "http://localhost:3100",
+  "when": "2026-10-19T14:09:40.204Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 17,
+  "checks": [
+    {
+      "name": "the careers page renders role rows this check can parse",
+      "pass": true,
+      "detail": "5 row(s) found"
+    },
+    {
+      "name": "/careers returns every role",
+      "pass": true,
+      "detail": "200, 5/5 rows, count text \"5 open roles\""
+    },
+    {
+      "name": "/careers?setup=onsite answers 200 with a genuine subset",
+      "pass": true,
+      "detail": "200, 4 row(s)"
+    },
+    {
+      "name": "/careers?setup=hybrid answers 200 with a genuine subset",
+      "pass": true,
+      "detail": "200, 1 row(s)"
+    },
+    {
+      "name": "/careers?type=regular answers 200 with a genuine subset",
+      "pass": true,
+      "detail": "200, 5 row(s)"
+    },
+    {
+      "name": "/careers?type=intern answers 200 with a genuine subset",
+      "pass": true,
+      "detail": "200, 0 row(s)"
+    },
+    {
+      "name": "/careers?q=the answers 200 with a genuine subset",
+      "pass": true,
+      "detail": "200, 4 row(s)"
+    },
+    {
+      "name": "/careers?setup=teleportation answers 200 with a genuine subset",
+      "pass": true,
+      "detail": "200, 5 row(s)"
+    },
+    {
+      "name": "searching the first word of a real title finds it (\"HR\")",
+      "pass": true,
+      "detail": "HR Generalist"
+    },
+    {
+      "name": "an empty result says 'no roles match', not 'nothing open'",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "an empty result still tells the reader how many roles exist",
+      "pass": true,
+      "detail": "There are 5 open roles"
+    },
+    {
+      "name": "an unrecognised filter value is ignored rather than applied",
+      "pass": true,
+      "detail": "5/5 rows, control shows \"\""
+    },
+    {
+      "name": "the search term is preserved back into the input",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "filtered variants canonicalise to /careers",
+      "pass": true,
+      "detail": "<link rel=\"canonical\" href=\"https://beepabpo.com/careers\""
+    },
+    {
+      "name": "the applicant CTAs carry a return path back to careers",
+      "pass": true,
+      "detail": "/signup?next=/careers, /login?next=/careers"
+    },
+    {
+      "name": "the hero 'Create account' CTA returns to /careers",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "the page does not advertise a team filter it cannot offer",
+      "pass": true,
+      "detail": "no team filter advertised"
+    }
+  ],
+  "failedAssertions": [],
+  "notes": [
+    "5 published role(s): HR Generalist, Customer Support Representative, Quality Assurance Analyst, Customer Support Specialist, Payroll Officer"
+  ],
+  "other": [],
+  "writer": "exercise"
+}

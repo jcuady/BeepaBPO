@@ -26,7 +26,7 @@ describe("favicon and SEO assets", () => {
     expect(ico.readUInt16LE(2)).toBe(1);
   });
 
-  it("root metadata declares icons, openGraph, and BeepoBPO brand", () => {
+  it("root metadata declares icons, openGraph, and the Beepa BPO brand", () => {
     const layout = readFileSync(join(process.cwd(), "app/layout.tsx"), "utf8");
     expect(layout).toContain("favicon.ico");
     expect(layout).toContain("openGraph");
@@ -37,7 +37,13 @@ describe("favicon and SEO assets", () => {
   });
 
   it("exposes Search Console–ready brand constants", () => {
-    expect(BRAND.name).toBe("BeepoBPO");
+    // "Beepa BPO" is the spelling the company uses, and it is the spelling
+    // Google must be given. It was "BeepoBPO" until 2026-10-19, which is the
+    // name the whole site, the structured data and the social cards were
+    // published under -- a different word order from the one on the logo.
+    // `BRAND.formerName` keeps the old spelling for search aliases.
+    expect(BRAND.name).toBe("Beepa BPO");
+    expect(BRAND.formerName).toBe("BeepoBPO");
     expect(BRAND.title.length).toBeLessThanOrEqual(60);
     expect(BRAND.description.length).toBeGreaterThan(110);
     expect(BRAND.description.length).toBeLessThanOrEqual(165);

@@ -164,6 +164,47 @@ step("Page inventory current", () => {
   console.log(`  ${DIM}${(r.stdout.toString().trim())}${DIM}`);
 });
 
+// Every favicon, PWA icon and the OG card is DERIVED from one file,
+// `public/brand/logo-mark-raw.png`, by these two generators. That is the only
+// reason the mark can be swapped in one place.
+//
+// It is also the only reason a swap can leave the site lying: replace the source
+// PNG and the 16px favicon, the .ico, apple-touch-icon and the social card all
+// keep showing the OLD company, with every test in the repo green. Both
+// generators re-derive and compare bytes in `--check`, so the drift is caught by
+// the ship gate rather than by whoever notices the tab icon is wrong.
+step("Brand icons derived from the logo mark", () => {
+  const r = spawnSync("node", ["scripts/generate-brand-icons.mjs", "--check"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) {
+    console.log(r.stdout.toString().split("\n").filter((l) => /drift|differs|missing|coverage|dimension/i.test(l)).slice(0, 15).map((l) => `  ${l}`).join("\n"));
+    throw new Error("derived icons no longer match public/brand/logo-mark-raw.png — re-run without --check");
+  }
+  const out = r.stdout.toString();
+  console.log(`  ${DIM}${out.split("\n").filter((l) => /ok|icons|unchanged/i.test(l)).slice(-1)[0]?.trim() ?? "ok"}${RESET}`);
+});
+
+step("OG image matches the declared brand", () => {
+  // The card is composed, not drawn: hero photo + the real horizontal logo on a
+  // white chip + the tagline read out of `lib/site.ts`. Its first version
+  // declared 1672x941 while the file was 1200x630, so every social share cropped
+  // the logo off, and the brand name on it was a hand-typed "BEEPA" pill instead
+  // of the actual artwork. Those are invisible to a metadata check -- the tag is
+  // present and correctly formed in both versions. So this compares the pixels.
+  const r = spawnSync("node", ["scripts/generate-og-image.mjs", "--check"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) {
+    console.log(r.stdout.toString().split("\n").filter((l) => /drift|differs|size|dimension|regenerate/i.test(l)).slice(0, 10).map((l) => `  ${l}`).join("\n"));
+    throw new Error("public/images/og.png is stale — re-run without --check");
+  }
+  // The generator's own lines, not a sentence typed here. This step used to print
+  // "1200x630, composed from the real logo" as a literal — which is a claim the
+  // gate cannot falsify, and it would have stayed on screen unchanged if the card
+  // were rebuilt at 1600x900.
+  const out = r.stdout.toString();
+  const lines = out.split("\n").map((l) => l.trim()).filter((l) => /agrees|matches/i.test(l));
+  if (!lines.length) throw new Error(`og --check exited 0 but reported nothing to show:\n${out.trim()}`);
+  console.log(`  ${DIM}${lines.join(" | ")}${RESET}`);
+});
+
 step("Design system consistency", () => {
   // Raw elements where a primitive already exists, or a colour literal outside
   // the token layer, means the app has more than one design system. Both are
