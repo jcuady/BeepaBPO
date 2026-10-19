@@ -3,94 +3,24 @@
   "script": "scripts/audit/qa-exercise-payroll-workflow.mjs",
   "claim": "salary edit, period, recalculate, 2-step approval to finalized",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T02:50:08.397Z",
-  "exitCode": 0,
-  "verdict": "PASS",
-  "assertions": 19,
+  "when": "2026-10-19T01:03:43.979Z",
+  "exitCode": 1,
+  "verdict": "FLAKY",
+  "assertions": 5,
   "checks": [
     {
-      "pass": true,
-      "name": "signed in as owner (holds payroll.manage)  — http://localhost:3100/app/dashboard",
+      "pass": false,
+      "name": "signed in as owner (holds payroll.manage)  — http://localhost:3100/login",
       "detail": null
     },
     {
-      "pass": true,
-      "name": "salary settings form rendered  — [{\"id\":\"salary-717e51a9-f770-4b56-9ee9-72dd2e8e26c8\",\"value\":\"120000\"},{\"id\":\"salary-c4dc9f09-32d4-4b91-ad84-38f5041071dd\",\"value\":\"25000\"}]",
+      "pass": false,
+      "name": "salary settings form rendered  — []",
       "detail": null
     },
     {
-      "pass": true,
-      "name": "snapshotted the profile of the employee actually being edited  — 717e51a9 salary=120000",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "salary change persisted  — 120000 -> 120111 (stored 120111) for 717e51a9",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "a frequency with no existing period is selectable  — chose Monthly",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "a new payroll period was created  — {\"id\":\"b69f2096-eb2a-47aa-bd0d-714bf2279545\",\"name\":\"October 16–31, 2026\",\"status\":\"draft\",\"start_date\":\"2026-10-16\",\"end_date\":\"2026-10-31\",\"pay_date",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "new period starts as draft  — status=draft",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "payroll records were seeded for the period  — 10 record(s), sample pay=12500",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "seeded records start as draft  — 10/10 draft",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "Recalculate control present",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "recalculate produced a calculation snapshot  — snapshot written",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "Submit for approval present",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "period moved to approval  — status=approval",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "an approval request was created  — 1 request(s)",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "period finalized after the full approval chain  — status=finalized after 2 approval(s)",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "payroll approval took two steps  — 2 approval(s)",
-      "detail": null
-    },
-    {
-      "pass": true,
-      "name": "every record in the period is finalized  — 10/10 finalized",
+      "pass": false,
+      "name": "a frequency with no existing period is selectable  — chose null",
       "detail": null
     },
     {
@@ -100,15 +30,31 @@
     },
     {
       "pass": true,
-      "name": "this run left payroll exactly as it found it  — periods 2->2, records 11->11, payslips 1->1, audit 624->624, salary restored=true",
+      "name": "this run left payroll exactly as it found it  — periods 2->2, records 11->11, payslips 1->1, audit 705->705, salary restored=true",
       "detail": null
     }
   ],
-  "failedAssertions": [],
+  "failedAssertions": [
+    {
+      "pass": false,
+      "name": "signed in as owner (holds payroll.manage)  — http://localhost:3100/login",
+      "detail": null
+    },
+    {
+      "pass": false,
+      "name": "salary settings form rendered  — []",
+      "detail": null
+    },
+    {
+      "pass": false,
+      "name": "a frequency with no existing period is selectable  — chose null",
+      "detail": null
+    }
+  ],
   "notes": [],
   "other": [
-    "cleanup: 6 audit row(s) this run created, deleted",
-    "19/19 checks passed"
+    "2/5 checks passed"
   ],
-  "confirmation": null
+  "confirmation": "failed under suite load (3 assertion(s)), passed on a re-run 15s later",
+  "writtenFromStdoutBecause": "writer is null, not \"exercise\""
 }

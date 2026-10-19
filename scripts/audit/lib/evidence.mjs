@@ -165,36 +165,64 @@ export function writeEvidence({
 }
 
 /**
- * Apply a suite-level judgement on top of an exercise's own evidence.
+ * Layer a suite-level judgement onto an exercise's OWN evidence file.
  *
  * WHY A SEPARATE FUNCTION: the orchestrator is the only component that knows an
  * exercise failed under load and then passed on a re-run. That verdict has to
- * win -- FLAKY is deliberately neither PASS nor FAIL, and counting a
- * retry-green exercise as PASS is how a board gets published clean on a run that
- * proved nothing. But overwriting the file wholesale would discard the
- * exercise's own record of what it asserted, which is the only reason the
- * exercise writes evidence at all.
+ * win -- FLAKY is deliberately neither PASS nor FAIL, and counting a retry-green
+ * exercise as PASS is how a board gets published clean on a run that proved
+ * nothing. But overwriting the file wholesale would throw away the exercise's
+ * record of what it actually asserted, which is the only reason an exercise
+ * writes evidence at all.
  *
- * So it merges: `verdict` becomes the suite's, and the exercise's own outcome is
- * preserved under `self`. Returns false when there is nothing to record, so the
- * caller can fall back to writing from parsed stdout.
+ * WHY THE FRESHNESS CHECK IS INSIDE: returns false unless the file on disk was
+ * written by THIS run of the exercise. Without it, an exercise that crashed
+ * before reaching its write would have last run's file merged with this run's
+ * verdict -- a record that would look current, be internally consistent, and
+ * describe a run that never finished. The caller must fall back to writing from
+ * parsed stdout when this returns false.
+ *
+ * `runStartedAt` is a Date or an ISO string taken before the exercise was
+ * spawned.
  */
-export function applySuiteVerdict(id, verdict, confirmation) {
+export function mergeSuiteVerdict(id, { verdict, confirmation = null, exitCode, runStartedAt, printedAssertions = null, printedFailures = null }) {
   const file = `docs/evidence/workflow-${id}.json`;
   let doc;
   try {
     doc = JSON.parse(readFileSync(file, "utf8"));
   } catch {
-    return false;
+    return { merged: false, reason: "no readable evidence file on disk" };
   }
+  if (doc.writer !== "exercise") {
+    return { merged: false, reason: `writer is ${JSON.stringify(doc.writer ?? null)}, not "exercise"` };
+  }
+  const when = Date.parse(doc.when ?? "");
+  const since = runStartedAt instanceof Date ? runStartedAt.getTime() : Date.parse(String(runStartedAt ?? ""));
+  if (!Number.isFinite(when) || !Number.isFinite(since) || when < since) {
+    return {
+      merged: false,
+      reason: `evidence is from ${doc.when ?? "(no timestamp)"}, before this run started`,
+    };
+  }
+
+  // The exercise's own outcome, preserved rather than replaced.
   doc.self = {
     verdict: doc.verdict,
     assertions: doc.assertions,
     failed: (doc.failedAssertions ?? []).length,
   };
   doc.verdict = verdict;
-  doc.confirmation = confirmation ?? null;
+  doc.confirmation = confirmation;
   doc.confirmedBy = "qa-run-workflows";
+  doc.exitCode = exitCode ?? doc.exitCode;
+  // What the orchestrator parsed out of stdout, which is what it based its own
+  // verdict on. Kept so a reader can compare the two counts: a disagreement
+  // between what the exercise recorded in memory and what it printed is worth
+  // seeing, and it used to be impossible to see because one overwrote the other.
+  doc.suite = {
+    parsedAssertions: printedAssertions,
+    printedFailures,
+  };
   writeFileSync(file, JSON.stringify(doc, null, 2) + "\n");
-  return true;
+  return { merged: true, file };
 }

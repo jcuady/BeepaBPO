@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-uncovered-roles.mjs",
   "claim": "sales, finance, client_viewer: the three roles no other exercise drives",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T00:31:44.911Z",
+  "when": "2026-10-19T01:05:43.201Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 19,
@@ -145,5 +145,16 @@
         "fills": 1
       }
     ]
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 19,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 19,
+    "printedFailures": 0
   }
 }

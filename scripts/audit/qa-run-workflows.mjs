@@ -46,6 +46,7 @@
 import { spawn } from "node:child_process";
 import { existsSync, readdirSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { mergeSuiteVerdict } from "./lib/evidence.mjs";
 
 const BASE = process.env.QA_BASE_URL ?? "http://localhost:3100";
 const args = process.argv.slice(2);
@@ -372,6 +373,10 @@ for (const [ci, chunk] of chunks.entries()) {
       }
     }
 
+    // Taken immediately before the spawn. Everything this run then records must be
+    // newer than it, which is how a stale evidence file from a previous run is
+    // told apart from one this exercise just wrote.
+    const spawnedAt = new Date();
     process.stdout.write(`  ${w.id.padEnd(16)} ...`);
     const { code, out } = await run(w.script);
     ranThisRun.add(w.id);
@@ -434,33 +439,61 @@ for (const [ci, chunk] of chunks.entries()) {
     }
 
     const evidenceFile = `docs/evidence/workflow-${w.id}.json`;
-    writeFileSync(
-      evidenceFile,
-      JSON.stringify(
-        {
-          id: w.id,
-          script: `scripts/audit/${w.script}`,
-          claim: w.what,
-          base: BASE,
-          when: new Date().toISOString(),
-          exitCode: code,
-          verdict: final,
-          assertions: parsed.checks.length,
-          // Every assertion, not only the failures. A report that stores only
-          // what went wrong cannot answer "was this actually exercised", and
-          // that question is the one a reader asks first.
-          checks: parsed.checks,
-          failedAssertions: parsed.checks.filter((c) => !c.pass),
-          notes: parsed.notes,
-          other: parsed.other,
-          // Present only when this exercise failed and was then re-run on its own.
-          // A reader seeing FLAKY needs to know both halves, not just the good one.
-          confirmation: flakyNote,
-        },
-        null,
-        2,
-      ) + "\n",
-    );
+
+    // Two writers, one file -- and the orchestrator must not clobber.
+    //
+    // An exercise that writes its own evidence knows more about its own run than
+    // a regex over its stdout does, and it keeps that record when the suite dies
+    // before it can refresh anything. So its file is MERGED with the suite's
+    // judgement rather than replaced.
+    //
+    // `mergeSuiteVerdict` refuses unless the file on disk was written by THIS run
+    // (writer === "exercise", and its `when` is not older than the spawn). That
+    // refusal is the load-bearing part: an exercise that crashed before reaching
+    // its write still has last run's file on disk, and merging this run's verdict
+    // into it would produce a record that looks current, is internally
+    // consistent, and describes a run that never finished.
+    const merged = mergeSuiteVerdict(w.id, {
+      verdict: final,
+      confirmation: flakyNote,
+      exitCode: code,
+      runStartedAt: spawnedAt,
+      printedAssertions: parsed.checks.length,
+      printedFailures,
+    });
+
+    if (!merged.merged) {
+      writeFileSync(
+        evidenceFile,
+        JSON.stringify(
+          {
+            id: w.id,
+            script: `scripts/audit/${w.script}`,
+            claim: w.what,
+            base: BASE,
+            when: new Date().toISOString(),
+            exitCode: code,
+            verdict: final,
+            assertions: parsed.checks.length,
+            // Every assertion, not only the failures. A report that stores only
+            // what went wrong cannot answer "was this actually exercised", and
+            // that question is the one a reader asks first.
+            checks: parsed.checks,
+            failedAssertions: parsed.checks.filter((c) => !c.pass),
+            notes: parsed.notes,
+            other: parsed.other,
+            // Present only when this exercise failed and was then re-run on its own.
+            // A reader seeing FLAKY needs to know both halves, not just the good one.
+            confirmation: flakyNote,
+            // Why the exercise's own record was not used, so "no `self` block"
+            // is never mistaken for "nothing to record".
+            writtenFromStdoutBecause: merged.reason,
+          },
+          null,
+          2,
+        ) + "\n",
+      );
+    }
 
     results.push({
       id: w.id,

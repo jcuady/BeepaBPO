@@ -980,6 +980,41 @@ exit 2 (1 BLOCKED — the invite leg, email quota)**. All three now write
 any evidence file whose verdict the rollup cannot count, on any exercise that
 hand-rolls its writer, and on a scan that finds no writers at all.
 
+**Two writers, one file — so the orchestrator now merges instead of clobbering.**
+Before this, an exercise that wrote its own evidence had it overwritten by the
+runner seconds later, which is precisely why the casing bug was invisible in a
+suite run. `mergeSuiteVerdict()` takes the exercise's record and sets the
+**suite's** verdict on top, preserving the exercise's own outcome under `self`
+and the runner's stdout parse under `suite`.
+
+That merge is refused — and the runner falls back to writing from parsed stdout,
+now recording *why* in `writtenFromStdoutBecause` — unless the file on disk was
+written by **this** run (`writer: "exercise"`, `when` not older than the spawn).
+The freshness check is the load-bearing part: an exercise that crashed before
+reaching its write still has the previous run's file on disk, and merging this
+run's verdict into it would produce a record that looks current, is internally
+consistent, and describes a run that never finished.
+
+Verified by `--only=uncovered-roles,attendance,payroll`, chosen to hit both
+branches in one run:
+
+| Exercise | Path taken | Result |
+|---|---|---|
+| `attendance` | merge | PASS, `self` 31/31, `suite` parsed 31, printedFailures 0 |
+| `uncovered-roles` | merge | PASS, `self` 19/19, `suite` parsed 19, printedFailures 0 |
+| `payroll` | stdout fallback, `"writer is null, not \"exercise\""` | FLAKY |
+
+The two merged rows are also a cross-check worth having: the exercise's
+in-memory assertion count and the runner's stdout parse **agree exactly** (31/31,
+19/19). When they disagree, one of them is wrong and the file now shows both.
+
+**`payroll` was FLAKY in that run and 19/19 alone** — §2.12c's load face, not a
+regression from this change. Recorded because it is the second time a suite-context
+failure has cleared on its own, and because the honest reading of the rollup is
+that `documents` reading FAIL in the same output is **stale evidence from
+2026-10-17**, not a fresh result: a partial run refreshes only the exercises it
+ran, which is the whole reason the other seventeen want to write their own.
+
 **P3, deliberately not done now.** Porting the pattern is mechanical (copy the
 `finally`-shaped writer, assert on the failure and throw paths), and doing it one
 file at a time has already produced one real fix. It is not urgent while every

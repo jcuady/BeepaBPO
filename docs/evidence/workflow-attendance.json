@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-attendance-workflow.mjs",
   "claim": "an employee clocks in and out from /app/my/attendance, HR enters a record manually, and nothing is left behind",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T00:37:08.996Z",
+  "when": "2026-10-19T01:04:57.783Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 31,
@@ -135,7 +135,7 @@
   ],
   "failedAssertions": [],
   "notes": [
-    "clocked 00:36:18Z -> 00:36:26Z = 0 min",
+    "clocked 01:04:06Z -> 01:04:14Z = 0 min",
     "finalized-record guard: exercised only through the UI, never by deleting live rows"
   ],
   "other": [],
@@ -143,5 +143,16 @@
   "extra": {
     "timezone": "Asia/Manila",
     "todayUsed": "2026-10-19"
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 31,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 31,
+    "printedFailures": 0
   }
 }
