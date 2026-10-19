@@ -1,6 +1,6 @@
 {
   "base": "http://localhost:3100",
-  "startedAt": "2026-10-17T08:33:30.623Z",
+  "startedAt": "2026-10-19T06:22:40.674Z",
   "roles": {
     "owner": {
       "email": "owner@demo.beepabpo.com",
@@ -2025,12 +2025,10 @@
         },
         {
           "path": "/app",
-          "status": "redirected",
-          "notes": [
-            "-> /app/cms"
-          ],
+          "status": "ok",
+          "notes": [],
           "http": 200,
-          "landed": "/app/cms",
+          "landed": "/app",
           "heading": "CMS"
         },
         {
@@ -2388,8 +2386,8 @@
       ],
       "summary": {
         "total": 49,
-        "ok": 46,
-        "redirected": 2,
+        "ok": 47,
+        "redirected": 1,
         "empty": 1,
         "download": 0,
         "errors": 0,

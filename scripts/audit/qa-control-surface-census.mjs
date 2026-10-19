@@ -545,17 +545,59 @@ const navOnly = named.filter((c) => c.inNavigation);
  * prose. The primary number here is therefore ACTION controls only, with the
  * navigation figure reported beside it and not added into it.
  */
-const isAction = (c) => !c.inNavigation && c.kind !== "link";
-const actionControls = named.filter(isAction);
-const actionCovered = actionControls.filter((c) => c.assertedBy);
-const actionUncovered = actionControls.filter((c) => !c.assertedBy);
+
+/**
+ * A FIELD IS NOT A CONTROL A USER PRESSES.
+ *
+ * This file shipped a primary metric named `actionControls`, described in its
+ * own comment as "the things a user presses", whose predicate was
+ * `!inNavigation && kind !== "link"` -- which also admits `kind === "field"`.
+ * 118 of its 318 denominator entries were text inputs nobody presses, and 21 of
+ * the 23 "unmatched actions" were inputs. The headline 92.8% therefore blended
+ * two different questions and reported a fill gap as though it were a button
+ * gap.
+ *
+ * Worse, the number was wrong in the flattering direction for the wrong reason.
+ * A field is covered by being FILLED; this metric can only see an assertion
+ * whose NAME mentions the label, and assertions are named for the OUTCOME --
+ * "the edit is persisted", "upsertAboutPage writes the About content". The CMS
+ * exercise really does fill slug, excerpt, summary, description and headline
+ * (see the `create:` fixtures and `#about-headline`). Those reads were scored
+ * as gaps.
+ *
+ * So the two populations are now counted separately and named for what they
+ * are. Pressable is the primary figure. Fields are reported beside it as a
+ * name-match proxy that CANNOT see a fill, and must not be quoted as untested
+ * functionality.
+ */
+const isPressable = (c) => !c.inNavigation && c.kind !== "link" && c.kind !== "field";
+const isField = (c) => !c.inNavigation && c.kind === "field";
+const pressableControls = named.filter(isPressable);
+const pressableCovered = pressableControls.filter((c) => c.assertedBy);
+const pressableUncovered = pressableControls.filter((c) => !c.assertedBy);
+const fieldControls = named.filter(isField);
+const fieldCovered = fieldControls.filter((c) => c.assertedBy);
+const fieldUncovered = fieldControls.filter((c) => !c.assertedBy);
 const navCovered = navOnly.filter((c) => c.assertedBy);
-const actionCoverage = actionControls.length
-  ? Number(((actionCovered.length / actionControls.length) * 100).toFixed(1))
+const pressableCoverage = pressableControls.length
+  ? Number(((pressableCovered.length / pressableControls.length) * 100).toFixed(1))
+  : null;
+const fieldCoverage = fieldControls.length
+  ? Number(((fieldCovered.length / fieldControls.length) * 100).toFixed(1))
   : null;
 const navCoverage = navOnly.length
   ? Number(((navCovered.length / navOnly.length) * 100).toFixed(1))
   : null;
+
+// The primary denominator must not contain a field. If a future edit widens the
+// predicate, the headline quietly changes meaning again -- so fail loudly here.
+const primaryLeaksField = pressableControls.some((c) => c.kind === "field");
+if (primaryLeaksField) {
+  throw new Error(
+    "census: pressableControls contains kind=field; the primary metric would again " +
+      "report fill coverage as button coverage",
+  );
+}
 
 /**
  * VACUOUS-CHECK GUARD.
@@ -612,11 +654,20 @@ const out = {
   distinctControls: controls.length,
   namedControls: named.length,
 
-  // PRIMARY metric. Action controls only -- the things a user presses.
-  actionControls: actionControls.length,
-  actionControlsWithMatchingAssertion: actionCovered.length,
-  actionControlsUnmatched: actionUncovered.length,
-  actionControlLabelOverlap: actionCoverage,
+  // PRIMARY metric. Pressable controls only -- the things a user presses.
+  pressableControls: pressableControls.length,
+  pressableControlsWithMatchingAssertion: pressableCovered.length,
+  pressableControlsUnmatched: pressableUncovered.length,
+  pressableControlLabelOverlap: pressableCoverage,
+
+  // Form inputs, reported BESIDE the primary figure and never added into it.
+  // This is a name-match proxy only: it cannot observe a fill, and assertions
+  // are named for outcomes ("the edit is persisted"), so an exercised input
+  // reads as unmatched here. Do not quote this as untested functionality.
+  fieldControls: fieldControls.length,
+  fieldControlsWithMatchingAssertion: fieldCovered.length,
+  fieldControlsUnmatched: fieldUncovered.length,
+  fieldControlLabelOverlap: fieldCoverage,
 
   // Reported separately and deliberately NOT added into the primary figure.
   navigationControls: navOnly.length,
@@ -628,10 +679,11 @@ const out = {
   unnamedControls: unnamed.length,
 
   caveat:
-    "A 'matched' control means some assertion's NAME mentions its label as a word. It does NOT mean the control was pressed, nor pressed in every state. This metric is wrong in BOTH directions, so it is a proxy and not a measurement. It OVER-reports: a label appearing in an assertion name does not prove the control was pressed. It UNDER-reports, which is the direction that hides real gaps -- on the current build it flagged three buttons, and only one was real. 'Save' on /app/payroll/settings and 'Continue' on /app/payroll/periods are both pressed and both work (the assertions are named for the outcome, 'salary change persisted' and 'a new payroll period was created', not for the control). The third, 'Reject' on /app/cash-advances, was a genuine hole: the reject leg of a money workflow had zero executions while an assertion listed 'rejected' as an acceptable end state. Treat an unmatched control as a QUESTION, never as a finding.",
+    "A 'matched' control means some assertion's NAME mentions its label as a word. It does NOT mean the control was pressed, nor pressed in every state. This metric is wrong in BOTH directions, so it is a proxy and not a measurement. It OVER-reports: a label appearing in an assertion name does not prove the control was pressed. It UNDER-reports, which is the direction that hides real gaps -- it flagged three buttons, and only one was real. 'Save' on /app/payroll/settings and 'Continue' on /app/payroll/periods are both pressed and both work (the assertions are named for the outcome, 'salary change persisted' and 'a new payroll period was created', not for the control). The third, 'Reject' on /app/cash-advances, was a genuine hole: the reject leg of a money workflow had zero executions while an assertion listed 'rejected' as an acceptable end state. Treat an unmatched control as a QUESTION, never as a finding. SEPARATELY: fields were previously counted inside this primary metric under the name 'actionControls', which put 21 typed inputs among 23 'unmatched actions'. A field is covered by being FILLED and this matcher cannot see a fill, so that number reported exercised inputs as untested buttons. Pressable and field figures are now separate; `fieldControlLabelOverlap` must not be quoted as button coverage.",
   perRole,
   controls: controls.sort((a, b) => String(a.name).localeCompare(String(b.name))),
-  unmatchedActionControls: actionUncovered.map((c) => ({ name: c.name, kind: c.kind, exampleRoute: c.exampleRoute })),
+  unmatchedPressableControls: pressableUncovered.map((c) => ({ name: c.name, kind: c.kind, exampleRoute: c.exampleRoute })),
+  unmatchedFieldControls: fieldUncovered.map((c) => ({ name: c.name, kind: c.kind, exampleRoute: c.exampleRoute })),
 };
 
 writeFileSync("docs/evidence/control-surface-census.json", JSON.stringify(out, null, 2) + "\n");
@@ -640,9 +692,12 @@ console.log(
   `\n${roleNames.length} roles, ${pagesVisited} pages visited` +
     (pagesFailed ? `, ${pagesFailed} failed` : "") +
     `\n${out.distinctControls} distinct controls across every route walked` +
-    `\n\n  ACTION controls (buttons + fields, excluding nav chrome):` +
-    `\n    ${actionControls.length} found, ${actionCovered.length} with a matching assertion name` +
-    `\n    actionControlLabelOverlap = ${actionCoverage}%   <-- the number to quote` +
+    `\n\n  PRESSABLE controls (buttons, excluding nav chrome) -- PRIMARY:` +
+    `\n    ${pressableControls.length} found, ${pressableCovered.length} with a matching assertion name` +
+    `\n    pressableControlLabelOverlap = ${pressableCoverage}%   <-- the number to quote` +
+    `\n\n  FORM FIELDS (typed into, never pressed) -- reported separately, NOT added in:` +
+    `\n    ${fieldControls.length} found, ${fieldCovered.length} with a matching assertion name (${fieldCoverage}%)` +
+    `\n    a name matcher cannot observe a fill; do not read this as untested functionality` +
     `\n\n  NAVIGATION links (covered instead by qa-exercise-internal-links.mjs):` +
     `\n    ${navOnly.length} found, ${navCovered.length} with a matching assertion name (${navCoverage}%)` +
     `\n\n${unnamed.length} control(s) with no accessible name at all.` +
@@ -650,11 +705,18 @@ console.log(
     (coldRetries ? `\n${coldRetries} navigation(s) needed a cold-start retry (first hit of a lazily loaded route).` : ""),
 );
 
-console.log(`\nACTION CONTROLS WITH NO MATCHING ASSERTION (${actionUncovered.length}) -- the real gap:`);
-for (const c of actionUncovered.slice(0, verbose ? 999 : 30)) {
+console.log(`\nPRESSABLE CONTROLS WITH NO MATCHING ASSERTION (${pressableUncovered.length}) -- the real gap:`);
+for (const c of pressableUncovered.slice(0, verbose ? 999 : 30)) {
   console.log(`  "${c.name}" [${c.kind}] e.g. ${c.exampleRoute}`);
 }
-if (!verbose && actionUncovered.length > 30) console.log(`  ... and ${actionUncovered.length - 30} more`);
+if (!verbose && pressableUncovered.length > 30) console.log(`  ... and ${pressableUncovered.length - 30} more`);
+
+console.log(`\nFIELDS WITH NO MATCHING ASSERTION (${fieldUncovered.length}) -- NOT a button gap:`);
+console.log(`  A field is covered by being FILLED; this matcher reads assertion NAMES only.`);
+for (const c of fieldUncovered.slice(0, verbose ? 999 : 30)) {
+  console.log(`  "${c.name}" [${c.kind}] e.g. ${c.exampleRoute}`);
+}
+if (!verbose && fieldUncovered.length > 30) console.log(`  ... and ${fieldUncovered.length - 30} more`);
 
 console.log(`\nNAV LINKS WITH NO MATCHING ASSERTION (${navOnly.length - navCovered.length}):`);
 for (const c of navOnly.filter((c) => !c.assertedBy).slice(0, verbose ? 999 : 15)) {

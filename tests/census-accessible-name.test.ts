@@ -116,3 +116,60 @@ describe("control-surface census resolves accessible names properly", () => {
     expect(code).not.toContain("el.value");
   });
 });
+
+/**
+ * The primary metric must not count form fields.
+ *
+ * It shipped named `actionControls` and commented "the things a user presses",
+ * with a predicate that also admitted `kind === "field"`. 118 of its 318
+ * denominator entries were text inputs and 21 of the 23 "unmatched actions"
+ * were inputs. That produced a 92.8% headline that blended "buttons nobody
+ * presses" with "inputs nobody typed into", and the completion matrix quoted it.
+ *
+ * These run on the same comments-stripped source: the rationale for this rule
+ * is written in the census source itself, so an unstripped search would match
+ * the prose explaining the bug.
+ */
+describe("control-surface census keeps fields out of the pressable metric", () => {
+  it("finds the predicates it is guarding", () => {
+    expect(code).toContain("const isPressable =");
+    expect(code).toContain("const isField =");
+  });
+
+  it("excludes fields from the pressable predicate", () => {
+    const body = constBody(code, "isPressable");
+    // The exact defect was a predicate that excluded links but not fields.
+    expect(body).toMatch(/kind\s*!==\s*"field"/);
+  });
+
+  it("builds the primary metric from isPressable, not a widened predicate", () => {
+    expect(code).toContain("const pressableControls = named.filter(isPressable)");
+    expect(code).not.toContain("const pressableControls = named.filter(isAction");
+  });
+
+  it("reports fields as their own figure rather than deleting them", () => {
+    // Silently dropping fields would hide the denominator, which is how a
+    // redefinition becomes invisible. They must still be counted and published.
+    expect(code).toContain("const fieldControls = named.filter(isField)");
+    expect(code).toContain("fieldControlLabelOverlap:");
+  });
+
+  it("no longer publishes the misleading key", () => {
+    expect(code).not.toMatch(/^\s*actionControlLabelOverlap:/m);
+    expect(code).not.toMatch(/^\s*actionControls:/m);
+  });
+
+  it("throws at runtime if a field ever leaks into the primary denominator", () => {
+    // The source-level rules above can all hold while a later edit changes a
+    // different line. This is the check that fails on the census itself.
+    expect(code).toContain("primaryLeaksField");
+    expect(code).toContain('kind === "field"');
+    expect(raw).toContain("would again");
+  });
+
+  it("states that the field figure cannot observe a fill", () => {
+    // A published number nobody can act on is worse than none: it reads as
+    // untested functionality when the inputs are in fact typed in by exercises.
+    expect(raw).toMatch(/cannot observe a fill|cannot see a fill/i);
+  });
+});

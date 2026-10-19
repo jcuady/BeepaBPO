@@ -1609,6 +1609,98 @@ controls with no accessible name, 23 in the gap.** The gap went 52 → 44 → 23
 each layer of the extractor was corrected, and real labels replaced data values
 (`Reason`, `Visibility`, `Slug`, `Excerpt`, `Week of`).
 
+> **RETRACTED 2026-10-19 — the 92.8% figure and the gap of 23, both recorded below, are
+> withdrawn.** They were computed over a denominator that included form fields, so the
+> headline reported typed inputs as untested buttons. §2.14a has the defect, the corrected
+> measurement, and the reason the gap of 23 overstated untested functionality. The
+> variance and cold-start findings in this section still stand; only the metric is withdrawn.
+
+### 2.14a The primary metric counted form fields, so "23 untested actions" was mostly 21 typed inputs
+
+**The defect.** The census's primary figure was published as `actionControls`, and its
+own comment described it as *"the things a user presses"*:
+
+```js
+const isAction = (c) => !c.inNavigation && c.kind !== "link";
+```
+
+That predicate excludes navigation links and admits everything else — including
+`kind === "field"`. **118 of its 318 denominator entries were text inputs.** The
+console output was honest about this (*"ACTION controls (buttons + fields, excluding nav
+chrome)"*), but the JSON key, the code comment, and the line marked
+`<-- the number to quote` all implied the button surface. Four documents quoted a
+version of that number, and **they did not agree with each other**: `COMPLETION_LEDGER`
+and `FEATURE_CHECKLIST` said *84.7% over 339*, `REMAINING_WORK` said *92.7% then 92.8%
+over 316–318*. The corpus was internally inconsistent about its own headline.
+
+**Why the denominator was wrong is not cosmetic — it inverted the finding.** A field is
+covered by being **filled**; this metric can only see whether an assertion's **name**
+contains the label as a word, and assertions are named for **outcomes**. Two independent
+mechanisms therefore manufacture false gaps, both traced to source:
+
+1. **Outcome-named assertions.** The CMS exercise fills `slug`, `excerpt`, `summary`,
+   `description` (`qa-exercise-cms-workflow.mjs` `create:` fixtures) and `#about-headline`
+   (line 359). Its assertions are called *"the edit is persisted"* and *"upsertAboutPage
+   writes the About content"*. Not one contains a field label.
+2. **A label is not a field id.** *"Cover note"* is `<Label htmlFor="notes">Cover note</Label>`
+   in `components/app/careers/job-apply-form.tsx:87`. The recruitment exercise fills
+   `#notes` (`qa-exercise-recruitment-workflow.mjs:240`). A matcher searching for the
+   string "Cover note" cannot see a fill that plainly happened.
+
+So the gap of 23 read as *23 controls nobody tested*, when it was **2 buttons the matcher
+could not see, plus 21 inputs the instrument is not capable of measuring.** A reader
+skimming the headline would have gone looking for missing functionality that is exercised.
+
+**Corrected measurement, same walk, same assertion set (2026-10-19, run G):**
+
+| Measure | Value |
+|---|---|
+| Roles / pages visited / **pages failed** | 13 / 444 / **1** |
+| Distinct controls | 516 |
+| **Pressable controls (buttons) — PRIMARY** | **199 found, 197 matched = 99.0%** |
+| **Pressable gap** | **2** — `Save` (`/app/payroll/settings`), `Continue` (`/app/payroll/periods`) |
+| Form fields — reported separately, never added in | 118 found, 97 matched = 82.2% |
+| Navigation links — reported separately | 45 found, 30 matched = 66.7% |
+| Controls with no accessible name | **0** |
+
+**The honest bottom line: the pressable gap is 2, and both are the same two known
+artefacts already documented in the caveat** — `Save` and `Continue` are pressed and work,
+their assertions being named for the outcomes *"salary change persisted"* and *"a new
+payroll period was created"*. **There is no unexercised button in the gap.** That is a
+stronger claim than 92.8%, and it is the claim the metric should have been making.
+
+**This run lost one page.** Run F measured 444/0; run G measured 444/**1**. That is §2.12's
+unresolved walk variance, unchanged, and the figure is quoted here *with* its own
+`pagesFailed` for that reason. The corrected metric is unaffected — the two unmatched
+buttons are the same two in both runs.
+
+**The fix, and why it cannot regress.** `isPressable` now excludes `kind === "field"` and
+fields are counted and published under their own keys (`fieldControls`,
+`fieldControlLabelOverlap`, `unmatchedFieldControls`), so the denominator cannot silently
+disappear — a metric that quietly drops a population is how a redefinition becomes
+invisible. Three things prevent a re-widening:
+
+- a **runtime throw** in the census itself if a `kind === "field"` ever reaches the primary
+  denominator, which fails the run rather than publishing a mislabelled number;
+- **six regression tests** in `tests/census-accessible-name.test.ts`, which grew from 6 to
+  12 tests and run against the **comments-stripped** source — the rationale for the rule is
+  written in the census source, so an unstripped search would match the prose explaining the
+  bug;
+- **mutation-proving**, which caught the guard working: re-admitting `field` in
+  `isPressable` turns the suite red on *"excludes fields from the pressable predicate"*.
+
+**A note on how this was found.** The trigger was noticing that the census's own caveat
+said *"treat an unmatched control as a QUESTION, never as a finding"* while the committed
+evidence file carried a 23-row gap list that the summary had been quoting as a headline.
+The question was never answered; the number was. It is now answered, and the answer was
+that the question had been mis-framed.
+
+**What I did not do.** I did not trace all 21 unmatched fields individually — a sample
+covering both false-gap mechanisms was traced to source, and the remainder are reported as
+a published denominator. The metric cannot tell a filled input from an unfilled one, and
+the honest statement of that limit is stronger than a hand-checked subset presented as a
+complete one.
+
 **Re-measured 2026-10-19, because its input moved: 92.8%.** §2.11's batch
 regenerated `workflow-assertion-index.json` from freshly written evidence, and
 `uncovered-roles` now contributes 19 assertions where the 92.7% above was
@@ -1634,7 +1726,7 @@ set changed rather than because the product regressed, and it is a proxy in both
 directions in any case. Neither figure is a measurement of coverage; the caveat
 below stands and governs both columns.
 
-Guarded by `tests/census-accessible-name.test.ts` (6 tests), mutation-proven in
+Guarded by `tests/census-accessible-name.test.ts` (12 tests), mutation-proven in
 both directions, with the same comment-strip control the other extractor tests
 use.
 

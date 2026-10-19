@@ -8,8 +8,11 @@ could never reach search engines, and `reset()` silently did nothing on most fie
 five forms (§5a).
 
 **On "every button works":** rather than assert it, it is measured. Across 13 roles and 444
-page visits the app exposes **340 action controls** (buttons and fields, excluding nav chrome);
-**287 of them (84.4%)** have a label that appears in some assertion's name.
+page visits the app exposes **199 pressable controls** (buttons, excluding nav chrome);
+**197 of them (99.0%)** have a label that appears in some assertion's name. Form fields
+(118) are counted and published separately — a field is covered by being filled, and this
+matcher reads assertion *names*, so it cannot measure that; see §"The field figure is not a
+gap count" below.
 
 That number is a **proxy, not a measurement**, and it is wrong in both directions — see the
 long note below. The important part is not the percentage: it is that every unmatched
@@ -111,22 +114,42 @@ behaviour is double-counted to pad the total.
 route the role sweep proved reachable, inventories every visible interactive control on
 each, and cross-references the labels against the assertion names:
 
-- **Action controls** (buttons and fields, excluding nav chrome) are the primary figure.
+- **Pressable controls** (buttons, excluding nav chrome) are the primary figure. This is the
+  population "every button works" actually asks about.
+- **Form fields** are counted and published **separately and never added in**. A field is
+  covered by being *filled*; the matcher reads assertion **names**, and assertions are named
+  for outcomes, so a field's coverage cannot be read off this instrument at all.
 - **Navigation links** are reported separately and deliberately *not* added in — they are
   covered by a stronger gate, `qa-exercise-internal-links.mjs`, which asserts every link
   resolves.
 - The label match is **word-level against assertion names only**, with URLs and JSON
   stripped out of the haystack.
 
-**Measured (130 pages across all 13 roles, 0 page failures, 0 sign-outs):**
+**Measured on the current build (13 roles / 444 page visits, 1 page failed, 0 sign-outs):**
 
 | | found | label matched | |
 |---|---|---|---|
-| **Action controls** (buttons + fields, nav excluded) | **339** | **287** | **84.7% — re-measured on the current build, 13 roles / 444 page visits** |
-| of which **buttons** | — | — | 2 flagged, both artefacts (`Save`, `Continue`) — both are pressed and work; see below |
-| Navigation links (covered by `qa-exercise-internal-links.mjs` instead) | 45 | 32 | 71.1% |
+| **Pressable controls** (buttons, nav excluded) — PRIMARY | **199** | **197** | **99.0%** |
+| of which **unmatched** | — | — | **2**, both artefacts (`Save`, `Continue`) — both are pressed and work; see below |
+| Form fields (typed into, never pressed) — reported separately | 118 | 97 | 82.2% — **not** a button-coverage figure |
+| Navigation links (covered by `qa-exercise-internal-links.mjs` instead) | 45 | 30 | 66.7% |
 
-538 distinct controls in total, and **0 with no accessible name**.
+516 distinct controls in total, and **0 with no accessible name**.
+
+**The field figure is not a gap count, and must never be quoted as one.** Two independent
+mechanisms make it under-report, both verified against the exercises:
+
+1. **Assertions are named for outcomes, not controls.** The CMS exercise fills `slug`,
+   `excerpt`, `summary`, `description` and `#about-headline` (see its `create:` fixtures and
+   the `#about-headline` step); the assertions are called *"the edit is persisted"* and
+   *"upsertAboutPage writes the About content"*. Neither contains a field label.
+2. **A label is not a field id.** *"Cover note"* is `<Label htmlFor="notes">` — the exercise
+   fills `#notes` — so a matcher looking for the word "Cover note" cannot see the fill even
+   when it happened.
+
+A sample was traced to the source for both mechanisms; **not all 21 were traced individually**,
+and the metric cannot distinguish a filled input from an unfilled one. Treat the field number
+as a published denominator, not as a defect list.
 
 **The metric is wrong in BOTH directions, so it is a proxy and not a measurement.** A
 "match" means some assertion's *name* mentions that label as a word.
@@ -358,7 +381,7 @@ Held by the presentation tier (`qa-run-all.mjs`), unchanged by this work:
 | `pnpm audit:design` | clean |
 | `qa-run-workflows.mjs` | 21 exercises, **490 assertions, 20 PASS / 1 BLOCKED / 0 FAIL**, on a build verified current by `audit:server-fresh` |
 | `qa-workflow-assertion-index.mjs` | **480** distinct named behaviours; only 2 asserted by more than one exercise |
-| `qa-control-surface-census.mjs` | 444 page visits, 13 roles, **0 pages failed**; 339 action controls, 84.7% label overlap, **0 controls without an accessible name** |
+| `qa-control-surface-census.mjs` | 444 page visits, 13 roles, **1 page failed**; 199 pressable controls, **99.0%** label overlap; 118 fields reported separately; **0 controls without an accessible name** |
 | `audit:form-reset-defaults` | 28 forms scanned, 21 that reset — every one defaults every field it registers |
 | `audit:gate-coverage` | **0 of 36** declared audit/verify/smoke scripts ungated; 7 seed/fix/planning reported as not-gates |
 | `audit:suite-base-url` | 58 HTTP-performing scripts, 0 disagree on origin |
