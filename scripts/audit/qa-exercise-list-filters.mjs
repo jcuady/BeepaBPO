@@ -78,6 +78,7 @@
 import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -409,3 +410,37 @@ if (notes.length) {
   for (const n of notes) console.log(`  - ${n}`);
 }
 process.exitCode = passed === results.length ? 0 : 1;
+
+// Evidence, written by the exercise itself.
+//
+// Below the exit code on purpose: `writeEvidence` derives the verdict from it, so
+// a write placed above this line records 0 and calls a run with a dead filter
+// control a PASS. See `scripts/audit/lib/evidence.mjs`.
+try {
+  const { file } = writeEvidence({
+    id: "list-filters",
+    script: "scripts/audit/qa-exercise-list-filters.mjs",
+    claim: "every filter control on every internal list page can actually change the result set, across all demo roles",
+    base: BASE,
+    checks: results,
+    notes,
+    exitCode: process.exitCode ?? 0,
+    extra: {
+      // Reach matters as much as pass rate: a page never visited contributes no
+      // assertions and would otherwise look like a page with nothing to find.
+      pagesTested: tested,
+      pagesSkipped: skipped,
+      rolesDriven: ROLES.length,
+      // Controls that rendered and submitted but changed nothing. Reported, not
+      // asserted: a no-effect dropdown is a candidate for a human decision about
+      // its table, not automatically a defect.
+      noEffectDropdownCandidates: candidates,
+    },
+  });
+  console.log(`wrote ${file}`);
+} catch (err) {
+  console.error(
+    "could not write evidence:",
+    err instanceof Error ? err.message : String(err),
+  );
+}

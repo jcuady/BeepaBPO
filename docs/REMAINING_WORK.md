@@ -1015,6 +1015,54 @@ that `documents` reading FAIL in the same output is **stale evidence from
 2026-10-17**, not a fresh result: a partial run refreshes only the exercises it
 ran, which is the whole reason the other seventeen want to write their own.
 
+**The batch is done: all twenty-one exercises now write their own evidence.**
+Verified on the three that exercise the awkward cases, run through the runner so
+the merge path was used as well:
+
+| Exercise | Verdict | `writer` | own count vs runner's parse |
+|---|---|---|---|
+| `hire` | PASS 23 | `exercise` | 23 / 23 |
+| `client-timesheet` | PASS 14 | `exercise` | 14 / 14 |
+| `payroll` | PASS 19 | `exercise` | 19 / 19 |
+
+`tests/workflow-evidence-ownership.test.ts` holds the line that syntax and `tsc`
+cannot: in every exercise, `writeEvidence(` must appear **after** the last
+`process.exitCode` assignment. A write above it records `0` and calls a crashed
+run a PASS, which is the defect `qa-exercise-admin-workflow.mjs` already had once.
+The guard also fails on an empty scan, so a rule that stops finding anything
+reports itself rather than passing quietly.
+
+**Two things the conversion exposed, both now fixed.**
+
+`hire` was converted into something that only worked when it failed. Its exit
+code is not final inside `main()`'s `finally` -- that sets `1` only for a failed
+assertion, and a throw that bypasses it still leaves the code unset -- so the
+write could not go there, and putting it in the `.catch()` meant a **passing**
+run wrote nothing at all, which is the exact dependency the batch exists to
+remove. It now hangs off both terminal paths (`.then` for a resolved `main`,
+`.catch` for a rejected one) behind a write-once latch. Because a `catch` handler
+runs before the enclosing `finally`, the code is final by the time the write
+happens on that path. Confirmed: a passing `hire` run now writes `23/23`.
+
+`client-timesheet` carried a **NUL byte** inside a string literal, on the exact
+line that scopes a guard to one employee's table row:
+
+```js
+hrPage.locator("tr").filter({ hasText: displayName ?? "\0" }).first()
+```
+
+When `displayName` is missing the locator filters on a NUL character, which
+appears in no rendered page, so it matches **zero rows**: `count()` returned `0`,
+`stillOffered` became `false`, and the check **passed having never looked at the
+page**. A guard that cannot fail is not a guard. The absence is now recorded
+through this file's own `blocked()` rather than absorbed.
+
+That byte had a second effect nobody asked for: it made the file **binary as far
+as `grep` is concerned**, so any repo-wide text scan skipped it without saying
+so -- a grep-based guard finds twenty writers where `readFileSync` finds
+twenty-one. The difference between a scan and a checker can itself be the blind
+spot.
+
 **P3, deliberately not done now.** Porting the pattern is mechanical (copy the
 `finally`-shaped writer, assert on the failure and throw paths), and doing it one
 file at a time has already produced one real fix. It is not urgent while every

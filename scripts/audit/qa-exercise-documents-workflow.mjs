@@ -35,6 +35,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -490,5 +491,34 @@ const docCard = empPage
   if (notes.length) {
     console.log("\nnotes:");
     for (const n of notes) console.log(`  - ${n}`);
+  }
+
+  // Evidence, written by the exercise itself, after the last `process.exitCode`
+  // assignment because `writeEvidence` derives the verdict from it.
+  // See `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "documents",
+      script: "scripts/audit/qa-exercise-documents-workflow.mjs",
+      claim: "the documents module: employee upload, client upload, and a signed download URL that returns the bytes that were uploaded",
+      base: BASE,
+      checks: results,
+      notes,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // Rows AND blobs are removed, and a row deleted while its object survives
+        // is the failure the cleanup asserts against. Both counts, so the claim
+        // is checkable from the file rather than from the console log.
+        beforeCount,
+        afterCount,
+        rowsLeftCarryingMarker: leftoverRows.length,
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
   }
 }

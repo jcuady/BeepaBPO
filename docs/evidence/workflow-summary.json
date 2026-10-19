@@ -1,21 +1,21 @@
 {
   "base": "http://localhost:3100",
-  "when": "2026-10-19T01:05:43.245Z",
+  "when": "2026-10-19T02:02:56.096Z",
   "registryTotal": 21,
   "ranThisInvocation": [
     "payroll",
-    "attendance",
-    "uncovered-roles"
+    "client-timesheet",
+    "hire"
   ],
   "totals": {
-    "pass": 16,
+    "pass": 17,
     "blocked": 2,
     "skipped": 0,
-    "flaky": 2,
+    "flaky": 1,
     "fail": 1,
     "noEvidence": 0
   },
-  "totalAssertions": 477,
+  "totalAssertions": 491,
   "unregisteredScripts": [
     "qa-exercise-auth-callback.mjs"
   ],
@@ -40,11 +40,11 @@
     },
     {
       "id": "payroll",
-      "verdict": "FLAKY",
-      "assertions": 5,
+      "verdict": "PASS",
+      "assertions": 19,
       "what": "salary edit, period, recalculate, 2-step approval to finalized",
       "evidence": "docs/evidence/workflow-payroll.json",
-      "when": "2026-10-19T01:03:43.979Z",
+      "when": "2026-10-19T02:01:44.521Z",
       "ranThisRun": true
     },
     {
@@ -54,7 +54,7 @@
       "what": "clock in/out, corrections, HR approval, delete",
       "evidence": "docs/evidence/workflow-attendance.json",
       "when": "2026-10-19T01:04:57.783Z",
-      "ranThisRun": true
+      "ranThisRun": false
     },
     {
       "id": "leave",
@@ -107,8 +107,8 @@
       "assertions": 14,
       "what": "client approves submitted timesheets",
       "evidence": "docs/evidence/workflow-client-timesheet.json",
-      "when": "2026-10-17T02:58:45.020Z",
-      "ranThisRun": false
+      "when": "2026-10-19T02:02:28.712Z",
+      "ranThisRun": true
     },
     {
       "id": "money",
@@ -152,8 +152,8 @@
       "assertions": 23,
       "what": "hire to employee, org membership, cleanup",
       "evidence": "docs/evidence/workflow-hire.json",
-      "when": "2026-10-17T03:10:33.023Z",
-      "ranThisRun": false
+      "when": "2026-10-19T02:02:56.043Z",
+      "ranThisRun": true
     },
     {
       "id": "admin-workflow",
@@ -207,7 +207,7 @@
       "what": "sales, finance, client_viewer: the three roles no other exercise drives",
       "evidence": "docs/evidence/workflow-uncovered-roles.json",
       "when": "2026-10-19T01:05:43.201Z",
-      "ranThisRun": true
+      "ranThisRun": false
     }
   ]
 }

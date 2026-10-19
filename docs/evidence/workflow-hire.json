@@ -1,142 +1,126 @@
 {
   "id": "hire",
   "script": "scripts/audit/qa-exercise-hire-workflow.mjs",
-  "claim": "hire to employee, org membership, cleanup",
+  "claim": "the hire conversion: applicant to employee, with the membership, roles and overwritten profile row restored afterwards",
   "base": "http://localhost:3100",
-  "when": "2026-10-17T03:10:33.023Z",
+  "when": "2026-10-19T02:02:56.043Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 23,
   "checks": [
     {
-      "pass": true,
-      "name": "signed in as HR (the role that can actually hire)  — http://localhost:3100/app/my",
-      "detail": null
+      "name": "signed in as HR (the role that can actually hire)",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "applicant page loads  — \"Qa Hireprobe\"",
-      "detail": null
+      "name": "applicant page loads",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "signed in as Recruiter (the role that cannot hire)  — http://localhost:3100/app/my",
-      "detail": null
+      "name": "signed in as Recruiter (the role that cannot hire)",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the Recruiter page really is the Recruiter  — session email=recruiter@demo.beepabpo.com, expected=recruiter@demo.beepabpo.com",
-      "detail": null
+      "name": "the Recruiter page really is the Recruiter",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "Recruiter does NOT see the Hire button  — buttons: Toggle Sidebar | Go to a page…⌘K | 4 | DRDemo RecruiterRecruiter · Beepa BPO",
-      "detail": null
+      "name": "Recruiter does NOT see the Hire button",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "Recruiter still sees the stage control",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "the HR and Recruiter sessions are separate  — hr=hr@demo.beepabpo.com recruiter=recruiter@demo.beepabpo.com",
-      "detail": null
+      "name": "the HR and Recruiter sessions are separate",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "stage selector present",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "stage change asks for confirmation  — Move application stage? Offer — Offer extended; awaiting ca",
-      "detail": null
+      "name": "stage change asks for confirmation",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "stage moved to offer  — stage=offer (from client_interview)",
-      "detail": null
+      "name": "stage moved to offer",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "stage history recorded the move  — {\"from_stage\":\"client_interview\",\"to_stage\":\"offer\"}",
-      "detail": null
+      "name": "stage history recorded the move",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "Hire button visible to HR  — 6 | DHDemo HRHR · Beepa BPO | Hire & create employee",
-      "detail": null
+      "name": "Hire button visible to HR",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "hire asks for confirmation  — Hire Qa Hireprobe? Creates an employee record, assigns the employee role, sets",
-      "detail": null
+      "name": "hire asks for confirmation",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "an employee record was created  — {\"id\":\"6a621bcc-9b15-4828-b98f-1e7d9c97a1b7\",\"profile_id\":\"c753f9ad-eb0a-48aa-9cd4-2c785b1e5c3e\",\"employee_number\":\"BEE-00038\",\"job_title\":\"",
-      "detail": null
+      "name": "an employee record was created",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "employee record is active  — active",
-      "detail": null
+      "name": "employee record is active",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "hired member has the employee role  — roles [employee]",
-      "detail": null
+      "name": "hired member has the employee role",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "no stale applicant role left behind after hiring  — roles [employee]",
-      "detail": null
+      "name": "no stale applicant role left behind after hiring",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "membership became internal  — type=internal",
-      "detail": null
+      "name": "membership became internal",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "membership is active  — status=active",
-      "detail": null
+      "name": "membership is active",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "application is now hired  — stage=hired",
-      "detail": null
+      "name": "application is now hired",
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "hire is audit-logged  — [\"application.stage_update\",\"application.hire_convert\"]",
-      "detail": null
+      "name": "hire is audit-logged",
+      "pass": true
     },
     {
-      "pass": true,
       "name": "no console errors during the hire",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "this run left recruitment exactly as it found it  — roles [applicant] (was [applicant]), type=applicant, status=active, application=deleted (was this run's fixture), profile=Demo Applicant / active (was Demo Applicant / active), employees 10 -> 10",
-      "detail": null
+      "name": "this run left recruitment exactly as it found it",
+      "pass": true
     }
   ],
   "failedAssertions": [],
-  "notes": [
-    "seeding a fixture applicant for applicant@demo.beepabpo.com (no applicants row exists)",
-    "seeded a fixture job_application at stage=client_interview on \"HR Generalist\""
-  ],
-  "other": [
-    "target: Qa Hireprobe  application=85b7f8a8-622b-4d74-8a5d-42592a7f916b",
-    "original: stage=client_interview  membership_type=applicant status=active roles=[applicant]",
-    "cleanup: seeded application deleted",
-    "cleanup: seeded applicant deleted",
-    "cleanup: profile restored",
-    "cleanup: 2 fixture audit row(s) deleted",
-    "23/23 checks passed"
-  ],
-  "confirmation": null
+  "notes": [],
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "seededFixtures": {
+      "applicant": "4ae267a2-5e31-479b-8e6f-0374b98d4127",
+      "application": "9b346677-d930-412d-a356-4a2e55950bfc"
+    },
+    "failedAssertions": []
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 23,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 23,
+    "printedFailures": 0
+  }
 }

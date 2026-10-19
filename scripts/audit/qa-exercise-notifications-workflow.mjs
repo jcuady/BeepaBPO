@@ -25,6 +25,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -354,5 +355,37 @@ try {
   if (notes.length) {
     console.log("\nnotes:");
     for (const n of notes) console.log(`  - ${n}`);
+  }
+
+  // Evidence, written by the exercise itself.
+  //
+  // After the last `process.exitCode` assignment, because `writeEvidence` derives
+  // the verdict from that code. The placement is the whole point: the same write
+  // at the top of this block would have seen an unset exit code, recorded 0, and
+  // called a failing run a PASS. See `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "notifications",
+      script: "scripts/audit/qa-exercise-notifications-workflow.mjs",
+      claim: "the notification domain: mark one read, mark all read without reaching another user's row, and the delivery preference changes",
+      base: BASE,
+      checks: results,
+      notes,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // The restoration this run asserted. `markAllRead` touches every row the
+        // user owns, so the snapshot/restore pair is the load-bearing result and
+        // belongs next to the verdict rather than only in stdout.
+        beforeCount,
+        rowsLeftCarryingMarker: leftOver.length,
+        readAtValuesNotRestored: mismatched,
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
   }
 }

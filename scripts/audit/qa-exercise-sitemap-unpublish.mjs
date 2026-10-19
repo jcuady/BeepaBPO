@@ -35,6 +35,7 @@ import net from "node:net";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -325,3 +326,29 @@ try {
 const passed = results.filter((r) => r.pass).length;
 console.log(`\n${passed}/${results.length} assertions passed`);
 process.exitCode = passed === results.length ? 0 : 1;
+
+// Evidence, written by the exercise itself, after the last `process.exitCode`
+// assignment because `writeEvidence` derives the verdict from it.
+// See `scripts/audit/lib/evidence.mjs`.
+try {
+  const { file } = writeEvidence({
+    id: "sitemap",
+    script: "scripts/audit/qa-exercise-sitemap-unpublish.mjs",
+    claim: "archiving a published article removes it from the live sitemap.xml, read back from the running server rather than from a build artifact",
+    base: BASE,
+    checks: results,
+    exitCode: process.exitCode ?? 0,
+    extra: {
+      // The article this run published and then archived. Recorded so a reader
+      // can look up the exact slug the "still mentioned it" probe searched for.
+      slug: SLUG,
+      marker: MARK,
+    },
+  });
+  console.log(`wrote ${file}`);
+} catch (err) {
+  console.error(
+    "could not write evidence:",
+    err instanceof Error ? err.message : String(err),
+  );
+}

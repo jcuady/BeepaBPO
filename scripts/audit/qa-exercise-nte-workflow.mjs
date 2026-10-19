@@ -41,6 +41,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 // The product's own timezone helper, so the note about the stored instant cannot
 // drift from what the product actually does.
@@ -442,5 +443,33 @@ try {
   if (notes.length) {
     console.log("\nnotes:");
     for (const n of notes) console.log(`  - ${n}`);
+  }
+
+  // Evidence, written by the exercise itself, after the last `process.exitCode`
+  // assignment because `writeEvidence` derives the verdict from it.
+  // See `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "nte",
+      script: "scripts/audit/qa-exercise-nte-workflow.mjs",
+      claim: "the NTE domain end to end: HR issues a case, the named employee responds, HR resolves it with a disciplinary outcome",
+      base: BASE,
+      checks: results,
+      notes,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // The case, response and disciplinary-action counts before and after, so
+        // the cleanup's "left the demo data as it found it" claim can be read
+        // off the file rather than taken from the console log.
+        before,
+        after,
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
   }
 }

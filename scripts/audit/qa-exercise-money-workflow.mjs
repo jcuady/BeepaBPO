@@ -38,6 +38,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -540,5 +541,33 @@ try {
   if (notes.length) {
     console.log("\nnotes:");
     for (const n of notes) console.log(`  - ${n}`);
+  }
+
+  // Evidence, written by the exercise itself, after the last `process.exitCode`
+  // assignment because `writeEvidence` derives the verdict from it.
+  // See `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "money",
+      script: "scripts/audit/qa-exercise-money-workflow.mjs",
+      claim: "the two money paths: invoice plus payments against it, and a cash advance requested as an employee then reviewed as HR",
+      base: BASE,
+      checks: results,
+      notes,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // The only actions in the product that move money, so the before/after
+        // counts on invoices, items, payments and advances are the part of this
+        // run worth keeping next to the verdict.
+        before,
+        after,
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
   }
 }

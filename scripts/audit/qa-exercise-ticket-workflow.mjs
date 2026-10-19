@@ -21,6 +21,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -217,4 +218,31 @@ try {
   const failed = results.filter((r) => !r.pass);
   console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
   if (failed.length) process.exitCode = 1;
+
+  // Evidence, written by the exercise itself.
+  //
+  // After the last `process.exitCode` assignment, because `writeEvidence` derives
+  // the verdict from that code. See `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "ticket-detail",
+      script: "scripts/audit/qa-exercise-ticket-workflow.mjs",
+      claim: "the live ticket hand-off: a client admin raises a ticket, operations assigns it, and ticket.created and ticket.assigned both fire",
+      base: BASE,
+      checks: results,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // The residual count and the ticket this run created, so "left nothing
+        // behind" can be checked against the before value rather than trusted.
+        residualBefore,
+        createdTicketId,
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
+  }
 }

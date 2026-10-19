@@ -17,6 +17,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld, submitAndWaitOutcome } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -334,4 +335,31 @@ try {
   const failed = results.filter((r) => !r.pass);
   console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
   if (failed.length) process.exitCode = 1;
+
+  // Written AFTER the exit code is decided, because `writeEvidence` derives the
+  // verdict from it: 1 -> FAIL, 0 -> PASS. Written at the end of the `finally`
+  // so a crashed run still leaves a record of having run. Same reason as
+  // `qa-exercise-admin-workflow.mjs`; see `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "payroll",
+      script: "scripts/audit/qa-exercise-payroll-workflow.mjs",
+      claim: "payroll money path end to end: own period opened, reviewed, approved in two steps, finalized",
+      base: BASE,
+      checks: results,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // Row counts captured before the run, so a reader can tell what this
+        // exercise touched from what it only observed. The cleanup asserts they
+        // come back; recording them makes that claim checkable afterwards.
+        baselineCounts: base,
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
+  }
 }

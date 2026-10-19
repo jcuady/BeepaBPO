@@ -35,6 +35,7 @@ import { randomBytes } from "node:crypto";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -309,3 +310,32 @@ try {
 const passed = results.filter((r) => r.pass).length;
 console.log(`\n${passed}/${results.length} assertions passed`);
 process.exitCode = process.exitCode || (passed === results.length ? 0 : 1);
+
+// Evidence, written by the exercise itself.
+//
+// Below the exit code, because `writeEvidence` derives the verdict from it: this
+// line preserves a BLOCKED (2) rather than flattening it, so the write has to see
+// the final value. A write above it would record 0 and report PASS for a run that
+// only reached an environment refusal. See `scripts/audit/lib/evidence.mjs`.
+try {
+  const { file } = writeEvidence({
+    id: "signup",
+    script: "scripts/audit/qa-exercise-signup-workflow.mjs",
+    claim: "signupAction end to end: account created, duplicate-address wording matched, membership rows and the auth user cleaned up",
+    base: BASE,
+    checks: results,
+    exitCode: process.exitCode ?? 0,
+    extra: {
+      // The account this run created, or null when none survived to clean up.
+      // Worth recording because "cleanup deleted the throwaway" is only
+      // meaningful against a specific id.
+      createdUserId,
+    },
+  });
+  console.log(`wrote ${file}`);
+} catch (err) {
+  console.error(
+    "could not write evidence:",
+    err instanceof Error ? err.message : String(err),
+  );
+}

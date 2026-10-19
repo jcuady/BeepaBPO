@@ -167,9 +167,30 @@ describe("exercise evidence writers", () => {
     .sort();
 
   it("the scan finds the known writers, so it is not vacuously empty", () => {
+    // Grown from three to twenty-one when the remaining exercises were moved onto
+    // the shared writer. The list stays exact and stays sorted: it is the cheapest
+    // place a new `qa-exercise-*.mjs` shows up as NOT writing its own evidence.
     expect(owners).toEqual([
       "qa-exercise-admin-workflow.mjs",
       "qa-exercise-attendance-workflow.mjs",
+      "qa-exercise-auth-workflow.mjs",
+      "qa-exercise-client-timesheet-workflow.mjs",
+      "qa-exercise-cms-workflow.mjs",
+      "qa-exercise-crm-workflow.mjs",
+      "qa-exercise-documents-workflow.mjs",
+      "qa-exercise-hire-workflow.mjs",
+      "qa-exercise-leave-workflow.mjs",
+      "qa-exercise-list-filters.mjs",
+      "qa-exercise-money-workflow.mjs",
+      "qa-exercise-notifications-workflow.mjs",
+      "qa-exercise-nte-workflow.mjs",
+      "qa-exercise-payroll-workflow.mjs",
+      "qa-exercise-profile-workflow.mjs",
+      "qa-exercise-recruitment-workflow.mjs",
+      "qa-exercise-signup-workflow.mjs",
+      "qa-exercise-sitemap-unpublish.mjs",
+      "qa-exercise-ticket-workflow.mjs",
+      "qa-exercise-tickets-workflow.mjs",
       "qa-exercise-uncovered-roles.mjs",
     ]);
   });

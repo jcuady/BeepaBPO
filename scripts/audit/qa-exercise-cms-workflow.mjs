@@ -23,6 +23,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -423,6 +424,33 @@ try {
     console.log("\nFAILURES:");
     for (const f of failed) console.log(`  - ${f.name}`);
     process.exitCode = 1;
+  }
+
+  // Evidence, written by the exercise itself, after the last `process.exitCode`
+  // assignment because `writeEvidence` derives the verdict from it.
+  // See `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "cms",
+      script: "scripts/audit/qa-exercise-cms-workflow.mjs",
+      claim: "the CMS end to end across all six content types plus the About page: create, edit, publish, archive, and the absence of any delete action",
+      base: BASE,
+      checks: results,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // The rows this run created, and the About page's key and before/after
+        // value. `createdIds` is what the service-role cleanup deletes, so it is
+        // the one thing a reader needs to check the cleanup against.
+        createdIds,
+        publicAbout: { key: aboutKey, before: aboutBefore, after: aboutAfter },
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
   }
 }
 

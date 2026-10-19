@@ -1,60 +1,111 @@
 {
   "id": "payroll",
   "script": "scripts/audit/qa-exercise-payroll-workflow.mjs",
-  "claim": "salary edit, period, recalculate, 2-step approval to finalized",
+  "claim": "payroll money path end to end: own period opened, reviewed, approved in two steps, finalized",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T01:03:43.979Z",
-  "exitCode": 1,
-  "verdict": "FLAKY",
-  "assertions": 5,
+  "when": "2026-10-19T02:01:44.521Z",
+  "exitCode": 0,
+  "verdict": "PASS",
+  "assertions": 19,
   "checks": [
     {
-      "pass": false,
-      "name": "signed in as owner (holds payroll.manage)  — http://localhost:3100/login",
-      "detail": null
+      "name": "signed in as owner (holds payroll.manage)",
+      "pass": true
     },
     {
-      "pass": false,
-      "name": "salary settings form rendered  — []",
-      "detail": null
+      "name": "salary settings form rendered",
+      "pass": true
     },
     {
-      "pass": false,
-      "name": "a frequency with no existing period is selectable  — chose null",
-      "detail": null
+      "name": "snapshotted the profile of the employee actually being edited",
+      "pass": true
     },
     {
-      "pass": true,
+      "name": "salary change persisted",
+      "pass": true
+    },
+    {
+      "name": "a frequency with no existing period is selectable",
+      "pass": true
+    },
+    {
+      "name": "a new payroll period was created",
+      "pass": true
+    },
+    {
+      "name": "new period starts as draft",
+      "pass": true
+    },
+    {
+      "name": "payroll records were seeded for the period",
+      "pass": true
+    },
+    {
+      "name": "seeded records start as draft",
+      "pass": true
+    },
+    {
+      "name": "Recalculate control present",
+      "pass": true
+    },
+    {
+      "name": "recalculate produced a calculation snapshot",
+      "pass": true
+    },
+    {
+      "name": "Submit for approval present",
+      "pass": true
+    },
+    {
+      "name": "period moved to approval",
+      "pass": true
+    },
+    {
+      "name": "an approval request was created",
+      "pass": true
+    },
+    {
+      "name": "period finalized after the full approval chain",
+      "pass": true
+    },
+    {
+      "name": "payroll approval took two steps",
+      "pass": true
+    },
+    {
+      "name": "every record in the period is finalized",
+      "pass": true
+    },
+    {
       "name": "no console errors during the payroll run",
-      "detail": null
+      "pass": true
     },
     {
-      "pass": true,
-      "name": "this run left payroll exactly as it found it  — periods 2->2, records 11->11, payslips 1->1, audit 705->705, salary restored=true",
-      "detail": null
+      "name": "this run left payroll exactly as it found it",
+      "pass": true
     }
   ],
-  "failedAssertions": [
-    {
-      "pass": false,
-      "name": "signed in as owner (holds payroll.manage)  — http://localhost:3100/login",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "salary settings form rendered  — []",
-      "detail": null
-    },
-    {
-      "pass": false,
-      "name": "a frequency with no existing period is selectable  — chose null",
-      "detail": null
-    }
-  ],
+  "failedAssertions": [],
   "notes": [],
-  "other": [
-    "2/5 checks passed"
-  ],
-  "confirmation": "failed under suite load (3 assertion(s)), passed on a re-run 15s later",
-  "writtenFromStdoutBecause": "writer is null, not \"exercise\""
+  "other": [],
+  "writer": "exercise",
+  "extra": {
+    "baselineCounts": {
+      "periods": 2,
+      "records": 11,
+      "payslips": 1,
+      "audit": 708
+    }
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 19,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 19,
+    "printedFailures": 0
+  }
 }

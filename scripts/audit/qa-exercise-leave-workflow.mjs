@@ -22,6 +22,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld, submitAndWaitOutcome } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -497,4 +498,33 @@ if (cancellable) {
   const failed = results.filter((r) => !r.pass);
   console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
   if (failed.length) process.exitCode = 1;
+
+  // Evidence, written by the exercise itself.
+  //
+  // After the last `process.exitCode` assignment, because `writeEvidence` derives
+  // the verdict from that code: a write placed above it would record 0 and report
+  // PASS for a run whose assertions failed. See `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "leave",
+      script: "scripts/audit/qa-exercise-leave-workflow.mjs",
+      claim: "leave end to end: employee submits, team lead approves, HR approves, plus the cancel leg and the notifications each step sends",
+      base: BASE,
+      checks: results,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // The residual count and the ids this run created. Recorded because "left
+        // no request behind" is only checkable against the before/after pair.
+        residualBefore,
+        createdLeaveId,
+        cancelledLeaveId,
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
+  }
 }

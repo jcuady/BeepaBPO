@@ -32,6 +32,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld, submitAndWaitOutcome } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -607,5 +608,34 @@ try {
     console.log("\nFAILURES:");
     for (const f of failed) console.log(`  - ${f.name}`);
     process.exitCode = 1;
+  }
+
+  // Evidence, written by the exercise itself.
+  //
+  // It sits AFTER the last `process.exitCode` assignment because `writeEvidence`
+  // derives the verdict from that code -- a write placed above it would record 0
+  // and say PASS whatever actually happened. Same rule, same reason, as
+  // `qa-exercise-admin-workflow.mjs`. See `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "auth",
+      script: "scripts/audit/qa-exercise-auth-workflow.mjs",
+      claim: "the auth surface: sign-in, sign-out, account switching, password reset and the throwaway-account cleanup that proves none of it leaked",
+      base: BASE,
+      checks: results,
+      notes,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // A path the environment refused is UNKNOWN, not passing. Recorded here
+        // next to the run that could not prove it, rather than left to memory.
+        blockedPaths: blocked,
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
   }
 }

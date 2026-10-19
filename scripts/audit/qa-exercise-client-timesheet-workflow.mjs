@@ -43,6 +43,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -268,14 +269,34 @@ try {
 
     await hrPage.reload({ waitUntil: "domcontentloaded" });
     await hrPage.waitForTimeout(2500);
-    const myRow = hrPage.locator("tr").filter({ hasText: displayName ?? " " }).first();
-    const stillOffered = (await myRow.getByRole("button", { name: "Send to client" }).count().catch(() => 0)) > 0;
-    const myRowText = (await myRow.innerText().catch(() => "")).replace(/\s+/g, " ");
-    check(
-      "the submitted day is no longer offered for submission",
-      !stillOffered,
-      `${displayName}: "${myRowText.slice(0, 90)}"`,
-    );
+    // A missing display name means this guard cannot be scoped to the row -- and an
+    // unscoped "Send to client" count is page-wide and therefore always non-zero,
+    // because the second fixture legitimately keeps its button, which is the false
+    // failure this scoping exists to prevent.
+    //
+    // So the absence is recorded rather than absorbed. It used to fall through to a
+    // `hasText` filter on a literal NUL byte, which matches no row on any rendered
+    // page: `count()` returned 0, `stillOffered` became false, and the check PASSED
+    // having never looked at the page. A guard that cannot fail is not a guard.
+    //
+    // The NUL had a second effect nobody asked for: it made this file binary as far
+    // as `grep` is concerned, so any repo-wide text scan silently skipped it.
+    if (!displayName) {
+      blocked(
+        "the submitted day is no longer offered for submission",
+        `could not resolve a display name for employee ${assignment.employee_id}, so the ` +
+          "table row could not be scoped and this guard did not run",
+      );
+    } else {
+      const myRow = hrPage.locator("tr").filter({ hasText: displayName }).first();
+      const stillOffered = (await myRow.getByRole("button", { name: "Send to client" }).count().catch(() => 0)) > 0;
+      const myRowText = (await myRow.innerText().catch(() => "")).replace(/\s+/g, " ");
+      check(
+        "the submitted day is no longer offered for submission",
+        !stillOffered,
+        `${displayName}: "${myRowText.slice(0, 90)}"`,
+      );
+    }
   }
   await hrCtx.close();
 
@@ -406,6 +427,39 @@ if ((await cliPage.getByRole("button", { name: "Approve" }).count()) === 0) {
   if (notes.length) {
     console.log("\nnotes:");
     for (const n of notes) console.log(`  - ${n}`);
+  }
+
+  // Evidence, written by the exercise itself, after the last `process.exitCode`
+  // assignment because `writeEvidence` derives the verdict from it.
+  // See `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "client-timesheet",
+      script: "scripts/audit/qa-exercise-client-timesheet-workflow.mjs",
+      claim: "the client timesheet hand-off both ways: send to client, client approves to finalized, client sends back to supervisor_review",
+      base: BASE,
+      checks: results.filter((r) => typeof r.pass === "boolean"),
+      notes,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // `blocked()` records a path the environment refused as `pass: null` in
+        // this same array, and `writeEvidence` refuses a check it cannot
+        // evaluate -- a null `pass` is exactly that, and would have thrown the
+        // whole file away. So the evaluable checks go to `checks` and the
+        // refused paths to `extra`, which is where
+        // `qa-exercise-admin-workflow.mjs` keeps its own.
+        blockedPaths: results.filter((r) => typeof r.pass !== "boolean").map((r) => r.name),
+        // The date the fixture was pinned to, which is why the record was
+        // visible to the client queue at all.
+        workDate: WORK_DATE,
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
   }
 }
 

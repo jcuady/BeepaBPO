@@ -31,6 +31,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -504,5 +505,34 @@ const SCRATCH_ORG = "cafebabe-0000-4000-8000-00000000aa01";
   if (notes.length) {
     console.log("\nnotes:");
     for (const n of notes) console.log(`  - ${n}`);
+  }
+
+  // Evidence, written by the exercise itself, after the last `process.exitCode`
+  // assignment because `writeEvidence` derives the verdict from it.
+  // See `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "tickets",
+      script: "scripts/audit/qa-exercise-tickets-workflow.mjs",
+      claim: "the four remaining ticket actions: post a message, change a status, create an SLA policy, edit one",
+      base: BASE,
+      checks: results,
+      notes,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // Before/after counts and the policies that drifted. The SLA policies
+        // predate the run and are restored field by field, so "nothing changed"
+        // is a claim about specific rows rather than a row count.
+        before,
+        after,
+        driftedPolicies: drifted,
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
   }
 }

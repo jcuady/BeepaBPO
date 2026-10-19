@@ -18,6 +18,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld, submitAndWaitOutcome } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -593,7 +594,9 @@ const EXPECTED_RECRUITER = CANARY ? "hr@demo.beepabpo.com" : "recruiter@demo.bee
 //
 // This handler is also the backstop for the one window `restore()` cannot cover: a failure
 // during target resolution, before the exercise's try/finally is ever entered.
-main().catch(async (err) => {
+main()
+  .then(writeHireEvidence)
+  .catch(async (err) => {
   console.error(err instanceof Error ? (err.stack ?? err.message) : String(err));
 
   const rolled = [];
@@ -608,4 +611,55 @@ main().catch(async (err) => {
   console.log(rolled.length ? `rollback: ${rolled.join(", ")}` : "rollback: nothing was seeded");
 
   process.exitCode = 1;
+
+  writeHireEvidence();
 });
+
+/**
+ * Write this exercise's evidence, once, with whatever exit code is final NOW.
+ *
+ * WHY IT IS NOT IN `main()`'s `finally`. This file's exit code is not final
+ * inside that `finally`: it sets 1 only for a failed assertion, and a throw that
+ * bypasses it still leaves the code unset when the write would run. Because
+ * `writeEvidence` derives the verdict from the code, a write there records 0 and
+ * calls a crashed run a PASS -- the exact defect the helper exists to remove.
+ *
+ * WHY IT IS NOT ONLY IN THE CATCH. The reverse mistake is worse: the catch runs
+ * only when `main()` rejects, so a *passing* run would write nothing at all and
+ * the exercise would go back to depending on the orchestrator for its evidence,
+ * which is the condition this whole change exists to remove.
+ *
+ * So the write hangs off both terminal paths -- `.then` for a resolved main,
+ * `.catch` for a rejected one -- and the `evidenceWritten` latch makes the
+ * second call a no-op. In JS a `catch` handler runs before the enclosing
+ * `finally`, so by the time the catch calls this, `process.exitCode = 1` above
+ * has already been applied and the recorded verdict is the process's real one.
+ */
+let evidenceWritten = false;
+function writeHireEvidence() {
+  if (evidenceWritten) return;
+  evidenceWritten = true;
+  try {
+    const { file } = writeEvidence({
+      id: "hire",
+      script: "scripts/audit/qa-exercise-hire-workflow.mjs",
+      claim: "the hire conversion: applicant to employee, with the membership, roles and overwritten profile row restored afterwards",
+      base: BASE,
+      checks: results,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // What this run seeded, so a reader can tell a clean rollback from one
+        // that had nothing to roll back. Recorded rather than only printed.
+        seededFixtures: FIXTURE_CREATED,
+        failedAssertions: results.filter((r) => !r.pass).map((r) => r.name),
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (writeErr) {
+    evidenceWritten = false;
+    console.error(
+      "could not write evidence:",
+      writeErr instanceof Error ? writeErr.message : String(writeErr),
+    );
+  }
+}

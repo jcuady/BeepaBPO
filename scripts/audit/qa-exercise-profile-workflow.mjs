@@ -29,6 +29,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -335,5 +336,36 @@ try {
   if (notes.length) {
     console.log("\nnotes:");
     for (const n of notes) console.log(`  - ${n}`);
+  }
+
+  // Evidence, written by the exercise itself, after the last `process.exitCode`
+  // assignment because `writeEvidence` derives the verdict from it.
+  // See `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "profile",
+      script: "scripts/audit/qa-exercise-profile-workflow.mjs",
+      claim: "the identity-shaped actions: edit an employee record, edit your own profile, and submit the public contact form into CRM",
+      base: BASE,
+      checks: results,
+      notes,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // The contact form is the only production route to
+        // `createLeadFromContact`, so the lead it creates and the employee/profile
+        // edits it runs alongside are restored and then asserted here.
+        leadCountBefore,
+        leadCountAfter,
+        leftoverLeads: leftoverLeads.length,
+        employeeRestored,
+        profileRestored,
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
   }
 }

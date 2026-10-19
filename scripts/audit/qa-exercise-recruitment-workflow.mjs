@@ -17,6 +17,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { fillHeld } from "./lib/browser-form.mjs";
+import { writeEvidence } from "./lib/evidence.mjs";
 
 const env = {};
 for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
@@ -360,5 +361,32 @@ try {
     console.log("\nFAILURES:");
     for (const f of failed) console.log(`  - ${f.name}`);
     process.exitCode = 1;
+  }
+
+  // Evidence, written by the exercise itself, after the last `process.exitCode`
+  // assignment because `writeEvidence` derives the verdict from it.
+  // See `scripts/audit/lib/evidence.mjs`.
+  try {
+    const { file } = writeEvidence({
+      id: "recruitment",
+      script: "scripts/audit/qa-exercise-recruitment-workflow.mjs",
+      claim: "the five remaining recruitment actions: create, update, publish and close a job post, and submit an application",
+      base: BASE,
+      checks: results,
+      exitCode: process.exitCode ?? 0,
+      extra: {
+        // `submitJobApplication` rewrites an EXISTING applicant row rather than
+        // creating one, so the before/after counts on jobs and applications are
+        // the record of what this run was allowed to change.
+        before,
+        afterCounts,
+      },
+    });
+    console.log(`wrote ${file}`);
+  } catch (err) {
+    console.error(
+      "could not write evidence:",
+      err instanceof Error ? err.message : String(err),
+    );
   }
 }
