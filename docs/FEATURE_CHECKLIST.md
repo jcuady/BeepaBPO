@@ -147,9 +147,14 @@ mechanisms make it under-report, both verified against the exercises:
    fills `#notes` — so a matcher looking for the word "Cover note" cannot see the fill even
    when it happened.
 
-A sample was traced to the source for both mechanisms; **not all 21 were traced individually**,
-and the metric cannot distinguish a filled input from an unfilled one. Treat the field number
-as a published denominator, not as a defect list.
+A sample was traced to the source for both mechanisms. **All 21 have since been traced
+individually, and none is an unfilled field**: 17 are demonstrably filled by an exercise,
+1 (`Method`) is exercised at its default only, 2 (`Week of`, `To`) are driven by URL
+params, 1 (`Description` on `/app/my/requests`) could not be placed, and 0 are unfilled.
+`Visibility` is not a form field at all — it is derived from the uploader's permission, and
+the documents exercise asserts the derived value. See `REMAINING_WORK.md` §2.14a, including
+the two automated sweeps that got this wrong first. Treat the field number as a published
+denominator, not as a defect list.
 
 **The metric is wrong in BOTH directions, so it is a proxy and not a measurement.** A
 "match" means some assertion's *name* mentions that label as a word.

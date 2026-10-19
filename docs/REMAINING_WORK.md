@@ -1695,11 +1695,56 @@ evidence file carried a 23-row gap list that the summary had been quoting as a h
 The question was never answered; the number was. It is now answered, and the answer was
 that the question had been mis-framed.
 
-**What I did not do.** I did not trace all 21 unmatched fields individually — a sample
-covering both false-gap mechanisms was traced to source, and the remainder are reported as
-a published denominator. The metric cannot tell a filled input from an unfilled one, and
-the honest statement of that limit is stronger than a hand-checked subset presented as a
-complete one.
+**All 21 were then traced individually. No unfilled field was found.** Not by an
+automated sweep — the first two attempts at one were both wrong, which is itself
+the lesson — but by reading, for each flagged field, the component that renders it
+and the exact exercise line that touches it:
+
+| Verdict | Count | Evidence |
+|---|---|---|
+| **Filled by an exercise** | **17** | see below |
+| Exercised, field left at its **default** only | 1 | `Method` (billing) |
+| Exercised via **URL param, not a fill** | 2 | `Week of`, `To` |
+| Could not be placed | 1 | `Description` on `/app/my/requests` |
+| **Never filled** | **0** | — |
+
+The 17: `Reason` on attendance (`qa-exercise-attendance-workflow.mjs:255`) and on leave
+(`qa-exercise-leave-workflow.mjs:193`); `Company` (`qa-exercise-crm-workflow.mjs:131`,
+filling `#company_name`); `Notes` (`crm:136`); `Headline`, `Slug`, `Summary`, `Excerpt`,
+`Question`, `Answer`, `Quote`, `Rating` (all `qa-exercise-cms-workflow.mjs`, via the
+`create:` fixtures at lines 77–107 and `#about-headline` at 359); `Reference`
+(`qa-exercise-money-workflow.mjs`); `Location` (`recruitment:113`), `LinkedIn URL`
+(`recruitment:239`) and `Cover note` (`recruitment:240`, filling `#notes`); and
+`Visibility`, which **is not a form field at all** — `qa-exercise-documents-workflow.mjs:15`
+says so in its own comment (*"Visibility is derived from the uploader's permission, not
+from a form field"*) and lines 190/379/427 assert `private` / `employee_visible` /
+`client_visible` against the derived value.
+
+The three partials are honest narrowings, not defects. `Method` is an **optional** input
+defaulting to `bank_transfer`; the payment form is exercised (`#paid_at` filled,
+"record payment" clicked, the `invoice_payments` row asserted), so only its non-default
+values are uncovered. `Week of` and `To` are date filters whose values come from the URL —
+`qa-exercise-attendance-workflow.mjs:408` drives them with `?week=${weekOf(MANUAL_DATE)}`.
+`qa-exercise-list-filters.mjs` covers dropdowns and text search, **not** date inputs, so the
+coverage is by URL rather than by an explicit fill.
+
+**Two automated attempts at this were wrong before the manual one was right, and both
+failures are the same defect one level down.** The first walked only `.tsx/.ts/.jsx/.js` and
+excluded `.mjs` — so its exercise corpus was **empty**, and it reported all 21 fields as
+unfilled. The second resolved labels to ids *globally* and reported "no exercise touches
+this id" for CRM `Company`; the id it found, `team-company`, belongs to the **landing page**
+(`components/landing/landing-page.tsx:217`), while the CRM lead field is `company_name`
+(`components/app/crm/create-lead-form.tsx:62`, filled at `crm:131`). Both were confidently
+wrong in the same direction. **An id is route-scoped, so an id-shaped matcher inherits every
+blindness a label-shaped one has** — the census's failure reproduced exactly, one layer down,
+in the instrument built to correct it.
+
+**What this adds up to.** The corrected pressable figure stands unchanged at **99.0% with a
+gap of 2, both artefacts and no unexercised button** — that came from the browser census and
+nothing here touches it. What changed is the *field* figure's meaning: it is no longer an
+open question. Seventeen of 21 are demonstrably filled, the remaining 4 are narrowed and
+named, and none is a hole. The metric still cannot measure this on its own, which is exactly
+why it is published as a denominator rather than a gap list.
 
 **Re-measured 2026-10-19, because its input moved: 92.8%.** §2.11's batch
 regenerated `workflow-assertion-index.json` from freshly written evidence, and
