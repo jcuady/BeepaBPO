@@ -173,6 +173,30 @@ async function deleteThrowawayAuthUsers() {
   if (!junk.length) console.log("  (cleanup) no throwaway auth users to remove");
 }
 
+/**
+ * Every sign-in this run attempted, with how it RESOLVED.
+ *
+ * WHY THIS EXISTS. Twice, this exercise failed a DIFFERENT sign-in assertion on a
+ * freshly restarted server while `test-auth-direct.mjs` reported HTTP 200 for
+ * every account — so the provider was not the cause, and neither was accumulated
+ * load. Twenty consecutive password grants through the REST endpoint were also
+ * all 200, so there is no grant ceiling being reached mid-run either. What remains
+ * is unnamed, and a failing set that changes identity between runs cannot be
+ * attributed without knowing *which* sign-in resolved how.
+ *
+ * `submitAndWaitOutcome` already distinguishes "the app refused" (`alert`) from
+ * "it moved" (`navigated`) from "neither happened in time" (`timeout`), and until
+ * now that distinction was discarded the moment the helper returned. A `timeout`
+ * in particular is invisible to the caller: the check reads `page.url()`, sees a
+ * login URL, and reports a sign-in failure that is indistinguishable from the app
+ * rejecting the credentials.
+ *
+ * So the per-call outcome, the URL it settled on, and whatever the form said are
+ * recorded here and written into the evidence file. When this recurs, the answer
+ * is already in the record instead of costing another run to find.
+ */
+const signIns = [];
+
 async function signIn(page, email, password, path = "/login") {
   await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded" });
   // The employee portal deliberately renders `type="text"` (it accepts an
@@ -186,8 +210,21 @@ async function signIn(page, email, password, path = "/login") {
   // publishing why not. Every caller of this helper then reads `page.url()` to
   // decide a check, so a fixed sleep here made those checks report whichever
   // leg of the redirect they happened to catch.
-  await submitAndWaitOutcome(page, 'button[type=submit]', { loginPath: path, timeout: 25000 });
+  const outcome = await submitAndWaitOutcome(page, 'button[type=submit]', { loginPath: path, timeout: 25000 });
   await page.waitForLoadState("domcontentloaded").catch(() => {});
+
+  // Recorded, then returned as before. The three outcomes are NOT
+  // interchangeable for a caller reading `page.url()`: a `timeout` leaves the URL
+  // on the login path and therefore reads exactly like a refusal.
+  //
+  // `replace(BASE, "")` rather than `new URL(...)`: it is the idiom the rest of
+  // this file already uses, and a URL parse that threw HERE would abort the run
+  // at the evidence step — losing a green 35/35 to a bookkeeping expression.
+  const landed = page.url().replace(BASE, "") || "/";
+  const said = outcome === "alert"
+    ? (await page.locator('[role="alert"]').first().innerText().catch(() => "")).replace(/\s+/g, " ").trim().slice(0, 90)
+    : null;
+  signIns.push({ account: email, path, outcome, landed, leftLogin: !landed.startsWith(path), said });
 }
 
 try {
@@ -637,6 +674,13 @@ try {
         // A path the environment refused is UNKNOWN, not passing. Recorded here
         // next to the run that could not prove it, rather than left to memory.
         blockedPaths: blocked,
+        // How each sign-in RESOLVED, not merely whether the check that followed
+        // it passed. `timeout` is the one that was invisible: it leaves the URL
+        // on the login path, so a caller reading `page.url()` cannot tell it from
+        // the app refusing the credentials. This exercise has failed a DIFFERENT
+        // sign-in assertion on different runs with a clean provider and a clean
+        // server, and this is what settles it the next time it happens.
+        signIns,
       },
     });
     console.log(`wrote ${file}`);
