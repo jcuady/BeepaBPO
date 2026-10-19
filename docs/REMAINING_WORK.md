@@ -1294,8 +1294,25 @@ have. That is what steps 1–3 in §2.12c are for.
 
 The structural fix is to stop accumulating: restart the app server between exercises
 (or run them against a fresh one), which would remove both faces of this at once.
-That is P2 and not urgent enough to attempt without a decision on whether a test
-runner is permitted to manage the server it is testing.
+That is P2, and it is still a decision rather than a change — but it is no longer a
+hypothesis.
+
+**MEASURED 2026-10-19 — chunked execution with a restart between chunks clears
+exactly the failures this section attributes to accumulation.** All twenty-one
+exercises were run in four chunks against a server restarted by listening port
+between each, and the result was **18 PASS, 2 BLOCKED, 1 FLAKY, 0 FAIL, 495
+assertions**, with every non-PASS traced to the provider's email quota. Two
+results that had been standing open moved:
+
+- `crm` had carried **FLAKY across two earlier runs**; on a fresh server it
+  passed 21/21.
+- `documents` had been sitting at **FAIL in its evidence file since 2026-10-17**
+  while the exercise itself passed; it passed 31/31.
+
+So the load face is not a theory that survives contact with a measurement — it
+is reproducible, and removing the accumulation removes the failures. What remains
+undecided is only whether a test runner is *permitted* to manage the server it is
+testing, which is a question about authority rather than about the cause.
 
 ### 2.13 Signup was blocked by the provider's mail budget, and one error shape is unexplained
 
@@ -1458,6 +1475,31 @@ removes the control it labels before reading.
 controls with no accessible name, 23 in the gap.** The gap went 52 → 44 → 23 as
 each layer of the extractor was corrected, and real labels replaced data values
 (`Reason`, `Visibility`, `Slug`, `Excerpt`, `Week of`).
+
+**Re-measured 2026-10-19, because its input moved: 92.8%.** §2.11's batch
+regenerated `workflow-assertion-index.json` from freshly written evidence, and
+`uncovered-roles` now contributes 19 assertions where the 92.7% above was
+measured against 17. Re-run against a server restarted immediately beforehand:
+
+| Measure | 2026-10-18 (runs B–E) | 2026-10-19 (run F) |
+|---|---|---|
+| Pages visited / failed | 443–444 / 0–1 | **444 / 0** |
+| Cold-start retries | 0 | 0 |
+| Action controls | 316 | 318 |
+| Action controls matched | 293 | 295 |
+| **Action overlap** | 92.7% | **92.8%** |
+| **Gap (unmatched)** | **23** | **23** |
+| Distinct / named / unnamed controls | 515 / 515 / 0 | 517 / 517 / 0 |
+| **Navigation overlap** | 71.1% (32/45) | **66.7% (30/45)** |
+
+The action figures held — one tenth of a point, and the gap is still exactly 23 —
+which is the useful part: the headline coverage number survived a change to the
+assertion set behind it. **The navigation overlap did not**, falling 71.1% → 66.7%
+as two of forty-five nav controls stopped matching. That is the honest report and
+it is not buried: it is the number that moved, it moved because the comparison
+set changed rather than because the product regressed, and it is a proxy in both
+directions in any case. Neither figure is a measurement of coverage; the caveat
+below stands and governs both columns.
 
 Guarded by `tests/census-accessible-name.test.ts` (6 tests), mutation-proven in
 both directions, with the same comment-strip control the other extractor tests

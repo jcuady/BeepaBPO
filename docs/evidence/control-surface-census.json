@@ -1,26 +1,26 @@
 {
   "base": "http://localhost:3100",
-  "when": "2026-10-18T15:00:14.403Z",
+  "when": "2026-10-19T03:01:17.172Z",
   "sources": {
     "roles": "docs/evidence/role-sweep.json",
     "assertions": "docs/evidence/workflow-assertion-index.json",
     "rolesWhen": "2026-10-17T08:49:45.951Z",
-    "assertionsWhen": "2026-10-16T02:10:30.871Z"
+    "assertionsWhen": "2026-10-19T02:47:39.000Z"
   },
   "rolesWalked": 13,
   "pagesVisited": 444,
   "pagesFailed": 0,
   "coldStartRetries": 0,
   "maxPagesPerRole": null,
-  "distinctControls": 515,
-  "namedControls": 515,
-  "actionControls": 316,
-  "actionControlsWithMatchingAssertion": 293,
+  "distinctControls": 517,
+  "namedControls": 517,
+  "actionControls": 318,
+  "actionControlsWithMatchingAssertion": 295,
   "actionControlsUnmatched": 23,
-  "actionControlLabelOverlap": 92.7,
+  "actionControlLabelOverlap": 92.8,
   "navigationControls": 45,
-  "navigationControlsWithMatchingAssertion": 32,
-  "navigationLabelOverlap": 71.1,
+  "navigationControlsWithMatchingAssertion": 30,
+  "navigationLabelOverlap": 66.7,
   "namedControlsWithMatchingAssertion": 453,
   "unnamedControls": 0,
   "caveat": "A 'matched' control means some assertion's NAME mentions its label as a word. It does NOT mean the control was pressed, nor pressed in every state. This metric is wrong in BOTH directions, so it is a proxy and not a measurement. It OVER-reports: a label appearing in an assertion name does not prove the control was pressed. It UNDER-reports, which is the direction that hides real gaps -- on the current build it flagged three buttons, and only one was real. 'Save' on /app/payroll/settings and 'Continue' on /app/payroll/periods are both pressed and both work (the assertions are named for the outcome, 'salary change persisted' and 'a new payroll period was created', not for the control). The third, 'Reject' on /app/cash-advances, was a genuine hole: the reject leg of a money workflow had zero executions while an assertion listed 'rejected' as an acceptable end state. Treat an unmatched control as a QUESTION, never as a finding.",
@@ -31,7 +31,7 @@
       "pagesFailed": 0,
       "signOuts": 0,
       "signInFailures": 0,
-      "controls": 3133
+      "controls": 3135
     },
     {
       "role": "superadmin",
@@ -146,7 +146,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "a cms.manage holder can open /app/cms  "
+        "assertion": "a cms.manage holder can open /app/cms"
       },
       "counted": true
     },
@@ -192,7 +192,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -232,7 +232,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -263,7 +263,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -297,7 +297,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -316,7 +316,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -340,7 +340,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -364,7 +364,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -380,7 +380,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -435,7 +435,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -450,7 +450,7 @@
       ],
       "assertedBy": {
         "exercise": "recruitment",
-        "assertion": "no job applications leaked  "
+        "assertion": "no job applications leaked"
       },
       "counted": true
     },
@@ -908,7 +908,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "this run left the account exactly as it found it  "
+        "assertion": "existing-account invite grants BOTH the chosen role and self-service access"
       },
       "counted": true
     },
@@ -924,7 +924,7 @@
       ],
       "assertedBy": {
         "exercise": "crm",
-        "assertion": "organization is a client and active  "
+        "assertion": "organization is a client and active"
       },
       "counted": true
     },
@@ -940,7 +940,7 @@
       ],
       "assertedBy": {
         "exercise": "crm",
-        "assertion": "organization is a client and active  "
+        "assertion": "organization is a client and active"
       },
       "counted": true
     },
@@ -956,7 +956,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "a normal sign-out leaves the other device signed in (local scope)  "
+        "assertion": "a normal sign-out leaves the other device signed in (local scope)"
       },
       "counted": true
     },
@@ -972,7 +972,7 @@
       ],
       "assertedBy": {
         "exercise": "crm",
-        "assertion": "organization is a client and active  "
+        "assertion": "organization is a client and active"
       },
       "counted": true
     },
@@ -991,7 +991,7 @@
       ],
       "assertedBy": {
         "exercise": "crm",
-        "assertion": "organization is a client and active  "
+        "assertion": "organization is a client and active"
       },
       "counted": true
     },
@@ -1008,7 +1008,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -1245,7 +1245,7 @@
       ],
       "assertedBy": {
         "exercise": "recruitment",
-        "assertion": "no job applications leaked  "
+        "assertion": "no job applications leaked"
       },
       "counted": true
     },
@@ -1782,7 +1782,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "status FAQ: archive moves it to archived  "
+        "assertion": "status FAQ: archive moves it to archived"
       },
       "counted": true
     },
@@ -1835,7 +1835,7 @@
       ],
       "assertedBy": {
         "exercise": "ticket-detail",
-        "assertion": "assignee received ticket.assigned  "
+        "assertion": "assignee received ticket.assigned"
       },
       "counted": true
     },
@@ -2499,7 +2499,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -2523,7 +2523,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -2543,7 +2543,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -2559,7 +2559,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -2575,7 +2575,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -2590,7 +2590,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -2614,7 +2614,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -2632,7 +2632,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "cron dry-run is audit-logged  "
+        "assertion": "cron dry-run is audit-logged"
       },
       "counted": true
     },
@@ -2740,7 +2740,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "cron dry-run is audit-logged  "
+        "assertion": "cron dry-run is audit-logged"
       },
       "counted": true
     },
@@ -2782,7 +2782,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -3486,7 +3486,7 @@
       ],
       "assertedBy": {
         "exercise": "leave",
-        "assertion": "decision body names who decided / which dates  "
+        "assertion": "decision body names who decided / which dates"
       },
       "counted": true
     },
@@ -3516,7 +3516,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "a cms.manage holder can open /app/cms  "
+        "assertion": "a cms.manage holder can open /app/cms"
       },
       "counted": true
     },
@@ -3531,7 +3531,7 @@
       ],
       "assertedBy": {
         "exercise": "leave",
-        "assertion": "Cancel asks for confirmation before withdrawing  "
+        "assertion": "Cancel asks for confirmation before withdrawing"
       },
       "counted": true
     },
@@ -3549,7 +3549,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "existing-account invite grants BOTH the chosen role and self-service access"
       },
       "counted": true
     },
@@ -3565,7 +3565,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "existing-account invite grants BOTH the chosen role and self-service access"
       },
       "counted": true
     },
@@ -3580,7 +3580,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "existing-account invite grants BOTH the chosen role and self-service access"
       },
       "counted": true
     },
@@ -3596,7 +3596,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "existing-account invite grants BOTH the chosen role and self-service access"
       },
       "counted": true
     },
@@ -4107,7 +4107,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "a client user can sign in at /login  "
+        "assertion": "a client user can sign in at /login"
       },
       "counted": true
     },
@@ -4124,7 +4124,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "a client user can sign in at /login  "
+        "assertion": "a client user can sign in at /login"
       },
       "counted": true
     },
@@ -4140,7 +4140,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "a client user can sign in at /login  "
+        "assertion": "a client user can sign in at /login"
       },
       "counted": true
     },
@@ -4320,7 +4320,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -4575,7 +4575,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "...and the new password really did NOT take effect  "
+        "assertion": "...and the new password really did NOT take effect"
       },
       "counted": true
     },
@@ -5111,7 +5111,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -5135,7 +5135,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -5313,7 +5313,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "HR can see this pending correction on /app/attendance/corrections  "
+        "assertion": "HR can see this pending correction on /app/attendance/corrections"
       },
       "counted": true
     },
@@ -5356,7 +5356,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "create FAQ: a draft row exists  "
+        "assertion": "create FAQ: a draft row exists"
       },
       "counted": true
     },
@@ -5371,7 +5371,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In creates today's record  "
+        "assertion": "Clock In creates today's record"
       },
       "counted": true
     },
@@ -5388,7 +5388,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "create FAQ: a draft row exists  "
+        "assertion": "create FAQ: a draft row exists"
       },
       "counted": true
     },
@@ -5404,7 +5404,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "create FAQ: a draft row exists  "
+        "assertion": "create FAQ: a draft row exists"
       },
       "counted": true
     },
@@ -5435,7 +5435,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "create FAQ: a draft row exists  "
+        "assertion": "create FAQ: a draft row exists"
       },
       "counted": true
     },
@@ -5465,7 +5465,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "create FAQ: a draft row exists  "
+        "assertion": "create FAQ: a draft row exists"
       },
       "counted": true
     },
@@ -5659,7 +5659,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "cron dry-run button reports per-job counts  "
+        "assertion": "cron dry-run button reports per-job counts"
       },
       "counted": true
     },
@@ -5722,7 +5722,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "...and the new password really did NOT take effect  "
+        "assertion": "...and the new password really did NOT take effect"
       },
       "counted": true
     },
@@ -6291,7 +6291,7 @@
       ],
       "assertedBy": {
         "exercise": "crm",
-        "assertion": "conversion is noted on the deal timeline  "
+        "assertion": "conversion is noted on the deal timeline"
       },
       "counted": true
     },
@@ -6318,7 +6318,7 @@
       ],
       "assertedBy": {
         "exercise": "crm",
-        "assertion": "conversion is noted on the deal timeline  "
+        "assertion": "conversion is noted on the deal timeline"
       },
       "counted": true
     },
@@ -6497,13 +6497,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "manual entry stores the times in the employee's timezone (the control)  "
+        "assertion": "manual entry stores the times in the employee's timezone (the control)"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Employee, Fri 16 Oct, Empty. Open",
+      "name": "Demo Employee, Fri 23 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6514,13 +6514,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Employee, Mon 12 Oct, Empty. Open",
+      "name": "Demo Employee, Mon 19 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6531,13 +6531,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Employee, Sat 17 Oct, Empty. Open",
+      "name": "Demo Employee, Sat 24 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6548,13 +6548,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Employee, Sun 18 Oct, Empty. Open",
+      "name": "Demo Employee, Sun 25 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6565,13 +6565,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Employee, Thu 15 Oct, Empty. Open",
+      "name": "Demo Employee, Thu 22 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6582,13 +6582,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Employee, Tue 13 Oct, Empty. Open",
+      "name": "Demo Employee, Tue 20 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6599,13 +6599,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Employee, Wed 14 Oct, Empty. Open",
+      "name": "Demo Employee, Wed 21 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6616,7 +6616,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
@@ -6639,7 +6639,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Finance, Fri 16 Oct, Empty. Open",
+      "name": "Demo Finance, Fri 23 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6650,13 +6650,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Finance, Mon 12 Oct, Empty. Open",
+      "name": "Demo Finance, Mon 19 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6667,13 +6667,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Finance, Sat 17 Oct, Empty. Open",
+      "name": "Demo Finance, Sat 24 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6684,13 +6684,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Finance, Sun 18 Oct, Empty. Open",
+      "name": "Demo Finance, Sun 25 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6701,13 +6701,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Finance, Thu 15 Oct, Empty. Open",
+      "name": "Demo Finance, Thu 22 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6718,13 +6718,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Finance, Tue 13 Oct, Empty. Open",
+      "name": "Demo Finance, Tue 20 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6735,13 +6735,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Finance, Wed 14 Oct, Empty. Open",
+      "name": "Demo Finance, Wed 21 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6752,7 +6752,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
@@ -6775,7 +6775,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo HR, Fri 16 Oct, Empty. Open",
+      "name": "Demo HR, Fri 23 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6786,13 +6786,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo HR, Mon 12 Oct, Empty. Open",
+      "name": "Demo HR, Mon 19 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6803,13 +6803,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo HR, Sat 17 Oct, Empty. Open",
+      "name": "Demo HR, Sat 24 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6820,13 +6820,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo HR, Sun 18 Oct, Empty. Open",
+      "name": "Demo HR, Sun 25 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6837,13 +6837,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo HR, Thu 15 Oct, Empty. Open",
+      "name": "Demo HR, Thu 22 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6854,13 +6854,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo HR, Tue 13 Oct, Empty. Open",
+      "name": "Demo HR, Tue 20 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6871,13 +6871,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo HR, Wed 14 Oct, Empty. Open",
+      "name": "Demo HR, Wed 21 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6888,7 +6888,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
@@ -6911,7 +6911,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Marketing, Fri 16 Oct, Empty. Open",
+      "name": "Demo Marketing, Fri 23 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6922,13 +6922,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Marketing, Mon 12 Oct, Empty. Open",
+      "name": "Demo Marketing, Mon 19 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6939,13 +6939,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Marketing, Sat 17 Oct, Empty. Open",
+      "name": "Demo Marketing, Sat 24 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6956,13 +6956,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Marketing, Sun 18 Oct, Empty. Open",
+      "name": "Demo Marketing, Sun 25 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6973,13 +6973,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Marketing, Thu 15 Oct, Empty. Open",
+      "name": "Demo Marketing, Thu 22 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -6990,13 +6990,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Marketing, Tue 13 Oct, Empty. Open",
+      "name": "Demo Marketing, Tue 20 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7007,13 +7007,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Marketing, Wed 14 Oct, Empty. Open",
+      "name": "Demo Marketing, Wed 21 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7024,7 +7024,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
@@ -7047,7 +7047,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Operations, Fri 16 Oct, Empty. Open",
+      "name": "Demo Operations, Fri 23 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7059,13 +7059,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Operations, Mon 12 Oct, Empty. Open",
+      "name": "Demo Operations, Mon 19 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7077,13 +7077,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Operations, Sat 17 Oct, Empty. Open",
+      "name": "Demo Operations, Sat 24 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7095,13 +7095,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Operations, Sun 18 Oct, Empty. Open",
+      "name": "Demo Operations, Sun 25 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7113,13 +7113,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Operations, Thu 15 Oct, Empty. Open",
+      "name": "Demo Operations, Thu 22 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7131,13 +7131,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Operations, Tue 13 Oct, Empty. Open",
+      "name": "Demo Operations, Tue 20 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7149,13 +7149,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Operations, Wed 14 Oct, Empty. Open",
+      "name": "Demo Operations, Wed 21 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7167,7 +7167,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
@@ -7190,7 +7190,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Owner, Fri 16 Oct, Empty. Open",
+      "name": "Demo Owner, Fri 23 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7201,13 +7201,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Owner, Mon 12 Oct, Empty. Open",
+      "name": "Demo Owner, Mon 19 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7218,13 +7218,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Owner, Sat 17 Oct, Empty. Open",
+      "name": "Demo Owner, Sat 24 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7235,13 +7235,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Owner, Sun 18 Oct, Empty. Open",
+      "name": "Demo Owner, Sun 25 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7252,13 +7252,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Owner, Thu 15 Oct, Empty. Open",
+      "name": "Demo Owner, Thu 22 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7269,13 +7269,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Owner, Tue 13 Oct, Empty. Open",
+      "name": "Demo Owner, Tue 20 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7286,13 +7286,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Owner, Wed 14 Oct, Empty. Open",
+      "name": "Demo Owner, Wed 21 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7303,7 +7303,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
@@ -7326,7 +7326,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Recruiter, Fri 16 Oct, Empty. Open",
+      "name": "Demo Recruiter, Fri 23 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7337,13 +7337,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Recruiter, Mon 12 Oct, Empty. Open",
+      "name": "Demo Recruiter, Mon 19 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7354,13 +7354,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Recruiter, Sat 17 Oct, Empty. Open",
+      "name": "Demo Recruiter, Sat 24 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7371,13 +7371,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Recruiter, Sun 18 Oct, Empty. Open",
+      "name": "Demo Recruiter, Sun 25 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7388,13 +7388,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Recruiter, Thu 15 Oct, Empty. Open",
+      "name": "Demo Recruiter, Thu 22 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7405,13 +7405,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Recruiter, Tue 13 Oct, Empty. Open",
+      "name": "Demo Recruiter, Tue 20 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7422,13 +7422,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Recruiter, Wed 14 Oct, Empty. Open",
+      "name": "Demo Recruiter, Wed 21 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7439,7 +7439,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
@@ -7462,7 +7462,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Sales, Fri 16 Oct, Empty. Open",
+      "name": "Demo Sales, Fri 23 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7473,13 +7473,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Sales, Mon 12 Oct, Empty. Open",
+      "name": "Demo Sales, Mon 19 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7490,13 +7490,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Sales, Sat 17 Oct, Empty. Open",
+      "name": "Demo Sales, Sat 24 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7507,13 +7507,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Sales, Sun 18 Oct, Empty. Open",
+      "name": "Demo Sales, Sun 25 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7524,13 +7524,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Sales, Thu 15 Oct, Empty. Open",
+      "name": "Demo Sales, Thu 22 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7541,13 +7541,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Sales, Tue 13 Oct, Empty. Open",
+      "name": "Demo Sales, Tue 20 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7558,13 +7558,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Sales, Wed 14 Oct, Empty. Open",
+      "name": "Demo Sales, Wed 21 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7575,7 +7575,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
@@ -7598,7 +7598,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Super Admin, Fri 16 Oct, Empty. Open",
+      "name": "Demo Super Admin, Fri 23 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7615,7 +7615,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Super Admin, Mon 12 Oct, Empty. Open",
+      "name": "Demo Super Admin, Mon 19 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7632,7 +7632,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Super Admin, Sat 17 Oct, Empty. Open",
+      "name": "Demo Super Admin, Sat 24 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7649,7 +7649,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Super Admin, Sun 18 Oct, Empty. Open",
+      "name": "Demo Super Admin, Sun 25 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7666,7 +7666,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Super Admin, Thu 15 Oct, Empty. Open",
+      "name": "Demo Super Admin, Thu 22 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7683,7 +7683,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Super Admin, Tue 13 Oct, Empty. Open",
+      "name": "Demo Super Admin, Tue 20 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7700,7 +7700,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Super Admin, Wed 14 Oct, Empty. Open",
+      "name": "Demo Super Admin, Wed 21 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7734,7 +7734,7 @@
     },
     {
       "kind": "button",
-      "name": "Demo Team Lead, Fri 16 Oct, Empty. Open",
+      "name": "Demo Team Lead, Fri 23 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7746,13 +7746,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Team Lead, Mon 12 Oct, Empty. Open",
+      "name": "Demo Team Lead, Mon 19 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7764,13 +7764,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Team Lead, Sat 17 Oct, Empty. Open",
+      "name": "Demo Team Lead, Sat 24 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7782,13 +7782,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Team Lead, Sun 18 Oct, Empty. Open",
+      "name": "Demo Team Lead, Sun 25 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7800,13 +7800,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Team Lead, Thu 15 Oct, Empty. Open",
+      "name": "Demo Team Lead, Thu 22 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7818,13 +7818,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Team Lead, Tue 13 Oct, Empty. Open",
+      "name": "Demo Team Lead, Tue 20 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7836,13 +7836,13 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
     {
       "kind": "button",
-      "name": "Demo Team Lead, Wed 14 Oct, Empty. Open",
+      "name": "Demo Team Lead, Wed 21 Oct, Empty. Open",
       "inNavigation": false,
       "requestedRoute": "/app/attendance",
       "exampleRoute": "/app/attendance",
@@ -7854,7 +7854,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty  "
+        "assertion": "Clock In sets clock_in_at and leaves clock_out_at empty"
       },
       "counted": true
     },
@@ -8595,7 +8595,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "update FAQ: the edit is persisted  "
+        "assertion": "update FAQ: the edit is persisted"
       },
       "counted": true
     },
@@ -8624,7 +8624,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "update FAQ: the edit is persisted  "
+        "assertion": "update FAQ: the edit is persisted"
       },
       "counted": true
     },
@@ -8728,7 +8728,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "manual entry stores the times in the employee's timezone (the control)  "
+        "assertion": "manual entry stores the times in the employee's timezone (the control)"
       },
       "counted": true
     },
@@ -8746,7 +8746,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -8762,7 +8762,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -8778,7 +8778,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "manual entry stores the times in the employee's timezone (the control)  "
+        "assertion": "manual entry stores the times in the employee's timezone (the control)"
       },
       "counted": true
     },
@@ -8793,7 +8793,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "manual entry stores the times in the employee's timezone (the control)  "
+        "assertion": "manual entry stores the times in the employee's timezone (the control)"
       },
       "counted": true
     },
@@ -8874,7 +8874,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "test push wrote a notification to the admin  "
+        "assertion": "test push wrote a notification to the admin"
       },
       "counted": true
     },
@@ -8916,7 +8916,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -8932,7 +8932,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "manual entry stores the times in the employee's timezone (the control)  "
+        "assertion": "manual entry stores the times in the employee's timezone (the control)"
       },
       "counted": true
     },
@@ -8948,7 +8948,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "a client user can sign in at /login  "
+        "assertion": "a client user can sign in at /login"
       },
       "counted": true
     },
@@ -8963,7 +8963,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "a client user can sign in at /login  "
+        "assertion": "a client user can sign in at /login"
       },
       "counted": true
     },
@@ -9112,7 +9112,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "manual entry derives worked_minutes from the entered times  "
+        "assertion": "manual entry derives worked_minutes from the entered times"
       },
       "counted": true
     },
@@ -9151,7 +9151,7 @@
       ],
       "assertedBy": {
         "exercise": "payroll",
-        "assertion": "a frequency with no existing period is selectable  "
+        "assertion": "a frequency with no existing period is selectable"
       },
       "counted": true
     },
@@ -9167,7 +9167,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "manual entry derives worked_minutes from the entered times  "
+        "assertion": "manual entry derives worked_minutes from the entered times"
       },
       "counted": true
     },
@@ -9187,7 +9187,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "role change is audit-logged with before and after  "
+        "assertion": "role change is audit-logged with before and after"
       },
       "counted": true
     },
@@ -9220,7 +9220,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "the created record appears in the heatmap  "
+        "assertion": "the created record appears in the heatmap"
       },
       "counted": true
     },
@@ -9239,7 +9239,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "manual entry stores the times in the employee's timezone (the control)  "
+        "assertion": "manual entry stores the times in the employee's timezone (the control)"
       },
       "counted": true
     },
@@ -9263,7 +9263,7 @@
       ],
       "assertedBy": {
         "exercise": "hire",
-        "assertion": "Hire button visible to HR  "
+        "assertion": "Hire button visible to HR"
       },
       "counted": true
     },
@@ -9456,7 +9456,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "status FAQ: archive moves it to archived  "
+        "assertion": "status FAQ: archive moves it to archived"
       },
       "counted": true
     },
@@ -9596,7 +9596,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "create industry: a draft row exists  "
+        "assertion": "create industry: a draft row exists"
       },
       "counted": true
     },
@@ -9702,7 +9702,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "precondition: no record on 2026-03-02  "
+        "assertion": "precondition: no record on 2026-03-02"
       },
       "counted": true
     },
@@ -9718,7 +9718,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "a failing invite tells the user why  "
+        "assertion": "a failing invite tells the user why"
       },
       "counted": true
     },
@@ -9770,7 +9770,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "no blog_posts rows leaked  "
+        "assertion": "no blog_posts rows leaked"
       },
       "counted": true
     },
@@ -10380,7 +10380,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10397,7 +10397,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10412,7 +10412,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10427,7 +10427,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10442,7 +10442,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10457,7 +10457,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10472,7 +10472,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10487,7 +10487,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10502,7 +10502,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10517,7 +10517,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10532,7 +10532,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10547,7 +10547,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10562,7 +10562,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10577,7 +10577,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10592,7 +10592,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10607,7 +10607,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10622,7 +10622,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10637,7 +10637,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10653,7 +10653,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10669,7 +10669,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10684,7 +10684,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10699,7 +10699,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10714,7 +10714,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10729,7 +10729,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10744,7 +10744,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10759,7 +10759,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10774,7 +10774,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10789,7 +10789,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10804,7 +10804,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10819,7 +10819,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10834,7 +10834,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10849,7 +10849,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10864,7 +10864,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10879,7 +10879,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10894,7 +10894,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10909,7 +10909,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10924,7 +10924,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10948,7 +10948,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -10980,8 +10980,8 @@
         "/app/crm/deals"
       ],
       "assertedBy": {
-        "exercise": "crm",
-        "assertion": "deal is linked to the lead  "
+        "exercise": "admin-workflow",
+        "assertion": "inviting an existing account reports that the user was linked"
       },
       "counted": true
     },
@@ -11072,7 +11072,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -11173,7 +11173,7 @@
       ],
       "assertedBy": {
         "exercise": "payroll",
-        "assertion": "salary change persisted  "
+        "assertion": "salary change persisted"
       },
       "counted": true
     },
@@ -11295,7 +11295,7 @@
       ],
       "assertedBy": {
         "exercise": "leave",
-        "assertion": "team lead approved step 1  "
+        "assertion": "team lead approved step 1"
       },
       "counted": true
     },
@@ -11357,7 +11357,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "worked_minutes matches the corrected shift (09:00 = 540 min)  "
+        "assertion": "worked_minutes matches the corrected shift (09:00 = 540 min)"
       },
       "counted": true
     },
@@ -11409,7 +11409,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "existing-account invite grants BOTH the chosen role and self-service access"
       },
       "counted": true
     },
@@ -11425,7 +11425,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "existing-account invite grants BOTH the chosen role and self-service access"
       },
       "counted": true
     },
@@ -11441,7 +11441,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "existing-account invite grants BOTH the chosen role and self-service access"
       },
       "counted": true
     },
@@ -11456,7 +11456,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "existing-account invite grants BOTH the chosen role and self-service access"
       },
       "counted": true
     },
@@ -11473,7 +11473,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "...and the new password really did NOT take effect  "
+        "assertion": "...and the new password really did NOT take effect"
       },
       "counted": true
     },
@@ -11487,10 +11487,7 @@
         "/app/admin/audit",
         "/app/admin/audit"
       ],
-      "assertedBy": {
-        "exercise": "sitemap",
-        "assertion": "*** a published article is in the sitemap WITHOUT a rebuild ***  - present on the next request - the sitemap is generated per request"
-      },
+      "assertedBy": null,
       "counted": true
     },
     {
@@ -11506,10 +11503,7 @@
         "/app/attendance",
         "/app/attendance"
       ],
-      "assertedBy": {
-        "exercise": "sitemap",
-        "assertion": "*** a published article is in the sitemap WITHOUT a rebuild ***  - present on the next request - the sitemap is generated per request"
-      },
+      "assertedBy": null,
       "counted": true
     },
     {
@@ -11528,7 +11522,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -11566,7 +11560,7 @@
       ],
       "assertedBy": {
         "exercise": "crm",
-        "assertion": "lead status advanced to qualified  "
+        "assertion": "lead status advanced to qualified"
       },
       "counted": true
     },
@@ -11605,12 +11599,10 @@
       "kind": "button",
       "name": "Notifications",
       "inNavigation": false,
-      "requestedRoute": "/app/crm/deals",
-      "exampleRoute": "/app/crm/deals",
+      "requestedRoute": "/app/dashboard",
+      "exampleRoute": "/app/dashboard",
       "seenOn": [
-        "/app/crm/deals",
-        "/app/recruitment/jobs/5cc13f10-835d-4079-9593-19c20f1c0dad",
-        "/app/client/billing/405d75d4-c481-4205-b7f9-a7398c2bac53"
+        "/app/dashboard"
       ],
       "assertedBy": {
         "exercise": "list-filters",
@@ -11693,6 +11685,7 @@
         "/app/client/tickets/dc922ab3-4b9c-41d4-999e-93e972196bd4",
         "/app/client/tickets/c79fc04c-0d5b-4bc5-a0f4-2ca2170f0d10",
         "/app/client/billing/55769788-afe1-424d-9272-9deb6a7e411a",
+        "/app/client/billing/405d75d4-c481-4205-b7f9-a7398c2bac53",
         "/app/client/billing/a9902709-ea73-43ad-90df-4ea637fe2da3",
         "/app/client/billing/f21e5911-fcf5-4cfe-bca5-23f9cf263035",
         "/app/client/billing/1ae610fa-39f7-4c66-a305-b220a0050d84",
@@ -11737,6 +11730,39 @@
         "/app/my/support",
         "/app/hr",
         "/app/attendance",
+        "/app/reports",
+        "/app/attendance/corrections",
+        "/app/my/notifications",
+        "/app/leave"
+      ],
+      "assertedBy": {
+        "exercise": "list-filters",
+        "assertion": "/app/applicant/notifications "
+      },
+      "counted": true
+    },
+    {
+      "kind": "button",
+      "name": "Notifications (22 unread)",
+      "inNavigation": false,
+      "requestedRoute": "/app/dashboard",
+      "exampleRoute": "/app/dashboard",
+      "seenOn": [
+        "/app/dashboard",
+        "/app/my",
+        "/app/approvals",
+        "/app/my/attendance",
+        "/app/my/schedule",
+        "/app/my/leave",
+        "/app/my/payroll",
+        "/app/my/cash-advances",
+        "/app/my/nte",
+        "/app/my/requests",
+        "/app/my/documents",
+        "/app/my/profile",
+        "/app/my/support",
+        "/app/hr",
+        "/app/attendance",
         "/app/hr/nte",
         "/app/payroll",
         "/app/payroll/settings",
@@ -11744,6 +11770,7 @@
         "/app/recruitment",
         "/app/crm",
         "/app/crm/leads",
+        "/app/crm/deals",
         "/app/crm/proposals",
         "/app/clients",
         "/app/tickets",
@@ -11778,26 +11805,7 @@
         "/app/crm/leads/65c75003-e5bc-4718-839c-cf3eb598b199",
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
-        "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
-        "/app/dashboard",
-        "/app/my",
-        "/app/approvals",
-        "/app/my/attendance",
-        "/app/my/schedule",
-        "/app/my/leave",
-        "/app/my/payroll",
-        "/app/my/cash-advances",
-        "/app/my/nte",
-        "/app/my/requests",
-        "/app/my/documents",
-        "/app/my/profile",
-        "/app/my/support",
-        "/app/hr",
-        "/app/attendance",
-        "/app/reports",
-        "/app/attendance/corrections",
-        "/app/my/notifications",
-        "/app/leave"
+        "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809"
       ],
       "assertedBy": {
         "exercise": "list-filters",
@@ -11809,10 +11817,9 @@
       "kind": "button",
       "name": "Notifications (3 unread)",
       "inNavigation": false,
-      "requestedRoute": "/app/dashboard",
-      "exampleRoute": "/app/dashboard",
+      "requestedRoute": "/app/my",
+      "exampleRoute": "/app/my",
       "seenOn": [
-        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -12137,6 +12144,7 @@
         "/app/employees/9f0ef631-b8a0-4c11-9bf7-752b782b9b62",
         "/app/employees/3221b97a-37d7-4ce0-8e56-e518c9efb450",
         "/app/employees/108f95ff-e47f-414f-8ec2-0e49f075edb0",
+        "/app/recruitment/jobs/5cc13f10-835d-4079-9593-19c20f1c0dad",
         "/app/recruitment/jobs/495b466e-d4ba-4156-a0a2-536e51390e1d",
         "/app/recruitment/jobs/e15d778b-2a03-47b3-a4dd-37583207b9bb",
         "/app/recruitment/jobs/e5e781f4-f194-45a6-9479-eec27611a1b5",
@@ -12731,6 +12739,7 @@
         "/app/my/notifications",
         "/app/my/notifications",
         "/app/my/notifications",
+        "/app/my/notifications",
         "/app/billing",
         "/app/billing",
         "/app/billing",
@@ -12746,7 +12755,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "a cms.manage holder can open /app/cms  "
+        "assertion": "a cms.manage holder can open /app/cms"
       },
       "counted": true
     },
@@ -12764,7 +12773,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "a cms.manage holder can open /app/cms  "
+        "assertion": "a cms.manage holder can open /app/cms"
       },
       "counted": true
     },
@@ -12781,7 +12790,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "a cms.manage holder can open /app/cms  "
+        "assertion": "a cms.manage holder can open /app/cms"
       },
       "counted": true
     },
@@ -12849,7 +12858,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -12873,7 +12882,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "a cms.manage holder can open /app/cms  "
+        "assertion": "a cms.manage holder can open /app/cms"
       },
       "counted": true
     },
@@ -12889,7 +12898,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "a cms.manage holder can open /app/cms  "
+        "assertion": "a cms.manage holder can open /app/cms"
       },
       "counted": true
     },
@@ -12914,7 +12923,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "a cms.manage holder can open /app/cms  "
+        "assertion": "a cms.manage holder can open /app/cms"
       },
       "counted": true
     },
@@ -12933,7 +12942,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "a cms.manage holder can open /app/cms  "
+        "assertion": "a cms.manage holder can open /app/cms"
       },
       "counted": true
     },
@@ -13551,7 +13560,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -13571,7 +13580,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -13587,7 +13596,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -13603,7 +13612,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -13618,7 +13627,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -13633,7 +13642,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -13738,7 +13747,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -13881,7 +13890,7 @@
       ],
       "assertedBy": {
         "exercise": "payroll",
-        "assertion": "a frequency with no existing period is selectable  "
+        "assertion": "a frequency with no existing period is selectable"
       },
       "counted": true
     },
@@ -13897,7 +13906,7 @@
       ],
       "assertedBy": {
         "exercise": "payroll",
-        "assertion": "a frequency with no existing period is selectable  "
+        "assertion": "a frequency with no existing period is selectable"
       },
       "counted": true
     },
@@ -14450,7 +14459,7 @@
       ],
       "assertedBy": {
         "exercise": "payroll",
-        "assertion": "snapshotted the profile of the employee actually being edited  "
+        "assertion": "snapshotted the profile of the employee actually being edited"
       },
       "counted": true
     },
@@ -14646,7 +14655,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "status FAQ: publish moves it to published  "
+        "assertion": "status FAQ: publish moves it to published"
       },
       "counted": true
     },
@@ -14671,7 +14680,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "test push wrote a notification to the admin  "
+        "assertion": "test push wrote a notification to the admin"
       },
       "counted": true
     },
@@ -14696,7 +14705,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "test push wrote a notification to the admin  "
+        "assertion": "test push wrote a notification to the admin"
       },
       "counted": true
     },
@@ -14862,7 +14871,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "Clock In creates today's record  "
+        "assertion": "Clock In creates today's record"
       },
       "counted": true
     },
@@ -15017,7 +15026,7 @@
       ],
       "assertedBy": {
         "exercise": "hire",
-        "assertion": "this run left recruitment exactly as it found it  "
+        "assertion": "this run left recruitment exactly as it found it"
       },
       "counted": true
     },
@@ -15585,7 +15594,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "cron dry-run button reports per-job counts  "
+        "assertion": "cron dry-run button reports per-job counts"
       },
       "counted": true
     },
@@ -15603,7 +15612,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "cron dry-run button reports per-job counts  "
+        "assertion": "cron dry-run button reports per-job counts"
       },
       "counted": true
     },
@@ -15623,7 +15632,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -15639,7 +15648,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -15654,7 +15663,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -15670,7 +15679,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -15718,7 +15727,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -16230,7 +16239,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "no approval requests leaked  "
+        "assertion": "no approval requests leaked"
       },
       "counted": true
     },
@@ -16298,7 +16307,7 @@
       ],
       "assertedBy": {
         "exercise": "leave",
-        "assertion": "Reset clears a dirty form back to defaults  "
+        "assertion": "Reset clears a dirty form back to defaults"
       },
       "counted": true
     },
@@ -16336,7 +16345,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "manual entry derives worked_minutes from the entered times  "
+        "assertion": "manual entry derives worked_minutes from the entered times"
       },
       "counted": true
     },
@@ -16422,7 +16431,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "revoke asks for confirmation  "
+        "assertion": "revoke asks for confirmation"
       },
       "counted": true
     },
@@ -16456,7 +16465,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -16483,7 +16492,7 @@
       ],
       "assertedBy": {
         "exercise": "payroll",
-        "assertion": "salary change persisted  "
+        "assertion": "salary change persisted"
       },
       "counted": true
     },
@@ -16499,7 +16508,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "the settings page rendered  "
+        "assertion": "the settings page rendered"
       },
       "counted": true
     },
@@ -16594,7 +16603,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "manual entry stores the times in the employee's timezone (the control)  "
+        "assertion": "manual entry stores the times in the employee's timezone (the control)"
       },
       "counted": true
     },
@@ -16611,7 +16620,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "create blog post: a draft row exists  "
+        "assertion": "create blog post: a draft row exists"
       },
       "counted": true
     },
@@ -16660,7 +16669,7 @@
       ],
       "assertedBy": {
         "exercise": "payroll",
-        "assertion": "snapshotted the profile of the employee actually being edited  "
+        "assertion": "snapshotted the profile of the employee actually being edited"
       },
       "counted": true
     },
@@ -17056,7 +17065,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -17072,7 +17081,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "role change asks for confirmation  "
+        "assertion": "role change asks for confirmation"
       },
       "counted": true
     },
@@ -17088,7 +17097,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "a client user can sign in at /login  "
+        "assertion": "a client user can sign in at /login"
       },
       "counted": true
     },
@@ -17103,7 +17112,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "a client user can sign in at /login  "
+        "assertion": "a client user can sign in at /login"
       },
       "counted": true
     },
@@ -17577,7 +17586,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "*** there is NO delete action for CMS content ***  "
+        "assertion": "*** there is NO delete action for CMS content ***"
       },
       "counted": true
     },
@@ -17593,7 +17602,7 @@
       ],
       "assertedBy": {
         "exercise": "crm",
-        "assertion": "client organization created  "
+        "assertion": "client organization created"
       },
       "counted": true
     },
@@ -17644,7 +17653,7 @@
       ],
       "assertedBy": {
         "exercise": "crm",
-        "assertion": "conversion is noted on the deal timeline  "
+        "assertion": "conversion is noted on the deal timeline"
       },
       "counted": true
     },
@@ -17727,7 +17736,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "create case study: a draft row exists  "
+        "assertion": "create case study: a draft row exists"
       },
       "counted": true
     },
@@ -17777,7 +17786,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -17809,7 +17818,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "a failing invite tells the user why  "
+        "assertion": "a failing invite tells the user why"
       },
       "counted": true
     },
@@ -17825,7 +17834,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "test push wrote a notification to the admin  "
+        "assertion": "test push wrote a notification to the admin"
       },
       "counted": true
     },
@@ -17890,7 +17899,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "a bad verification link is refused with a usable message  "
+        "assertion": "a bad verification link is refused with a usable message"
       },
       "counted": true
     },
@@ -17906,7 +17915,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "precondition: no record on 2026-03-02  "
+        "assertion": "precondition: no record on 2026-03-02"
       },
       "counted": true
     },
@@ -17922,7 +17931,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "precondition: no record on 2026-03-02  "
+        "assertion": "precondition: no record on 2026-03-02"
       },
       "counted": true
     },
@@ -18002,7 +18011,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "the settings page rendered  "
+        "assertion": "the settings page rendered"
       },
       "counted": true
     },
@@ -18025,7 +18034,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "...and the new password really did NOT take effect  "
+        "assertion": "...and the new password really did NOT take effect"
       },
       "counted": true
     },
@@ -18185,7 +18194,7 @@
       ],
       "assertedBy": {
         "exercise": "payroll",
-        "assertion": "recalculate produced a calculation snapshot  "
+        "assertion": "recalculate produced a calculation snapshot"
       },
       "counted": true
     },
@@ -18339,7 +18348,7 @@
       ],
       "assertedBy": {
         "exercise": "cms",
-        "assertion": "status FAQ: archive moves it to archived  "
+        "assertion": "status FAQ: archive moves it to archived"
       },
       "counted": true
     },
@@ -18371,7 +18380,7 @@
       ],
       "assertedBy": {
         "exercise": "ticket-detail",
-        "assertion": "ticket.created names the subject  "
+        "assertion": "ticket.created names the subject"
       },
       "counted": true
     },
@@ -18395,7 +18404,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -18438,7 +18447,7 @@
       ],
       "assertedBy": {
         "exercise": "hire",
-        "assertion": "application is now hired  "
+        "assertion": "application is now hired"
       },
       "counted": true
     },
@@ -18472,7 +18481,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -18487,7 +18496,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -18511,7 +18520,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -18939,7 +18948,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -18959,7 +18968,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "test push wrote a notification to the admin  "
+        "assertion": "test push wrote a notification to the admin"
       },
       "counted": true
     },
@@ -18988,7 +18997,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -19018,7 +19027,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19048,7 +19057,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "existing-account invite grants BOTH the chosen role and self-service access"
       },
       "counted": true
     },
@@ -19063,7 +19072,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -19123,7 +19132,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -19138,7 +19147,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "existing-account invite grants BOTH the chosen role and self-service access"
       },
       "counted": true
     },
@@ -19153,7 +19162,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19168,7 +19177,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "*** the corrected clock-in reads back as the time that was requested ***  "
+        "assertion": "*** the corrected clock-in reads back as the time that was requested ***"
       },
       "counted": true
     },
@@ -19183,7 +19192,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19198,7 +19207,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "existing-account invite grants BOTH the chosen role and self-service access"
       },
       "counted": true
     },
@@ -19213,7 +19222,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -19228,7 +19237,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19243,7 +19252,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19258,7 +19267,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19273,7 +19282,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19288,7 +19297,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19303,7 +19312,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19318,7 +19327,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19333,7 +19342,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19348,7 +19357,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19363,7 +19372,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19378,7 +19387,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19393,7 +19402,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19408,7 +19417,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19423,7 +19432,22 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
+      },
+      "counted": true
+    },
+    {
+      "kind": "button",
+      "name": "Ticket submittedWe received your request: qatktmveneds1 printer jams",
+      "inNavigation": false,
+      "requestedRoute": "/app/my/notifications",
+      "exampleRoute": "/app/my/notifications",
+      "seenOn": [
+        "/app/my/notifications"
+      ],
+      "assertedBy": {
+        "exercise": "attendance",
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19438,7 +19462,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19468,7 +19492,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "it raised an approval request on the attendance_correction workflow  "
+        "assertion": "it raised an approval request on the attendance_correction workflow"
       },
       "counted": true
     },
@@ -19861,7 +19885,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "manual entry stores the times in the employee's timezone (the control)  "
+        "assertion": "manual entry stores the times in the employee's timezone (the control)"
       },
       "counted": true
     },
@@ -20459,7 +20483,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "a rate limit is reported as a rate limit, not as a bad address  "
+        "assertion": "a rate limit is reported as a rate limit, not as a bad address"
       },
       "counted": true
     },
@@ -20845,7 +20869,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "no auth users leaked  "
+        "assertion": "no auth users leaked"
       },
       "counted": true
     },
@@ -20863,7 +20887,7 @@
       ],
       "assertedBy": {
         "exercise": "auth",
-        "assertion": "no auth users leaked  "
+        "assertion": "no auth users leaked"
       },
       "counted": true
     },
@@ -20883,7 +20907,7 @@
       ],
       "assertedBy": {
         "exercise": "leave",
-        "assertion": "team lead approved step 1  "
+        "assertion": "team lead approved step 1"
       },
       "counted": true
     },
@@ -20992,7 +21016,7 @@
       ],
       "assertedBy": {
         "exercise": "admin-workflow",
-        "assertion": "member keeps their own leave/payroll/attendance access  "
+        "assertion": "member keeps their own leave/payroll/attendance access"
       },
       "counted": true
     },
@@ -21076,7 +21100,7 @@
       ],
       "assertedBy": {
         "exercise": "attendance",
-        "assertion": "HR can see this pending correction on /app/attendance/corrections  "
+        "assertion": "HR can see this pending correction on /app/attendance/corrections"
       },
       "counted": true
     },
@@ -21204,7 +21228,7 @@
       ],
       "assertedBy": {
         "exercise": "payroll",
-        "assertion": "salary change persisted  "
+        "assertion": "salary change persisted"
       },
       "counted": true
     },
