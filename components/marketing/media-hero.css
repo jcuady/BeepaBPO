@@ -1,0 +1,282 @@
+/* ==========================================================================
+   The shared photograph hero.
+
+   These rules were lifted out of `components/landing/landing.css`, where they
+   were scoped to `.beepaLanding` and could therefore only ever style one
+   page. They are now here, unprefixed but class-prefixed (`.mh-*`), and both
+   the landing page and `/careers` render the same component.
+
+   The values are the landing's, untouched. Changing a number here changes it
+   on both pages at once, which is the point: there is no second hero left to
+   fall out of step.
+
+   Typography note: the landing set the display face as a landing-local
+   `--lm-display`. This file uses the site's `--font-display` and
+   `--font-marketing` tokens instead, which resolve to the same two faces
+   (Manrope and DM Sans) — so the hero reads identically on both pages
+   without the landing keeping a private copy of the font stack.
+   ========================================================================== */
+
+.mh {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 620px;
+  font-family: var(--font-marketing), ui-sans-serif, system-ui, sans-serif;
+  color: var(--foreground);
+}
+
+.mh-copy {
+  padding: 58px 44px 30px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mh-eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mh-eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 2px;
+  background: var(--primary);
+}
+
+/* The arrow that sits inside a hero CTA and beside an underlined link. It was
+   the landing's `.arrow`, scoped to that page; it is here now because the
+   careers hero needs the same mark beside the same kind of link. */
+.mh-arrow {
+  display: inline-block;
+  margin-left: 13px;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mh-title {
+  margin: 34px 0 24px;
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-size: 67px;
+  line-height: 1.075;
+  font-weight: 500;
+  letter-spacing: 0;
+  /* The landing inherited its heading colour from the page wrapper. On the
+     app shell the base layer paints every h1 navy, which is a different ink —
+     so the colour is stated here rather than inherited, and both heroes are
+     the same colour. */
+  color: var(--foreground);
+}
+.mh-title span {
+  color: var(--primary);
+}
+
+.mh-description {
+  margin: 0;
+  max-width: 355px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--muted-foreground);
+}
+
+.mh-actions {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-top: 31px;
+}
+.mh-actions button,
+.mh-actions a.cta {
+  font-size: 12px;
+  height: 44px;
+  padding: 0 20px;
+}
+
+.mh-foot {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 37px;
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+.mh-foot .mini-portrait {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-position: 50% 32%;
+  flex: none;
+}
+.mh-foot strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 3px;
+}
+
+.mh-media {
+  position: relative;
+  overflow: hidden;
+}
+.mh-media > img {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  object-fit: cover;
+  object-position: 50% 45%;
+}
+.mh-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* The bottom-weighted scrim, not the even one: the hero's only copy is the
+     caption across the bottom ~10%, so an even floor that high would darken the
+     entire photograph for no legibility gain. The caption is why the scrim
+     exists — see `--scrim-caption` in app/globals.css. */
+  background: var(--scrim-caption);
+  pointer-events: none;
+}
+
+.mh-top {
+  position: absolute;
+  z-index: 1;
+  top: 24px;
+  right: 24px;
+  padding: 8px 12px;
+  background: var(--color-navy);
+  color: var(--background);
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.mh-caption {
+  position: absolute;
+  z-index: 1;
+  left: 28px;
+  right: 28px;
+  bottom: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  color: var(--background);
+}
+.mh-caption strong {
+  font-size: 15px;
+  font-weight: 500;
+  display: block;
+}
+.mh-caption span {
+  font-size: 10px;
+  opacity: 0.8;
+}
+.mh-caption-location {
+  text-align: right;
+}
+
+@media (min-width: 1500px) {
+  .mh {
+    min-height: 690px;
+  }
+  .mh-title {
+    font-size: 76px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .mh-title {
+    font-size: 55px;
+  }
+  .mh {
+    min-height: 600px;
+  }
+  .mh-actions {
+    gap: 15px;
+  }
+  .mh-copy {
+    padding-right: 26px;
+  }
+}
+
+@media (max-width: 760px) {
+  .mh {
+    grid-template-columns: 1fr;
+  }
+  .mh-copy {
+    padding: 30px 0;
+  }
+  .mh-title {
+    font-size: 49px;
+    margin-top: 24px;
+  }
+  .mh-description {
+    max-width: 340px;
+  }
+  .mh-actions {
+    gap: 20px;
+  }
+  .mh-foot {
+    padding-top: 28px;
+  }
+  .mh-media {
+    height: 420px;
+  }
+}
+
+/* ---- MOBILE TYPE FLOOR -----------------------------------------------
+   The reference sets a great deal of its editorial detail at 8-14px, which is
+   unreadable on a phone and is an iOS auto-zoom trigger.
+   scripts/audit-responsive.mjs enforces >=16px on narrow screens and the
+   codebase already treats that as a release rule (see 0e15e06). Desktop
+   values are the reference's, untouched. */
+@media (max-width: 760px) {
+  .mh-description,
+  .mh-foot,
+  .mh-foot strong,
+  .mh-caption strong,
+  .mh-caption span,
+  .mh-top {
+    font-size: 16px;
+  }
+}
+
+/* Grid tracks are `minmax(auto, 1fr)` unless told otherwise, so their floor
+   is the item's *min-content* width. On a 375px phone that is wider than the
+   viewport: unbreakable headlines and a two-up CTA row push past the right
+   edge, and the whole page scrolls sideways.
+
+   `min-width: 0` on the track's children removes the content-driven floor and
+   lets each track shrink to its share. */
+@media (max-width: 760px) {
+  .mh-copy,
+  .mh-media {
+    min-width: 0;
+  }
+
+  /* The two hero CTAs are 189px each, so `min-width: 0` cannot help them -- a
+     flex item that refuses to shrink has to wrap. Letting them wrap is also
+     the right mobile layout: stacked, full-width actions read better than two
+     cramped ones. */
+  .mh-actions {
+    flex-wrap: wrap;
+  }
+  .mh-actions > * {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+/* Below 480px the two hero CTAs still shared a line and left 2px of overflow,
+   because `flex-wrap` only wraps when the line genuinely does not fit and the
+   flex base kept them just wide enough. Stacking them full width is the
+   conventional phone treatment and removes the last of it. */
+@media (max-width: 480px) {
+  .mh-actions > * {
+    flex: 1 1 100%;
+  }
+}

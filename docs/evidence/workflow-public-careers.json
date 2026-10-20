@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-public-careers.mjs",
   "claim": "the public careers list searches and filters, and says so honestly when nothing matches",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T14:09:40.204Z",
+  "when": "2026-10-20T04:45:26.542Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 17,

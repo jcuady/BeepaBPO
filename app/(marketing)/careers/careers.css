@@ -1,0 +1,197 @@
+/* ==========================================================================
+   `/careers` — the pieces that belong to this page and nowhere else.
+
+   The hero, the assurance strip and the editorial rhythm (`.ed-*`) are SHARED
+   with the landing page and live in `components/marketing/`. What is left here
+   is the filter bar, the role rows, the empty states and the account band.
+   ========================================================================== */
+
+/* ---- the filter bar ---------------------------------------------------- */
+
+.cr-filters {
+  display: grid;
+  gap: 16px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 24px 0;
+  margin-top: 34px;
+}
+
+.cr-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 18px;
+}
+.cr-chip {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  border: 1px solid var(--border);
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+.cr-chip-clear {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-green-strong);
+}
+.cr-chip-clear:hover {
+  text-decoration: underline;
+}
+.cr-chip-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+/* ---- the role list ----------------------------------------------------- */
+
+.cr-list {
+  border-top: 1px solid var(--border);
+  margin-top: 34px;
+}
+.cr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--border);
+  padding: 24px 0;
+  min-width: 0;
+}
+.cr-row-title {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-navy);
+  transition: color 200ms ease;
+}
+.cr-row:hover .cr-row-title {
+  color: var(--color-green-strong);
+}
+.cr-row-meta {
+  margin-top: 7px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+.cr-go {
+  display: inline-flex;
+  min-height: 44px;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-navy);
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--background);
+  transition: background-color 200ms ease;
+}
+.cr-row:hover .cr-go {
+  background: var(--color-green-strong);
+}
+
+/* ---- the empty states -------------------------------------------------- */
+
+.cr-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 44px 0;
+  margin-top: 34px;
+}
+.cr-empty h3 {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--color-navy);
+}
+.cr-empty p {
+  max-width: 52ch;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--muted-foreground);
+}
+.cr-empty-icon {
+  display: flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: var(--color-green-strong);
+}
+
+/* ---- the account band -------------------------------------------------- */
+
+.cr-band {
+  background: var(--color-navy);
+  color: var(--background);
+}
+.cr-band-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 72px 0;
+}
+.cr-band h2 {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--background);
+}
+.cr-band p {
+  max-width: 52ch;
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: color-mix(in oklab, var(--background) 78%, transparent);
+}
+.cr-band-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 760px) {
+  .cr-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .cr-row-title {
+    font-size: 19px;
+  }
+  .cr-empty h3 {
+    font-size: 21px;
+  }
+  .cr-band-inner {
+    padding: 52px 0;
+  }
+  .cr-band h2 {
+    font-size: 25px;
+  }
+  /* MOBILE TYPE FLOOR — see the note in `media-hero.css`. */
+  .cr-row-meta,
+  .cr-empty p,
+  .cr-band p,
+  .cr-chip,
+  .cr-chip-clear,
+  .cr-chip-label {
+    font-size: 16px;
+  }
+}

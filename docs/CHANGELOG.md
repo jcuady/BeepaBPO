@@ -2,6 +2,100 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## The careers hero was a second hero, and the logo on the polo was a guess (2026-10-20)
+
+**The brief was:** design the careers hero as a principal graphic artist — people in Beepa
+uniforms, ultra HD, consistent with the landing page — and redesign `/careers` so it reads like
+the landing page.
+
+Both halves of that turned out to be the same problem, and neither was a styling problem.
+
+### An image generator cannot draw a logo, so the logo is composited
+
+The artwork was generated at 4K (3584x4800): a Filipina BPO specialist in a plain navy polo,
+headset on, bright office, direct gaze. The polo was prompted **blank on purpose**. Asked for a
+branded one, the generator returns marks that look like a logo and are not one, and a brand mark
+is the one thing on this site that must never be an approximation.
+
+So the division of labour is deliberate:
+
+- the **generator** paints the scene and the plain navy polo;
+- **`scripts/generate-careers-hero.mjs`** prints the company's actual artwork onto that polo, cut
+  from `public/brand/beepa-logo-horizontal.png` — the same file the header, the footer and the OG
+  card are built from.
+
+Two details in that script are load-bearing, and both were wrong in the first attempt:
+
+- the **wordmark is re-coloured to white**, not left navy. The master is navy because it is
+  printed on white paper; on navy fabric a navy wordmark is invisible. The landing's own uniform
+  photo carries the wordmark in white, and that is what an embroidered chest logo is. Only the RGB
+  changes — the alpha channel, and therefore the letterforms and their antialiasing, are the
+  master's own pixels.
+- the lockup is **compact**. The master file is a signature: mark, a wide gap, wordmark, tagline. A
+  chest logo has no tagline and no room for a wide gap. The gap is a layout constant of the
+  script, not artwork.
+
+The size was set **physically, not by eye**: the landing's uniform photo puts its lockup at about
+19% of the subject's shoulder-to-shoulder span, so the same fraction of this subject's span gives
+the same logo on a real chest. It lands on the wearer's left chest, level with the button — the
+same side as the landing's.
+
+The finished hero is a **committed derivative with a `--check` mode**, exactly like
+`scripts/generate-brand-icons.mjs`. The guard asserts on the *rendered pixels* — the green of the
+mark and the white of the wordmark are counted in the region the lockup claims — because a
+composite that silently fails produces a file that looks like a finished photograph, and the
+shipped bytes are not evidence that the logo is there.
+
+`scripts/generate-careers-hero.mjs` writes two files: the 2864x3580 hero and the 320x320 portrait
+cut from the same composed frame, so the round portrait in the hero's foot strip is the same
+person in the same photograph rather than a second face from nowhere.
+
+### There was no shared hero, so the landing's was copied — twice, over time
+
+The landing hero was a set of rules scoped to `.beepaLanding`, so it could not be used anywhere
+else. A second hero written from scratch to "look like" it would have been the second hero
+written from scratch: it would have drifted, and the drift would have been invisible until
+somebody put the two pages side by side.
+
+So there is one hero now.
+
+| Was | Is |
+|---|---|
+| `.hero`, `.hero-copy`, `.hero-media`, `.eyebrow`, `.photo-top`, `.photo-caption` in `landing.css` | `components/marketing/media-hero.tsx` + `media-hero.css` (`.mh-*`) |
+| `.assurance` in `landing.css` | `components/marketing/assurance-strip.tsx` + `assurance-strip.css` (`.as-*`) |
+| `.section`, `.section-number`, `.intro-headline`, `.section-bottom`, `.text-link`, `.values`, `.arrow` in `landing.css` | `components/marketing/editorial.css` (`.ed-*`, `.ed-values`, `.mh-arrow`) |
+
+The landing page renders the shared components; the rules it no longer owns are deleted. The
+landing's own layout modifiers (`.time-section`, `.report-layout`, `.proof`, …) stay scoped to
+`.beepaLanding` — they are one class more specific than the primitives, so they still win exactly
+as they did when both sat in the same file.
+
+The landing's **rendered output is unchanged**, which was checked by screenshot before and after
+the extraction rather than assumed.
+
+### `/careers` rebuilt on the shared pieces
+
+The page was a `PageHero` over a mist band with SaaS-style cards — the look of `/about`, not the
+look of the landing. It now renders:
+
+- the shared `MediaHero`, with the new photograph, the same eyebrow, type scale, badge and caption
+  treatment, and the same assurance strip underneath;
+- the shared editorial rhythm — section number, headline, bottom row, values row;
+- a page-specific `careers.css` for what is genuinely this page's: the filter bar, the role rows,
+  the two empty states and the account band.
+
+The functional contract did not move. `/careers` still filters by search, employment type, work
+setup and location, still drives the filter from the URL, still distinguishes "nothing open" from
+"nothing matches", and still routes the applicant CTAs back here. `qa-exercise-public-careers.mjs`
+is **17/17** on the rebuilt page.
+
+### What was verified
+
+Ship gate **23/23** (exit 0) on the rebuilt tree: 994 vitest tests across 106 files, TypeScript
+clean, eslint clean, production build compiled, 39 migrations structurally sound. The careers
+exercise **17/17**. Contrast, typography, runtime-radius, design-system, responsive and
+SEO-metadata audits all clean on the new page, at desktop and at phone width.
+
 ## The brand was a drawing of the logo, and the logo was in a drawer (2026-10-19)
 
 **Found by asking what Google actually receives.** The brief was: make sure it says *Beepa BPO*,

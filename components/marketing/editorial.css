@@ -1,0 +1,138 @@
+/* ==========================================================================
+   The editorial rhythm: the section number, the big headline, the bottom row
+   and the underline link.
+
+   These rules were lifted out of `components/landing/landing.css`, where they
+   were scoped to `.beepaLanding` and could therefore only ever style one
+   page. They are now here, unprefixed but class-prefixed (`.ed-*`), and both
+   the landing page and `/careers` use them.
+
+   The values are the landing's, untouched. The landing page's own layout
+   modifiers (`.time-section`, `.report-layout`, `.proof`, …) stay scoped to
+   `.beepaLanding`; only the shared primitives moved. Because the modifiers
+   are one class more specific than the primitives, they still win exactly as
+   they did when both sat in the same file.
+
+   The font and colour are stated here rather than inherited. On the landing
+   they came from `.beepaLanding h1..h4`; a second page has no such wrapper,
+   and the app shell paints every heading navy — which is a different ink from
+   the one the landing uses.
+   ========================================================================== */
+
+.ed-section {
+  padding-top: 94px;
+  padding-bottom: 94px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ed-number {
+  display: block;
+  /* `--primary` measures 4.35:1 on the mist sections and 4.28:1 on `--accent`,
+     against 4.5 required for text this size. `--primary` is a FILL colour — it
+     is the right choice under a white label and the wrong one as type on a
+     tint. `--color-green-strong` clears every surface here. */
+  color: var(--color-green-strong);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.ed-headline {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: inherit;
+  font-size: 39px;
+  line-height: 1.35;
+  max-width: 1000px;
+  margin-bottom: 28px;
+}
+.ed-headline .muted {
+  color: var(--muted-foreground);
+}
+
+.ed-bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+}
+.ed-bottom p {
+  max-width: 490px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--muted-foreground);
+}
+
+.ed-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 25px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  font-size: 12px;
+  /* The reference draws several controls as bare text runs — the section link
+     among them — which is under 44px tall. Padding is added rather than a
+     wrapper so the hit area grows without moving anything on the page. */
+  min-height: 44px;
+}
+
+/* The row of short values under a section headline: a rule above each, a
+   short heading, one line of copy. The landing has four; `/careers` has
+   three, so the column count is a custom property rather than a second rule. */
+.ed-values {
+  display: grid;
+  grid-template-columns: repeat(var(--ed-value-cols, 4), 1fr);
+  margin-top: 30px;
+  gap: 28px;
+}
+.ed-values > * {
+  min-width: 0;
+  border-top: 1px solid var(--foreground);
+  padding-top: 17px;
+}
+.ed-values h3 {
+  font-size: 13px;
+  font-weight: 650;
+  margin-bottom: 10px;
+}
+.ed-values p {
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 1100px) {
+  .ed-section {
+    padding-top: 75px;
+    padding-bottom: 75px;
+  }
+}
+
+@media (max-width: 760px) {
+  .ed-section {
+    padding-top: 58px;
+    padding-bottom: 58px;
+  }
+  .ed-headline {
+    font-size: 29px;
+    line-height: 1.4;
+  }
+  .ed-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .ed-values {
+    grid-template-columns: 1fr 1fr;
+    gap: 25px 20px;
+  }
+  /* MOBILE TYPE FLOOR — see the note in `media-hero.css`. */
+  .ed-bottom p,
+  .ed-link,
+  .ed-values h3,
+  .ed-values p {
+    font-size: 16px;
+  }
+}

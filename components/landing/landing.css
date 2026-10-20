@@ -77,7 +77,7 @@
   /* Inherit colour — do not set it.
    *
    * The reference colours CONTAINERS, not headings: `.service-card-content`,
-   * `.final-copy`, `.careers-band` and `.photo-caption` each declare a light
+   * `.final-copy` and `.careers-band` each declare a light
    * `color` for their text to land on, and their h2/h3 have no colour of their
    * own. Inheritance is the whole mechanism.
    *
@@ -187,190 +187,12 @@ html:has(.beepaLanding) {
 .beepaLanding .mobile-menu {
   display: none;
 }
-.beepaLanding .arrow {
-  display: inline-block;
-  margin-left: 13px;
-  font-size: 18px;
-  font-weight: 400;
-}
-
-/* ------------------------------------------------------------------ hero */
-.beepaLanding .eyebrow {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.beepaLanding .eyebrow::before {
-  content: "";
-  width: 18px;
-  height: 2px;
-  background: var(--primary);
-}
-.beepaLanding .hero {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 620px;
-}
-.beepaLanding .hero-copy {
-  padding: 58px 44px 30px 0;
-  display: flex;
-  flex-direction: column;
-}
-.beepaLanding .hero h1 {
-  font-size: 67px;
-  line-height: 1.075;
-  margin: 34px 0 24px;
-  font-weight: 500;
-}
-.beepaLanding .hero h1 span {
-  color: var(--primary);
-}
-.beepaLanding .hero-description {
-  max-width: 355px;
-  font-size: 14px;
-  line-height: 1.8;
-  color: var(--muted-foreground);
-}
-.beepaLanding .hero-buttons {
-  display: flex;
-  align-items: center;
-  gap: 25px;
-  margin-top: 31px;
-}
-.beepaLanding .hero-buttons button,
-.beepaLanding .hero-buttons a.cta {
-  font-size: 12px;
-  height: 44px;
-  padding: 0 20px;
-}
-.beepaLanding .hero-foot {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  margin-top: auto;
-  padding-top: 37px;
-  font-size: 10px;
-  color: var(--muted-foreground);
-}
-.beepaLanding .hero-foot .mini-portrait {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-position: 50% 32%;
-  flex: none;
-}
-.beepaLanding .hero-foot strong {
-  display: block;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--foreground);
-  margin-bottom: 3px;
-}
-.beepaLanding .hero-media {
-  position: relative;
-  overflow: hidden;
-}
-.beepaLanding .hero-media > img {
-  height: 100%;
-  position: absolute;
-  object-position: 50% 45%;
-}
-.beepaLanding .hero-media::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  /* The bottom-weighted scrim, not the even one: the hero's only copy is the
-     caption across the bottom ~10%, so an even floor that high would darken the
-     entire photograph for no legibility gain. The caption is why the scrim
-     exists — see `--scrim-caption` in app/globals.css. */
-  background: var(--scrim-caption);
-  pointer-events: none;
-}
-.beepaLanding .photo-top {
-  position: absolute;
-  z-index: 1;
-  top: 24px;
-  right: 24px;
-  padding: 8px 12px;
-  background: var(--color-navy);
-  color: var(--background);
-  font-size: 9px;
-  letter-spacing: 1px;
-}
-.beepaLanding .photo-caption {
-  position: absolute;
-  z-index: 1;
-  left: 28px;
-  right: 28px;
-  bottom: 28px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  color: var(--background);
-}
-.beepaLanding .photo-caption strong {
-  font-size: 15px;
-  font-weight: 500;
-  display: block;
-}
-.beepaLanding .photo-caption span {
-  font-size: 10px;
-  opacity: 0.8;
-}
-.beepaLanding .photo-caption .caption-location {
-  text-align: right;
-}
-
-/* ------------------------------------------------------------- assurance */
-.beepaLanding .assurance {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  padding: 27px 0;
-  border-bottom: 1px solid var(--border);
-}
-.beepaLanding .assurance div {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  font-size: 11px;
-}
-.beepaLanding .check {
-  color: var(--primary);
-  font-weight: 600;
-}
 
 /* --------------------------------------------------------------- section */
-.beepaLanding .section {
-  padding-top: 94px;
-  padding-bottom: 94px;
-  border-bottom: 1px solid var(--border);
-}
-.beepaLanding .section-number {
-  display: block;
-  /* `--primary` measures 4.35:1 on the mist sections and 4.28:1 on `--accent`,
-     against 4.5 required for text this size. `--primary` is a FILL colour — it
-     is the right choice under a white label and the wrong one as type on a
-     tint. `--color-green-strong` clears every surface here. */
-  color: var(--color-green-strong);
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  font-weight: 600;
-  margin-bottom: 20px;
-}
-.beepaLanding .intro-headline {
-  font-size: 39px;
-  line-height: 1.35;
-  max-width: 1000px;
-  margin-bottom: 28px;
-}
-.beepaLanding .intro-headline .muted {
-  color: var(--muted-foreground);
-}
+/* The section rhythm -- `.ed-section`, `.ed-number`, `.ed-headline`,
+   `.ed-bottom` and `.ed-link` -- now lives in
+   `components/marketing/editorial.css`. `/careers` renders the same rhythm,
+   and there is now one copy of those numbers instead of one per page. */
 .beepaLanding .inline-face {
   display: inline-block;
   vertical-align: middle;
@@ -379,52 +201,11 @@ html:has(.beepaLanding) {
   object-position: 50% 30%;
   margin: 0 5px;
 }
-.beepaLanding .section-bottom {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 40px;
-}
-.beepaLanding .section-bottom p {
-  max-width: 490px;
-  font-size: 13px;
-  line-height: 1.8;
-  color: var(--muted-foreground);
-}
-.beepaLanding .text-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 25px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
-  font-size: 12px;
-}
 .beepaLanding .team-panorama {
   height: 420px;
   margin-top: 42px;
   object-position: center 45%;
 }
-.beepaLanding .values {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  margin-top: 30px;
-  gap: 28px;
-}
-.beepaLanding .values article {
-  border-top: 1px solid var(--foreground);
-  padding-top: 17px;
-}
-.beepaLanding .values h3 {
-  font-size: 13px;
-  font-weight: 650;
-  margin-bottom: 10px;
-}
-.beepaLanding .values p {
-  font-size: 11px;
-  line-height: 1.7;
-  color: var(--muted-foreground);
-}
-
 /* -------------------------------------------------------------- greeting */
 .beepaLanding .greeting {
   overflow: hidden;
@@ -676,7 +457,7 @@ html:has(.beepaLanding) {
   justify-content: space-between;
 }
 .beepaLanding .platform-item span {
-  /* Green text on the mist platform panel measures 4.35:1. See `.section-number`. */
+  /* Green text on the mist platform panel measures 4.35:1. See `.ed-number`. */
   color: var(--color-green-strong);
   font-size: 16px;
 }
@@ -780,7 +561,7 @@ html:has(.beepaLanding) {
 .beepaLanding .status {
   font-size: 8px;
   background: var(--accent);
-  /* Green text on `--accent` measures 4.28:1. See `.section-number`. */
+  /* Green text on `--accent` measures 4.28:1. See `.ed-number`. */
   color: var(--color-green-strong);
   padding: 4px 6px;
   display: inline-block;
@@ -966,7 +747,7 @@ html:has(.beepaLanding) {
   padding-top: 66px;
   padding-bottom: 66px;
 }
-.beepaLanding .careers .section-number {
+.beepaLanding .careers .ed-number {
   color: var(--color-lime);
 }
 .beepaLanding .careers h2 {
@@ -1345,9 +1126,6 @@ html:has(.beepaLanding) {
    footer link column, the planner's range slider and the mobile menu button —
    which are all under 44px tall. Padding is added rather than a wrapper so the
    hit area grows without moving anything on the page. */
-.beepaLanding .text-link {
-  min-height: 44px;
-}
 .beepaLanding .footer-links a {
   display: inline-flex;
   align-items: center;
@@ -1358,15 +1136,6 @@ html:has(.beepaLanding) {
 }
 .beepaLanding .mobile-menu {
   min-width: 44px;
-}
-
-@media (min-width: 1500px) {
-  .beepaLanding .hero {
-    min-height: 690px;
-  }
-  .beepaLanding .hero h1 {
-    font-size: 76px;
-  }
 }
 
 @media (max-width: 1100px) {
@@ -1388,18 +1157,6 @@ html:has(.beepaLanding) {
   .beepaLanding .logo {
     width: 150px;
   }
-  .beepaLanding .hero h1 {
-    font-size: 55px;
-  }
-  .beepaLanding .hero {
-    min-height: 600px;
-  }
-  .beepaLanding .hero-buttons {
-    gap: 15px;
-  }
-  .beepaLanding .hero-copy {
-    padding-right: 26px;
-  }
   .beepaLanding .platform-stage {
     gap: 30px;
   }
@@ -1408,10 +1165,6 @@ html:has(.beepaLanding) {
   }
   .beepaLanding .process-step-copy {
     padding: 17px;
-  }
-  .beepaLanding .section {
-    padding-top: 75px;
-    padding-bottom: 75px;
   }
 }
 
@@ -1456,58 +1209,13 @@ html:has(.beepaLanding) {
     align-items: center;
   }
 
-  .beepaLanding .hero {
-    grid-template-columns: 1fr;
-  }
-  .beepaLanding .hero-copy {
-    padding: 30px 0;
-  }
-  .beepaLanding .hero h1 {
-    font-size: 49px;
-    margin-top: 24px;
-  }
-  .beepaLanding .hero-description {
-    max-width: 340px;
-  }
-  .beepaLanding .hero-buttons {
-    gap: 20px;
-  }
-  .beepaLanding .hero-foot {
-    padding-top: 28px;
-  }
-  .beepaLanding .hero-media {
-    height: 420px;
-  }
-
-  .beepaLanding .assurance {
-    grid-template-columns: 1fr 1fr;
-    gap: 20px 10px;
-    padding: 24px 0;
-  }
-  .beepaLanding .section {
-    padding-top: 58px;
-    padding-bottom: 58px;
-  }
-  .beepaLanding .intro-headline {
-    font-size: 29px;
-    line-height: 1.4;
-  }
   .beepaLanding .inline-face {
     width: 35px;
     height: 26px;
   }
-  .beepaLanding .section-bottom {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 20px;
-  }
   .beepaLanding .team-panorama {
     height: 270px;
     margin-top: 28px;
-  }
-  .beepaLanding .values {
-    grid-template-columns: 1fr 1fr;
-    gap: 25px 20px;
   }
   .beepaLanding .greeting {
     gap: 25px;
@@ -1675,17 +1383,6 @@ html:has(.beepaLanding) {
      already exempt (section numbers, eyebrows) and are left at their
      reference sizes, because scaling them would wreck the editorial rhythm
      without improving legibility. */
-  .beepaLanding .hero-description,
-  .beepaLanding .hero-foot,
-  .beepaLanding .hero-foot strong,
-  .beepaLanding .photo-caption strong,
-  .beepaLanding .photo-caption span,
-  .beepaLanding .photo-top,
-  .beepaLanding .assurance div,
-  .beepaLanding .section-bottom p,
-  .beepaLanding .text-link,
-  .beepaLanding .values h3,
-  .beepaLanding .values p,
   .beepaLanding .section-heading p,
   .beepaLanding .service-card-content h3,
   .beepaLanding .service-card-content p,
@@ -1769,15 +1466,11 @@ html:has(.beepaLanding) {
      `minmax(0, ...)` in their own rules, and the service Button gets
      `flex-wrap: wrap`; `min-width: 0` alone cannot help a child that refuses to
      shrink. */
-  .beepaLanding .hero-copy,
-  .beepaLanding .hero-media,
   .beepaLanding .service-list-item,
   .beepaLanding .service-card,
   .beepaLanding .platform-copy,
   .beepaLanding .dashboard,
   .beepaLanding .process-step,
-  .beepaLanding .assurance > *,
-  .beepaLanding .values > *,
   .beepaLanding .section-heading > *,
   .beepaLanding .promise article,
   .beepaLanding .time-section > *,
@@ -1786,18 +1479,6 @@ html:has(.beepaLanding) {
   .beepaLanding .careers > *,
   .beepaLanding .faq-layout > *,
   .beepaLanding .dashboard-stats > * {
-    min-width: 0;
-  }
-
-  /* The two hero CTAs are 189px each and ship `shrink-0`, so `min-width: 0`
-     cannot help them -- a flex item that refuses to shrink has to wrap. Letting
-     them wrap is also the right mobile layout: stacked, full-width actions read
-     better than two cramped ones. */
-  .beepaLanding .hero-buttons {
-    flex-wrap: wrap;
-  }
-  .beepaLanding .hero-buttons > * {
-    flex: 1 1 auto;
     min-width: 0;
   }
 }
@@ -1811,15 +1492,7 @@ html:has(.beepaLanding) {
   }
 }
 
-/* Below 480px the two hero CTAs still shared a line and left 2px of overflow,
-   because `flex-wrap` only wraps when the line genuinely does not fit and the
-   flex base kept them just wide enough. Stacking them full width is the
-   conventional phone treatment and removes the last of it. */
 @media (max-width: 480px) {
-  .beepaLanding .hero-buttons > * {
-    flex: 1 1 100%;
-  }
-
   /* Two columns left each service row ~155px, which is not enough for a
      two-digit counter, a service name and the arrow, and the row overflowed by
      2px no matter how the children were allowed to shrink. One column reads

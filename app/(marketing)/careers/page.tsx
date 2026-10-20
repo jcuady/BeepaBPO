@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   IconArrowRight,
   IconBriefcase,
@@ -11,15 +13,15 @@ import {
 } from "@tabler/icons-react";
 import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/beepa/container";
-import { SectionHeading } from "@/components/beepa/section-heading";
+import { AssuranceStrip } from "@/components/marketing/assurance-strip";
 import { FinalCTA } from "@/components/marketing/final-cta";
-import { PageHero } from "@/components/marketing/page-hero";
-import { Button } from "@/components/ui/button";
+import { MediaHero } from "@/components/marketing/media-hero";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelectCompact } from "@/components/ui/native-select";
-import { BRAND } from "@/lib/site";
-import { cn } from "@/lib/utils";
 import { BreadcrumbJsonLd } from "@/components/marketing/breadcrumb-json-ld";
+import "@/components/marketing/editorial.css";
+import "./careers.css";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -30,6 +32,11 @@ export const metadata: Metadata = {
   // variants cannot fragment the ranking signal across hundreds of URLs.
   alternates: { canonical: "/careers" },
 };
+
+/** The careers hero photograph — people in Beepa uniforms. Generated, branded. */
+const HERO = "/images/landing/careers-hero.webp";
+/** The same person, cut square, for the hero's foot strip. */
+const HERO_PORTRAIT = "/images/landing/careers-portrait.jpg";
 
 /** Filter values, in the order they are offered. Mirrors the DB enums. */
 const EMPLOYMENT_TYPES = [
@@ -174,75 +181,142 @@ export default async function CareersPage({
           { name: "Careers", path: "/careers" },
         ]}
       />
-      <PageHero
-        eyebrow="Careers"
-        title="Build your career with people who value your growth."
-        description={
-          <>
-            Join {BRAND.displayName} — we place talent with companies and take
-            care of the people behind every role. Search the openings below, then
-            create a free applicant account to apply in one step.
-          </>
-        }
-        cta={
-          jobs.length
-            ? { href: "#open-roles", label: "See open roles" }
-            : { href: "/contact", label: "Get in touch" }
-        }
-        // `next` so an applicant who creates an account from here lands back on
-        // the list they were reading instead of a generic dashboard.
-        secondaryCta={{ href: "/signup?next=/careers", label: "Create account" }}
-      />
 
-      <section className="bg-white py-16 md:py-20">
-        <Container>
-          <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
-            <div className="lg:col-span-5">
-              <SectionHeading as="h2">Life at Beepa</SectionHeading>
-              <p className="mt-3 max-w-[40ch] text-base leading-relaxed text-slate">
-                A manpower culture built on clear work, fair pay, and teams that
-                look out for each other.
-              </p>
-            </div>
-            <ul className="grid gap-6 sm:grid-cols-3 lg:col-span-7">
-              {CULTURE.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <li key={item.title} className="border-t border-line pt-5">
-                    <Icon
-                      stroke={1.5}
-                      className="size-6 text-green-strong"
-                      aria-hidden
-                    />
-                    <h3 className="mt-3 font-display text-base font-semibold text-navy">
-                      {item.title}
-                    </h3>
-                    <p className="mt-1.5 text-base leading-relaxed text-slate">
-                      {item.line}
-                    </p>
-                  </li>
-                );
-              })}
-            </ul>
+      {/*
+        The same hero the landing page renders — the same component, the same
+        grid, the same type scale, the same badge-and-caption treatment over
+        the photograph. There is one hero, so the two pages cannot drift.
+      */}
+      <Container>
+        <MediaHero
+          image={{
+            src: HERO,
+            alt: "Filipina support specialist wearing a Beepa uniform in a bright office",
+          }}
+          eyebrow="Careers at Beepa"
+          title={
+            <>
+              Your craft.
+              <br />
+              Your growth.
+              <br />
+              <span>Your Beepa.</span>
+            </>
+          }
+          description={
+            <>
+              We staff the teams that keep businesses moving, and we look after
+              our own people the same way: clear work, fair pay, real coaching.
+            </>
+          }
+          actions={
+            <>
+              <Button
+                variant="brand"
+                nativeButton={false}
+                render={<Link href="#open-roles" />}
+              >
+                See open roles
+                <span className="mh-arrow" aria-hidden="true">
+                  ↗
+                </span>
+              </Button>
+              <a
+                className={`${buttonVariants({ variant: "editorial" })} cta`}
+                href="/signup?next=/careers"
+              >
+                Create account
+                <span className="mh-arrow" aria-hidden="true">
+                  ↗
+                </span>
+              </a>
+            </>
+          }
+          topLabel="THE PEOPLE BEHIND THE PROGRESS"
+          caption={{
+            title: "A team that has your back.",
+            subtitle: "Real work, real coaching, real progression.",
+            location: ["BASED IN THE PHILIPPINES", "GROWING WITH EVERY ROLE"],
+          }}
+          foot={
+            <>
+              <Image
+                className="mini-portrait"
+                src={HERO_PORTRAIT}
+                alt="Beepa team member"
+                width={64}
+                height={64}
+                data-round-shape="person"
+              />
+              <div>
+                <strong>One profile. Every application.</strong>
+                Create a free account and we will track every role you apply for.
+              </div>
+            </>
+          }
+          priority
+        />
+
+        <AssuranceStrip
+          items={[
+            "Real roles, posted openly",
+            "One profile, every application",
+            "Clear pay, paid on time",
+            "Coaching from day one",
+          ]}
+        />
+      </Container>
+
+      <Container>
+        <section className="ed-section" id="life-at-beepa">
+          <span className="ed-number">01 / LIFE AT BEEPA</span>
+          <h2 className="ed-headline">
+            A manpower culture built on clear work, fair pay, and teams that
+            look out for each other.
+          </h2>
+          <div className="ed-bottom">
+            <p>
+              We hire for character and teach the craft. Attitude first, then the
+              skills — with coaching, honest feedback, and a path to more
+              responsibility as you grow.
+            </p>
+            <a className="ed-link" href="#open-roles">
+              See open roles
+              <span className="mh-arrow" aria-hidden="true">
+                ↗
+              </span>
+            </a>
           </div>
-        </Container>
-      </section>
 
-      <section
-        id="open-roles"
-        className="scroll-mt-24 border-t border-line bg-mist/40 py-20 md:py-28"
-      >
-        <Container>
-          <div className="grid gap-6 lg:grid-cols-12 lg:items-end">
-            <div className="lg:col-span-7">
-              <SectionHeading as="h2">Open roles</SectionHeading>
-              <p className="mt-3 max-w-[48ch] text-base leading-relaxed text-slate">
-                {jobs.length
-                  ? "Filter by employment type, work setup or location, then apply with your Beepa account."
-                  : "No open roles right now — leave a note and we will reach out when something fits."}
-              </p>
-            </div>
-            <p className="font-display text-sm text-slate lg:col-span-5 lg:justify-self-end lg:text-right">
+          <ul
+            className="ed-values"
+            style={{ "--ed-value-cols": 3 } as CSSProperties}
+          >
+            {CULTURE.map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.title}>
+                  <Icon stroke={1.5} className="size-6 text-green-strong" aria-hidden />
+                  <h3 className="mt-3">{item.title}</h3>
+                  <p className="mt-1.5">{item.line}</p>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      </Container>
+
+      <Container>
+        <section className="ed-section" id="open-roles">
+          <span className="ed-number">02 / OPEN ROLES</span>
+          <h2 className="ed-headline">Every role we have open, in one list.</h2>
+          <div className="ed-bottom">
+            <p>
+              {jobs.length
+                ? "Filter by employment type, work setup or location, then apply with your Beepa account."
+                : "No open roles right now — leave a note and we will reach out when something fits."}
+            </p>
+            <p className="font-display text-sm text-slate lg:justify-self-end lg:text-right">
               {filtersOn ? (
                 <>
                   <span className="text-navy">{filtered.length}</span> of {jobs.length} open{" "}
@@ -263,11 +337,7 @@ export default async function CareersPage({
             anyone without JavaScript and unshareable by link.
           */}
           {jobs.length > 0 ? (
-            <form
-              method="get"
-              action="/careers"
-              className="mt-10 rounded-none bg-white p-5 ring-1 ring-line md:p-6"
-            >
+            <form method="get" action="/careers" className="cr-filters">
               <div className="grid gap-4 md:grid-cols-12 md:items-end">
                 <div className="md:col-span-4">
                   <label
@@ -355,8 +425,8 @@ export default async function CareersPage({
               </div>
 
               {filtersOn ? (
-                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4">
-                  <span className="text-xs font-medium text-slate">Filtered by:</span>
+                <div className="cr-chips">
+                  <span className="cr-chip-label">Filtered by:</span>
                   {q ? <FilterChip label={`“${q}”`} /> : null}
                   {employmentType ? (
                     <FilterChip
@@ -375,10 +445,7 @@ export default async function CareersPage({
                     />
                   ) : null}
                   {locationText ? <FilterChip label={locationText} /> : null}
-                  <Link
-                    href="/careers"
-                    className="inline-flex min-h-8 items-center gap-1 text-xs font-medium text-green-strong hover:underline"
-                  >
+                  <Link href="/careers" className="cr-chip-clear">
                     <IconX aria-hidden stroke={2} className="size-3.5" />
                     Clear all
                   </Link>
@@ -388,15 +455,13 @@ export default async function CareersPage({
           ) : null}
 
           {!jobs.length ? (
-            <div className="mt-12 flex flex-col items-start gap-5 rounded-none bg-white p-8 ring-1 ring-line md:p-10">
-              <span className="flex size-12 items-center justify-center rounded-none bg-soft-green text-green-strong ring-1 ring-green-strong/10">
+            <div className="cr-empty">
+              <span className="cr-empty-icon">
                 <IconBriefcase stroke={1.5} className="size-6" aria-hidden />
               </span>
               <div>
-                <h3 className="font-display text-xl font-bold text-navy">
-                  Nothing open at the moment
-                </h3>
-                <p className="mt-2 max-w-[48ch] text-base leading-relaxed text-slate">
+                <h3>Nothing open at the moment</h3>
+                <p>
                   We post roles as client demand opens up. Tell us what you do
                   well — we keep strong people in mind.
                 </p>
@@ -418,18 +483,13 @@ export default async function CareersPage({
               no jobs when there are four and their filter excluded them is the
               kind of message that loses the hire.
             */
-            <div
-              role="status"
-              className="mt-12 flex flex-col items-start gap-5 rounded-none bg-white p-8 ring-1 ring-line md:p-10"
-            >
-              <span className="flex size-12 items-center justify-center rounded-none bg-soft-green text-green-strong ring-1 ring-green-strong/10">
+            <div role="status" className="cr-empty">
+              <span className="cr-empty-icon">
                 <IconSearch stroke={1.5} className="size-6" aria-hidden />
               </span>
               <div>
-                <h3 className="font-display text-xl font-bold text-navy">
-                  No roles match that search
-                </h3>
-                <p className="mt-2 max-w-[48ch] text-base leading-relaxed text-slate">
+                <h3>No roles match that search</h3>
+                <p>
                   There {jobs.length === 1 ? "is 1 open role" : `are ${jobs.length} open roles`},
                   but none match the filters you picked. Clear them to see everything.
                 </p>
@@ -443,27 +503,19 @@ export default async function CareersPage({
               </Link>
             </div>
           ) : (
-            <ul className="mt-12 divide-y divide-line overflow-hidden rounded-none bg-white ring-1 ring-line">
+            <ul className="cr-list">
               {filtered.map((job) => (
                 <li key={job.id}>
-                  <Link
-                    href={`/careers/${job.slug}`}
-                    className={cn(
-                      "group flex flex-col gap-4 p-6 transition-colors duration-200 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-7",
-                      "[@media(hover:hover)_and_(pointer:fine)]:hover:bg-mist/60",
-                    )}
-                  >
+                  <Link href={`/careers/${job.slug}`} className="cr-row group">
                     <div className="min-w-0">
-                      <p className="font-display text-lg font-semibold text-navy transition-colors duration-200 [@media(hover:hover)_and_(pointer:fine)]:group-hover:text-green-strong">
-                        {job.title}
-                      </p>
-                      <p className="mt-1 text-base text-slate">
+                      <p className="cr-row-title font-display">{job.title}</p>
+                      <p className="cr-row-meta">
                         {job.location_text ?? formatLabel(job.location_type)} ·{" "}
                         {formatLabel(job.employment_type)}
                         {job.salary_display ? ` · ${job.salary_display}` : ""}
                       </p>
                     </div>
-                    <span className="inline-flex min-h-11 w-fit items-center gap-2 rounded-none bg-navy px-4 text-sm font-medium text-white transition-[transform,background-color] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover:bg-green-strong active:scale-[0.97]">
+                    <span className="cr-go">
                       View role
                       <IconArrowRight
                         stroke={2}
@@ -476,60 +528,60 @@ export default async function CareersPage({
               ))}
             </ul>
           )}
+        </section>
+      </Container>
 
-          {/*
-            The account step, on the page where the decision is made. Signing up
-            from a role detail returns to that role; this is the entry point for
-            someone browsing the list who has not picked one yet.
-          */}
-          {jobs.length > 0 ? (
-            <div className="mt-12 flex flex-col gap-5 rounded-none bg-navy p-8 text-white md:flex-row md:items-center md:justify-between md:p-10">
-              <div className="max-w-[52ch]">
-                {/*
-                  `text-white` is not decoration. `app/globals.css` applies
-                  `text-navy` to every h1-h4, and an element rule beats
-                  inheritance -- so on this navy panel the heading rendered
-                  navy-on-navy at a contrast ratio of 1.0 and was invisible.
-                  The contrast gate caught it, which is the gate earning its
-                  keep.
-                */}
-                <h3 className="font-display text-xl font-bold text-white">
-                  Applying for more than one role?
-                </h3>
-                <p className="mt-2 text-base leading-relaxed text-white/75">
-                  Create one free applicant account. You keep your profile, track
-                  every application, and hear back on all of them in one place.
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-wrap gap-3">
-                <Button
-                  nativeButton={false}
-                  className="min-h-11 rounded-none bg-white px-5 text-navy hover:bg-mist"
-                  render={<Link href="/signup?next=/careers" />}
-                >
-                  Create account
-                </Button>
-                {/*
-                  The outline variant carries `bg-background`, which is the
-                  off-white mist -- so on this navy panel the inherited
-                  `text-white` landed on a near-white background at a ratio of
-                  1.05 and the label was invisible. `bg-transparent` and
-                  `hover:text-white` are here for the same reason `text-white`
-                  is on the heading: the variant is built for a light surface.
-                  `cn()` runs tailwind-merge, so these override the variant's
-                  own background and hover colour.
-                */}
-                <Button
-                  variant="outline"
-                  nativeButton={false}
-                  className="min-h-11 rounded-none border-white/40 bg-transparent px-5 text-white hover:bg-white/10 hover:text-white"
-                  render={<Link href="/login?next=/careers" />}
-                >
-                  Sign in
-                </Button>
-              </div>
+      {/*
+        The account step, on the page where the decision is made. Signing up
+        from a role detail returns to that role; this is the entry point for
+        someone browsing the list who has not picked one yet.
+      */}
+      <section className="cr-band">
+        <Container>
+          <div className="cr-band-inner">
+            <div>
+              <h2>Applying for more than one role?</h2>
+              {/*
+                `text-white` is not decoration. `app/globals.css` applies
+                `text-navy` to every h1-h4, and an element rule beats
+                inheritance -- so on this navy panel the heading rendered
+                navy-on-navy at a contrast ratio of 1.0 and was invisible.
+                The contrast gate caught it, which is the gate earning its
+                keep.
+              */}
+              <p>
+                Create one free applicant account. You keep your profile, track
+                every application, and hear back on all of them in one place.
+              </p>
             </div>
-          ) : null}
+            <div className="cr-band-actions">
+              <Button
+                nativeButton={false}
+                className="min-h-11 rounded-none bg-white px-5 text-navy hover:bg-mist"
+                render={<Link href="/signup?next=/careers" />}
+              >
+                Create account
+              </Button>
+              {/*
+                The outline variant carries `bg-background`, which is the
+                off-white mist -- so on this navy panel the inherited
+                `text-white` landed on a near-white background at a ratio of
+                1.05 and the label was invisible. `bg-transparent` and
+                `hover:text-white` are here for the same reason `text-white`
+                is on the heading: the variant is built for a light surface.
+                `cn()` runs tailwind-merge, so these override the variant's
+                own background and hover colour.
+              */}
+              <Button
+                variant="outline"
+                nativeButton={false}
+                className="min-h-11 rounded-none border-white/40 bg-transparent px-5 text-white hover:bg-white/10 hover:text-white"
+                render={<Link href="/login?next=/careers" />}
+              >
+                Sign in
+              </Button>
+            </div>
+          </div>
         </Container>
       </section>
 
@@ -540,9 +592,5 @@ export default async function CareersPage({
 
 /** One active filter, shown in the "Filtered by" row. Decoration, not a control. */
 function FilterChip({ label }: { label: string }) {
-  return (
-    <span className="inline-flex min-h-8 items-center rounded-none bg-mist px-2.5 text-xs font-medium text-navy ring-1 ring-line">
-      {label}
-    </span>
-  );
+  return <span className="cr-chip">{label}</span>;
 }

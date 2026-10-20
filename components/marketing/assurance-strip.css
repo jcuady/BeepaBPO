@@ -1,0 +1,43 @@
+/* ==========================================================================
+   The assurance strip — the row of short promises under the hero.
+
+   Lifted out of `components/landing/landing.css`, where it was scoped to
+   `.beepaLanding` and so could only ever style one page. Values are the
+   landing's, untouched.
+   ========================================================================== */
+
+.as-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  padding: 27px 0;
+  border-bottom: 1px solid var(--border);
+}
+.as-strip > div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 11px;
+}
+.as-check {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .as-strip {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 10px;
+    padding: 24px 0;
+  }
+  /* MOBILE TYPE FLOOR — see the note in `media-hero.css`. */
+  .as-strip > div {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  .as-strip > * {
+    min-width: 0;
+  }
+}

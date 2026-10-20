@@ -205,6 +205,27 @@ step("OG image matches the declared brand", () => {
   console.log(`  ${DIM}${lines.join(" | ")}${RESET}`);
 });
 
+// The careers hero wears the company's mark, and the mark is COMPOSITED onto the
+// artwork rather than drawn into it — an image generator cannot draw a logo, and
+// a mark that looks like a logo but is not one is the one thing this site must
+// never ship. So the hero is a derivative of `public/brand/beepa-logo-horizontal.png`
+// like every other brand asset, and `--check` re-derives it and compares bytes.
+//
+// Without this step, replacing the brand file would leave the careers hero
+// wearing the OLD company's mark, with every other gate green: nothing else on
+// the site looks at that image.
+step("Careers hero wears the current logo", () => {
+  const r = spawnSync("node", ["scripts/generate-careers-hero.mjs", "--check"], { cwd: ROOT, encoding: "utf8" });
+  if (r.status !== 0) {
+    console.log(r.stdout.toString().split("\n").filter((l) => /stale|drift|refus|green px|white px/i.test(l)).slice(0, 15).map((l) => `  ${l}`).join("\n"));
+    throw new Error("public/images/landing/careers-hero.webp no longer matches the brand file — re-run without --check");
+  }
+  const out = r.stdout.toString();
+  const lines = out.split("\n").map((l) => l.trim()).filter((l) => /^ok\s+public\/images\/landing\//.test(l));
+  if (!lines.length) throw new Error(`careers hero --check exited 0 but reported nothing to show:\n${out.trim()}`);
+  console.log(`  ${DIM}${lines.join(" | ")}${RESET}`);
+});
+
 step("Design system consistency", () => {
   // Raw elements where a primitive already exists, or a colour literal outside
   // the token layer, means the app has more than one design system. Both are

@@ -1,6 +1,6 @@
 {
   "check": "runtime-radius",
-  "generatedAt": "2026-10-19T14:10:09.803Z",
+  "generatedAt": "2026-10-20T04:46:02.280Z",
   "base": "http://localhost:3100",
   "threshold": "8px on any corner",
   "excluded": "rounded-full",
@@ -54,7 +54,7 @@
       "status": 200,
       "nonCircularRounded": 0,
       "offenders": [],
-      "imagesOk": 2,
+      "imagesOk": 4,
       "imagesBroken": 0,
       "imagesPending": 0,
       "pageErrors": [],
@@ -141,7 +141,7 @@
   "totals": {
     "routesChecked": 12,
     "nonCircularRounded": 0,
-    "imagesTotal": 47,
+    "imagesTotal": 49,
     "imagesBroken": 0,
     "imagesPending": 0,
     "pageErrors": 0,

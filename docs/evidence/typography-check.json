@@ -1,6 +1,6 @@
 {
   "check": "typography",
-  "generatedAt": "2026-10-19T14:13:24.136Z",
+  "generatedAt": "2026-10-20T04:49:24.082Z",
   "base": "http://localhost:3100",
   "contract": {
     "marketing + auth body (<24px, not font-display)": "DM Sans",
@@ -17,13 +17,13 @@
       "route": "/",
       "group": "landing",
       "status": 200,
-      "bodyCopy": 176,
+      "bodyCopy": 177,
       "headline": 4,
       "displayFace": 3,
       "stray": 0,
       "families": {
         "body": {
-          "DM Sans": 176
+          "DM Sans": 177
         },
         "headline": {
           "Manrope": 4
@@ -1027,8 +1027,8 @@
     "routesChecked": 53,
     "publicRoutes": 9,
     "appRoutes": 44,
-    "bodyCopyElements": 4182,
-    "bodyCopyPublic": 430,
+    "bodyCopyElements": 4183,
+    "bodyCopyPublic": 431,
     "bodyCopyApp": 3752,
     "strays": 0,
     "non200": []

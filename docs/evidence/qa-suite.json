@@ -1,15 +1,15 @@
 {
   "check": "qa-suite",
-  "generatedAt": "2026-10-19T14:13:41.044Z",
+  "generatedAt": "2026-10-20T04:50:03.529Z",
   "base": "http://localhost:3100",
   "tiersRun": [
     "fast",
     "gate"
   ],
   "total": 16,
-  "passed": 15,
+  "passed": 16,
   "failures": 0,
-  "blocked": 1,
+  "blocked": 0,
   "skipped": 0,
   "skipReason": null,
   "missingEvidence": [],
@@ -20,7 +20,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 7,
+      "seconds": 8,
       "evidence": "docs/evidence/not-found-check.json",
       "evidenceWritten": true,
       "tail": "18/18 passed",
@@ -44,7 +44,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 14,
+      "seconds": 17,
       "evidence": "docs/evidence/command-palette-check.json",
       "evidenceWritten": true,
       "tail": "PASS  focus lands in the palette input on open  — activeElement placeholder Search pages… | PASS  focus returns to the control that opened the palette  — active",
@@ -68,7 +68,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 288,
+      "seconds": 328,
       "evidence": "docs/evidence/workflow-internal-links.json",
       "evidenceWritten": true,
       "tail": "PASS  applicant — no internal link lands on a page error  [none] | PASS  public — no internal link lands on a page error  [none] | 29/29 assertions passed",
@@ -114,14 +114,13 @@
       "id": "client-invite",
       "what": "the last uncovered action, driven through its real form (BLOCKED when mail is rate limited)",
       "tier": "fast",
-      "status": "BLOCKED",
-      "code": 2,
-      "seconds": 14,
+      "status": "PASS",
+      "code": 0,
+      "seconds": 19,
       "evidence": "docs/evidence/client-invite-check.json",
       "evidenceWritten": true,
-      "tail": "evidence: this attempt was BLOCKED and is recorded in docs/evidence/client-invite-blocked.json. | 13/13 passed | BLOCKED: the environment's email budget closed ",
-      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-client-invite.mjs",
-      "rawOutput": " the client portal role  — client_admin\nPASS  every role granted to an existing account is client-scoped  — client\nPASS  existing-account invite left nothing behind  — membership and auth user removed\ncleanup: \nPASS  cleanup left no membership behind  — 0 row(s)\nPASS  cleanup removed the invited auth user  — gone\nevidence: this attempt was BLOCKED and is recorded in docs/evidence/client-invite-blocked.json.\n          docs/evidence/client-invite-check.json still holds the last run that measured the action (24/24).\n\n13/13 passed\nBLOCKED: the environment's email budget closed again. Re-run later."
+      "tail": "PASS  cleanup left no membership behind  — 0 row(s) | PASS  cleanup removed the invited auth user  — gone | 24/24 passed",
+      "command": "\"C:\\Program Files\\nodejs\\node.exe\" scripts/audit/qa-exercise-client-invite.mjs"
     },
     {
       "id": "auth-callback",
@@ -153,7 +152,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 111,
+      "seconds": 110,
       "evidence": "docs/evidence/contrast-check.json",
       "evidenceWritten": true,
       "tail": "[ok   ] /app/cash-advances             app     status=200 dom=  75 photo=  0 fail=  0 | DISTINCT FAILURES (0 signatures, 0 elements) | proven failures         :",
@@ -165,7 +164,7 @@
       "tier": "fast",
       "status": "PASS",
       "code": 0,
-      "seconds": 83,
+      "seconds": 92,
       "evidence": "docs/evidence/typography-check.json",
       "evidenceWritten": true,
       "tail": "",
@@ -201,10 +200,10 @@
       "tier": "gate",
       "status": "PASS",
       "code": 0,
-      "seconds": 16,
+      "seconds": 39,
       "evidence": null,
       "evidenceWritten": null,
-      "tail": "vitest: 993 tests / 106 files | tsc: clean"
+      "tail": "vitest: 994 tests / 106 files | tsc: clean"
     }
   ]
 }

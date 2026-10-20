@@ -27,6 +27,7 @@
     "smoke:cron": "node scripts/smoke-cron.mjs",
     "brand:icons": "node scripts/generate-brand-icons.mjs",
     "brand:og": "node scripts/generate-og-image.mjs",
+    "brand:careers-hero": "node scripts/generate-careers-hero.mjs",
     "audit:careers": "node scripts/audit/qa-exercise-public-careers.mjs",
     "audit:tables": "node scripts/audit/audit-tables.mjs",
     "audit:rbac": "node scripts/audit/audit-rbac.mjs",

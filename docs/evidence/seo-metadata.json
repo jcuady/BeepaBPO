@@ -1,6 +1,6 @@
 {
   "check": "seo-metadata",
-  "generatedAt": "2026-10-19T13:21:38.513Z",
+  "generatedAt": "2026-10-20T04:38:21.553Z",
   "origin": "http://localhost:3100",
   "verdict": "clean",
   "verdictText": "all 24 sitemap URL(s) carry complete metadata",
@@ -55,7 +55,7 @@
     {
       "path": "/careers",
       "titleLength": 19,
-      "descriptionLength": 142,
+      "descriptionLength": 146,
       "canonicalCount": 1,
       "hasOgImage": true,
       "hasOgUrl": true,

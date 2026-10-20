@@ -67,6 +67,9 @@ import {
 import type { ActionState } from "@/lib/auth/actions";
 import { BRAND } from "@/lib/site";
 import { faqs, services } from "./content";
+import { AssuranceStrip } from "@/components/marketing/assurance-strip";
+import { MediaHero } from "@/components/marketing/media-hero";
+import "@/components/marketing/editorial.css";
 import "./landing.css";
 
 const specialist = "/images/landing/beepa-specialist.jpg";
@@ -82,7 +85,7 @@ const INITIAL_ACTION_STATE: ActionState = { ok: false };
 
 function Arrow() {
   return (
-    <span className="arrow" aria-hidden="true">
+    <span className="mh-arrow" aria-hidden="true">
       ↗
     </span>
   );
@@ -394,31 +397,54 @@ export default function LandingPage({
 
         <main>
           {/* ------------------------------------------------------------ hero */}
-          <section className="hero">
-            <div className="hero-copy">
-              <div className="eyebrow">Filipino talent. Global ambition.</div>
-              <h1>
+          {/*
+            The hero is the shared `MediaHero`, the same component `/careers`
+            renders. It used to be this page's own markup, with its rules
+            scoped to `.beepaLanding` — which meant a second page could not
+            have the same hero without a second copy of it. See
+            `components/marketing/media-hero.tsx`.
+          */}
+          <MediaHero
+            image={{
+              src: specialist,
+              alt: "Filipina support specialist wearing a Beepa uniform in a bright office",
+            }}
+            eyebrow="Filipino talent. Global ambition."
+            title={
+              <>
                 Your people.
                 <br />
                 Your advantage.
                 <br />
                 <span>Your Beepa.</span>
-              </h1>
-              <p className="hero-description">
+              </>
+            }
+            description={
+              <>
                 Great businesses are built by great people.
                 <br />
                 We find, train, and manage your dedicated Filipino team. You
                 focus on what comes next.
-              </p>
-              <div className="hero-buttons">
+              </>
+            }
+            actions={
+              <>
                 <Button variant="brand" onClick={() => openTeam()}>
                   Build my team <Arrow />
                 </Button>
                 <a className={`${buttonVariants({ variant: "editorial" })} cta`} href="#services">
-                  Explore our services <span className="arrow">↓</span>
+                  Explore our services <span className="mh-arrow">↓</span>
                 </a>
-              </div>
-              <div className="hero-foot">
+              </>
+            }
+            topLabel="THE PEOPLE BEHIND YOUR PROGRESS"
+            caption={{
+              title: "A little closer to your team.",
+              subtitle: "Even from a world away.",
+              location: ["BASED IN THE PHILIPPINES", "Connected to your business."],
+            }}
+            foot={
+              <>
                 <Image
                   className="mini-portrait"
                   src={specialist}
@@ -431,49 +457,24 @@ export default function LandingPage({
                   <strong>Real people. Fully in your corner.</strong>
                   Dedicated to your business, not just your tasks.
                 </div>
-              </div>
-            </div>
-            <div className="hero-media">
-              <Image
-                src={specialist}
-                alt="Filipina support specialist wearing a Beepa uniform in a bright office"
-                fill
-                priority
-                sizes="(max-width: 760px) 100vw, 50vw"
-              />
-              <div className="photo-top">THE PEOPLE BEHIND YOUR PROGRESS</div>
-              <div className="photo-caption">
-                <div>
-                  <strong>A little closer to your team.</strong>
-                  <span>Even from a world away.</span>
-                </div>
-                <div className="caption-location">
-                  <span>BASED IN THE PHILIPPINES</span>
-                  <br />
-                  <span>Connected to your business.</span>
-                </div>
-              </div>
-            </div>
-          </section>
+              </>
+            }
+            priority
+          />
 
-          <div className="assurance">
-            {[
+          <AssuranceStrip
+            items={[
               "Dedicated Filipino talent",
               "Your hours. Your workflows.",
               "Web & mobile visibility",
               "Transparent payroll & performance",
-            ].map((text) => (
-              <div key={text}>
-                <span className="check">✓</span>
-                {text}
-              </div>
-            ))}
-          </div>
+            ]}
+          />
 
           {/* --------------------------------------------------------- 01 why */}
-          <section className="section" id="why-beepa">
-            <span className="section-number">01 / MORE THAN OUTSOURCING</span>
-            <h2 className="intro-headline">
+          <section className="ed-section" id="why-beepa">
+            <span className="ed-number">01 / MORE THAN OUTSOURCING</span>
+            <h2 className="ed-headline">
               Beepa finds{" "}
               <Image
                 className="inline-face"
@@ -498,14 +499,14 @@ export default function LandingPage({
                 Your team. Your standards. A shared ambition.
               </span>
             </h2>
-            <div className="section-bottom">
+            <div className="ed-bottom">
               <p>
                 From the first customer conversation to the work behind the
                 scenes, we bring capable Filipino talent into your
                 business&mdash;and make sure you never lose sight of the bigger
                 picture.
               </p>
-              <a className="text-link" href="#how-it-works">
+              <a className="ed-link" href="#how-it-works">
                 Meet your next advantage <Arrow />
               </a>
             </div>
@@ -517,7 +518,7 @@ export default function LandingPage({
               height={840}
               sizes="(max-width: 1360px) 100vw, 1232px"
             />
-            <div className="values">
+            <div className="ed-values">
               {(
                 [
                   [
@@ -557,10 +558,10 @@ export default function LandingPage({
           </div>
 
           {/* ------------------------------------------------------ 02 services */}
-          <section className="section" id="services">
+          <section className="ed-section" id="services">
             <div className="section-heading">
               <div>
-                <span className="section-number">
+                <span className="ed-number">
                   02 / THE WORK WE TAKE OFF YOUR DESK
                 </span>
                 <h2>
@@ -628,9 +629,9 @@ export default function LandingPage({
           </section>
 
           {/* ---------------------------------------------------------- 03 time */}
-          <section className="section time-section">
+          <section className="ed-section time-section">
             <div>
-              <span className="section-number">
+              <span className="ed-number">
                 03 / A WORLD AWAY. RIGHT ON TIME.
               </span>
               <h2>
@@ -680,10 +681,10 @@ export default function LandingPage({
           </section>
 
           {/* ------------------------------------------------------- 04 process */}
-          <section className="section" id="how-it-works">
+          <section className="ed-section" id="how-it-works">
             <div className="section-heading">
               <div>
-                <span className="section-number">
+                <span className="ed-number">
                   04 / A CLEAR PATH TO YOUR TEAM
                 </span>
                 <h2>
@@ -749,10 +750,10 @@ export default function LandingPage({
 
       {/* --------------------------------------------------- 05 transparency */}
       <section className="transparency-band" id="transparency">
-        <div className="container section transparency">
+        <div className="container ed-section transparency">
           <div className="section-heading">
             <div>
-              <span className="section-number">
+              <span className="ed-number">
                 05 / FULL TRANSPARENCY. NO GUESSWORK.
               </span>
               <h2>
@@ -875,7 +876,7 @@ export default function LandingPage({
 
       <div className="container">
         {/* ------------------------------------------------------- 06 report */}
-        <section className="section report-layout">
+        <section className="ed-section report-layout">
           <Image
             className="report-photo"
             src={collaboration}
@@ -885,7 +886,7 @@ export default function LandingPage({
             sizes="(max-width: 760px) 100vw, 50vw"
           />
           <div className="report-copy">
-            <span className="section-number">06 / PROGRESS YOU CAN SEE</span>
+            <span className="ed-number">06 / PROGRESS YOU CAN SEE</span>
             <h2>
               Less chasing updates.
               <br />
@@ -943,9 +944,9 @@ export default function LandingPage({
         </section>
 
         {/* ------------------------------------------------------ 07 planner */}
-        <section className="section planner" id="team-plan">
+        <section className="ed-section planner" id="team-plan">
           <div>
-            <span className="section-number">
+            <span className="ed-number">
               07 / YOUR NEXT CHAPTER STARTS HERE
             </span>
             <h2>
@@ -1035,7 +1036,7 @@ export default function LandingPage({
       <section className="careers-band" id="careers">
         <div className="container careers">
           <div>
-            <span className="section-number">
+            <span className="ed-number">
               08 / GREAT PEOPLE. MEANINGFUL WORK.
             </span>
             <h2>
@@ -1096,9 +1097,9 @@ export default function LandingPage({
 
       <div className="container">
         {/* --------------------------------------------------------- 09 faq */}
-        <section className="section faq-layout" id="questions">
+        <section className="ed-section faq-layout" id="questions">
           <div>
-            <span className="section-number">09 / BEFORE WE SAY HELLO</span>
+            <span className="ed-number">09 / BEFORE WE SAY HELLO</span>
             <h2>
               Good questions.
               <br />
@@ -1144,8 +1145,8 @@ export default function LandingPage({
             Renders nothing when nothing is published. An empty "proof" section
             would be worse than none. */}
         {proof.caseStudies.length + proof.posts.length > 0 ? (
-          <section className="section proof" id="proof">
-            <span className="section-number">10 / PROOF, NOT PROMISES</span>
+          <section className="ed-section proof" id="proof">
+            <span className="ed-number">10 / PROOF, NOT PROMISES</span>
             <div className="section-heading">
               <h2>Work you can go and check.</h2>
               <p>
@@ -1190,7 +1191,7 @@ export default function LandingPage({
               ))}
             </div>
 
-            <Link href="/case-studies" className="proof-more text-link">
+            <Link href="/case-studies" className="proof-more ed-link">
               Every case study and resource <Arrow />
             </Link>
           </section>

@@ -1,6 +1,6 @@
 # QA REPORT — BeepoBeepa
 
-**Date:** 2026-10-10 (current state: the 2026-10-19 addendum below) · **Role:** Principal Full-Stack Engineer + QA Engineer
+**Date:** 2026-10-10 (current state: the 2026-10-20 addendum below) · **Role:** Principal Full-Stack Engineer + QA Engineer
 **Branch:** `main` · **Target:** production build on `:3100`
 **Supabase:** `nwvnawgxkzwiercllgmg`
 
@@ -11,7 +11,78 @@ user anything real?**
 
 ---
 
-## 0. Addendum — brand, careers and AI-readiness pass (2026-10-19)
+## 0. Addendum — careers hero, and one hero instead of two (2026-10-20)
+
+**Read this first.** The sections below it are dated reports of runs made on the dates
+they carry; they are history, and their numbers were true when measured. This section is
+the current state.
+
+| Check | Result |
+|---|---|
+| **Ship gate** (`verify-all.mjs`) | **24/24 steps passed** — *"All checks passed. Ship it."* exit 0 |
+| **Vitest** | **994/994 across 106 files** |
+| **Fast QA tier** (`qa-run-all.mjs`) | **16/16 passed**, exit 0 — including `client-invite`, which the mail quota did not block this time. Evidence in `docs/evidence/qa-suite.json` |
+| **Contrast** | PASS — 5,509 elements across 13 public + 44 app routes, 55 over-photo probes resolved, **0 failures** |
+| **Typography** | PASS — 53 routes, 4,183 body-copy elements, **0 wrong face** |
+| **Runtime radius** | PASS — 12 public routes, 49/49 images loaded, **0 non-circular** |
+| **Design system** | VERDICT clean — **0 hardcoded colours**, 0 raw primitives |
+| **SEO metadata** | **ALL CHECKS PASS** |
+| **Public careers** | **17/17** |
+| **Careers hero** | 2 files re-derived from the brand mark, byte-for-byte, no drift |
+| **Page inventory** | 96 pages, 9 handlers — unchanged |
+
+### What the pass actually found
+
+Two defects that no existing gate could see, both of them the same defect wearing
+different clothes.
+
+1. **The brand mark on the careers hero was a picture of a logo.** The hero artwork was
+   generated with a prompt that asked for a Beepa uniform, and the generator returned
+   marks that *look* like the company's logo and are not it. A mark that resembles the
+   brand without being the brand is precisely the failure the previous pass existed to
+   kill on the favicon — it had simply moved to a new surface, where nothing looked.
+   The fix is structural: the generator paints the scene and a **blank** navy polo, and
+   `scripts/generate-careers-hero.mjs` prints the real artwork onto the fabric, cut from
+   `public/brand/beepa-logo-horizontal.png`. The wordmark is re-coloured to **white**
+   (the master is navy because it is printed on white paper; on navy fabric navy is
+   invisible) and the lockup is **compact**, because a chest logo has no tagline and no
+   room for a wide gap. The size was set **physically**: the same fraction of the
+   subject's shoulder-to-shoulder span that the landing's own uniform photo uses.
+
+2. **The landing page's hero was a second hero waiting to happen.** It was a set of rules
+   scoped to `.beepaLanding`, so it could not be used anywhere else — and `/careers`
+   needed one. Writing a second hero "to look like" the first is how the two drift, and
+   the drift is invisible until somebody puts the pages side by side. So the hero is now
+   **one component** (`components/marketing/media-hero.tsx`), rendered by both pages, and
+   the landing's own rules for it are deleted. The same was done for the assurance strip
+   and for the editorial rhythm (`.ed-*` in `components/marketing/editorial.css`).
+
+   The landing's **rendered output did not change**, which was checked by screenshot
+   before and after the extraction rather than assumed.
+
+### The guard that can fail
+
+`scripts/generate-careers-hero.mjs --check` re-derives the hero and the portrait and
+compares bytes, and it is wired into the ship gate as its own step. Without that step,
+replacing the brand file would leave the careers hero wearing the **old** company's mark
+with every other gate green, because nothing else on the site looks at that image.
+
+The generator also refuses to write when the brand did not land: it counts the green of
+the two-tone mark and the white of the wordmark **in the pixels of the region the lockup
+claims**. A composite that silently fails produces a file that looks like a finished
+photograph, and the shipped bytes are not evidence that the logo is there.
+
+### The functional contract did not move
+
+`/careers` still filters by search, employment type, work setup and location, still drives
+the filter from the URL so a link is shareable and crawlable, still distinguishes "nothing
+open" from "nothing matches your filters", and still routes the applicant CTAs back to the
+list. The gate is **17/17** on the rebuilt page.
+
+---
+
+## 0.1 Addendum — brand, careers and AI-readiness pass (2026-10-19)
+
 
 **Read this first.** The sections below it are dated reports of runs made on the dates
 they carry; they are history, and their numbers were true when measured. This section is
