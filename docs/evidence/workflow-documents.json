@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-documents-workflow.mjs",
   "claim": "the documents module: employee upload, client upload, and a signed download URL that returns the bytes that were uploaded",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:21:47.207Z",
+  "when": "2026-10-20T08:48:17.350Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 31,

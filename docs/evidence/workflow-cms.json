@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-cms-workflow.mjs",
   "claim": "the CMS end to end across all six content types plus the About page: create, edit, publish, archive, and the absence of any delete action",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:34:36.772Z",
+  "when": "2026-10-20T08:57:28.357Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 43,
@@ -189,27 +189,27 @@
     "createdIds": [
       {
         "table": "blog_posts",
-        "id": "2386e0d3-552c-4c8f-99b9-cf0cbd433dc2"
+        "id": "76f9c3a6-1760-44ad-9b1b-bdd2ec9cb889"
       },
       {
         "table": "services",
-        "id": "fb9fab2b-c2cf-479c-add5-9b1f5aa3de83"
+        "id": "0297ab24-5bb9-4bcb-853a-45bebfb29808"
       },
       {
         "table": "faqs",
-        "id": "536d373f-bab0-4c45-9424-7d0457c46135"
+        "id": "8f253d8b-2318-4b34-af5b-f5569af9f3a5"
       },
       {
         "table": "industries",
-        "id": "c462d03e-8f67-4c8e-9fc8-4d889d1780b4"
+        "id": "7784b973-dd09-451f-bf8c-2d705530a9e2"
       },
       {
         "table": "testimonials",
-        "id": "5dfd625b-99a1-4348-acc5-3a54a2957e4b"
+        "id": "53759aa5-730c-4ad1-b58a-c788edfc5fd3"
       },
       {
         "table": "case_studies",
-        "id": "bb3e384b-8ea0-4dd2-9f3f-0611d2d20a75"
+        "id": "c3c67e48-58ff-4dc8-93dd-b55517e7fc8a"
       }
     ],
     "publicAbout": {

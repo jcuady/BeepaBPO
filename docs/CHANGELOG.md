@@ -2,6 +2,136 @@
 
 Phased delivery of the Beepa BPO platform (not semver releases).
 
+## Three gates crashed silently, a metric was blind, and a button was 43 pixels wide (2026-10-20)
+
+The second pass on 2026-10-20. Nothing here is a feature. Every item is a claim in the
+repository's own documentation that was not true, or a defect that the documentation did
+not know how to see.
+
+### A gate that crashed left the last good answer in place
+
+`docs/REMAINING_WORK.md` §2.9 carried a limit that was written down and never asserted:
+
+> only `attendance-tz` wraps its browser work in `try/catch`. The other four leave the
+> *previous* run's file in place on a mid-run crash — dated, parseable, describing a build
+> that is gone.
+
+There are exactly **five** gates in this repo that do browser work *and* write their own
+evidence file. Two of them were already wrapped. The other three — `audit-performance.mjs`,
+`audit/audit-unapproved-payslip-exposure.mjs`, `audit-role-pages.mjs` — were not, and all
+three now are, following the convention the other two already used rather than inventing a
+new one: the browser work is wrapped, the catch writes the verdict `unknown` with exit
+code 2, closes the browser, and keeps whatever partial rows it had collected.
+
+`unknown` is the only honest verdict for a run that did not finish. A crash must never be
+readable as `clean`.
+
+**The guard was proved by a real crash, not by an assertion.** `PLAYWRIGHT_BROWSERS_PATH`
+was pointed at an empty directory so that `chromium.launch()` genuinely threw inside all
+three gates. Every one exited 1, and every one of its evidence files changed on disk from
+the previous run's dated result to a fresh `verdict: "unknown"` carrying the real reason:
+
+| Evidence file | Before the crash | After the crash |
+|---|---|---|
+| `performance.json` | `within-budget` (4 days old) | `unknown` — could not complete: … |
+| `payslip-exposure.json` | `clean` (4 days old) | `unknown` — could not complete: … |
+| `role-pages.json` | the 2026-10-16 role-pages result | `unknown` — could not complete: … |
+
+That is the property that matters, and it is not observable from the source. A file that
+parses, carries a timestamp, and is newer than its neighbours reads as current.
+
+One trap came with it. In `audit-role-pages.mjs` the evidence payload was declared
+`const EVIDENCE = …` *inside* the `try`, so the `catch` could not reach it — it was in the
+temporal dead zone, and the catch would have thrown a `ReferenceError` instead of writing
+the verdict. Reading the code showed a catch that looked correct and would not have run;
+the crash control is what surfaced it.
+
+### The radius metric excluded the one directory where the radius lived
+
+`audit-design-system.mjs` reports **0 arbitrary radii**, and it had been reporting that
+while the repository contained one off-scale value. The scan excluded `components/ui/`
+from the radius count, alongside the primitive and colour counts — but the exclusion is
+right for primitives and colours (those primitives *are* the design system) and wrong for
+radius. The last radius in the repo was hiding inside the design system.
+
+The audit now counts every scanned file and names the file each value lives in. The true
+figure, which is now what the documentation says:
+
+- **1 distinct value, 3 uses** — all `rounded-[2px]`
+- `components/ui/chart.tsx` — 2 chart legend swatches
+- `components/ui/tooltip.tsx` — the arrow
+
+The `rounded-[10px]` and `rounded-[12px]` hits that appear in `native-select.tsx` are
+inside a comment and are stripped before the count.
+
+### The Filter button was 43.58 pixels wide, and the report said 44
+
+The first full run of the responsive sweep on the rebuilt `/careers` failed exactly one
+combination out of 120:
+
+```
+FAIL  /careers  768x1024   iPad Mini          TOUCH 1
+```
+
+The filter bar was a `md:grid-cols-12` grid across a 698.9px container, which makes each
+track **43.58px** — already below the 44px touch minimum before any content is placed in
+it. The search field took four tracks, each select took two, and the Filter button took
+the remaining single track: **43.578px wide, 44px tall**. The primary action of the form
+was half a pixel under the size the repo's own rule requires.
+
+The grid is now `md:grid-cols-6`: six tracks of 103.15px, with the search field on two
+and everything else on one. The search field and the three selects keep the exact widths
+they had; only the button changes, from 43.58px to 103.15px. And every track in that grid
+is now more than twice the minimum, so the trap cannot be re-entered by adding a field.
+
+**The evidence file was also lying, and that is the part worth keeping.** The audit
+rounded its measurements with `Math.round`, so a target 43.578px wide was written to
+`docs/evidence/responsive-public.json` as `w: 44, h: 44` — sitting next to a `FAIL`
+verdict. Anyone reading that file would conclude the check was broken, not the button.
+Three scripts did this (`audit-responsive.mjs`, `audit-app-responsive.mjs`,
+`audit-targets.mjs`); all three now report two decimals, so the number in the evidence is
+the number the rule actually compared.
+
+### The run that timed out, and what it left behind
+
+The full `--all` QA tier was cut off by the harness's 3000-second limit after **22 of 33**
+checks. The eleven it never reached — `role-sweep`, `control-census`, `seo-metadata`,
+`role-pages`, `performance`, `payslip-exposure`, `attendance-tz`, `cron-smoke`,
+`server-fresh`, `gate-coverage`, `gate` — are the slow tail, and the three crash-tested
+evidence files still held the negative control's `unknown` verdict when it stopped. A run
+that is interrupted is an interrupted run: the evidence files must say so.
+
+**The runner could not be run in pieces, so the tail was unreachable.** It had no way to
+run a subset, and the checks with the least evidence behind them were the ones that never
+ran. `qa-run-all.mjs --only=<ids>` now runs exactly those checks, in registry order, and
+**an id that does not exist is an error with exit code 2** rather than a smaller
+selection — a typo that silently skips a check is the same failure as a check that cannot
+fail. The rollup records `idsRun` and `wholeRegistry`, so a partial run can never be
+read as a whole one — and the committed fast-tier rollup says `wholeRegistry: false`
+beside `passed: 16`, because "the fast tier" and "the whole suite" are different
+claims. Pinned by `tests/qa-runner-only-flag.test.ts`, mutation-proved.
+
+### The ship gate caught the test this pass had just written
+
+The new test spawns the runner, and the runner probes `$QA_BASE_URL/api/health` before
+every check — that probe is how a dead server stops being scored as a product failure.
+The first version of the test pointed at the default `http://localhost:3100` and passed
+**only when an app server happened to be running**.
+
+The ship gate caught it, because the ship gate does not run a server: its vitest step ran
+with nothing on 3100, so the runner skipped the check, exited 2, and the test failed
+there while passing everywhere else. **23/24 — "Do not ship."** That is the gate earning
+its keep on the change that introduced it, and it is the same lesson as every other entry
+in this file: a check that passes only when the environment happens to be right is not a
+check.
+
+The fix was to make the test **hermetic** — it now starts its own health server and
+spawns the runner asynchronously. The first attempt at that fix used `spawnSync`, which
+blocks the event loop, so the in-process server could not answer the probe and the
+runner again concluded the server was down. The same failure, wearing a different hat.
+The test now passes with **nothing listening on 3100**, which is the ship gate's
+condition.
+
 ## The careers hero was a second hero, and the logo on the polo was a guess (2026-10-20)
 
 **The brief was:** design the careers hero as a principal graphic artist — people in Beepa

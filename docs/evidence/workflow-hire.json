@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-hire-workflow.mjs",
   "claim": "the hire conversion: applicant to employee, with the membership, roles and overwritten profile row restored afterwards",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:02:56.043Z",
+  "when": "2026-10-20T08:57:56.251Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 23,
@@ -107,8 +107,8 @@
   "writer": "exercise",
   "extra": {
     "seededFixtures": {
-      "applicant": "4ae267a2-5e31-479b-8e6f-0374b98d4127",
-      "application": "9b346677-d930-412d-a356-4a2e55950bfc"
+      "applicant": "09835913-6d61-412b-84ad-e25c39ab4348",
+      "application": "9c20494c-0aa2-4931-90d4-0df31fa96dc5"
     },
     "failedAssertions": []
   },

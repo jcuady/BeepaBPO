@@ -18,8 +18,16 @@
  * Item 3 is informational on purpose. The radius scale is
  * `--radius-sm:8 --radius-md:12 --radius-lg:16 --radius-xl:24`, and the codebase
  * grew a dozen arbitrary values before this script existed. Failing the gate on
- * all of them at once would mean a ~106-site sweep with no way to review the
- * visual result; the count is a progress metric until that sweep lands.
+ * all of them at once would mean a sweep with no way to review the visual
+ * result; the count is a progress metric until that sweep lands.
+ *
+ * It is counted over EVERY scanned file, including the primitives. The
+ * primitive and colour checks exclude `components/ui/` because a primitive's
+ * own markup would be a false positive there; a radius class is not. The last
+ * three arbitrary values live in `components/ui/chart.tsx` and
+ * `components/ui/tooltip.tsx`, so excluding the primitives made this metric
+ * report `0` while the design system document published `106 uses, 8
+ * off-scale`. It now reports what is actually there, and names the files.
  *
  * Each check strips comments first — otherwise this file's own documentation of
  * the violations would count them.
@@ -159,7 +167,6 @@ const rawElements = [];
 const hexColors = [];
 const allowlisted = [];
 const primitiveAllowlisted = [];
-const radii = new Map();
 
 for (const file of targets) {
   const rel = relOf(file);
@@ -188,8 +195,33 @@ for (const file of targets) {
     else hexColors.push({ rel, n: colors.length });
   }
 
+}
+
+/**
+ * The radius scale is counted over EVERY scanned file, including the
+ * primitives.
+ *
+ * WHY IT IS NOT `targets`: the exclusion above exists for the primitive and
+ * colour checks, where a primitive's own markup would be a false positive.
+ * A radius class is not that. `components/ui/chart.tsx` and
+ * `components/ui/tooltip.tsx` are where the last three arbitrary values live,
+ * so excluding the primitives made this metric blind to precisely the values
+ * that remained — and it reported `0` while the design system document
+ * published `106 uses, 8 off-scale`. A metric that cannot see the thing it
+ * measures is not a metric.
+ *
+ * The file list is reported alongside each value, so a reader can see WHERE
+ * the remaining values are instead of being asked to trust a count.
+ */
+const radiusSites = new Map();
+for (const file of files) {
+  const src = stripComments(readFileSync(file, "utf8"));
   for (const m of src.matchAll(/rounded-\[(\d+)px\]/g)) {
-    radii.set(m[1], (radii.get(m[1]) ?? 0) + 1);
+    const value = m[1];
+    if (!radiusSites.has(value)) radiusSites.set(value, { count: 0, files: new Set() });
+    const entry = radiusSites.get(value);
+    entry.count += 1;
+    entry.files.add(relOf(file));
   }
 }
 
@@ -239,17 +271,19 @@ if (allowlisted.length) {
 console.log("");
 
 // 3. Radius scale (informational)
-const radiusTotal = [...radii.values()].reduce((a, b) => a + b, 0);
+const radiusTotal = [...radiusSites.values()].reduce((a, e) => a + e.count, 0);
 console.log(
-  `ARBITRARY RADIUS      ${radii.size} distinct value(s), ${radiusTotal} use(s)  [informational]`,
+  `ARBITRARY RADIUS      ${radiusSites.size} distinct value(s), ${radiusTotal} use(s)  [informational]`,
 );
-if (radii.size) {
+if (radiusSites.size) {
   const scale = new Set(["8", "12", "16", "24"]);
-  const offScale = [...radii.entries()].filter(([v]) => !scale.has(v));
-  const sorted = [...radii.entries()].sort((a, b) => b[1] - a[1]);
-  for (const [value, count] of sorted) {
+  const offScale = [...radiusSites.entries()].filter(([v]) => !scale.has(v));
+  const sorted = [...radiusSites.entries()].sort((a, b) => b[1].count - a[1].count);
+  for (const [value, entry] of sorted) {
     const mark = scale.has(value) ? "  (on scale)" : "  ← off scale";
-    console.log(`  rounded-[${value}px] x${count}${mark}`);
+    console.log(
+      `  rounded-[${value}px] x${entry.count}${mark}  ${[...entry.files].join(", ")}`,
+    );
   }
   console.log(
     `  Scale is --radius-sm:8 --radius-md:12 --radius-lg:16 --radius-xl:24. ` +
@@ -266,8 +300,8 @@ if (failures) {
   process.exit(1);
 }
 console.log("VERDICT: no raw primitives and no hardcoded colours.");
-if (radii.size) {
+if (radiusSites.size) {
   console.log(
-    `  ${radii.size} arbitrary radius value(s) remain — informational until the sweep lands.`,
+    `  ${radiusSites.size} arbitrary radius value(s) remain — informational until the sweep lands.`,
   );
 }

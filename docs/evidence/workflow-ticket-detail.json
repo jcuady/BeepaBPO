@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-ticket-workflow.mjs",
   "claim": "the live ticket hand-off: a client admin raises a ticket, operations assigns it, and ticket.created and ticket.assigned both fire",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:42:57.399Z",
+  "when": "2026-10-20T09:02:29.065Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 10,
@@ -55,7 +55,7 @@
   "writer": "exercise",
   "extra": {
     "residualBefore": 0,
-    "createdTicketId": "2a241618-2a75-45d7-a02e-08ee34b15918"
+    "createdTicketId": "06f6a330-5e6f-4629-ad2f-8978a416e9f7"
   },
   "self": {
     "verdict": "PASS",

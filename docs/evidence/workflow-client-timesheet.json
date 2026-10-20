@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-client-timesheet-workflow.mjs",
   "claim": "the client timesheet hand-off both ways: send to client, client approves to finalized, client sends back to supervisor_review",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:02:28.712Z",
+  "when": "2026-10-20T08:49:33.843Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 14,

@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-signup-workflow.mjs",
   "claim": "signupAction end to end: account created, duplicate-address wording matched, membership rows and the auth user cleaned up",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:41:30.562Z",
+  "when": "2026-10-20T08:42:28.768Z",
   "exitCode": 2,
   "verdict": "BLOCKED",
   "assertions": 4,

@@ -1,6 +1,6 @@
 {
   "check": "contrast",
-  "generatedAt": "2026-10-20T04:47:52.076Z",
+  "generatedAt": "2026-10-20T11:43:45.044Z",
   "base": "http://localhost:3100",
   "standard": "WCAG 2.2 SC 1.4.3 (AA)",
   "thresholds": {
@@ -281,7 +281,7 @@
       "route": "/app/my/notifications",
       "group": "app",
       "status": 200,
-      "checked": 151,
+      "checked": 155,
       "failures": 0,
       "overPhotoSampled": 0,
       "unresolved": 0,
@@ -646,8 +646,8 @@
     "routesChecked": 57,
     "publicRoutes": 13,
     "appRoutes": 44,
-    "elementsMeasured": 5509,
-    "elementsMeasuredApp": 4518,
+    "elementsMeasured": 5513,
+    "elementsMeasuredApp": 4522,
     "overPhotoProbes": 55,
     "overPhotoResolved": 55,
     "failures": 0,

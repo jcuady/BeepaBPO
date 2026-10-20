@@ -159,8 +159,13 @@ const probe = (opts) => {
           results.smallTargets.push({
             tag: el.tagName.toLowerCase(),
             text: "scroll region",
-            w: Math.round(r.width),
-            h: Math.round(r.height),
+            // Two decimals, not rounded. A target 43.578px wide FAILS the 44px
+            // rule, and `Math.round` printed it as `44` — an evidence file that
+            // says "w: 44, h: 44" next to verdict FAIL reads like a broken
+            // check rather than a broken target. The number has to be the one
+            // the rule actually compared.
+            w: +r.width.toFixed(2),
+            h: +r.height.toFixed(2),
             cls: (el.className || "").toString().slice(0, 70),
           });
         }
@@ -182,8 +187,10 @@ const probe = (opts) => {
       results.smallTargets.push({
         tag: el.tagName.toLowerCase(),
         text: (el.textContent || "").trim().slice(0, 40),
-        w: Math.round(r.width),
-        h: Math.round(r.height),
+        // Two decimals, not rounded — see the note on the scroll-region branch
+        // above. A failing measurement must not be reported as a passing one.
+        w: +r.width.toFixed(2),
+        h: +r.height.toFixed(2),
         cls: (el.className || "").toString().slice(0, 70),
       });
     }

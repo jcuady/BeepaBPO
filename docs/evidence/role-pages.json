@@ -1,6 +1,6 @@
 {
   "check": "role-pages",
-  "generatedAt": "2026-10-16T03:56:49.228Z",
+  "generatedAt": "2026-10-20T10:21:29.184Z",
   "base": "http://localhost:3100",
   "roles": [
     "owner@demo.beepabpo.com",

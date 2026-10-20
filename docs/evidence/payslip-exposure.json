@@ -1,6 +1,6 @@
 {
   "check": "payslip-exposure",
-  "generatedAt": "2026-10-16T04:27:59.904Z",
+  "generatedAt": "2026-10-20T10:23:18.908Z",
   "base": "http://localhost:3100",
   "email": "employee@demo.beepabpo.com",
   "verdict": "clean",

@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-payroll-workflow.mjs",
   "claim": "payroll money path end to end: own period opened, reviewed, approved in two steps, finalized",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:01:44.521Z",
+  "when": "2026-10-20T08:43:59.809Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 19,
@@ -94,7 +94,7 @@
       "periods": 2,
       "records": 11,
       "payslips": 1,
-      "audit": 708
+      "audit": 755
     }
   },
   "self": {

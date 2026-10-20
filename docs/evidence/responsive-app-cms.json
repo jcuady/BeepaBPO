@@ -1,11 +1,15 @@
 {
   "check": "responsive-app",
-  "generatedAt": "2026-10-15T12:58:59.975Z",
+  "generatedAt": "2026-10-20T08:37:26.141Z",
   "base": "http://localhost:3100",
   "account": "marketing@demo.beepabpo.com",
   "routes": [
     "/app/cms"
   ],
+  "requestedRoutes": [
+    "/app/cms"
+  ],
+  "inaccessible": [],
   "chunkOf": "1 route(s) — run in chunks, see QA_REPORT §7",
   "total": 8,
   "passed": 8,

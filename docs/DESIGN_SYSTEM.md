@@ -185,10 +185,23 @@ you, and do not re-add a blanket `text-sm` to `Card`.
 `--radius-sm` 8px · `--radius-md` 12px · `--radius-lg` 16px · `--radius-xl` 24px
 
 Use the scale classes (`rounded-sm|md|lg|xl`). Arbitrary `rounded-[Npx]` values are
-**reported but do not fail** the gate — currently 12 distinct values across 106 uses,
-8 of them off-scale. That is deliberate: a 106-site radius sweep cannot be reviewed
-for visual regression in one pass, so the count is a progress metric until the sweep
-lands. New code must use the scale.
+**reported but do not fail** the gate. The count is a progress metric, and it is
+measured over every scanned file **including the primitives** — a radius on a
+primitive is exactly as much a design-system fact as a radius on a page.
+
+Measured 2026-10-20: **1 distinct value, 3 uses**, all `rounded-[2px]`, in
+`components/ui/chart.tsx` (two chart legend swatches) and `components/ui/tooltip.tsx`
+(the tooltip arrow). These are deliberate sub-scale rounding: `rounded-sm` (8px) on
+an 8px swatch or a 10px arrow would turn it into a circle, which is a different
+shape rather than a different value of the same shape. They are reported so the
+next person can see them, not because they are drift. New code must use the scale.
+
+An earlier version of this section published "12 distinct values across 106 uses,
+8 of them off-scale". That figure stopped being true as the sweep landed — and the
+metric that was meant to track it had been blinded by the same exclusion that
+keeps the primitive and colour checks honest, so it reported `0` while this
+document still said `106`. The gate now counts the primitives too, and both the
+number and the file list come from a run.
 
 ---
 

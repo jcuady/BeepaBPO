@@ -1,6 +1,6 @@
 {
   "check": "seo-metadata",
-  "generatedAt": "2026-10-20T04:38:21.553Z",
+  "generatedAt": "2026-10-20T10:10:43.038Z",
   "origin": "http://localhost:3100",
   "verdict": "clean",
   "verdictText": "all 24 sitemap URL(s) carry complete metadata",

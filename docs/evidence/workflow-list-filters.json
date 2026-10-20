@@ -3,10 +3,10 @@
   "script": "scripts/audit/qa-exercise-list-filters.mjs",
   "claim": "every filter control on every internal list page can actually change the result set, across all demo roles",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:37:46.943Z",
+  "when": "2026-10-20T09:02:04.218Z",
   "exitCode": 0,
   "verdict": "PASS",
-  "assertions": 34,
+  "assertions": 32,
   "checks": [
     {
       "name": "/app/tickets — a search that matches nothing changes the list",
@@ -32,16 +32,6 @@
       "name": "/app/leave — at least one dropdown option changes the list",
       "pass": true,
       "detail": "status=manager_approved of 2 tried"
-    },
-    {
-      "name": "/app/billing — a search that matches nothing changes the list",
-      "pass": true,
-      "detail": "list changed"
-    },
-    {
-      "name": "/app/billing — at least one dropdown option changes the list",
-      "pass": true,
-      "detail": "status=draft of 1 tried"
     },
     {
       "name": "/app/cash-advances — at least one dropdown option changes the list",
@@ -186,6 +176,7 @@
     "/app/attendance: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "/app/attendance/corrections: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "/app/approvals: no Apply form on this page — skipped",
+    "/app/billing: content is not stable across two identical loads — skipped",
     "/app/my/cash-advances: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "/app/my/documents: list is empty, so no filter can change it — dropdown leg skipped rather than reported as inert",
     "signed in as clientadmin@demo.beepabpo.com (client)",
@@ -197,20 +188,20 @@
   "other": [],
   "writer": "exercise",
   "extra": {
-    "pagesTested": 27,
-    "pagesSkipped": 3,
+    "pagesTested": 26,
+    "pagesSkipped": 4,
     "rolesDriven": 3,
     "noEffectDropdownCandidates": []
   },
   "self": {
     "verdict": "PASS",
-    "assertions": 34,
+    "assertions": 32,
     "failed": 0
   },
   "confirmation": null,
   "confirmedBy": "qa-run-workflows",
   "suite": {
-    "parsedAssertions": 34,
+    "parsedAssertions": 32,
     "printedFailures": 0
   }
 }

@@ -364,9 +364,44 @@ if (listOnly) {
   process.exit(0);
 }
 
-const selected = CHECKS.filter((c) => (wantAll ? true : c.tier !== "slow"));
+// `--only=<id1,id2,...>` runs exactly those checks, in registry order.
+//
+// Why this exists: the full `--all` tier does not finish inside a CI step or a
+// harness timeout. On 2026-10-20 it was cut off after 22 of 33 checks, and the
+// eleven it never reached included the slow tail (`role-sweep`, `control-census`,
+// `role-pages`, `performance`) and the last two fast-tier gates — so the checks
+// with the least evidence behind them were the ones that never ran. A suite
+// whose tail cannot be reached measures its own tail as nothing.
+//
+// The rollup is still written, and it records only what this invocation ran, so
+// a partial run can never be read as a whole one.
+const onlyArg = args.find((a) => a.startsWith("--only="));
+const onlyIds = onlyArg
+  ? onlyArg.slice("--only=".length).split(",").map((s) => s.trim()).filter(Boolean)
+  : null;
+
+if (onlyIds) {
+  // A typo'd id that silently matches nothing would produce a green run that
+  // measured zero checks. That is the "a check that cannot fail" trap, so an
+  // unknown id is an error with exit code 2, not an empty selection.
+  const known = new Set(CHECKS.map((c) => c.id));
+  const unknownIds = onlyIds.filter((id) => !known.has(id));
+  if (unknownIds.length) {
+    console.error(`Unknown check id(s): ${unknownIds.join(", ")}`);
+    console.error(`Known ids: ${[...known].join(", ")}`);
+    process.exit(2);
+  }
+}
+
+const selected = onlyIds
+  ? CHECKS.filter((c) => onlyIds.includes(c.id))
+  : CHECKS.filter((c) => (wantAll ? true : c.tier !== "slow"));
 console.log(`QA suite — ${selected.length} check(s) against ${BASE}`);
-console.log(wantAll ? "tiers: fast + gate + slow\n" : "tiers: fast + gate (slow excluded; pass --all to include)\n");
+if (onlyIds) {
+  console.log(`tiers: ${[...new Set(selected.map((c) => c.tier))].join(" + ")} (--only)\n`);
+} else {
+  console.log(wantAll ? "tiers: fast + gate + slow\n" : "tiers: fast + gate (slow excluded; pass --all to include)\n");
+}
 
 // The email budget is roughly one invite per window, and this run spends it.
 // Running the suite twice in quick succession therefore reports client-invite as
@@ -478,7 +513,16 @@ const summary = {
   check: "qa-suite",
   generatedAt: new Date().toISOString(),
   base: BASE,
-  tiersRun: wantAll ? ["fast", "gate", "slow"] : ["fast", "gate"],
+  tiersRun: [...new Set(selected.map((c) => c.tier))],
+  // The ids this invocation actually ran. Without this a partial run
+  // (`--only=…`) would write a rollup whose `total` looks like a whole-suite
+  // total, and a reader would take it for one.
+  idsRun: selected.map((c) => c.id),
+  // True only when the run covered the WHOLE registry — all 33 checks. The
+  // committed fast-tier rollup is therefore always false, and that is the
+  // point: "fast tier" and "the whole suite" are different claims and the
+  // file says which one it is.
+  wholeRegistry: selected.length === CHECKS.length,
   total: outcomes.length,
   passed: outcomes.filter((o) => o.status === "PASS").length,
   failures: failed.length,

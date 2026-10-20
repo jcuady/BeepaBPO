@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-crm-workflow.mjs",
   "claim": "the CRM revenue workflow end to end: lead to deal to proposal to won to client org, including convertWonDealToClient",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:28:22.115Z",
+  "when": "2026-10-20T08:53:14.888Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 21,

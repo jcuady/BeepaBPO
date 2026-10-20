@@ -1,9 +1,9 @@
 # PROJECT_STATUS — Beepa / BeepoBeepa
 
-**Updated:** 2026-10-19 · **Branch:** `main`
+**Updated:** 2026-10-20 · **Branch:** `main`
 > No HEAD SHA is pinned here on purpose: a doc committed in commit X cannot name X, so the pin is always stale by the next commit. Live state is `node scripts/verify-all.mjs`; the numbers below are the ones that command prints.
-> **What the 2026-10-19 pass re-ran:** the ship gate, the fast QA tier, the contrast, SEO-metadata, public-careers and server-fresh gates, and the auth workflow exercise. The role sweep, the responsive sweeps and the Playwright figures are **from their own last runs and were not re-verified by that pass** — they are not stale because they are wrong, and they are not fresh either.
-**Overall:** **Shippable.** The 23-step gate passes end to end: *"All checks passed. Ship it."* exit 0. Zero pending migrations, zero overlapping payroll periods, realtime delivery confirmed end to end. Forward roadmap: `docs/REMAINING_WORK.md`.
+> **What the second 2026-10-20 pass re-ran:** **all 33 registered QA checks**, the ship gate (24/24), and the careers-hero derivation — on a build verified current by `audit-server-fresh`. The responsive sweeps are now re-measured too: **120/120** public + auth and **232/232** app. The E2E (Playwright) figures are still from their own last run and were not re-verified by this pass — they are not stale because they are wrong, and they are not fresh either.
+**Overall:** **Shippable.** The 24-step gate passes end to end: *"All checks passed. Ship it."* exit 0. Zero pending migrations, zero overlapping payroll periods, realtime delivery confirmed end to end. Forward roadmap: `docs/REMAINING_WORK.md`.
 
 > Supersedes the 2026-09-14 "READY" claim, which asserted gates that were not being enforced. Evidence in `docs/SYSTEM_AUDIT.md`.
 
@@ -15,31 +15,34 @@
 |---|---|---|
 | TypeScript | **PASS** | `tsc --noEmit` exit 0 |
 | Lint | **PASS** | `eslint . --max-warnings=0` exit 0 |
-| Unit tests | **PASS** | **991/991 across 106 files** (re-measured 2026-10-19) |
+| Unit tests | **PASS** | **997/997 across 107 files** (re-measured 2026-10-20; 994/106 before this pass added 3 tests for the runner's new `--only` flag) |
 | Production build | **PASS** | `next build` exit 0 |
 | E2E (Playwright) | **PASS** | **100 passed, 4 skipped, 0 failed** — prod build, cold `.auth`, 59.5s |
-| Ship gate | **PASS** | `verify-all.mjs` → **23/23 passed. "All checks passed. Ship it."** exit 0 (2026-10-19) |
+| Ship gate | **PASS** | `verify-all.mjs` → **24/24 passed. "All checks passed. Ship it."** exit 0 (2026-10-20) |
 | **Brand icons** | **PASS** | `generate-brand-icons.mjs --check` — 13 favicon / PWA / Google-Organization assets re-derived from `public/brand/logo-mark-raw.png` and compared byte for byte. `app/icon.png` is Next's file-convention icon and overrides the `icons` array in `app/layout.tsx`, so it is the file a browser tab actually shows. `public/apple-icon.png` was a **404 on every page** and did not exist until this pass |
 | **OG share card** | **PASS** | `generate-og-image.mjs --check` — 1200x630 composed from the hero photo, the real horizontal logo and the tagline read out of `lib/site.ts`. It had declared 1672x941 while the file was 1200x630, so every social share cropped the logo off |
-| **Public careers** | **PASS** | `qa-exercise-public-careers.mjs` — **16/16** over the rendered HTML: search, three filters, filter chips, clear-all, both empty states, the canonical, and the account CTA return path. Filters are built from anon-readable `job_posts`; `departments` is `to authenticated` (internal HR) and returns 0 rows to the anon key |
+| **Careers hero** | **PASS** | `generate-careers-hero.mjs --check` — the 4K careers hero and its 320×320 portrait are re-derived from `public/brand/beepa-logo-horizontal.png` and compared byte for byte. The mark on the uniform is **composited from the brand file, not generated**: an image generator asked for a branded polo returns marks that look like a logo and are not one. Now its own ship-gate step, so replacing the brand file cannot leave the hero wearing the old mark |
+| **Public careers** | **PASS** | `qa-exercise-public-careers.mjs` — **17/17** over the rendered HTML: search, three filters, filter chips, clear-all, both empty states, the canonical, and the account CTA return path. Filters are built from anon-readable `job_posts`; `departments` is `to authenticated` (internal HR) and returns 0 rows to the anon key |
 | **Role × page sweep** | **PASS** | `audit-role-sweep.mjs` — every nav-reachable page for all 13 roles, plus 10 marketing pages: **0 console errors, 0 page errors, 0 error states**. Download endpoints recorded separately (they are not navigable by design) |
+| **Control census** | **PASS** | `qa-control-surface-census.mjs` — **444 pages, 13 roles, 0 pages failed, 0 cold-start retries**; 518 distinct controls, 518 named, **0 without an accessible name**; **99%** pressable-control overlap (199 of 201). The 2 unmatched are `Save` and `Continue`, both pressed and named for their outcome — a question, not a finding |
+| **QA suite runner** | **PASS** | `qa-run-all.mjs` — **33 registered checks**, each declaring the evidence file it must write, so a green check with no file behind it is reported. `--only=<ids>` runs a subset (the full tier exceeds a CI step); an **unknown id is an error, exit 2**, not a smaller selection. Mutation-proved |
 | **Data population** | **PASS** | `audit-data-population.mjs` — every table the app queries, distinguishing **missing** from **empty** (a `head:true` count returns `null` for a nonexistent table *or* a nonexistent column, with no error). **996 rows** across app tables |
 | **Live workflow exercises** | **PASS** | `qa-exercise-leave-workflow.mjs` — employee → team lead → HR, asserting against the database rather than the DOM: **13/13**. `qa-exercise-ticket-workflow.mjs` — client admin → assignee: **10/10**. `qa-exercise-admin-workflow.mjs` — cron, test push, role change, revoke: **18/18** (1 path BLOCKED by Supabase email rate limiting). `qa-exercise-hire-workflow.mjs` — stage → offer → hire: **18/18**. `qa-exercise-crm-workflow.mjs` — lead → deal → proposal → won → client org: **21/21**. `qa-exercise-payroll-workflow.mjs` — salary → run → recalc → 2-step approval → finalized: **19/19**. All restore what they change and assert the restoration |
 | **Admin role integrity** | **PASS** | `tests/admin-role-assignment.test.ts` — 12 cases. Changing a role used to delete every role a person held, silently stripping the `employee` self-service baseline (8 permissions: leave, payroll, attendance, tickets, approvals, cash advance, NTE, performance). Inviting staff granted no baseline at all. Both fixed; guard is mutation-proved |
-| **Action coverage** | **PARTIAL** | **83** exported server actions across 21 modules, counted by `qa-action-inventory.mjs`. **76 exercised end to end** against the database (leave 3, admin 5, CRM 8, payroll 5, auth 8, attendance 8, CMS 14, recruitment 7, NTE 3, notifications 3, employee/profile/contact 3, billing 2, cash advance 2, documents 3, ticket 2); the rest render (471 page visits, 0 console errors) and are unit-covered, but have not been driven through the UI. Per-domain breakdown in `docs/QA_REPORT.md` §5 |
+| **Action coverage** | **PARTIAL** | **83** exported server actions across 21 modules, counted by `qa-action-inventory.mjs`. **76 exercised end to end** against the database (leave 3, admin 5, CRM 8, payroll 5, auth 8, attendance 8, CMS 14, recruitment 7, NTE 3, notifications 3, employee/profile/contact 3, billing 2, cash advance 2, documents 3, ticket 2); the rest render (444 page visits, 0 console errors) and are unit-covered, but have not been driven through the UI. Per-domain breakdown in `docs/QA_REPORT.md` §5 |
 | **Notification integrity** | **PASS** | `qa-verify-notifications.mjs` — 58 rows, **58 distinct bodies**, 0 legacy generic strings, **0 dead links**. The 27 orphaned rows carrying the old body were deleted via `cleanup-orphan-notifications.mjs` and reseeded from live records |
 | **Page headings** | **PASS** | `page-heading-contract.test.ts` — 79 `<PageHeader>` call sites across `app/` **and** `lib/`; **76 now carry a `title`**, 2 are documented exceptions. Before the fix, 78 of 79 rendered the greeting `Good morning, Demo.` — byte-identical, because every seeded profile is named "Demo" |
 | Authorization (routes) | **PASS** | `audit-rbac.mjs` **75/78 (96%)** + 3 structural exemptions, exit 0 |
 | Authorization (actions) | **PASS** | `audit-action-rbac.mjs` **63/64**, exit 0 |
-| Page wiring | **PASS** | `audit-page-wiring.mjs` scanned 269 `.tsx`, **0 candidates** (validated by negative control) |
-| Page inventory | **PASS** | 93 pages; `--check` clean |
-| **Design system** | **PASS** | `audit-design-system.mjs` exit 0 — **0 raw `<select>`/`<table>`/`<input>`/`<textarea>`/`<button>` outside `components/ui/`, 0 hardcoded colours**; 12 arbitrary radius values / 106 uses reported as informational |
+| Page wiring | **PASS** | `audit-page-wiring.mjs` scanned 271 `.tsx`, **0 candidates** (validated by negative control) |
+| Page inventory | **PASS** | 96 pages, 9 handlers; `--check` clean |
+| **Design system** | **PASS** | `audit-design-system.mjs` exit 0 — **0 raw `<select>`/`<table>`/`<input>`/`<textarea>`/`<button>` outside `components/ui/`, 0 hardcoded colours**; **1 arbitrary radius value / 3 uses** (`rounded-[2px]`, in `components/ui/chart.tsx` and `tooltip.tsx`) reported as informational, with the files named |
 | **Filter persistence** | **PASS** | `audit-filter-persistence.mjs` exit 0 — **32 paginated pages, 0 dropped filters, 0 unverified**; 13-case contract test with negative controls for all three of the auditor's own false positives |
 | **Touch-target overrides** | **PASS** | `audit-touch-overrides.mjs` — **0 compact-variant defects** (5 fixed); 87 load-bearing sites explicitly do-not-touch; the remaining 96 are a design call, not a bug |
-| Role × page reachability | **PASS** | `audit-role-pages.mjs` nav-driven crawl, all 13 roles, **219 nav-reachable pages clean** — re-run 2026-10-09 in two batches after the shared-chrome changes (`app-header`, `site-header`, `notification-bell`), which appear on nearly every page |
+| Role × page reachability | **PASS** | `audit-role-pages.mjs` nav-driven crawl, all 13 roles, **222/222 nav-reachable pages clean** — re-run 2026-10-20, evidence in `docs/evidence/role-pages.json` |
 | Responsive — all roles | **PASS** | 100/100 at 390 + 768 (owner 14, finance 14, team lead 14, employee 14, client admin 20, client viewer 18, applicant 6) |
-| Responsive — `/app/*` (owner) | **PASS** | **224/224** combinations across 28 routes × 8 viewports (375→1920). **0** touch-target, overflow, console, bleeder or sub-16px-text failures. Went 215/232 → 224/224 this session |
-| Responsive — marketing | **PASS** | 56/56 across 7 routes × 8 viewports |
+| Responsive — `/app/*` (owner) | **PASS** | **224/224** combinations across 28 routes × 8 viewports (375→1920), plus **8/8** for the CMS account that alone can reach `/app/cms`. **0** touch-target, overflow, console, bleeder or sub-16px-text failures. Went 215/232 → 224/224 this session |
+| Responsive — marketing + auth | **PASS** | **120/120** across 15 routes × 8 viewports — re-run 2026-10-20 after the `/careers` filter grid was rebuilt. It was **119/120**: the Filter button sat in a single 43.578px grid track, half a pixel under the 44px touch minimum, at iPad Mini only |
 | Performance | **PASS** | 7/7 measured, 0 over budget, **CLS 0.000 on every route**; worst LCP `/app/my` 984ms. Always measured against `next build && next start` |
 | A11y | **PASS** | **14/14** axe checks (WCAG 2 A/AA, serious + critical) + switch keyboard + 44px touch + a positive "card titles are exposed as headings" check. **The switch touch-target check now actually exercises the coarse-pointer path** — it previously set `hasTouch` alone, which leaves `pointer` fine, so it measured 24×30 against a 44px rule and could not have passed |
 | Service worker cache policy | **PASS** | 9/9 sandbox tests; authenticated HTML never cached or precached |
@@ -61,7 +64,7 @@
 ## Release gate — `node scripts/verify-all.mjs`
 
 ```
-23/23 steps passed
+24/24 steps passed
 
 All checks passed. Ship it.
 ```
@@ -80,18 +83,19 @@ was double-counted as a failure (13 + 3 + 1 = 17 "failures" out of 16 steps).
 | 1 Node · 2 VAPID present · 3 VAPID accepted · 4 route RBAC · 5 action RBAC · 6 page wiring · 7 page inventory | PASS |
 | **8 Brand icons derived from the logo mark** | **PASS** — 13 assets re-derived from `logo-mark-raw.png` and compared byte for byte; no drift |
 | **9 OG image matches the declared brand** | **PASS** — 1200x630, composed from the real logo and the tagline in `lib/site.ts` |
-| **10 Design system consistency** | **PASS** — 0 raw primitives, 0 hardcoded colours |
-| **11 Filters survive pagination** | **PASS** — 33 paginated pages, 0 dropped filters, 0 unverified |
-| 12 Touch targets meet 44px · 13 every app page declares its data shape | PASS |
-| **14 Payroll periods do not overlap** | **PASS** — stub period retired; 0 overlapping pairs |
-| 15 Payroll period/record status coherent | **PASS** — ₱0 exposed before approval |
-| 16 TypeScript clean · 17 Lint clean | PASS |
-| **18 Vitest (full suite)** | **PASS** — **991/991 across 106 files** |
-| 19 Migration structural preflight | PASS — 38 migrations preflighted |
-| 20 Live data smoke (DB state) | PASS |
-| 21 Realtime event delivery | **PASS** — event received end to end |
-| 22 DB row counts (target) | PASS |
-| **23 Production build** | **PASS** — `next build` compiled successfully |
+| **10 Careers hero wears the current logo** | **PASS** — the 4K hero and its portrait are re-derived from `beepa-logo-horizontal.png` and compared byte for byte. The mark on the uniform is **composited from the brand file, not generated**: an image generator asked for a branded polo returns marks that look like a logo and are not one, so nothing else on the site looks at that image and this step is what notices |
+| **11 Design system consistency** | **PASS** — 0 raw primitives, 0 hardcoded colours; 1 arbitrary radius value / 3 uses, reported with the files named |
+| **12 Filters survive pagination** | **PASS** — 33 paginated pages, 0 dropped filters, 0 unverified |
+| 13 Touch targets meet 44px · 14 every app page declares its data shape | PASS |
+| **15 Payroll periods do not overlap** | **PASS** — stub period retired; 0 overlapping pairs |
+| 16 Payroll period/record status coherent | **PASS** — ₱0 exposed before approval |
+| 17 TypeScript clean · 18 Lint clean | PASS |
+| **19 Vitest (full suite)** | **PASS** — **997/997 across 107 files** |
+| 20 Migration structural preflight | PASS — 39 migrations preflighted |
+| 21 Live data smoke (DB state) | PASS |
+| 22 Realtime event delivery | **PASS** — event received end to end |
+| 23 DB row counts (target) | PASS |
+| **24 Production build** | **PASS** — `next build` compiled successfully |
 
 ## The gate is 18/18 — "All checks passed. Ship it." (2026-10-09)
 
@@ -192,9 +196,14 @@ Nothing here blocks a release; the gate passes. Full detail in
 primitives already apply; the ones on `Button` can defeat a compact variant. Needs
 per-site visual review, so it was documented rather than mass-edited.
 
-**Arbitrary radii (P2).** 12 distinct `rounded-[Npx]` values, 106 uses, 8 off-scale.
-Reported as informational by the design audit on purpose — a 106-site sweep cannot be
-reviewed in one pass.
+**Arbitrary radii — closed 2026-10-20 (was P2).** Re-measured: **1 distinct value,
+3 uses**, all `rounded-[2px]` in `components/ui/chart.tsx` and `tooltip.tsx`. The
+earlier "12 values, 106 uses, 8 off-scale" figure had stopped being true as the
+sweep landed, and the metric meant to track it was blind: the audit excluded
+`components/ui/` from every check, and the last three values live inside the
+primitives. The radius count is now taken over every scanned file, and each value
+is reported with the files it lives in. The remaining three are deliberate
+sub-scale rounding on shapes smaller than the smallest step of the scale.
 
 **Un-paginated lists (P2).** 27 pages now use `ListPager`, including every queue where
 the cap hid real work: `/app/approvals` (50 pending approvals),

@@ -1,6 +1,6 @@
 {
   "check": "attendance-tz",
-  "generatedAt": "2026-10-16T04:28:29.511Z",
+  "generatedAt": "2026-10-20T10:23:24.329Z",
   "base": "http://localhost:3100",
   "email": "employee@demo.beepabpo.com",
   "verdict": "pass",
@@ -11,7 +11,7 @@
   "expectedClockOut": "5:00 PM",
   "renderedClockIn": true,
   "renderedClockOut": true,
-  "fixtureId": "efeef69b-e0df-467d-9b29-2646a1c4af9b",
+  "fixtureId": "597d1eb3-c5a4-4ce6-91f2-ace8a18e9e26",
   "storedClockInUtc": "2026-09-18T00:00:00.000Z",
   "storedClockOutUtc": "2026-09-18T09:00:00.000Z",
   "exitCode": 0

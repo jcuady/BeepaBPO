@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-leave-workflow.mjs",
   "claim": "leave end to end: employee submits, team lead approves, HR approves, plus the cancel leg and the notifications each step sends",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:20:31.307Z",
+  "when": "2026-10-20T08:46:03.367Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 21,
@@ -26,7 +26,7 @@
     {
       "name": "leave request created",
       "pass": true,
-      "detail": "id=96fb5441-180b-4aa9-8597-30f48b98534f status=pending"
+      "detail": "id=41e39325-a02c-4f2c-af12-7f7bd64886a5 status=pending"
     },
     {
       "name": "leave request is pending",
@@ -41,12 +41,12 @@
     {
       "name": "team lead received leave.request",
       "pass": true,
-      "detail": "\"Demo Employee requested 3 days of Emergency Leave (Nov 9 – Nov 11).\""
+      "detail": "\"Demo Employee requested 3 days of Emergency Leave (Nov 10 – Nov 12).\""
     },
     {
       "name": "notification body is specific (days + dates, not the old generic string)",
       "pass": true,
-      "detail": "Demo Employee requested 3 days of Emergency Leave (Nov 9 – Nov 11)."
+      "detail": "Demo Employee requested 3 days of Emergency Leave (Nov 10 – Nov 12)."
     },
     {
       "name": "team lead approved step 1",
@@ -66,7 +66,7 @@
     {
       "name": "approval_actions row written",
       "pass": true,
-      "detail": "26 -> 28"
+      "detail": "28 -> 30"
     },
     {
       "name": "leave request left pending",
@@ -76,17 +76,17 @@
     {
       "name": "employee received leave.decision",
       "pass": true,
-      "detail": "\"Your leave request for 3 days (Nov 9 – Nov 11) was approved by Demo HR.\""
+      "detail": "\"Your leave request for 3 days (Nov 10 – Nov 12) was approved by Demo HR.\""
     },
     {
       "name": "decision body names who decided / which dates",
       "pass": true,
-      "detail": "Your leave request for 3 days (Nov 9 – Nov 11) was approved by Demo HR."
+      "detail": "Your leave request for 3 days (Nov 10 – Nov 12) was approved by Demo HR."
     },
     {
       "name": "a second pending request exists to cancel",
       "pass": true,
-      "detail": "id=bf8986d7-5388-49aa-a1cf-416a9c029e89"
+      "detail": "id=6a5ece5f-d517-4e56-a0d9-26a6846c6966"
     },
     {
       "name": "the pending request offers a Cancel control",
@@ -120,8 +120,8 @@
   "writer": "exercise",
   "extra": {
     "residualBefore": 0,
-    "createdLeaveId": "96fb5441-180b-4aa9-8597-30f48b98534f",
-    "cancelledLeaveId": "bf8986d7-5388-49aa-a1cf-416a9c029e89"
+    "createdLeaveId": "41e39325-a02c-4f2c-af12-7f7bd64886a5",
+    "cancelledLeaveId": "6a5ece5f-d517-4e56-a0d9-26a6846c6966"
   },
   "self": {
     "verdict": "PASS",

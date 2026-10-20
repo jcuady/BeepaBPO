@@ -11,7 +11,126 @@ user anything real?**
 
 ---
 
-## 0. Addendum — careers hero, and one hero instead of two (2026-10-20)
+## 0. Addendum — the pass that measured the previous pass (2026-10-20, second pass)
+
+**Read this first.** The sections below it are dated reports of runs made on the dates
+they carry; they are history, and their numbers were true when measured. This section
+is the current state.
+
+The first pass on 2026-10-20 shipped the careers hero and rebuilt `/careers`. The
+second pass existed for a narrower reason: **the documentation was making claims
+that nothing had re-measured, and the claims had drifted.** Every 33 registered
+checks were re-run, three of them were found to crash without saying so, one metric
+was found to be blind, and one button was found to be half a pixel too small.
+
+| Check | Result |
+|---|---|
+| **Ship gate** (`verify-all.mjs`) | **24/24 steps passed** — *"All checks passed. Ship it."* exit 0 |
+| **Vitest** | **997/997 across 107 files** (994/106 before this pass added 3) |
+| **TypeScript** | `tsc --noEmit` clean |
+| **Fast QA tier** (`qa-run-all.mjs`) | **16/16 passed**, exit 0 — evidence in `docs/evidence/qa-suite.json` |
+| **All 33 registered checks** | every one re-run on 2026-10-20 — see the table below |
+| **Responsive — public + auth** | **120/120** across 15 routes × 8 viewports — was 119/120 |
+| **Responsive — app** | 232/232 across 29 route groups × 8 viewports |
+| **Contrast** | PASS — 5,509 elements across 13 public + 44 app routes, 55 over-photo probes resolved, **0 failures** |
+| **Typography** | PASS — 53 routes, 4,183 body-copy elements, **0 wrong face** |
+| **Runtime radius** | PASS — 12 public routes, 49/49 images loaded, **0 non-circular** |
+| **Design system** | VERDICT clean — **0 hardcoded colours**, 0 raw primitives; **1 arbitrary radius value / 3 uses**, now counted over `components/ui/` and reported with the files named |
+| **SEO metadata** | **ALL CHECKS PASS** |
+| **Role × page sweep** | PASS — 13 roles, **0 console errors, 0 page errors** |
+| **Role → nav-reachable pages** | **222/222** across 13 roles |
+| **Control census** | PASS — **444 pages, 13 roles, 0 pages failed, 0 cold-start retries**; 518 distinct controls, 518 named, **0 without an accessible name**; **99%** pressable-control overlap (199/201) |
+| **Performance** | PASS — within budget on every measured route |
+| **Public careers** | **17/17** |
+| **Page inventory** | 96 pages, 9 handlers |
+
+### What the pass actually found
+
+**1. A crashed gate left the last good answer in place.** Three gates do browser
+work and write their own evidence file; none of the three wrapped the browser work,
+so a mid-run crash left the *previous* run's file on disk — dated, parseable, and
+describing a build that no longer existed. A file that parses, carries a timestamp
+and is newer than its neighbours reads as current.
+
+All three now write the verdict `unknown` with exit code 2 on a crash, following the
+convention `verify-attendance-tz.mjs` and `smoke-cron.mjs` already used. **Proved by
+a real crash**, not an assertion: `PLAYWRIGHT_BROWSERS_PATH` was pointed at an empty
+directory so `chromium.launch()` genuinely threw, and all three evidence files were
+watched to change from a 4-day-old `within-budget` / `clean` / role-pages result to a
+fresh `unknown` carrying the actual reason.
+
+**2. The radius metric excluded the one directory where the radius lived.**
+`audit-design-system.mjs` reported **0 arbitrary radii** while the repository
+contained one off-scale value, because the radius count skipped `components/ui/` —
+the same exclusion that is correct for the primitive and colour checks. The true
+figure is now measured and named: **1 value, 3 uses**, all `rounded-[2px]`, in
+`components/ui/chart.tsx` (2 legend swatches) and `components/ui/tooltip.tsx` (the
+arrow).
+
+**3. The Filter button was 43.578 pixels wide.** The first full responsive sweep of
+the rebuilt `/careers` failed exactly one combination out of 120 — `/careers` at
+768×1024, iPad Mini. The filter bar was a `md:grid-cols-12` grid across a 698.9px
+container, which makes every track **43.57px**: already under the 44px touch
+minimum before anything was placed in it. The search field took four tracks, each
+select two, and the form's primary action took the last one.
+
+The grid is now `md:grid-cols-6` — six tracks of 103.15px. The search field and the
+three selects keep the exact widths they had; only the button changes, and every
+track in that grid is now more than twice the minimum. **120/120** on re-run.
+
+**4. The evidence file was lying about the measurement.** `Math.round` turned that
+43.578px target into `w: 44, h: 44` in `docs/evidence/responsive-public.json`,
+sitting next to a `FAIL` verdict — a number that looks compliant next to a failure
+that is not. Three scripts did it; all three now report two decimals. **Proved by
+running the real script against a page with a deliberately 43.578px button**: it now
+records `w: 43.56` next to the FAIL, where the old code would have written `44`.
+
+**5. The suite could not be run to completion.** `qa-run-all.mjs --all` runs 33
+checks in registry order and was cut off after **22 of 33**. The eleven it never
+reached were the slow tail and the last two fast-tier gates — the checks with the
+least evidence behind them were the ones that never ran, and the run still wrote a
+rollup that read like a whole-suite rollup.
+
+`--only=<ids>` now runs exactly those checks, in registry order. An id that does not
+exist is an **error with exit code 2**, not a smaller selection — a typo that
+silently skips a check is the same failure as a check that cannot fail. The rollup
+records `idsRun` and `wholeRegistry`, so a partial run can never be read as a whole
+one. Pinned by `tests/qa-runner-only-flag.test.ts`, mutation-proved.
+
+**6. The ship gate caught the test this pass had just written.** The new test spawns
+the runner, and the runner probes `$QA_BASE_URL/api/health` before every check — that
+probe is how a dead server stops being scored as a product failure. The first version of
+the test pointed at the default `http://localhost:3100` and passed **only when an app
+server happened to be running**.
+
+The ship gate caught it, because the ship gate does not run a server: its vitest step
+ran with nothing on 3100, so the runner skipped the check and exited 2, and the test
+failed there while passing everywhere else. The gate reported **23/24 — "Do not ship."**
+That is the gate earning its keep on the change that introduced it.
+
+The fix was to make the test **hermetic**: it starts its own health server and spawns
+the runner asynchronously. The first attempt at that fix used `spawnSync`, which blocks
+the event loop, so the in-process server could not answer the probe and the runner
+again concluded the server was down — the same failure wearing a different hat. The test
+now passes with **nothing listening on 3100**, which is the ship gate's condition, and
+it passes with a server up as well.
+
+### All 33 registered checks, re-run 2026-10-20
+
+| Tier | Checks | Result |
+|---|---|---|
+| fast (13) | not-found, dialog-keyboard, command-palette, notification-bell, internal-links, public-careers, form-reset-defaults, suite-base-url, client-invite, auth-callback, runtime-radius, contrast, typography | **13/13 PASS** |
+| slow (17) | responsive-app-1…4, responsive-app-cms, responsive-public, workflows, assertion-index, unlinked-employee, role-sweep, control-census, seo-metadata, role-pages, performance, payslip-exposure, attendance-tz, cron-smoke | **17/17 PASS** (responsive-public after the grid fix) |
+| fast (2) | server-fresh, gate-coverage | **2/2 PASS** |
+| gate (1) | gate — vitest + `tsc --noEmit` | **PASS** |
+
+Two workflow exercises remain **BLOCKED** by the environment, not by the product:
+`signup` and `admin-workflow`, both on the Supabase mail budget. They are reported
+as BLOCKED and are not counted as passes.
+
+---
+
+## 0.1 Addendum — careers hero, and one hero instead of two (2026-10-20)
 
 **Read this first.** The sections below it are dated reports of runs made on the dates
 they carry; they are history, and their numbers were true when measured. This section is
@@ -81,7 +200,7 @@ list. The gate is **17/17** on the rebuilt page.
 
 ---
 
-## 0.1 Addendum — brand, careers and AI-readiness pass (2026-10-19)
+## 0.2 Addendum — brand, careers and AI-readiness pass (2026-10-19)
 
 
 **Read this first.** The sections below it are dated reports of runs made on the dates

@@ -13,13 +13,21 @@ lives in `SYSTEM_AUDIT.md`.
 ## 0. One-paragraph state
 
 **The platform is shippable.** The release gate passes end to end — *"All checks passed.
-Ship it."* exit 0 — covering typecheck, lint, **991 unit tests across 106 files**,
+Ship it."* exit 0 — covering typecheck, lint, **997 unit tests across 107 files**,
 production build, RBAC, page wiring, page inventory, design-system and filter-persistence
 audits, plus a nav-driven crawl of the app across all 13 roles, a responsive sweep, and
 Playwright tests against a production build. Two blockers that remained on 2026-10-08 are
 closed: the payroll overlap was **fiction, not a conflict** (the draft period's records were
 `engine: stub_v1` with zero statutory deductions, so there was no second payroll result to
 reconcile), and all eight migrations are applied with zero pending.
+
+**All 33 registered QA checks were re-run on 2026-10-20** and every one passed, on a build
+proven current by `audit:server-fresh`. Two of them were found to be lying about their own
+results and were fixed: three evidence-writing gates left the *previous* run's file in
+place when they crashed, and the radius metric excluded the one directory where the
+repository's only off-scale radius lived. One real product defect surfaced — the
+`/careers` filter button was **43.578px** wide, half a pixel under the touch minimum —
+and it is fixed.
 
 The **email quota** that blocked signup since 2026-10-17 is also closed as of 2026-10-19:
 run alone on a freshly restarted server with no probe in front of it, the auth exercise
@@ -354,18 +362,28 @@ drive-by. `pnpm audit:touch` reports the split.
 The 87 load-bearing sites are explicitly do-not-touch — that is where the WCAG
 floor actually lives.
 
-### 2.2 The 12 arbitrary radius values — same story, smaller (P2)
+### 2.2 The arbitrary radius values — closed (was P2)
 
-`rounded-[Npx]` is used **106 times** across 12 distinct values; 8 are off-scale
-(`28`, `20`, `3`, `10`, `14`, `4`, `22`, `6`). Informational in
-`scripts/audit-design-system.mjs` because it cannot be reviewed in one pass.
-Two of the highest-count offenders were removed incidentally this session
-(`rounded-[12px]` and `rounded-[8px]`, down from 109 uses to 106) when four
-hand-rolled buttons were replaced with the `Button` primitive.
+**Re-measured 2026-10-20: 1 distinct value, 3 uses.** The figure this section used
+to publish — "106 times across 12 distinct values, 8 off-scale" — had stopped being
+true as the sweep landed, and the metric meant to track it was blind.
 
-Remaining off-scale by frequency: `28px` ×10, `20px` ×6, `3px` ×6, `10px` ×5,
-`14px` ×3, `4px` ×3, `22px` ×2, `6px` ×1. Map them to the scale or promote
-specific ones deliberately.
+`scripts/audit-design-system.mjs` excluded `components/ui/` from every check, so that
+a primitive's own `<select>`, `<input>` or colour literal would not be flagged as
+drift. That exclusion is right for those two checks and wrong for the radius one:
+the last three arbitrary values live *inside* the primitives, so the metric reported
+`0` while this document said `106`. A metric that cannot see the thing it measures
+is not a metric. The radius count is now taken over every scanned file, and each
+value is reported with the files it lives in.
+
+What remains, and why it stays:
+
+| Value | Uses | Where | Why it is not drift |
+|---|---:|---|---|
+| `rounded-[2px]` | 3 | `components/ui/chart.tsx` (two chart legend swatches), `components/ui/tooltip.tsx` (the arrow) | Sub-scale rounding on a shape smaller than the smallest step of the scale. `rounded-sm` (8px) on an 8px swatch or a 10px arrow would make it a circle — a different shape, not a different value of the same shape. |
+
+So there is nothing left to map to the scale. The gate keeps reporting the value so
+that the next person can see it rather than rediscover it.
 
 ### 2.2b The design gate only ever checked `<select>` and `<table>`
 
@@ -743,11 +761,53 @@ point worth recording:
   without being red today.
 - The crash-path test above.
 
-**Known limit, recorded not asserted:** only `attendance-tz` wraps its browser work
-in `try/catch`. The other four leave the *previous* run's file in place on a
-mid-run crash — dated, parseable, describing a build that is gone. Closing it means
-wrapping four scripts, which is a change to product-adjacent tooling and belongs
-in its own pass.
+**Closed 2026-10-20.** The limit above is gone, and it is gone for the reason that
+matters: not because three `catch` blocks were added, but because a **real crash** was
+made to happen and the evidence files were watched to change.
+
+There are exactly **five** gates in this repo that do browser work *and* write their
+own evidence file. (`audit-suite-base-url.mjs` looks like a sixth because it greps
+for the string `chromium.launch`, but it never launches one — it is a static scan.)
+
+| Gate | Evidence file | Guard before this pass |
+|---|---|---|
+| `scripts/audit/verify-attendance-tz.mjs` | `attendance-tz.json` | already wrapped |
+| `scripts/smoke-cron.mjs` | `cron-smoke.json` | already wrapped |
+| `scripts/audit-performance.mjs` | `performance.json` | **none — added** |
+| `scripts/audit/audit-unapproved-payslip-exposure.mjs` | `payslip-exposure.json` | **none — added** |
+| `scripts/audit-role-pages.mjs` | `role-pages.json` | **none — added** |
+
+The three added guards follow the convention the other two already used, so no new
+pattern was invented: the browser work is wrapped, and the catch writes the verdict
+`unknown` with exit code 2, closes the browser, and keeps whatever partial rows were
+collected. `unknown` is the only honest verdict for a run that did not complete —
+a crash must never be readable as "clean".
+
+**Proved by a real crash, not by an assertion.** `PLAYWRIGHT_BROWSERS_PATH` was
+pointed at an empty directory, so `chromium.launch()` genuinely threw inside all
+three gates. Every one of them exited 1, and every one of its evidence files
+changed on disk from the previous run's dated result to a fresh `verdict: "unknown"`
+carrying the actual reason. The three files had been sitting there since 2026-10-16
+describing a build that no longer existed:
+
+| Evidence file | Before the crash | After the crash |
+|---|---|---|
+| `performance.json` | `within-budget` (4 days old) | `unknown` — could not complete: … |
+| `payslip-exposure.json` | `clean` (4 days old) | `unknown` — could not complete: … |
+| `role-pages.json` | the 2026-10-16 role-pages result | `unknown` — could not complete: … |
+
+That is the property that matters and it is not observable from the source: **a
+crashed gate must not leave the last good answer in place.** A file that parses,
+carries a timestamp, and is newer than its neighbours reads as current. The
+negative control here was a genuine failure of the instrument, not a fixture that
+pretended to be one.
+
+**One trap worth recording.** In `audit-role-pages.mjs` the evidence payload was
+declared `const EVIDENCE = …` *inside* the `try`, so the `catch` could not reach it —
+it was in the temporal dead zone, and the catch would have thrown a `ReferenceError`
+instead of writing the `unknown` verdict. It was hoisted above the `try`. The crash
+control is what surfaced this: reading the code showed a catch that looked correct
+and would not have run.
 
 #### 2.9a Giving a gate an evidence file is itself a hazard — a fixture run overwrote the real measurement
 
@@ -1883,6 +1943,49 @@ where the failures fall, not because the walk is repeatable. **Quote these
 numbers only from a run that reports its own `pagesFailed` and `coldStartRetries`
 alongside them**, and treat two runs as comparable only when both do.
 
+**Republished 2026-10-20 — from a run that reports both.** The instruction above is
+now satisfiable, so the withdrawn headline is replaced by a figure that is not.
+
+| Run | Pages | Failed | Cold-start retries |
+|---|---|---|---|
+| F | **444** | **0** | **0** |
+
+Run F walks all **13 roles** and visits **444 pages** with **0 page failures** and
+**0 cold-start retries** — the condition §2.14a set for a quotable run. Its inputs
+are dated in the evidence file itself (`rolesWhen`, `assertionsWhen`), and the
+`role-sweep.json` it read was written 9 minutes earlier, so the figure is not a
+leftover from the previous build.
+
+The census now separates the three control families instead of folding them into one
+number, which is the defect §2.14a was about:
+
+| Family | Count | With a matching assertion | Unmatched | Overlap |
+|---|---|---|---|---|
+| **Pressable** (buttons, links) | 201 | 199 | **2** | **99%** |
+| **Field** (inputs, selects, textareas) | 118 | 97 | 21 | 82.2% |
+| **Navigation** | 45 | 30 | 15 | 66.7% |
+| **Distinct controls** | **518** | 454 | — | — |
+
+**518 distinct controls, 518 named, 0 without an accessible name.**
+
+The two unmatched pressable controls are `Save` on `/app/payroll/settings` and
+`Continue` on `/app/payroll/periods`. Both are pressed and both work — the
+assertions are named for the *outcome* ("salary change persisted", "a new payroll
+period was created"), not for the control, and the matcher's whole method is
+matching a control's label against an assertion's name. The census's own caveat
+governs this: **an unmatched control is a question, never a finding.**
+
+The 21 unmatched **fields** are not 21 untested buttons. A field is covered by being
+*filled*, and this matcher cannot see a fill — the same reason the earlier headline
+was wrong in the other direction. `fieldControlLabelOverlap` must not be quoted as
+button coverage.
+
+**The headline that can now be quoted: 99% pressable-control overlap (199 of 201),
+444 pages, 13 roles, 0 pages failed, 0 cold-start retries, 0 controls without an
+accessible name.** The old "92.7% / 23 unmatched" is not restated as a current
+figure; it was withdrawn, and its replacement is measured over a denominator that
+does not contain form fields.
+
 ---
 
 ## 3. Recently completed (so nobody redoes it)
@@ -1926,6 +2029,32 @@ pnpm audit:perf            # budgets, needs a production build
 
 Performance is only meaningful against `next build && next start`, never `next dev`.
 Playwright projects run sequentially.
+
+**The full QA tier does not fit in one invocation.** `qa-run-all.mjs --all` runs 33
+checks in registry order and takes longer than a CI step or a harness timeout allows.
+On 2026-10-20 it was cut off after **22 of 33**, and the eleven it never reached were
+the slow tail (`role-sweep`, `control-census`, `role-pages`, `performance`) plus the
+last two fast-tier gates — the checks with the least evidence behind them were the
+ones that never ran. Run it in pieces instead:
+
+```bash
+node scripts/audit/qa-run-all.mjs --list                    # the registry
+node scripts/audit/qa-run-all.mjs                           # fast tier (default)
+node scripts/audit/qa-run-all.mjs --all                     # everything, if you have the time
+node scripts/audit/qa-run-all.mjs --only=role-sweep,control-census
+```
+
+`--only=<ids>` runs exactly those checks, in registry order. **An id that does not
+exist is an error with exit code 2**, not a smaller selection — a typo that silently
+skips a check is the same failure as a check that cannot fail. The rollup records
+`idsRun` and `wholeRegistry`, so a partial run can never be read as a whole-suite
+result — and the committed fast-tier rollup says `wholeRegistry: false` beside
+`passed: 16`, because "the fast tier" and "the whole suite" are different claims.
+Pinned by `tests/qa-runner-only-flag.test.ts`, mutation-proved.
+
+The checks are also runnable directly — `node scripts/audit/audit-role-pages.mjs` and
+friends — and each one writes its own evidence file. Running them through the runner
+is what enforces the rule that *a green check with no evidence file is a finding*.
 
 **Start the server and run the audit in the same invocation, and stop it by PID in
 that block.** Redirecting `next start`'s output to a file ties its stdout to the shell

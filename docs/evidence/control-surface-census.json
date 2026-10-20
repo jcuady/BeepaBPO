@@ -1,21 +1,21 @@
 {
   "base": "http://localhost:3100",
-  "when": "2026-10-19T06:49:30.105Z",
+  "when": "2026-10-20T10:10:40.223Z",
   "sources": {
     "roles": "docs/evidence/role-sweep.json",
     "assertions": "docs/evidence/workflow-assertion-index.json",
-    "rolesWhen": "2026-10-19T06:37:43.782Z",
-    "assertionsWhen": "2026-10-19T02:47:39.000Z"
+    "rolesWhen": "2026-10-20T10:01:39.900Z",
+    "assertionsWhen": "2026-10-20T09:03:46.589Z"
   },
   "rolesWalked": 13,
   "pagesVisited": 444,
-  "pagesFailed": 1,
+  "pagesFailed": 0,
   "coldStartRetries": 0,
   "maxPagesPerRole": null,
-  "distinctControls": 516,
-  "namedControls": 516,
-  "pressableControls": 199,
-  "pressableControlsWithMatchingAssertion": 197,
+  "distinctControls": 518,
+  "namedControls": 518,
+  "pressableControls": 201,
+  "pressableControlsWithMatchingAssertion": 199,
   "pressableControlsUnmatched": 2,
   "pressableControlLabelOverlap": 99,
   "fieldControls": 118,
@@ -25,7 +25,7 @@
   "navigationControls": 45,
   "navigationControlsWithMatchingAssertion": 30,
   "navigationLabelOverlap": 66.7,
-  "namedControlsWithMatchingAssertion": 452,
+  "namedControlsWithMatchingAssertion": 454,
   "unnamedControls": 0,
   "caveat": "A 'matched' control means some assertion's NAME mentions its label as a word. It does NOT mean the control was pressed, nor pressed in every state. This metric is wrong in BOTH directions, so it is a proxy and not a measurement. It OVER-reports: a label appearing in an assertion name does not prove the control was pressed. It UNDER-reports, which is the direction that hides real gaps -- it flagged three buttons, and only one was real. 'Save' on /app/payroll/settings and 'Continue' on /app/payroll/periods are both pressed and both work (the assertions are named for the outcome, 'salary change persisted' and 'a new payroll period was created', not for the control). The third, 'Reject' on /app/cash-advances, was a genuine hole: the reject leg of a money workflow had zero executions while an assertion listed 'rejected' as an acceptable end state. Treat an unmatched control as a QUESTION, never as a finding. SEPARATELY: fields were previously counted inside this primary metric under the name 'actionControls', which put 21 typed inputs among 23 'unmatched actions'. A field is covered by being FILLED and this matcher cannot see a fill, so that number reported exercised inputs as untested buttons. Pressable and field figures are now separate; `fieldControlLabelOverlap` must not be quoted as button coverage.",
   "perRole": [
@@ -35,15 +35,15 @@
       "pagesFailed": 0,
       "signOuts": 0,
       "signInFailures": 0,
-      "controls": 3135
+      "controls": 3137
     },
     {
       "role": "superadmin",
-      "pagesVisited": 35,
-      "pagesFailed": 1,
+      "pagesVisited": 36,
+      "pagesFailed": 0,
       "signOuts": 0,
-      "signInFailures": 1,
-      "controls": 1368
+      "signInFailures": 0,
+      "controls": 1401
     },
     {
       "role": "hr",
@@ -71,11 +71,11 @@
     },
     {
       "role": "marketing",
-      "pagesVisited": 47,
+      "pagesVisited": 46,
       "pagesFailed": 0,
       "signOuts": 0,
       "signInFailures": 0,
-      "controls": 1569
+      "controls": 1545
     },
     {
       "role": "operations",
@@ -523,6 +523,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -688,7 +689,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -1081,6 +1081,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -1431,6 +1432,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -1984,6 +1986,8 @@
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
+        "/app/dashboard",
         "/app/my",
         "/app/my",
         "/app/approvals",
@@ -2235,7 +2239,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -2628,6 +2631,7 @@
       "seenOn": [
         "/app/dashboard",
         "/app/admin",
+        "/app/dashboard",
         "/app/admin"
       ],
       "assertedBy": {
@@ -2701,6 +2705,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -2850,6 +2855,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -3015,7 +3021,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -3410,7 +3415,7 @@
       ],
       "assertedBy": {
         "exercise": "list-filters",
-        "assertion": "/app/billing "
+        "assertion": "/app/client/billing "
       },
       "counted": true
     },
@@ -3430,7 +3435,7 @@
       ],
       "assertedBy": {
         "exercise": "list-filters",
-        "assertion": "/app/billing "
+        "assertion": "/app/client/billing "
       },
       "counted": true
     },
@@ -3446,7 +3451,7 @@
       ],
       "assertedBy": {
         "exercise": "list-filters",
-        "assertion": "/app/billing "
+        "assertion": "/app/client/billing "
       },
       "counted": true
     },
@@ -3462,7 +3467,7 @@
       ],
       "assertedBy": {
         "exercise": "list-filters",
-        "assertion": "/app/billing "
+        "assertion": "/app/client/billing "
       },
       "counted": true
     },
@@ -3688,6 +3693,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -3853,7 +3859,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -4458,6 +4463,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -4496,7 +4502,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -4684,6 +4689,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -4849,7 +4855,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -5203,6 +5208,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -5579,7 +5585,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -5862,6 +5867,8 @@
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
+        "/app/dashboard",
         "/app/my",
         "/app/my",
         "/app/approvals",
@@ -6062,7 +6069,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -6432,7 +6438,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -7997,6 +8002,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -8162,7 +8168,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -8805,6 +8810,7 @@
       "seenOn": [
         "/app/dashboard",
         "/app/hr",
+        "/app/dashboard",
         "/app/hr",
         "/app/hr"
       ],
@@ -9330,6 +9336,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -9950,7 +9957,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -10066,6 +10072,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -10231,7 +10238,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -11594,6 +11600,21 @@
       "counted": true
     },
     {
+      "kind": "button",
+      "name": "Notifications",
+      "inNavigation": false,
+      "requestedRoute": "/app/approvals",
+      "exampleRoute": "/app/approvals",
+      "seenOn": [
+        "/app/approvals"
+      ],
+      "assertedBy": {
+        "exercise": "list-filters",
+        "assertion": "/app/applicant/notifications "
+      },
+      "counted": true
+    },
+    {
       "kind": "link",
       "name": "Notifications",
       "inNavigation": true,
@@ -11641,7 +11662,6 @@
         "/app/my/notifications",
         "/app/tickets/72581a24-d3dd-4c5a-84bc-b5cf50f1933f",
         "/app/dashboard",
-        "/app/approvals",
         "/app/client",
         "/app/client/team",
         "/app/client/attendance",
@@ -11726,7 +11746,7 @@
     },
     {
       "kind": "button",
-      "name": "Notifications (22 unread)",
+      "name": "Notifications (23 unread)",
       "inNavigation": false,
       "requestedRoute": "/app/dashboard",
       "exampleRoute": "/app/dashboard",
@@ -11850,7 +11870,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -11971,9 +11990,10 @@
       "kind": "button",
       "name": "Notifications (4 unread)",
       "inNavigation": false,
-      "requestedRoute": "/app/my",
-      "exampleRoute": "/app/my",
+      "requestedRoute": "/app/dashboard",
+      "exampleRoute": "/app/dashboard",
       "seenOn": [
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -12211,6 +12231,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -12376,7 +12397,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -12724,6 +12744,7 @@
         "/app/my/notifications",
         "/app/my/notifications",
         "/app/my/notifications",
+        "/app/my/notifications",
         "/app/billing",
         "/app/billing",
         "/app/billing",
@@ -12995,6 +13016,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -13198,6 +13220,7 @@
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -13363,7 +13386,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -14119,6 +14141,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -14284,7 +14307,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -14558,7 +14580,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -15215,6 +15236,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -15380,7 +15402,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -15589,6 +15610,7 @@
       "requestedRoute": "/app/dashboard",
       "exampleRoute": "/app/dashboard",
       "seenOn": [
+        "/app/dashboard",
         "/app/dashboard",
         "/app/client/performance",
         "/app/client/performance"
@@ -15844,6 +15866,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -16009,7 +16032,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -16721,6 +16743,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -16886,7 +16909,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -17164,6 +17186,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -17329,7 +17352,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -18604,6 +18626,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -18769,7 +18792,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -19436,6 +19458,21 @@
     },
     {
       "kind": "button",
+      "name": "Ticket submittedWe received your request: qatktmvgfvj52 printer jams",
+      "inNavigation": false,
+      "requestedRoute": "/app/my/notifications",
+      "exampleRoute": "/app/my/notifications",
+      "seenOn": [
+        "/app/my/notifications"
+      ],
+      "assertedBy": {
+        "exercise": "attendance",
+        "assertion": "it raised an approval request on the attendance_correction workflow"
+      },
+      "counted": true
+    },
+    {
+      "kind": "button",
       "name": "Ticket submittedWe received your request: Request additional headcount for support",
       "inNavigation": false,
       "requestedRoute": "/app/my/notifications",
@@ -19591,7 +19628,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -20029,6 +20065,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -20194,7 +20231,6 @@
         "/app/dashboard",
         "/app/my",
         "/app/approvals",
-        "/app/cms",
         "/app/my/attendance",
         "/app/my/schedule",
         "/app/my/leave",
@@ -20814,6 +20850,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",
@@ -20865,6 +20902,7 @@
       "seenOn": [
         "/app/dashboard",
         "/app/admin",
+        "/app/dashboard",
         "/app/admin"
       ],
       "assertedBy": {
@@ -21046,7 +21084,7 @@
       ],
       "assertedBy": {
         "exercise": "list-filters",
-        "assertion": "/app/billing "
+        "assertion": "/app/client/billing "
       },
       "counted": true
     },
@@ -21120,8 +21158,8 @@
         "/app/recruitment/jobs/dc808e8c-d94e-484c-8c9c-c39268c99092"
       ],
       "assertedBy": {
-        "exercise": "tickets",
-        "assertion": "the message is stored as public, not internal"
+        "exercise": "internal-links",
+        "assertion": "public "
       },
       "counted": true
     },
@@ -21305,6 +21343,7 @@
         "/app/crm/deals/8116d0f6-3c9e-4496-bda4-e825e916bf05",
         "/app/crm/deals/c97867e3-29d2-435e-96db-af74c5e885e2",
         "/app/crm/deals/92fcc081-0662-4cf1-a281-57e5163b9809",
+        "/app/dashboard",
         "/app/my",
         "/app/approvals",
         "/app/my/attendance",

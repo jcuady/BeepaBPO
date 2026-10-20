@@ -1,6 +1,6 @@
 {
   "check": "typography",
-  "generatedAt": "2026-10-20T04:49:24.082Z",
+  "generatedAt": "2026-10-20T11:45:35.765Z",
   "base": "http://localhost:3100",
   "contract": {
     "marketing + auth body (<24px, not font-display)": "DM Sans",
@@ -399,13 +399,13 @@
       "route": "/app/my/notifications",
       "group": "app",
       "status": 200,
-      "bodyCopy": 137,
+      "bodyCopy": 141,
       "headline": 0,
       "displayFace": 1,
       "stray": 0,
       "families": {
         "body": {
-          "Inter": 137
+          "Inter": 141
         },
         "headline": {},
         "displayFace": {
@@ -1027,9 +1027,9 @@
     "routesChecked": 53,
     "publicRoutes": 9,
     "appRoutes": 44,
-    "bodyCopyElements": 4183,
+    "bodyCopyElements": 4187,
     "bodyCopyPublic": 431,
-    "bodyCopyApp": 3752,
+    "bodyCopyApp": 3756,
     "strays": 0,
     "non200": []
   },

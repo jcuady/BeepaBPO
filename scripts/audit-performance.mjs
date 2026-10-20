@@ -107,96 +107,127 @@ const initVitals = () => {
   } catch {}
 };
 
-const browser = await chromium.launch();
-
-let statePath;
-if (AUTH_EMAIL && PASSWORD) {
-  const ctx = await browser.newContext();
-  const page = await ctx.newPage();
-  await page.goto(`${BASE}/employee/login`, { waitUntil: "domcontentloaded" });
-  await fillHeld(page, page.getByLabel(/email/i), AUTH_EMAIL);
-  await fillHeld(page, page.getByLabel(/^password$/i), PASSWORD);
-  await page
-    .getByRole("button", { name: /access portal/i })
-    .click();
-  await page.waitForURL(/\/app(\/|$)/, { timeout: 30_000 });
-  statePath = join(tmpdir(), `beepa-perf-${Date.now()}.json`);
-  await ctx.storageState({ path: statePath });
-  await ctx.close();
-  console.log(`Authenticated as ${AUTH_EMAIL}\n`);
-} else {
-  console.log("No AUTH_EMAIL/DEMO_PASSWORD — measuring public routes only.\n");
-}
-
+/**
+ * The browser work is wrapped, because a gate that crashes must not leave the
+ * PREVIOUS run's evidence file in place.
+ *
+ * WHY: `docs/evidence/performance.json` is read as this gate's result. If this
+ * script throws before it writes — a dead server, a browser that will not
+ * launch, a sign-in that times out — the old file survives: dated, parseable,
+ * and describing a build that no longer exists. Nothing in it says "this was
+ * not measured now", and a reader has no way to tell it from a fresh result.
+ *
+ * `verify-attendance-tz.mjs` and `smoke-cron.mjs` already guard their runs
+ * this way. This is the same guard for the same failure: the evidence is
+ * written with the verdict `unknown`, which says "this run did not complete"
+ * rather than "here is a measurement".
+ */
+let browser = null;
 const rows = [];
-for (const route of routes) {
-  const ctx = await browser.newContext({
-    storageState: statePath,
-    viewport: { width: 1440, height: 900 },
-  });
-  await ctx.addInitScript(initVitals);
-  const page = await ctx.newPage();
+try {
+  browser = await chromium.launch();
 
-  const bytesByType = { total: 0, script: 0, image: 0, font: 0, other: 0 };
-  let requests = 0;
-  const failed = [];
-  page.on("response", async (res) => {
-    requests++;
-    const status = res.status();
-    if (status >= 400) failed.push(`${status} ${res.url().slice(0, 80)}`);
-    try {
-      const len = Number(res.headers()["content-length"] ?? 0);
-      if (len) bytesByType.total += len;
-    } catch {
-      /* opaque responses have no content-length */
-    }
-  });
-
-  try {
-    await page.goto(`${BASE}${route}`, { waitUntil: "load", timeout: 45_000 });
-  } catch {
-    rows.push({ route, error: "navigation failed" });
+  let statePath;
+  if (AUTH_EMAIL && PASSWORD) {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto(`${BASE}/employee/login`, { waitUntil: "domcontentloaded" });
+    await fillHeld(page, page.getByLabel(/email/i), AUTH_EMAIL);
+    await fillHeld(page, page.getByLabel(/^password$/i), PASSWORD);
+    await page
+      .getByRole("button", { name: /access portal/i })
+      .click();
+    await page.waitForURL(/\/app(\/|$)/, { timeout: 30_000 });
+    statePath = join(tmpdir(), `beepa-perf-${Date.now()}.json`);
+    await ctx.storageState({ path: statePath });
     await ctx.close();
-    continue;
+    console.log(`Authenticated as ${AUTH_EMAIL}\n`);
+  } else {
+    console.log("No AUTH_EMAIL/DEMO_PASSWORD — measuring public routes only.\n");
   }
-  // Give LCP/CLS a chance to settle, then freeze the measurements.
-  await page.waitForTimeout(1500);
 
-  const m = await page.evaluate(() => {
-    const nav = performance.getEntriesByType("navigation")[0];
-    const paint = performance.getEntriesByType("paint");
-    const fcpEntry = paint.find((p) => p.name === "first-contentful-paint");
-    const res = performance.getEntriesByType("resource");
-    const byType = { script: 0, image: 0, font: 0, other: 0 };
-    for (const r of res) {
-      const t = r.initiatorType === "script" || r.initiatorType === "other"
-        ? r.initiatorType
-        : r.initiatorType;
-      const size = r.transferSize || r.encodedBodySize || 0;
-      if (t === "script") byType.script += size;
-      else if (t === "img" || t === "css") byType.image += size;
-      else if (t === "css" || t === "link") byType.font += size;
-      else byType.other += size;
+  for (const route of routes) {
+    const ctx = await browser.newContext({
+      storageState: statePath,
+      viewport: { width: 1440, height: 900 },
+    });
+    await ctx.addInitScript(initVitals);
+    const page = await ctx.newPage();
+
+    const bytesByType = { total: 0, script: 0, image: 0, font: 0, other: 0 };
+    let requests = 0;
+    const failed = [];
+    page.on("response", async (res) => {
+      requests++;
+      const status = res.status();
+      if (status >= 400) failed.push(`${status} ${res.url().slice(0, 80)}`);
+      try {
+        const len = Number(res.headers()["content-length"] ?? 0);
+        if (len) bytesByType.total += len;
+      } catch {
+        /* opaque responses have no content-length */
+      }
+    });
+
+    try {
+      await page.goto(`${BASE}${route}`, { waitUntil: "load", timeout: 45_000 });
+    } catch {
+      rows.push({ route, error: "navigation failed" });
+      await ctx.close();
+      continue;
     }
-    return {
-      ttfb: nav ? nav.responseStart : 0,
-      domContentLoaded: nav ? nav.domContentLoadedEventEnd : 0,
-      load: nav ? nav.loadEventEnd : 0,
-      fcp: fcpEntry ? fcpEntry.startTime : 0,
-      lcp: window.__vitals?.lcp ?? 0,
-      cls: window.__vitals?.cls ?? 0,
-      domNodes: document.querySelectorAll("*").length,
-      resBytes: byType,
-      resCount: res.length,
-      transfer: res.reduce((s, r) => s + (r.transferSize || 0), 0),
-    };
+    // Give LCP/CLS a chance to settle, then freeze the measurements.
+    await page.waitForTimeout(1500);
+
+    const m = await page.evaluate(() => {
+      const nav = performance.getEntriesByType("navigation")[0];
+      const paint = performance.getEntriesByType("paint");
+      const fcpEntry = paint.find((p) => p.name === "first-contentful-paint");
+      const res = performance.getEntriesByType("resource");
+      const byType = { script: 0, image: 0, font: 0, other: 0 };
+      for (const r of res) {
+        const t = r.initiatorType === "script" || r.initiatorType === "other"
+          ? r.initiatorType
+          : r.initiatorType;
+        const size = r.transferSize || r.encodedBodySize || 0;
+        if (t === "script") byType.script += size;
+        else if (t === "img" || t === "css") byType.image += size;
+        else if (t === "css" || t === "link") byType.font += size;
+        else byType.other += size;
+      }
+      return {
+        ttfb: nav ? nav.responseStart : 0,
+        domContentLoaded: nav ? nav.domContentLoadedEventEnd : 0,
+        load: nav ? nav.loadEventEnd : 0,
+        fcp: fcpEntry ? fcpEntry.startTime : 0,
+        lcp: window.__vitals?.lcp ?? 0,
+        cls: window.__vitals?.cls ?? 0,
+        domNodes: document.querySelectorAll("*").length,
+        resBytes: byType,
+        resCount: res.length,
+        transfer: res.reduce((s, r) => s + (r.transferSize || 0), 0),
+      };
+    });
+
+    rows.push({ route, ...m, requests, failed });
+    await ctx.close();
+  }
+
+  await browser.close();
+} catch (err) {
+  // The browser is closed before the error propagates, so a crash does not
+  // leave a Chromium process behind holding on to the port.
+  if (browser) await browser.close().catch(() => {});
+  // The rows measured before the crash are kept. A reader can see how far the
+  // run got, and how many routes it never reached.
+  writeEvidence(2, "unknown", `could not complete: ${String(err.message).split("\n")[0]}`, {
+    measured: rows.length,
+    unmeasured: Math.max(0, routes.length - rows.length),
+    rows,
   });
-
-  rows.push({ route, ...m, requests, failed });
-  await ctx.close();
+  console.error(err);
+  process.exit(1);
 }
-
-await browser.close();
 
 const kb = (n) => `${Math.round(n / 1024)}kB`;
 const ms = (n) => `${Math.round(n)}ms`;

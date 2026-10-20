@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-admin-workflow.mjs",
   "claim": "admin surfaces: cron dry run, test push, invite (both legs), role change, revoke",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T00:38:46.944Z",
+  "when": "2026-10-20T08:58:40.766Z",
   "exitCode": 2,
   "verdict": "BLOCKED",
   "assertions": 23,
@@ -31,7 +31,7 @@
     {
       "name": "a failing invite tells the user why",
       "pass": true,
-      "detail": "Unable to send the invite right now. Try again in a moment."
+      "detail": "Too many invites have been sent from this network. Wait a moment, then try again."
     },
     {
       "name": "inviting an existing account reports that the user was linked",
@@ -136,12 +136,23 @@
       }
     ],
     "auditLogs": {
-      "before": 700,
-      "after": 705
+      "before": 791,
+      "after": 796
     },
     "notifications": {
-      "before": 75,
-      "after": 75
+      "before": 77,
+      "after": 77
     }
+  },
+  "self": {
+    "verdict": "BLOCKED",
+    "assertions": 23,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 23,
+    "printedFailures": 0
   }
 }

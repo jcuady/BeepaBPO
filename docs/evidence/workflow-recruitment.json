@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-recruitment-workflow.mjs",
   "claim": "the five remaining recruitment actions: create, update, publish and close a job post, and submit an application",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:27:03.835Z",
+  "when": "2026-10-20T08:51:56.679Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 23,

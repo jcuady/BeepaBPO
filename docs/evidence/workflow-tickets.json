@@ -3,7 +3,7 @@
   "script": "scripts/audit/qa-exercise-tickets-workflow.mjs",
   "claim": "the four remaining ticket actions: post a message, change a status, create an SLA policy, edit one",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T02:42:32.550Z",
+  "when": "2026-10-20T08:47:21.550Z",
   "exitCode": 0,
   "verdict": "PASS",
   "assertions": 34,

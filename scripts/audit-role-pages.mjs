@@ -128,94 +128,150 @@ async function navHrefs(page) {
 
 const results = [];
 const dispatchNoteByEmail = new Map();
-const browser = await chromium.launch();
 
-for (const email of EMAILS) {
-  let state;
-  try {
-    state = await login(browser, email);
-  } catch (e) {
-    results.push({ email, route: "(login)", status: "LOGIN-FAIL", detail: String(e.message).slice(0, 90) });
-    dispatchNoteByEmail.set(email, "");
-    continue;
-  }
+// The evidence path is declared BEFORE the run, because the crash path below
+// needs it — a `const` declared after the `try` would still be in the temporal
+// dead zone when the `catch` runs.
+const EVIDENCE = "docs/evidence/role-pages.json";
 
-  const ctx = await browser.newContext({ storageState: state, viewport: { width: 1440, height: 900 } });
-  const page = await ctx.newPage();
-  let routes;
-  try {
-    await page.goto(`${BASE}/app`, { waitUntil: "domcontentloaded" });
-    await page.waitForLoadState("networkidle", { timeout: 8_000 }).catch(() => {});
-    routes = await navHrefs(page);
-  } catch {
-    routes = [];
-  }
+/**
+ * The browser work is wrapped, because a gate that crashes must not leave the
+ * PREVIOUS run's evidence file in place.
+ *
+ * WHY: `docs/evidence/role-pages.json` is read as this gate's result. If this
+ * script throws before it writes — a dead server, a browser that will not
+ * launch, a sign-in that times out — the old file survives: dated, parseable,
+ * and describing a build that no longer exists. Nothing in it says "this was
+ * not measured now", and a reader has no way to tell it from a fresh result.
+ *
+ * `verify-attendance-tz.mjs` and `smoke-cron.mjs` already guard their runs
+ * this way. This is the same guard for the same failure: the evidence is
+ * written with the verdict `unknown`, which says "this run did not complete"
+ * rather than "here is a measurement".
+ */
+let browser = null;
+try {
+  browser = await chromium.launch();
 
-  // The dashboard you land on may not be linked from the sidebar.
-  const home = new URL(page.url()).pathname;
-  if (home.startsWith("/app") && !routes.includes(home)) routes.push(home);
-  routes = [...new Set(routes)].sort();
-
-  // `/app` is a dispatcher, not a page: it forwards internal users to
-  // `/app/my` and client users to `/app/client`. Counting that redirect as a
-  // failure would report the router working correctly as a defect.
-  const dispatchOnly = routes.filter((r) => r === "/app");
-  routes = routes.filter((r) => r !== "/app");
-
-  // Skip deep routes we cannot discover from a sidebar link alone.
-  const crawlable = routes.filter((r) => !/[0-9a-f]{8}-[0-9a-f]{4}-/i.test(r));
-
-  for (const route of crawlable) {
-    const p = await ctx.newPage();
-    const consoleErrors = [];
-    p.on("console", (m) => {
-      if (m.type() === "error") consoleErrors.push(m.text().slice(0, 120));
-    });
-    let status = "PASS";
-    let detail = "";
+  for (const email of EMAILS) {
+    let state;
     try {
-      const resp = await p.goto(`${BASE}${route}`, { waitUntil: "domcontentloaded", timeout: 25_000 });
-      await p.waitForLoadState("networkidle", { timeout: 6_000 }).catch(() => {});
-      await p.waitForTimeout(300);
-      // Compare path *and* query. Several nav items are pre-filtered links
-      // (`/app/crm/leads?status=new`); `URL.pathname` drops the search string,
-      // so comparing pathname alone reported those as bounces.
-      const landed = new URL(p.url());
-      const landedWithSearch = `${landed.pathname}${landed.search}`;
-      if (landedWithSearch !== route) {
-        status = "BOUNCE";
-        detail = landedWithSearch;
-      } else {
-        const marker = await p
-          .evaluate(() => document.querySelector("[data-page-status]")?.getAttribute("data-page-status") ?? null)
-          .catch(() => null);
-        if (marker) {
-          status = "DENIED";
-          detail = marker;
-        } else if (resp && resp.status() >= 400) {
-          status = "HTTP";
-          detail = String(resp.status());
-        } else if (consoleErrors.length) {
-          status = "CONSOLE";
-          detail = `${consoleErrors.length} error(s): ${consoleErrors[0]}`;
-        }
-      }
+      state = await login(browser, email);
     } catch (e) {
-      status = "NAV-ERROR";
-      detail = String(e.message).slice(0, 90);
+      results.push({ email, route: "(login)", status: "LOGIN-FAIL", detail: String(e.message).slice(0, 90) });
+      dispatchNoteByEmail.set(email, "");
+      continue;
     }
-    await p.close();
-    results.push({ email, route, status, detail });
+
+    const ctx = await browser.newContext({ storageState: state, viewport: { width: 1440, height: 900 } });
+    const page = await ctx.newPage();
+    let routes;
+    try {
+      await page.goto(`${BASE}/app`, { waitUntil: "domcontentloaded" });
+      await page.waitForLoadState("networkidle", { timeout: 8_000 }).catch(() => {});
+      routes = await navHrefs(page);
+    } catch {
+      routes = [];
+    }
+
+    // The dashboard you land on may not be linked from the sidebar.
+    const home = new URL(page.url()).pathname;
+    if (home.startsWith("/app") && !routes.includes(home)) routes.push(home);
+    routes = [...new Set(routes)].sort();
+
+    // `/app` is a dispatcher, not a page: it forwards internal users to
+    // `/app/my` and client users to `/app/client`. Counting that redirect as a
+    // failure would report the router working correctly as a defect.
+    const dispatchOnly = routes.filter((r) => r === "/app");
+    routes = routes.filter((r) => r !== "/app");
+
+    // Skip deep routes we cannot discover from a sidebar link alone.
+    const crawlable = routes.filter((r) => !/[0-9a-f]{8}-[0-9a-f]{4}-/i.test(r));
+
+    for (const route of crawlable) {
+      const p = await ctx.newPage();
+      const consoleErrors = [];
+      p.on("console", (m) => {
+        if (m.type() === "error") consoleErrors.push(m.text().slice(0, 120));
+      });
+      let status = "PASS";
+      let detail = "";
+      try {
+        const resp = await p.goto(`${BASE}${route}`, { waitUntil: "domcontentloaded", timeout: 25_000 });
+        await p.waitForLoadState("networkidle", { timeout: 6_000 }).catch(() => {});
+        await p.waitForTimeout(300);
+        // Compare path *and* query. Several nav items are pre-filtered links
+        // (`/app/crm/leads?status=new`); `URL.pathname` drops the search string,
+        // so comparing pathname alone reported those as bounces.
+        const landed = new URL(p.url());
+        const landedWithSearch = `${landed.pathname}${landed.search}`;
+        if (landedWithSearch !== route) {
+          status = "BOUNCE";
+          detail = landedWithSearch;
+        } else {
+          const marker = await p
+            .evaluate(() => document.querySelector("[data-page-status]")?.getAttribute("data-page-status") ?? null)
+            .catch(() => null);
+          if (marker) {
+            status = "DENIED";
+            detail = marker;
+          } else if (resp && resp.status() >= 400) {
+            status = "HTTP";
+            detail = String(resp.status());
+          } else if (consoleErrors.length) {
+            status = "CONSOLE";
+            detail = `${consoleErrors.length} error(s): ${consoleErrors[0]}`;
+          }
+        }
+      } catch (e) {
+        status = "NAV-ERROR";
+        detail = String(e.message).slice(0, 90);
+      }
+      await p.close();
+      results.push({ email, route, status, detail });
+    }
+
+    await ctx.close();
+    dispatchNoteByEmail.set(
+      email,
+      dispatchOnly.length ? `  (/app dispatcher -> ${home}, not crawled)` : "",
+    );
   }
 
-  await ctx.close();
-  dispatchNoteByEmail.set(
-    email,
-    dispatchOnly.length ? `  (/app dispatcher -> ${home}, not crawled)` : "",
+  await browser.close();
+} catch (err) {
+  // The browser is closed before the error propagates, so a crash does not
+  // leave a Chromium process behind.
+  if (browser) await browser.close().catch(() => {});
+  // Whatever was reached before the crash is kept. A reader can see how far the
+  // run got, and that the run did not finish.
+  const partialFailures = results.filter((r) => r.status !== "PASS").length;
+  const partialRoles = [...new Set(results.map((r) => r.email))];
+  mkdirSync("docs/evidence", { recursive: true });
+  writeFileSync(
+    EVIDENCE,
+    JSON.stringify(
+      {
+        check: "role-pages",
+        generatedAt: new Date().toISOString(),
+        base: BASE,
+        verdict: "unknown",
+        verdictText: `could not complete: ${String(err.message).split("\n")[0]}`,
+        roles: partialRoles,
+        roleCount: partialRoles.length,
+        total: results.length,
+        passed: results.length - partialFailures,
+        failures: partialFailures,
+        claim: "every page a role's own nav makes visible is reachable and working",
+        results,
+      },
+      null,
+      2,
+    ) + "\n",
   );
+  console.error(err);
+  process.exit(1);
 }
-
-await browser.close();
 
 let failures = 0;
 const byRole = new Map();
@@ -246,8 +302,8 @@ for (const [email, rows] of byRole) {
 // numbers drifted because nothing pinned them.
 //
 // Every other audit in this suite writes here. Matching them is what makes the
-// matrix row traceable to a run rather than to somebody's memory.
-const EVIDENCE = "docs/evidence/role-pages.json";
+// matrix row traceable to a run rather than to somebody's memory. The path
+// itself is declared above, before the run, so the crash path can use it too.
 mkdirSync("docs/evidence", { recursive: true });
 writeFileSync(
   EVIDENCE,

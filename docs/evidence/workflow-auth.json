@@ -3,10 +3,10 @@
   "script": "scripts/audit/qa-exercise-auth-workflow.mjs",
   "claim": "the auth surface: sign-in, sign-out, account switching, password reset and the throwaway-account cleanup that proves none of it leaked",
   "base": "http://localhost:3100",
-  "when": "2026-10-19T11:53:50.908Z",
+  "when": "2026-10-20T08:41:55.804Z",
   "exitCode": 0,
   "verdict": "PASS",
-  "assertions": 36,
+  "assertions": 35,
   "checks": [
     {
       "name": "a wrong password does not sign you in",
@@ -29,11 +29,7 @@
       "pass": true
     },
     {
-      "name": "signup creates an account and asks for email verification",
-      "pass": true
-    },
-    {
-      "name": "a new signup lands in the applicant membership with the applicant role",
+      "name": "a rate limit is reported as a rate limit, not as a bad address",
       "pass": true
     },
     {
@@ -165,6 +161,10 @@
       {
         "what": "forgot-password anti-enumeration comparison",
         "why": "the real address returned a delivery error (\"We couldn't send reset instructions. Try again i\") while the fake address returned the confirmation copy"
+      },
+      {
+        "what": "signup account creation",
+        "why": "Supabase 429 email rate limit (environment)"
       }
     ],
     "signIns": [
@@ -257,7 +257,7 @@
         "said": ""
       },
       {
-        "account": "qa.nobody.1792410821035@nowhere.example",
+        "account": "qa.nobody.1792485706226@nowhere.example",
         "path": "/login",
         "outcome": "alert",
         "landed": "/app",
@@ -265,5 +265,16 @@
         "said": ""
       }
     ]
+  },
+  "self": {
+    "verdict": "PASS",
+    "assertions": 35,
+    "failed": 0
+  },
+  "confirmation": null,
+  "confirmedBy": "qa-run-workflows",
+  "suite": {
+    "parsedAssertions": 35,
+    "printedFailures": 0
   }
 }

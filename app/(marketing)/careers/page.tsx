@@ -338,8 +338,8 @@ export default async function CareersPage({
           */}
           {jobs.length > 0 ? (
             <form method="get" action="/careers" className="cr-filters">
-              <div className="grid gap-4 md:grid-cols-12 md:items-end">
-                <div className="md:col-span-4">
+              <div className="grid gap-4 md:grid-cols-6 md:items-end">
+                <div className="md:col-span-2">
                   <label
                     htmlFor="careers-q"
                     className="flex flex-col gap-1 text-xs font-medium text-slate"
@@ -363,7 +363,7 @@ export default async function CareersPage({
                   </label>
                 </div>
 
-                <div className="md:col-span-2">
+                <div className="md:col-span-1">
                   <NativeSelectCompact
                     id="careers-type"
                     name="type"
@@ -379,7 +379,7 @@ export default async function CareersPage({
                   </NativeSelectCompact>
                 </div>
 
-                <div className="md:col-span-2">
+                <div className="md:col-span-1">
                   <NativeSelectCompact
                     id="careers-setup"
                     name="setup"
@@ -396,7 +396,7 @@ export default async function CareersPage({
                 </div>
 
                 {locations.length > 0 ? (
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-1">
                     <NativeSelectCompact
                       id="careers-location"
                       name="location"

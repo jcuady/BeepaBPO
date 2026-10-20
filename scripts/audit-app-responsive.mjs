@@ -319,8 +319,10 @@ const probe = (opts) => {
         results.smallTargets.push({
           tag: el.tagName.toLowerCase(),
           text: (el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 34),
-          w: Math.round(r.width),
-          h: Math.round(r.height),
+          // Two decimals, not rounded — a failing measurement must not be
+          // reported as a passing one (see audit-responsive.mjs).
+          w: +r.width.toFixed(2),
+          h: +r.height.toFixed(2),
           cls: (el.className || "").toString().slice(0, 80),
         });
       }

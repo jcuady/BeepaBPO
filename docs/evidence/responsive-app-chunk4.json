@@ -1,6 +1,6 @@
 {
   "check": "responsive-app",
-  "generatedAt": "2026-10-15T12:58:33.249Z",
+  "generatedAt": "2026-10-20T08:37:05.046Z",
   "base": "http://localhost:3100",
   "account": "owner@demo.beepabpo.com",
   "routes": [
@@ -12,6 +12,16 @@
     "/app/admin/users",
     "/app/clients"
   ],
+  "requestedRoutes": [
+    "/app/tickets",
+    "/app/approvals",
+    "/app/reports",
+    "/app/hr",
+    "/app/admin",
+    "/app/admin/users",
+    "/app/clients"
+  ],
+  "inaccessible": [],
   "chunkOf": "7 route(s) — run in chunks, see QA_REPORT §7",
   "total": 56,
   "passed": 56,
